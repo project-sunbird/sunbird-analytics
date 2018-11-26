@@ -1,6 +1,8 @@
 package org.ekstep.analytics.updater
 
 /**
+  * Ref:Design wiki link: https://project-sunbird.atlassian.net/wiki/spaces/SBDES/pages/794198025/Design+Brainstorm+Data+structure+for+capturing+dashboard+portal+metrics
+  * Ref:Implementation wiki link: https://project-sunbird.atlassian.net/wiki/spaces/SBDES/pages/794099772/Data+Product+Dashboard+summariser+-+Cumulative
   * @author Manjunath Davanam <manjunathd@ilimi.in>
   */
 
@@ -15,9 +17,9 @@ import org.ekstep.analytics.adapter.ContentAdapter
 import org.joda.time.DateTime
 
 
-case class workflowSummaryEvents(deviceId: String, mode: String, dType: String, totalSession: Long, totalTs: Double, syncTs: DateTime) extends AlgoInput with Input
+case class workflowSummaryEvents(deviceId: String, mode: String, dType: String, totalSession: Long, totalTs: Double, syncTs: Long) extends AlgoInput with Input
 
-case class DashBoardSummary(noOfUniqueDevices: Long, totalContentPlaySessions: Double, totalTimeSpent: Double, totalDigitalContentPublished: Long) extends AlgoOutput with Output
+case class DashBoardSummary(noOfUniqueDevices: Long, totalContentPlaySessions: Double, totalTimeSpent: Double, totalDigitalContentPublished: Long, syncTs:Long) extends AlgoOutput with Output
 
 
 object UpdateDashboardModel extends IBatchModelTemplate[DerivedEvent, workflowSummaryEvents, DashBoardSummary, MeasuredEvent] with Serializable {
@@ -29,10 +31,10 @@ object UpdateDashboardModel extends IBatchModelTemplate[DerivedEvent, workflowSu
   override def name: String = "UpdateDashboardModel"
 
   /**
-    * PreProcess which fetch the `WorkFlowUsageSummaryFact` Event data from the Cassandra Database.
+    * preProcess which will fetch the `WorkFlowUsageSummaryFact` Event data from the Cassandra Database.
     *
     * @param data   - RDD Event Data(Empty RDD event)
-    * @param config - Configurations to run preprocess
+    * @param config - Configurations to run preProcess
     * @param sc     - SparkContext
     * @return - workflowSummaryEvents
     */
@@ -41,7 +43,7 @@ object UpdateDashboardModel extends IBatchModelTemplate[DerivedEvent, workflowSu
     val startTime = CommonUtil.dateFormat.parseDateTime(date).getMillis
     val endTime = CommonUtil.getEndTimestampOfDay(date)
     sc.cassandraTable[WorkFlowUsageSummaryFact](Constants.PLATFORM_KEY_SPACE_NAME, Constants.WORKFLOW_USAGE_SUMMARY_FACT).where("m_updated_date>=?", startTime).where("m_updated_date<=?", endTime).filter { x => x.d_period == 0 }.map(event => {
-      workflowSummaryEvents(event.d_device_id, event.d_mode, event.d_type, event.m_total_sessions, event.m_total_ts, event.m_last_sync_date)
+      workflowSummaryEvents(event.d_device_id, event.d_mode, event.d_type, event.m_total_sessions, event.m_total_ts, event.m_last_sync_date.getMillis)
     })
   }
 
@@ -57,7 +59,11 @@ object UpdateDashboardModel extends IBatchModelTemplate[DerivedEvent, workflowSu
     val totalContentPlaySession = data.filter(x => x.mode.equals("play") && x.dType.equals("content")).map(_.totalSession).sum()
     val totalTimeSpent = data.filter(x => x.dType.equals("app") || x.dType.equals("session")).map(_.totalTs).sum()
     val totalDigitalContentPublished = ContentAdapter.getPublishedContentList().count
-    sc.parallelize(Array(DashBoardSummary(uniqueDevices, totalContentPlaySession, totalTimeSpent, totalDigitalContentPublished)))
+    var lastSyncTs :Long = new DateTime().getMillis()
+    if(!data.isEmpty()){
+      lastSyncTs = data.sortBy(_.syncTs, false).first().syncTs
+    }
+    sc.parallelize(Array(DashBoardSummary(uniqueDevices, totalContentPlaySession, totalTimeSpent, totalDigitalContentPublished, lastSyncTs)))
   }
 
   /**
@@ -79,7 +85,7 @@ object UpdateDashboardModel extends IBatchModelTemplate[DerivedEvent, workflowSu
     )
     val mid = CommonUtil.getMessageId(EVENT_ID, null, "DAY", null
       , "", None, None, null)
-    sc.parallelize(Array(MeasuredEvent(EVENT_ID, System.currentTimeMillis(), 5345, version, mid, "", "", None, None,
+    sc.parallelize(Array(MeasuredEvent(EVENT_ID, System.currentTimeMillis(), record.syncTs, version, mid, "", "", None, None,
       Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "WorkFlowUsageSummarizer").asInstanceOf[String])), None, "DAY", null),
       Dimensions(None, None, None, None, None, None, None), MEEdata(measures), None)))
   }
