@@ -17,7 +17,7 @@ import org.joda.time.DateTime
 
 case class workflowSummaryEvents(deviceId: String, mode: String, dType: String, totalSession: Long, totalTs: Double) extends AlgoInput with Input
 
-case class DashBoardSummary(noOfUniqueDevices: Long, totalContentPlaySessions: Double, totalTimeSpent: Double) extends AlgoOutput with Output
+case class DashBoardSummary(noOfUniqueDevices: Long, totalContentPlaySessions: Double, totalTimeSpent: Double, totalDigitalContentPublished:Long) extends AlgoOutput with Output
 
 
 object UpdateDashboardModel extends IBatchModelTemplate[DerivedEvent, workflowSummaryEvents, DashBoardSummary, MeasuredEvent] with Serializable {
@@ -50,24 +50,16 @@ object UpdateDashboardModel extends IBatchModelTemplate[DerivedEvent, workflowSu
     * @return             - DashBoardSummary ->(uniqueDevices, totalContentPlaySession, totalTimeSpent,)
     */
   override def algorithm(data: RDD[workflowSummaryEvents], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DashBoardSummary] = {
-    object keyWords{
-      "PLAY" = "play"
-      "CONTENT" ="content"
-      "SESSION" = "session"
-      "APP" = "app"
-
-    }
     val uniqueDevices = data.filter(x => x.deviceId != "all").map(_.deviceId).distinct().count()
     val totalContentPlaySession = data.filter(x => x.mode.equals("play") && x.dType.equals("content")).map(_.totalSession).sum()
     val totalTimeSpent = data.filter(x => x.dType.equals("app") || x.dType.equals("session")).map(_.totalTs).sum()
-
-
-    //println("Contents", contents)
-
+    val publishedContents =  ContentAdapter.getPublishedContentList()
+    println("publishedContentlist", publishedContents.count)
+    val totalDigitalContentPublished = publishedContents.count
     println(uniqueDevices)
     println(totalContentPlaySession)
     println(totalTimeSpent)
-    sc.parallelize(Array(DashBoardSummary(uniqueDevices, totalContentPlaySession, totalTimeSpent)))
+    sc.parallelize(Array(DashBoardSummary(uniqueDevices, totalContentPlaySession, totalTimeSpent, totalDigitalContentPublished)))
   }
 
   /**
@@ -83,7 +75,9 @@ object UpdateDashboardModel extends IBatchModelTemplate[DerivedEvent, workflowSu
     val measures = Map(
       "totalTimeSpent" ->record.totalTimeSpent,
       "totalContentPlaySessions" -> record.totalContentPlaySessions,
-      "noOfUniqueDevices" -> record.noOfUniqueDevices
+      "noOfUniqueDevices" -> record.noOfUniqueDevices,
+      "totalDigitalContentPublished"-> record.totalDigitalContentPublished,
+      "telemetryVersion"-> version
     )
     val mid = CommonUtil.getMessageId("ME_DASHBOARD_CUMULATIVE_SUMMARY", null, "DAY", null
       , "", None, None, null)
@@ -91,4 +85,5 @@ object UpdateDashboardModel extends IBatchModelTemplate[DerivedEvent, workflowSu
       Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "WorkFlowUsageSummarizer").asInstanceOf[String])), None, "DAY", null),
       Dimensions(None, None, None, None, None, None, None), MEEdata(measures), None)))
   }
+
 }

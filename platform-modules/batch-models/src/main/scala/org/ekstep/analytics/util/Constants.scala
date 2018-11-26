@@ -63,6 +63,7 @@ object Constants {
 
     val LP_URL = AppConf.getConfig("lp.url");
     val SEARCH_SERVICE_URL = AppConf.getConfig("service.search.url");
+    val COMPOSITE_SEARCH_SERVICE_URL = AppConf.getConfig("service.composite_search.url")
     
     val GENIE_ENV = "Genie"
     val PLAYER_ENV = "ContentPlayer"
@@ -97,5 +98,9 @@ object Constants {
 
     def getContentUpdateAPIUrl(contentId: String): String = {
         s"$LP_URL/v2/content/$contentId";
+    }
+
+    def getCompositeSearchURL(): String ={
+        s"$COMPOSITE_SEARCH_SERVICE_URL/v3/search"
     }
 }
