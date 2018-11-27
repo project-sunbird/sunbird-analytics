@@ -3,23 +3,24 @@ package org.ekstep.analytics.updater
 /**
   * Ref:Design wiki link: https://project-sunbird.atlassian.net/wiki/spaces/SBDES/pages/794198025/Design+Brainstorm+Data+structure+for+capturing+dashboard+portal+metrics
   * Ref:Implementation wiki link: https://project-sunbird.atlassian.net/wiki/spaces/SBDES/pages/794099772/Data+Product+Dashboard+summariser+-+Cumulative
+  *
   * @author Manjunath Davanam <manjunathd@ilimi.in>
   */
 
 import com.datastax.spark.connector._
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
+import org.ekstep.analytics.adapter.ContentAdapter
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.conf.AppConf
-import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils}
+import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.util.{Constants, WorkFlowUsageSummaryFact}
-import org.ekstep.analytics.adapter.ContentAdapter
 import org.joda.time.DateTime
 
 
 case class workflowSummaryEvents(deviceId: String, mode: String, dType: String, totalSession: Long, totalTs: Double, syncTs: Long) extends AlgoInput with Input
 
-case class DashBoardSummary(noOfUniqueDevices: Long, totalContentPlaySessions: Double, totalTimeSpent: Double, totalDigitalContentPublished: Long, syncTs:Long) extends AlgoOutput with Output
+case class DashBoardSummary(noOfUniqueDevices: Long, totalContentPlaySessions: Double, totalTimeSpent: Double, totalDigitalContentPublished: Long, syncTs: Long) extends AlgoOutput with Output
 
 
 object UpdateDashboardModel extends IBatchModelTemplate[DerivedEvent, workflowSummaryEvents, DashBoardSummary, MeasuredEvent] with Serializable {
@@ -55,12 +56,19 @@ object UpdateDashboardModel extends IBatchModelTemplate[DerivedEvent, workflowSu
     * @return - DashBoardSummary ->(uniqueDevices, totalContentPlaySession, totalTimeSpent,)
     */
   override def algorithm(data: RDD[workflowSummaryEvents], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DashBoardSummary] = {
-    val uniqueDevices = data.filter(x => x.deviceId != "all").map(_.deviceId).distinct().count()
-    val totalContentPlaySession = data.filter(x => x.mode.equals("play") && x.dType.equals("content")).map(_.totalSession).sum()
-    val totalTimeSpent = data.filter(x => x.dType.equals("app") || x.dType.equals("session")).map(_.totalTs).sum()
+    object _constant {
+      val APP = "app"
+      val PLAY = "play"
+      val CONTENT = "content"
+      val SESSION = "session"
+      val ALL = "all"
+    }
+    val uniqueDevices = data.filter(x => x.deviceId != _constant.ALL).map(_.deviceId).distinct().count()
+    val totalContentPlaySession = data.filter(x => x.mode.equals(_constant.PLAY) && x.dType.equals(_constant.CONTENT)).map(_.totalSession).sum()
+    val totalTimeSpent = data.filter(x => x.dType.equals(_constant.APP) || x.dType.equals(_constant.SESSION)).map(_.totalTs).sum()
     val totalDigitalContentPublished = ContentAdapter.getPublishedContentList().count
-    var lastSyncTs :Long = new DateTime().getMillis()
-    if(!data.isEmpty()){
+    var lastSyncTs: Long = new DateTime().getMillis()
+    if (!data.isEmpty()) {
       lastSyncTs = data.sortBy(_.syncTs, false).first().syncTs
     }
     sc.parallelize(Array(DashBoardSummary(uniqueDevices, totalContentPlaySession, totalTimeSpent, totalDigitalContentPublished, lastSyncTs)))
