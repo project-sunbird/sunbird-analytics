@@ -10,6 +10,7 @@ import org.ekstep.analytics.model.SparkSpec
 import org.ekstep.analytics.util.{WorkFlowUsageSummaryFact, _}
 import org.joda.time.DateTime
 
+
 /**
   * @author Manjunath Davanam <manjunathd@ilimi.in>
   */
@@ -37,7 +38,7 @@ class TestUpdateDashboardtModel extends SparkSpec(null) {
   /**
     * Which is used to execute updateDashboard data product
     */
-  private def executeDataProduct():RDD[MeasuredEvent]={
+  private def executeDataProduct():RDD[DashBoardSummary]={
     UpdateDashboardModel.execute(sc.emptyRDD, Option(Map("date" -> new DateTime().toString(CommonUtil.dateFormat).asInstanceOf[AnyRef])))
   }
 
@@ -53,7 +54,7 @@ class TestUpdateDashboardtModel extends SparkSpec(null) {
     val rdd = executeDataProduct()
     val out = rdd.collect()
     println(JSONUtils.serialize(out.head))
-    val dashboardSummary = JSONUtils.deserialize[TestDashBoardSummary](JSONUtils.serialize(out.head.edata.eks))
+    val dashboardSummary = JSONUtils.deserialize[TestDashBoardSummary](JSONUtils.serialize(out.head.metrics_summary))
     dashboardSummary.totalDigitalContentPublished should be(202)
     dashboardSummary.noOfUniqueDevices should be(2)
     dashboardSummary.totalTimeSpent should be(0.0)
@@ -65,7 +66,7 @@ class TestUpdateDashboardtModel extends SparkSpec(null) {
     cleanDataBase()
     saveToDB(Array())
     val result = executeDataProduct().collect().head
-    val dashboardSummary = JSONUtils.deserialize[TestDashBoardSummary](JSONUtils.serialize(result.edata.eks))
+    val dashboardSummary = JSONUtils.deserialize[TestDashBoardSummary](JSONUtils.serialize(result.metrics_summary))
     dashboardSummary.totalDigitalContentPublished should be(202)
     dashboardSummary.noOfUniqueDevices should be(0)
     dashboardSummary.totalTimeSpent should be(0)
@@ -87,16 +88,31 @@ class TestUpdateDashboardtModel extends SparkSpec(null) {
       WorkFlowUsageSummaryFact(0, "b00bc992ef25f1a9a8d63291e20efc8db", "prod.diksha.app", "all", "app", "edit", "534557346543-782e-4f6c-8f36-e02884559085b", "org.ekstep.delta", "all", DateTime.now, DateTime.now, DateTime.now, 450.0, 30, 112.5, 100, 23.56, 11, 2.15, 12, 15, 18, Array(1), Array(2), Array(3), Some("Textbook")),
       WorkFlowUsageSummaryFact(0, "b00bc992ef25f1a9a8d63291e20efc8dc", "prod.diksha.app", "all", "session", "edit", "534557346543-782e-4f6c-8f36-e02884559085c", "org.ekstep.delta", "all", DateTime.now, DateTime.now, DateTime.now, 100.0, 30, 112.5, 100, 23.56, 11, 2.15, 12, 15, 18, Array(1), Array(2), Array(3), Some("Textbook")),
       WorkFlowUsageSummaryFact(0, "b00bc992ef25f1a9a8d63291e20efc8dd", "prod.diksha.app", "all", "session", "edit", "534557346543-782e-4f6c-8f36-e02884559085d", "org.ekstep.delta", "all", DateTime.now, DateTime.now, DateTime.now, 430.8, 30, 112.5, 100, 23.56, 11, 2.15, 12, 15, 18, Array(1), Array(2), Array(3), Some("Textbook"))
-
-
     )
     saveToDB(inputData)
     val result = executeDataProduct().collect().head
-    val dashboardSummary = JSONUtils.deserialize[TestDashBoardSummary](JSONUtils.serialize(result.edata.eks))
+    val dashboardSummary = JSONUtils.deserialize[TestDashBoardSummary](JSONUtils.serialize(result.metrics_summary))
     dashboardSummary.totalDigitalContentPublished should be(202)
     dashboardSummary.noOfUniqueDevices should be(7)
     dashboardSummary.totalTimeSpent should be(1430.8)
     dashboardSummary.totalContentPlaySessions should be(138)
+    println(JSONUtils.serialize(result))
+  }
+
+  ignore should "populate the totalTimeSpent and totalContentPlaySession as ZERO When totalTimeSpent and totalContentPlaySession is empty/null" in {
+    println("4th Testcase")
+    cleanDataBase()
+    val inputData = Array(
+        WorkFlowUsageSummaryFact(0, "b00bc992ef25f1a9a8d63291e20efc8dd", "prod.diksha.app", "all", null, null, "5749873953-782e-4f6c-8f36-e02884559085d", "org.ekstep.delta", "all", DateTime.now, DateTime.now, DateTime.now, 430.8, 30, 112.5, 100, 23.56, 11, 2.15, 12, 15, 18, Array(1), Array(2), Array(3), Some("Textbook")),
+        WorkFlowUsageSummaryFact(0, "b00bc992ef25f1a9a8d63291e20efc8dd", "prod.diksha.app", "all", null, null, "534557346543-782e-4f6c-8f36-e02884559085d", "org.ekstep.delta", "all", DateTime.now, DateTime.now, DateTime.now, 430.8, 30, 112.5, 100, 23.56, 11, 2.15, 12, 15, 18, Array(1), Array(2), Array(3), Some("Textbook"))
+    )
+    saveToDB(inputData)
+    val result = executeDataProduct().collect().head
+    val dashboardSummary = JSONUtils.deserialize[TestDashBoardSummary](JSONUtils.serialize(result.metrics_summary))
+    dashboardSummary.totalDigitalContentPublished should be(202)
+    dashboardSummary.noOfUniqueDevices should be(2)
+    dashboardSummary.totalTimeSpent should be(0)
+    dashboardSummary.totalContentPlaySessions should be(0)
     println(JSONUtils.serialize(result))
   }
 }
