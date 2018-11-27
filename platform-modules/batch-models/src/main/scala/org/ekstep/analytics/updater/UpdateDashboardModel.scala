@@ -20,7 +20,7 @@ import org.joda.time.DateTime
 
 case class WorkflowSummaryEvents(deviceId: String, mode: String, dType: String, totalSession: Long, totalTs: Double, syncTs: Option[Long]) extends AlgoInput with Input
 
-case class Metrics(noOfUniqueDevices: Long, totalContentPlaySessions: Double, totalTimeSpent: Double, totalDigitalContentPublished: Long, version: Option[String],  syncTs: Option[Long]) extends AlgoOutput with Output
+case class Metrics(noOfUniqueDevices: Long, totalContentPlaySessions: Double, totalTimeSpent: Double, totalDigitalContentPublished: Long, version: Option[String], syncTs: Option[Long]) extends AlgoOutput with Output
 
 case class DashBoardSummary(eid: String, ets: Long, syncts: Option[Long], metrics_summary: Option[Metrics]) extends AlgoOutput with Output
 
@@ -67,7 +67,12 @@ object UpdateDashboardModel extends IBatchModelTemplate[DerivedEvent, WorkflowSu
     val uniqueDevices = data.filter(x => x.deviceId != _constant.ALL).map(_.deviceId).distinct().count()
     val totalContentPlaySession = data.filter(x => x.mode.equals(_constant.PLAY) && x.dType.equals(_constant.CONTENT)).map(_.totalSession).sum()
     val totalTimeSpent = data.filter(x => x.dType.equals(_constant.APP) || x.dType.equals(_constant.SESSION)).map(_.totalTs).sum()
-    val totalDigitalContentPublished = ContentAdapter.getPublishedContentList().count
+    var totalDigitalContentPublished: Long = 0 // Default is Zero
+    try { // Handling the error due to if any api call is failed.
+      totalDigitalContentPublished = ContentAdapter.getPublishedContentList().count
+    } catch {
+      case _: Throwable =>
+    }
     var lastSyncTs: Option[Long] = Some(new DateTime().getMillis())
     if (!data.isEmpty()) {
       lastSyncTs = data.sortBy(_.syncTs, false).first().syncTs
@@ -86,7 +91,7 @@ object UpdateDashboardModel extends IBatchModelTemplate[DerivedEvent, WorkflowSu
     val version = AppConf.getConfig("telemetry.version")
     val record = data.first()
     val measures = Metrics(record.noOfUniqueDevices, record.totalContentPlaySessions, record.totalTimeSpent, record.totalDigitalContentPublished, Some(version), None)
-    sc.parallelize(Array(DashBoardSummary(EVENT_ID, System.currentTimeMillis(), record.syncTs , Some(measures))))
+    sc.parallelize(Array(DashBoardSummary(EVENT_ID, System.currentTimeMillis(), record.syncTs, Some(measures))))
   }
 
 }
