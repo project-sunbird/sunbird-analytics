@@ -3,8 +3,6 @@ package org.ekstep.analytics.updater
 import com.datastax.spark.connector._
 import com.datastax.spark.connector.cql.CassandraConnector
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.catalyst.expressions.objects
-import org.apache.spark.sql.catalyst.expressions.objects.AssertNotNull
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils}
 import org.ekstep.analytics.model.SparkSpec
@@ -56,7 +54,7 @@ class TestUpdateDashboardtModel extends SparkSpec(null) {
     val out = rdd.collect()
     println(JSONUtils.serialize(out.head))
     val dashboardSummary = JSONUtils.deserialize[TestDashBoardSummary](JSONUtils.serialize(out.head.metrics_summary))
-    dashboardSummary.totalDigitalContentPublished should be(201)
+    dashboardSummary.totalDigitalContentPublished should be(202)
     dashboardSummary.noOfUniqueDevices should be(2)
     dashboardSummary.totalTimeSpent should be(0.0)
     dashboardSummary.totalContentPlaySessions should be(8.0)
@@ -68,7 +66,7 @@ class TestUpdateDashboardtModel extends SparkSpec(null) {
     saveToDB(Array())
     val result = executeDataProduct().collect().head
     val dashboardSummary = JSONUtils.deserialize[TestDashBoardSummary](JSONUtils.serialize(result.metrics_summary))
-    dashboardSummary.totalDigitalContentPublished should be(201)
+    dashboardSummary.totalDigitalContentPublished should be(202)
     dashboardSummary.noOfUniqueDevices should be(0)
     dashboardSummary.totalTimeSpent should be(0)
     dashboardSummary.totalContentPlaySessions should be(0)
@@ -93,7 +91,7 @@ class TestUpdateDashboardtModel extends SparkSpec(null) {
     saveToDB(inputData)
     val result = executeDataProduct().collect().head
     val dashboardSummary = JSONUtils.deserialize[TestDashBoardSummary](JSONUtils.serialize(result.metrics_summary))
-    dashboardSummary.totalDigitalContentPublished should be(201)
+    dashboardSummary.totalDigitalContentPublished should be(202)
     dashboardSummary.noOfUniqueDevices should be(7)
     dashboardSummary.totalTimeSpent should be(1430.8)
     dashboardSummary.totalContentPlaySessions should be(138)
@@ -110,7 +108,7 @@ class TestUpdateDashboardtModel extends SparkSpec(null) {
     saveToDB(inputData)
     val result = executeDataProduct().collect().head
     val dashboardSummary = JSONUtils.deserialize[TestDashBoardSummary](JSONUtils.serialize(result.metrics_summary))
-    dashboardSummary.totalDigitalContentPublished should be(201)
+    dashboardSummary.totalDigitalContentPublished should be(202)
     dashboardSummary.noOfUniqueDevices should be(2)
     dashboardSummary.totalTimeSpent should be(0)
     dashboardSummary.totalContentPlaySessions should be(0)
