@@ -22,7 +22,7 @@ case class WorkflowSummaryEvents(deviceId: String, mode: String, dType: String, 
 
 case class Metrics(noOfUniqueDevices: Long, totalContentPlaySessions: Double, totalTimeSpent: Double, totalContentPublished: Long) extends AlgoOutput with Output
 
-case class PortalMetrics(eid: String, ets: Long, syncts: Option[Long], metrics_summary: Option[Metrics]) extends AlgoOutput with Output
+case class PortalMetrics(eid: String, ets: Long, syncts: Long, metrics_summary: Option[Metrics]) extends AlgoOutput with Output
 
 object UpdatePortalMetrics extends IBatchModelTemplate[DerivedEvent, WorkflowSummaryEvents, Metrics, PortalMetrics] with Serializable {
 
@@ -77,8 +77,7 @@ object UpdatePortalMetrics extends IBatchModelTemplate[DerivedEvent, WorkflowSum
     */
   override def postProcess(data: RDD[Metrics], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[PortalMetrics] = {
     val record = data.first()
-    val lastSyncTs: Option[Long] = Some(new DateTime().getMillis())
     val measures = Metrics(record.noOfUniqueDevices, record.totalContentPlaySessions, record.totalTimeSpent, record.totalContentPublished)
-    sc.parallelize(Array(PortalMetrics(EVENT_ID, System.currentTimeMillis(), lastSyncTs, Some(measures))))
+    sc.parallelize(Array(PortalMetrics(EVENT_ID, System.currentTimeMillis(), System.currentTimeMillis(), Some(measures))))
   }
 }

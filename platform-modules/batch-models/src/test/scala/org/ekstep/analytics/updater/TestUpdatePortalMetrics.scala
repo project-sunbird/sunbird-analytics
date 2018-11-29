@@ -41,12 +41,12 @@ class TestUpdatePortalMetrics extends SparkSpec(null) {
     UpdatePortalMetrics.execute(sc.emptyRDD, Option(Map("date" -> new DateTime().toString(CommonUtil.dateFormat).asInstanceOf[AnyRef])))
   }
 
-  "UpdateDashboardModel" should "Should find the unique device count" in {
+  "UpdateDashboardModel" should "Should find the unique device count,totalContentPublished,totalTimeSpent,totalContentPlaySessions and should filter when d_time>0(Cumulative)" in {
     cleanDataBase()
     val inputData = Array(
       WorkFlowUsageSummaryFact(0, "b00bc992ef25f1a9a8d63291e20efc8d", "prod.diksha.app", "all", "content", "play", "874ed8a5-782e-4f6c-8f36-e0288455901e", "org.ekstep.delta", "all", DateTime.now, DateTime.now, DateTime.now, 450.0, 4, 112.5, 100, 23.56, 11, 2.15, 12, 15, 18, Array(1), Array(2), Array(3), Some("Textbook")),
       WorkFlowUsageSummaryFact(0, AppConf.getConfig("default.channel.id"), "prod.diksha.portal", "all", "content", "play", "874ed8a5-782e-4f6c-8f36-e0288455901e", "org.ekstep.vayuthewind", "all", DateTime.now, DateTime.now, DateTime.now, 450.0, 4, 112.5, 100, 23.56, 11, 2.15, 12, 15, 18, Array(1), Array(2), Array(3), Some("Worksheet")),
-      WorkFlowUsageSummaryFact(0, AppConf.getConfig("default.channel.id"), "prod.diksha.portal", "all", "Worksheet", "mode1", "874ed8a5-782e-4f6c-8f36-e0288455901e", "org.ekstep.ek", "all", DateTime.now, DateTime.now, DateTime.now, 40, 4, 112.5, 100, 23.56, 11, 33, 12, 15, 18, Array(1), Array(2), Array(3), Some("Worksheet")),
+      WorkFlowUsageSummaryFact(22, AppConf.getConfig("default.channel.id"), "prod.diksha.portal", "all", "Worksheet", "mode1", "874ed8a5-782e-4f6c-8f36-e0288455901e", "org.ekstep.ek", "all", DateTime.now, DateTime.now, DateTime.now, 40, 4, 112.5, 100, 23.56, 11, 33, 12, 15, 18, Array(1), Array(2), Array(3), Some("Worksheet")),
       WorkFlowUsageSummaryFact(0, AppConf.getConfig("default.channel.id"), "prod.diksha.portal", "all", "Worksheet", "mode1", "5743895-53457439-54389638-59834758-53", "org.ekstep.vayuthewind", "all", DateTime.now, DateTime.now, DateTime.now, 450.0, 4, 112.5, 100, 23.56, 11, 2.15, 12, 15, 18, Array(1), Array(2), Array(3), Some("Worksheet"))
     )
     saveToDB(inputData)
@@ -98,20 +98,4 @@ class TestUpdatePortalMetrics extends SparkSpec(null) {
     println(JSONUtils.serialize(result))
   }
 
-  ignore should "populate the totalTimeSpent and totalContentPlaySession as ZERO When totalTimeSpent and totalContentPlaySession is empty/null" in {
-    println("4th Testcase")
-    cleanDataBase()
-    val inputData = Array(
-        WorkFlowUsageSummaryFact(0, "b00bc992ef25f1a9a8d63291e20efc8dd", "prod.diksha.app", "all", null, null, "5749873953-782e-4f6c-8f36-e02884559085d", "org.ekstep.delta", "all", DateTime.now, DateTime.now, DateTime.now, 430.8, 30, 112.5, 100, 23.56, 11, 2.15, 12, 15, 18, Array(1), Array(2), Array(3), Some("Textbook")),
-        WorkFlowUsageSummaryFact(0, "b00bc992ef25f1a9a8d63291e20efc8dd", "prod.diksha.app", "all", null, null, "534557346543-782e-4f6c-8f36-e02884559085d", "org.ekstep.delta", "all", DateTime.now, DateTime.now, DateTime.now, 430.8, 30, 112.5, 100, 23.56, 11, 2.15, 12, 15, 18, Array(1), Array(2), Array(3), Some("Textbook"))
-    )
-    saveToDB(inputData)
-    val result = executeDataProduct().collect().head
-    val dashboardSummary = JSONUtils.deserialize[TestPortalMetrics](JSONUtils.serialize(result.metrics_summary))
-    dashboardSummary.totalContentPublished should be(202)
-    dashboardSummary.noOfUniqueDevices should be(2)
-    dashboardSummary.totalTimeSpent should be(0)
-    dashboardSummary.totalContentPlaySessions should be(0)
-    println(JSONUtils.serialize(result))
-  }
 }
