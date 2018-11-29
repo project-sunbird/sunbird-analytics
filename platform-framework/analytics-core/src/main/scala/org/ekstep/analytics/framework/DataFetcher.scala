@@ -1,18 +1,12 @@
 package org.ekstep.analytics.framework
 
-import org.apache.spark.rdd.RDD
-import org.apache.spark.streaming.dstream.DStream
-import org.ekstep.analytics.framework.fetcher.{AzureDataFetcher, S3DataFetcher}
-import org.ekstep.analytics.framework.exception.DataFetcherException
 import org.apache.spark.SparkContext
-import org.json4s.DefaultFormats
-import org.json4s.jackson.JsonMethods
-import org.ekstep.analytics.framework.util.CommonUtil
+import org.apache.spark.rdd.RDD
 import org.apache.spark.streaming.StreamingContext
-import org.ekstep.analytics.framework.util.JSONUtils
-import org.apache.log4j.Logger
-import org.ekstep.analytics.framework.util.JobLogger
-import org.ekstep.analytics.framework.Level._
+import org.apache.spark.streaming.dstream.DStream
+import org.ekstep.analytics.framework.exception.DataFetcherException
+import org.ekstep.analytics.framework.fetcher.{AzureDataFetcher, S3DataFetcher}
+import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger}
 
 /**
  * @author Santhosh
@@ -25,6 +19,7 @@ object DataFetcher {
 
         JobLogger.log("Fetching data", Option(Map("query" -> search)))
         if (search.queries.isEmpty) {
+            if (search.`type`.equals("empty")) return sc.parallelize(Seq[T](), JobContext.parallelization);
             throw new DataFetcherException("Data fetch configuration not found")
         }
         val date = search.queries.get.last.endDate

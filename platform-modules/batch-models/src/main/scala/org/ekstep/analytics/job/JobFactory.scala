@@ -191,7 +191,11 @@ object JobFactory {
             case "dpu" =>
                 DeviceProfileUpdater;
             case "video-streaming" =>
-                VideoStreamingJob
+                VideoStreamingJob;
+            case "dialcode-usage-summary" =>
+                DialcodeUsageSummarizer;
+            case "etb-coverage-summary" =>
+                ETBCoverageSummarizer;
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }

@@ -1,20 +1,10 @@
 package org.ekstep.analytics.framework.driver
 
-import org.ekstep.analytics.framework.DataFetcher
-import org.ekstep.analytics.framework.DataFilter
-import org.ekstep.analytics.framework.JobConfig
-import org.ekstep.analytics.framework.JobRunner
-import org.ekstep.analytics.framework.OutputDispatcher
-import org.ekstep.analytics.framework.util.CommonUtil
-import org.ekstep.analytics.framework.JobContext
-import org.ekstep.analytics.framework.Event
-import org.ekstep.analytics.framework.util.JSONUtils
-import org.ekstep.analytics.framework.IBatchModel
 import org.apache.spark.SparkContext
-import org.ekstep.analytics.framework.util.JobLogger
-import org.apache.log4j.Logger
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.framework.Level._
+import org.ekstep.analytics.framework._
+import org.ekstep.analytics.framework.util.{CommonUtil, JobLogger}
 
 /**
  * @author Santhosh
@@ -54,14 +44,15 @@ object BatchJobDriver {
         models.foreach { model =>
             JobContext.jobName = model.name
             // TODO: It is not necessary that the end date always exists. The below log statement might throw exceptions
-            JobLogger.start("Started processing of " + model.name, Option(Map("config" -> config, "model" -> model.name, "date" -> config.search.queries.get.last.endDate)));
+            val endDate = if (config.search.queries.isEmpty) "" else config.search.queries.get.last.endDate
+            JobLogger.start("Started processing of " + model.name, Option(Map("config" -> config, "model" -> model.name, "date" -> endDate)));
             try {
                 val result = _processModel(config, data, model);
-                JobLogger.end(model.name + " processing complete", "SUCCESS", Option(Map("model" -> model.name, "date" -> config.search.queries.get.last.endDate, "inputEvents" -> count, "outputEvents" -> result._2, "timeTaken" -> Double.box(result._1 / 1000))));
+                JobLogger.end(model.name + " processing complete", "SUCCESS", Option(Map("model" -> model.name, "date" -> endDate, "inputEvents" -> count, "outputEvents" -> result._2, "timeTaken" -> Double.box(result._1 / 1000))));
             } catch {
                 case ex: Exception =>
                     JobLogger.log(ex.getMessage, None, ERROR);
-                    JobLogger.end(model.name + " processing failed", "FAILED", Option(Map("model" -> model.name, "date" -> config.search.queries.get.last.endDate, "inputEvents" -> count, "statusMsg" -> ex.getMessage)));
+                    JobLogger.end(model.name + " processing failed", "FAILED", Option(Map("model" -> model.name, "date" -> endDate, "inputEvents" -> count, "statusMsg" -> ex.getMessage)));
                     ex.printStackTrace();
             }
         }

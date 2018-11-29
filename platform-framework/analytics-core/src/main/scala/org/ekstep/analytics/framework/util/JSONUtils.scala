@@ -1,16 +1,12 @@
 package org.ekstep.analytics.framework.util
 
-import java.lang.reflect.ParameterizedType
-import java.lang.reflect.Type
-import org.json4s.DefaultFormats
-import org.json4s.Extraction
-import org.json4s.jackson.JsonMethods
-import com.fasterxml.jackson.core.`type`.TypeReference
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.scala.DefaultScalaModule
+import java.lang.reflect.{ParameterizedType, Type}
+
 import com.fasterxml.jackson.annotation.JsonInclude.Include
-import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.core.`type`.TypeReference
+import com.fasterxml.jackson.databind.{DeserializationFeature, ObjectMapper, SerializationFeature}
+import com.fasterxml.jackson.module.scala.DefaultScalaModule
+import org.apache.commons.text.StringEscapeUtils
 
 /**
  * @author Santhosh
@@ -31,6 +27,11 @@ object JSONUtils {
 
     @throws(classOf[Exception])
     def deserialize[T: Manifest](value: String): T = mapper.readValue(value, typeReference[T]);
+
+    @throws(classOf[Exception])
+    def unescapeJSON(string: String): String = {
+        StringEscapeUtils.unescapeJava(string)
+    }
 
     private[this] def typeReference[T: Manifest] = new TypeReference[T] {
         override def getType = typeFromManifest(manifest[T])
