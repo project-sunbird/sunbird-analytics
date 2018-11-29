@@ -192,8 +192,8 @@ object JobFactory {
                 DeviceProfileUpdater;
             case "video-streaming" =>
                 VideoStreamingJob
-            case "update-dashboard" =>
-                DashboardModelUpdater
+            case "portal-metrics" =>
+                PortalMetricsUpdater
             case _ =>
                 throw new JobNotFoundException("Unknown job type found");
         }

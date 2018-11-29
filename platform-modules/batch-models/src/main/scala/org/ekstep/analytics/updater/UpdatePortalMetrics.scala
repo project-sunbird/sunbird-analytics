@@ -12,25 +12,25 @@ import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.adapter.ContentAdapter
 import org.ekstep.analytics.framework._
-import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.util.{Constants, WorkFlowUsageSummaryFact}
 import org.joda.time.DateTime
+import scala.util.Try
 
 
-case class WorkflowSummaryEvents(deviceId: String, mode: String, dType: String, totalSession: Long, totalTs: Double, syncTs: Option[Long]) extends AlgoInput with Input
+case class WorkflowSummaryEvents(deviceId: String, mode: String, dType: String, totalSession: Long, totalTs: Double) extends AlgoInput with Input
 
-case class Metrics(noOfUniqueDevices: Long, totalContentPlaySessions: Double, totalTimeSpent: Double, totalDigitalContentPublished: Long, version: Option[String], syncTs: Option[Long]) extends AlgoOutput with Output
+case class Metrics(noOfUniqueDevices: Long, totalContentPlaySessions: Double, totalTimeSpent: Double, totalContentPublished: Long) extends AlgoOutput with Output
 
-case class DashBoardSummary(eid: String, ets: Long, syncts: Option[Long], metrics_summary: Option[Metrics]) extends AlgoOutput with Output
+case class PortalMetrics(eid: String, ets: Long, syncts: Option[Long], metrics_summary: Option[Metrics]) extends AlgoOutput with Output
 
-object UpdateDashboardModel extends IBatchModelTemplate[DerivedEvent, WorkflowSummaryEvents, Metrics, DashBoardSummary] with Serializable {
+object UpdatePortalMetrics extends IBatchModelTemplate[DerivedEvent, WorkflowSummaryEvents, Metrics, PortalMetrics] with Serializable {
 
-  val className = "org.ekstep.analytics.updater.UpdateDashboardModel"
+  val className = "org.ekstep.analytics.updater.UpdatePortalMetrics"
 
-  private val EVENT_ID: String = "ME_DASHBOARD_CUMULATIVE_SUMMARY"
+  private val EVENT_ID: String = "ME_PORTAL_CUMULATIVE_METRICS"
 
-  override def name: String = "UpdateDashboardModel"
+  override def name: String = "UpdatePortalMetrics"
 
   /**
     * preProcess which will fetch the `WorkFlowUsageSummaryFact` Event data from the Cassandra Database.
@@ -45,7 +45,7 @@ object UpdateDashboardModel extends IBatchModelTemplate[DerivedEvent, WorkflowSu
     val startTime = CommonUtil.dateFormat.parseDateTime(date).getMillis
     val endTime = CommonUtil.getEndTimestampOfDay(date)
     sc.cassandraTable[WorkFlowUsageSummaryFact](Constants.PLATFORM_KEY_SPACE_NAME, Constants.WORKFLOW_USAGE_SUMMARY_FACT).where("m_updated_date>=?", startTime).where("m_updated_date<=?", endTime).filter { x => x.d_period == 0 }.map(event => {
-      WorkflowSummaryEvents(event.d_device_id, event.d_mode, event.d_type, event.m_total_sessions, event.m_total_ts, Some(event.m_last_sync_date.getMillis))
+      WorkflowSummaryEvents(event.d_device_id, event.d_mode, event.d_type, event.m_total_sessions, event.m_total_ts)
     })
   }
 
@@ -64,20 +64,11 @@ object UpdateDashboardModel extends IBatchModelTemplate[DerivedEvent, WorkflowSu
       val SESSION = "session"
       val ALL = "all"
     }
-    val uniqueDevices = data.filter(x => x.deviceId != _constant.ALL).map(_.deviceId).distinct().count()
+    val uniqueDevicesCount = data.filter(x => x.deviceId != _constant.ALL).map(_.deviceId).distinct().count()
     val totalContentPlaySession = data.filter(x => x.mode.equals(_constant.PLAY) && x.dType.equals(_constant.CONTENT)).map(_.totalSession).sum()
     val totalTimeSpent = data.filter(x => x.dType.equals(_constant.APP) || x.dType.equals(_constant.SESSION)).map(_.totalTs).sum()
-    var totalDigitalContentPublished: Long = 0 // Default is Zero
-    try { // Handling the error due to if any api call is failed.
-      totalDigitalContentPublished = ContentAdapter.getPublishedContentList().count
-    } catch {
-      case _: Throwable =>
-    }
-    var lastSyncTs: Option[Long] = Some(new DateTime().getMillis())
-    if (!data.isEmpty()) {
-      lastSyncTs = data.sortBy(_.syncTs, false).first().syncTs
-    }
-    sc.parallelize(Array(Metrics(uniqueDevices, totalContentPlaySession, totalTimeSpent, totalDigitalContentPublished, null, lastSyncTs)))
+    val totalContentPublished: Int = Try(ContentAdapter.getPublishedContentList().count).getOrElse(0)
+    sc.parallelize(Array(Metrics(uniqueDevicesCount, totalContentPlaySession, totalTimeSpent, totalContentPublished)))
   }
 
   /**
@@ -85,13 +76,12 @@ object UpdateDashboardModel extends IBatchModelTemplate[DerivedEvent, WorkflowSu
     * @param data   - RDD DashboardSummary Event
     * @param config - Configurations to run postprocess method
     * @param sc     - Spark context
-    * @return - ME_DASHBOARD_CUMULATIVE_SUMMARY MeasuredEvents
+    * @return - ME_PORTAL_CUMULATIVE_METRICS MeasuredEvents
     */
-  override def postProcess(data: RDD[Metrics], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DashBoardSummary] = {
-    val version = AppConf.getConfig("telemetry.version")
+  override def postProcess(data: RDD[Metrics], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[PortalMetrics] = {
     val record = data.first()
-    val measures = Metrics(record.noOfUniqueDevices, record.totalContentPlaySessions, record.totalTimeSpent, record.totalDigitalContentPublished, Some(version), None)
-    sc.parallelize(Array(DashBoardSummary(EVENT_ID, System.currentTimeMillis(), record.syncTs, Some(measures))))
+    val lastSyncTs: Option[Long] = Some(new DateTime().getMillis())
+    val measures = Metrics(record.noOfUniqueDevices, record.totalContentPlaySessions, record.totalTimeSpent, record.totalContentPublished)
+    sc.parallelize(Array(PortalMetrics(EVENT_ID, System.currentTimeMillis(), lastSyncTs, Some(measures))))
   }
-
 }

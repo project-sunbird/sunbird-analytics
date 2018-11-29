@@ -55,7 +55,7 @@ object ContentAdapter extends BaseAdapter {
       * @return ContentResult
       */
     def getPublishedContentList(): ContentResult = {
-        val searchUrl = Constants.getCompositeSearchURL()
+        val searchUrl = Constants.getContentSearch()
         val request = Map("request" -> Map("filters" -> Map("contentType" -> "Resource")), "fields" -> List("identifier","objectType","resourceType"))
         val resp = RestUtil.post[ContentResponse](searchUrl, JSONUtils.serialize(request))
         resp.result

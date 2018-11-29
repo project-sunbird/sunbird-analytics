@@ -85,7 +85,7 @@ object Constants {
     }
 
     def getContentSearch(): String = {
-        s"$SEARCH_SERVICE_URL/v2/search";
+        s"$SEARCH_SERVICE_URL/v1/search";
     }
 
     def getContentItems(apiVersion: String, contentId: String): String = {
@@ -98,9 +98,5 @@ object Constants {
 
     def getContentUpdateAPIUrl(contentId: String): String = {
         s"$LP_URL/v2/content/$contentId";
-    }
-
-    def getCompositeSearchURL(): String ={
-        s"$COMPOSITE_SEARCH_SERVICE_URL/v3/search"
     }
 }
