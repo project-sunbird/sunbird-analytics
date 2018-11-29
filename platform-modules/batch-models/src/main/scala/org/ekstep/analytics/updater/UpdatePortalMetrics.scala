@@ -12,9 +12,9 @@ import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.adapter.ContentAdapter
 import org.ekstep.analytics.framework._
-import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.util.{Constants, WorkFlowUsageSummaryFact}
 import org.joda.time.DateTime
+
 import scala.util.Try
 
 
@@ -41,10 +41,7 @@ object UpdatePortalMetrics extends IBatchModelTemplate[DerivedEvent, WorkflowSum
     * @return - workflowSummaryEvents
     */
   override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[WorkflowSummaryEvents] = {
-    val date = config.getOrElse("date", new DateTime().toString(CommonUtil.dateFormat)).asInstanceOf[String]
-    val startTime = CommonUtil.dateFormat.parseDateTime(date).getMillis
-    val endTime = CommonUtil.getEndTimestampOfDay(date)
-    sc.cassandraTable[WorkFlowUsageSummaryFact](Constants.PLATFORM_KEY_SPACE_NAME, Constants.WORKFLOW_USAGE_SUMMARY_FACT).where("m_updated_date>=?", startTime).where("m_updated_date<=?", endTime).filter { x => x.d_period == 0 }.map(event => {
+     sc.cassandraTable[WorkFlowUsageSummaryFact](Constants.PLATFORM_KEY_SPACE_NAME, Constants.WORKFLOW_USAGE_SUMMARY_FACT).filter { x => x.d_period == 0 }.map(event => {
       WorkflowSummaryEvents(event.d_device_id, event.d_mode, event.d_type, event.m_total_sessions, event.m_total_ts)
     })
   }
