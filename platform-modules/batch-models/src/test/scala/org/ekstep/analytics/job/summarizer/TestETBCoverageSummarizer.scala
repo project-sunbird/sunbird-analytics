@@ -11,7 +11,7 @@ class TestETBCoverageSummarizer extends SparkSpec(null) {
     val fromDate = "2017-11-27"
     val toDate = "2018-11-27"
 
-    val config = JobConfig(Fetcher("empty", None, None), null, null, "org.ekstep.analytics.model.ETBCoverageSummaryModel", Option(Map("fromDate" ->  fromDate, "toDate" -> toDate)), Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestETBCoverageSummarizer"), Option(true))
+    val config = JobConfig(Fetcher("none", None, None), null, null, "org.ekstep.analytics.model.ETBCoverageSummaryModel", Option(Map("fromDate" ->  fromDate, "toDate" -> toDate)), Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestETBCoverageSummarizer"), Option(true))
     ETBCoverageSummarizer.main(JSONUtils.serialize(config))(Option(sc))
   }
 }

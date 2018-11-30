@@ -19,7 +19,7 @@ object DataFetcher {
 
         JobLogger.log("Fetching data", Option(Map("query" -> search)))
         if (search.queries.isEmpty) {
-            if (search.`type`.equals("empty")) return sc.parallelize(Seq[T](), JobContext.parallelization);
+            if (search.`type`.equals("none")) return sc.parallelize(Seq[T](), JobContext.parallelization);
             throw new DataFetcherException("Data fetch configuration not found")
         }
         val date = search.queries.get.last.endDate
