@@ -7,11 +7,11 @@ import org.apache.commons.lang3.StringUtils
 
 import scala.collection.immutable.HashMap
 
-object AWSResult {
+object AWSResult extends Result {
   val formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
   formatter.setTimeZone(TimeZone.getTimeZone("UTC"))
 
-  def getSubmitJobResult(response: MediaResponse): Map[String, AnyRef] = {
+  override def getSubmitJobResult(response: MediaResponse): Map[String, AnyRef] = {
     val job: Map[String, AnyRef] = response.result.getOrElse("job", Map).asInstanceOf[Map[String, AnyRef]]
     val timing: Map[String, AnyRef] = job.getOrElse("timing", Map).asInstanceOf[Map[String, AnyRef]]
     HashMap[String, AnyRef](
@@ -24,7 +24,7 @@ object AWSResult {
 
   }
 
-  def getJobResult(response: MediaResponse): Map[String, AnyRef] = {
+  override def getJobResult(response: MediaResponse): Map[String, AnyRef] = {
     val job: Map[String, AnyRef] = response.result.getOrElse("job", Map).asInstanceOf[Map[String, AnyRef]]
     val timing: Map[String, AnyRef] = job.getOrElse("timing", Map).asInstanceOf[Map[String, AnyRef]]
 
@@ -48,11 +48,11 @@ object AWSResult {
     )
   }
 
-  def getCancelJobResult(response: MediaResponse): Map[String, AnyRef] = {
+  override def getCancelJobResult(response: MediaResponse): Map[String, AnyRef] = {
     null
   }
 
-  def getListJobResult(response: MediaResponse): Map[String, AnyRef] = {
+  override def getListJobResult(response: MediaResponse): Map[String, AnyRef] = {
     null
   }
 

@@ -4,9 +4,9 @@ import org.apache.commons.lang3.StringUtils
 
 import scala.collection.immutable.HashMap
 
-object AzureResult {
+object AzureResult extends Result {
 
-  def getSubmitJobResult(response: MediaResponse): Map[String, AnyRef] = {
+  override def getSubmitJobResult(response: MediaResponse): Map[String, AnyRef] = {
     val result = response.result
     val output: Map[String, AnyRef] = result.getOrElse("properties", Map).asInstanceOf[Map[String, AnyRef]].getOrElse("outputs", List).asInstanceOf[List[Map[String, AnyRef]]].head
     HashMap[String, AnyRef](
@@ -20,7 +20,7 @@ object AzureResult {
 
   }
 
-  def getJobResult(response: MediaResponse): Map[String, AnyRef] = {
+  override def getJobResult(response: MediaResponse): Map[String, AnyRef] = {
     val result = response.result
     val output: Map[String, AnyRef] = result.getOrElse("properties", Map).asInstanceOf[Map[String, AnyRef]].getOrElse("outputs", List).asInstanceOf[List[Map[String, AnyRef]]].head
 
@@ -45,11 +45,11 @@ object AzureResult {
     )
   }
 
-  def getCancelJobResult(response: MediaResponse): Map[String, AnyRef] = {
+  override def getCancelJobResult(response: MediaResponse): Map[String, AnyRef] = {
     null
   }
 
-  def getListJobResult(response: MediaResponse): Map[String, AnyRef] = {
+  override def getListJobResult(response: MediaResponse): Map[String, AnyRef] = {
     null
   }
 
