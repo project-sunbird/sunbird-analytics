@@ -12,8 +12,9 @@ import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.adapter.ContentAdapter
 import org.ekstep.analytics.framework._
+import org.ekstep.analytics.framework.dispatcher.AzureDispatcher
+import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils}
 import org.ekstep.analytics.util.{Constants, WorkFlowUsageSummaryFact}
-import org.joda.time.DateTime
 
 import scala.util.Try
 
@@ -41,7 +42,7 @@ object UpdatePortalMetrics extends IBatchModelTemplate[DerivedEvent, WorkflowSum
     * @return - workflowSummaryEvents
     */
   override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[WorkflowSummaryEvents] = {
-     sc.cassandraTable[WorkFlowUsageSummaryFact](Constants.PLATFORM_KEY_SPACE_NAME, Constants.WORKFLOW_USAGE_SUMMARY_FACT).filter { x => x.d_period == 0 }.map(event => {
+    sc.cassandraTable[WorkFlowUsageSummaryFact](Constants.PLATFORM_KEY_SPACE_NAME, Constants.WORKFLOW_USAGE_SUMMARY_FACT).filter { x => x.d_period == 0 }.map(event => {
       WorkflowSummaryEvents(event.d_device_id, event.d_mode, event.d_type, event.m_total_sessions, event.m_total_ts)
     })
   }
@@ -65,7 +66,7 @@ object UpdatePortalMetrics extends IBatchModelTemplate[DerivedEvent, WorkflowSum
     val totalContentPlaySession = data.filter(x => x.mode.equals(_constant.PLAY) && x.dType.equals(_constant.CONTENT)).map(_.totalSession).sum()
     val totalTimeSpent = data.filter(x => x.dType.equals(_constant.APP) || x.dType.equals(_constant.SESSION)).map(_.totalTs).sum()
     val totalContentPublished: Int = Try(ContentAdapter.getPublishedContentList().count).getOrElse(0)
-    sc.parallelize(Array(Metrics(uniqueDevicesCount, totalContentPlaySession, totalTimeSpent, totalContentPublished)))
+    sc.parallelize(Array(Metrics(uniqueDevicesCount, totalContentPlaySession, CommonUtil.roundDouble(totalTimeSpent, 2), totalContentPublished)))
   }
 
   /**
@@ -78,6 +79,10 @@ object UpdatePortalMetrics extends IBatchModelTemplate[DerivedEvent, WorkflowSum
   override def postProcess(data: RDD[Metrics], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[PortalMetrics] = {
     val record = data.first()
     val measures = Metrics(record.noOfUniqueDevices, record.totalContentPlaySessions, record.totalTimeSpent, record.totalContentPublished)
-    sc.parallelize(Array(PortalMetrics(EVENT_ID, System.currentTimeMillis(), System.currentTimeMillis(), Some(measures))))
+    val metrics = PortalMetrics(EVENT_ID, System.currentTimeMillis(), System.currentTimeMillis(), Some(measures))
+    if (config.getOrElse("dispatch", false).asInstanceOf[Boolean]) {
+      AzureDispatcher.dispatch(Array(JSONUtils.serialize(metrics)), config)
+    }
+   sc.parallelize(Array(metrics))
   }
 }

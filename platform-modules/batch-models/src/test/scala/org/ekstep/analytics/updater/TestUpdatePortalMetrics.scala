@@ -54,7 +54,7 @@ class TestUpdatePortalMetrics extends SparkSpec(null) {
     val out = rdd.collect()
     println(JSONUtils.serialize(out.head))
     val dashboardSummary = JSONUtils.deserialize[TestPortalMetrics](JSONUtils.serialize(out.head.metrics_summary))
-    dashboardSummary.totalContentPublished should be(202)
+    dashboardSummary.totalContentPublished should be(749)
     dashboardSummary.noOfUniqueDevices should be(2)
     dashboardSummary.totalTimeSpent should be(0.0)
     dashboardSummary.totalContentPlaySessions should be(8.0)
@@ -66,7 +66,7 @@ class TestUpdatePortalMetrics extends SparkSpec(null) {
     saveToDB(Array())
     val result = executeDataProduct().collect().head
     val dashboardSummary = JSONUtils.deserialize[TestPortalMetrics](JSONUtils.serialize(result.metrics_summary))
-    dashboardSummary.totalContentPublished should be(202)
+    dashboardSummary.totalContentPublished should be(749)
     dashboardSummary.noOfUniqueDevices should be(0)
     dashboardSummary.totalTimeSpent should be(0)
     dashboardSummary.totalContentPlaySessions should be(0)
@@ -91,7 +91,7 @@ class TestUpdatePortalMetrics extends SparkSpec(null) {
     saveToDB(inputData)
     val result = executeDataProduct().collect().head
     val dashboardSummary = JSONUtils.deserialize[TestPortalMetrics](JSONUtils.serialize(result.metrics_summary))
-    dashboardSummary.totalContentPublished should be(202)
+    dashboardSummary.totalContentPublished should be(749)
     dashboardSummary.noOfUniqueDevices should be(7)
     dashboardSummary.totalTimeSpent should be(1430.8)
     dashboardSummary.totalContentPlaySessions should be(138)
