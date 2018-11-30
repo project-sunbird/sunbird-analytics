@@ -5,8 +5,8 @@ import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.adapter.ContentAdapter
 import org.ekstep.analytics.framework._
-import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, JobLogger}
+import org.ekstep.analytics.updater.GraphUpdateEvent
 import org.ekstep.analytics.util.Constants
 import org.joda.time.DateTime
 
@@ -15,11 +15,11 @@ import scala.util.{Failure, Try}
 
 case class ContentFlatList(contentId: String, metric: List[Map[String, Any]])
 
-case class ETBCoverageOutput(contentId: String, totalDialcodeAttached: Int, totalDialcode: Map[String, Int], totalDialcodeLinkedToContent: Int, level: Int) extends AlgoOutput
+case class ETBCoverageOutput(contentId: String, objectType: String, totalDialcodeAttached: Int, totalDialcode: Map[String, Int], totalDialcodeLinkedToContent: Int, level: Int) extends AlgoOutput
 
-case class ContentHierarchyModel(mimeType: String, contentType: String, dialcodes: Option[List[String]], identifier: String, channel: String, status: String, resourceType: String, name: String, content: Map[String, AnyRef], children: Option[List[ContentHierarchyModel]]) extends AlgoInput
+case class ContentHierarchyModel(mimeType: String, contentType: String, dialcodes: Option[List[String]], identifier: String, channel: String, status: String, resourceType: String, name: String, content: Map[String, AnyRef], children: Option[List[ContentHierarchyModel]], objectType: String) extends AlgoInput
 
-object ETBCoverageSummaryModel extends IBatchModelTemplate[Empty, ContentHierarchyModel, ETBCoverageOutput, MeasuredEvent] with Serializable {
+object ETBCoverageSummaryModel extends IBatchModelTemplate[Empty, ContentHierarchyModel, ETBCoverageOutput, GraphUpdateEvent] with Serializable {
 
     implicit val className = "org.ekstep.analytics.model.ETBCoverageSummaryModel"
 
@@ -80,6 +80,7 @@ object ETBCoverageSummaryModel extends IBatchModelTemplate[Empty, ContentHierarc
                     "totalDialcode" -> getDialcodesByLevel(content).groupBy(identity).map(t => (t._1, t._2.size)),
                     "totalDialcodeAttached" -> getDialcodesByLevel(content).distinct.size,
                     "totalDialcodeLinkedToContent" -> getDialcodeLinkedToContent(content),
+                    "objectType" -> content.objectType,
                     "mimeType" -> content.mimeType,
                     "level" -> level
                 )
@@ -106,6 +107,7 @@ object ETBCoverageSummaryModel extends IBatchModelTemplate[Empty, ContentHierarc
         computeMetrics(input)
             .map(x => ETBCoverageOutput(
                 x.getOrElse("id", "").asInstanceOf[String],
+                x.getOrElse("objectType", "").asInstanceOf[String],
                 x.getOrElse("totalDialcodeAttached", 0).asInstanceOf[Int],
                 x.getOrElse("totalDialcode", Map()).asInstanceOf[Map[String, Int]],
                 x.getOrElse("totalDialcodeLinkedToContent", 0).asInstanceOf[Int],
@@ -113,23 +115,19 @@ object ETBCoverageSummaryModel extends IBatchModelTemplate[Empty, ContentHierarc
             ))
     }
 
-    override def postProcess(data: RDD[ETBCoverageOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
-        val ME_ID = "ME_ETB_COVERAGE_SUMMARY"
-        val meEventVersion = AppConf.getConfig("telemetry.version")
-
+    override def postProcess(data: RDD[ETBCoverageOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[GraphUpdateEvent] = {
         val output = data.map { metric =>
-            val mid = CommonUtil.getMessageId(ME_ID, metric.contentId, "DAY", 0, None, None)
             val measures = Map(
-                "totalDialcode" -> metric.totalDialcode,
-                "totalDialcodeLinkedToContent" -> metric.totalDialcodeLinkedToContent,
-                "totalDialcodeAttached" -> metric.totalDialcodeAttached,
-                "hierarchyLevel" -> metric.level
+                "me_totalDialcode" -> metric.totalDialcode,
+                "me_totalDialcodeLinkedToContent" -> metric.totalDialcodeLinkedToContent,
+                "me_totalDialcodeAttached" -> metric.totalDialcodeAttached,
+                "me_hierarchyLevel" -> metric.level
             )
 
-            MeasuredEvent(ME_ID, System.currentTimeMillis(), System.currentTimeMillis(), meEventVersion, mid, "", "", None, None,
-                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "DialcodeUsageSummarizer").asInstanceOf[String])), None, "DAY", DtRange(0, 0)),
-                Dimensions(None, None, None, None, None, None, None, None, None, None, None, None, Option(metric.contentId), None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None),
-                MEEdata(measures), None);
+            val finalContentMap = measures.filter(x=> x._1.nonEmpty)
+                .map{ x => x._1 -> Map("ov" -> null, "nv" -> x._2) }
+            GraphUpdateEvent(DateTime.now().getMillis, metric.contentId,
+                Map("properties" -> finalContentMap), metric.objectType)
         }
         output
     }
