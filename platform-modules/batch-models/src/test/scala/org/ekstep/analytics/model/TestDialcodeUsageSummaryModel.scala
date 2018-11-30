@@ -6,8 +6,6 @@ case class DialUsageMetric(total_dial_scans: Int, first_scan: Long, last_scan: L
 
 class TestDialcodeUsageSummaryModel extends SparkSpec(null) {
 
-   //val rdd0 = loadFile[V3Event]("src/test/resources/dialcode-usage-summary/telemetry_test_data.log")
-
   "DialcodeUsageSummaryModel" should "aggregate based on channel and dialcode" in {
     val rdd1 = loadFile[V3Event]("src/test/resources/dialcode-usage-summary/withSameDialcodeAndChannel.log")
     val me0 = DialcodeUsageSummaryModel.execute(rdd1, None)
@@ -56,14 +54,19 @@ class TestDialcodeUsageSummaryModel extends SparkSpec(null) {
     event3.dimensions.channel.getOrElse("") should be("01235953109336064029452")
   }
 
-  it should "handle null/empty list values in dialcodes from raw events" in {
+  it should "handle null/empty list/string values in dialcodes from raw events" in {
     val rdd1 = loadFile[V3Event]("src/test/resources/dialcode-usage-summary/emptyNullValuesInDialcodes.log")
     val me0 = DialcodeUsageSummaryModel.execute(rdd1, None)
     val events = me0.collect()
 
     val deserialize = (x: AnyRef) => JSONUtils.deserialize[DialUsageMetric](JSONUtils.serialize(x))
 
-    me0.count() should be(2)
+    val event1 = events.filter(_.dimensions.dial_code.getOrElse("") == "123456").head
+    val event1Metric = deserialize(event1.edata.eks)
+    event1Metric.total_dial_scans should be(1)
+    event1Metric.first_scan should be(1542175922148L)
+    event1Metric.last_scan should be(1542175922148L)
 
+    me0.count() should be(1)
   }
 }
