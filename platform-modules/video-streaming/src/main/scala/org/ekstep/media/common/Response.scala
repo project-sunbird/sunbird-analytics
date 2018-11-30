@@ -14,7 +14,8 @@ object Response {
   val MEDIA_SERVICE_TYPE = AppConfig.getConfig("media_service_type")
 
   def getSuccessResponse(result: Map[String, AnyRef]): MediaResponse = {
-    new MediaResponse(UUID.randomUUID().toString, System.currentTimeMillis().toString, new HashMap[String, AnyRef], ResponseCode.OK.toString, result);
+    MediaResponse(UUID.randomUUID().toString, System.currentTimeMillis().toString, new HashMap[String, AnyRef],
+      ResponseCode.OK.toString, result)
   }
 
   def getFailureResponse(result: Map[String, AnyRef], errorCode: String, errorMessage: String): MediaResponse = {
@@ -28,7 +29,7 @@ object Response {
       "err" -> errorCode,
       "errMsg" -> errorMessage
     )
-    new MediaResponse(UUID.randomUUID().toString, System.currentTimeMillis().toString, params, respCode, result);
+    MediaResponse(UUID.randomUUID().toString, System.currentTimeMillis().toString, params, respCode, result)
   }
 
   def getCancelJobResult(response: MediaResponse): Map[String, AnyRef] = {

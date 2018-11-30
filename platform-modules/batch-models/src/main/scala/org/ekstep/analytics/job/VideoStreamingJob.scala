@@ -46,23 +46,23 @@ object VideoStreamingJob extends optional.Application with IJob {
   private def execute(config: JobConfig)(implicit sc: SparkContext) = {
       val requests = VideoStreamingUtils.getAllRequest(10)
       if (null != requests) {
-          _executeRequests(requests, config)
+          executeRequests(requests, config)
       } else {
         JobLogger.end("VideoStreaming Job Completed. But There is no job request in DB", "SUCCESS", Option(Map("model" -> name, "date" -> "", "timeTaken" -> 0)))
       }
   }
 
-  private def _executeRequests(requests: RDD[JobRequest], config: JobConfig)(implicit sc: SparkContext) = {
+  private def executeRequests(requests: RDD[JobRequest], config: JobConfig)(implicit sc: SparkContext) = {
       // TODO: add the implementation of Request VideoStreaming
       val submitted = requests.filter(r => List("SUBMITTED", "FAILED").contains(r.status)).cache()
       val processing = requests.filter(r => "PROCESSING".contentEquals(r.status)).cache()
 
-      _submitJobRequests(submitted, config)
-      _getCompletedRequests(processing, config)
+      submitJobRequests(submitted, config)
+      getCompletedRequests(processing, config)
       JobLogger.end("VideoStreaming Job Completed.", "SUCCESS", Option(Map("date" -> "", "inputEvents" -> 0, "outputEvents" -> 0, "timeTaken" -> 0, "jobCount" -> 0, "requestDetails" -> null)))
   }
 
-  private def _submitJobRequests(submitted: RDD[JobRequest], config: JobConfig)(implicit sc: SparkContext): Unit = {
+  private def submitJobRequests(submitted: RDD[JobRequest], config: JobConfig)(implicit sc: SparkContext): Unit = {
     val stageName = "STREAMING_JOB_SUBMISSION";
     submitted.map { jobRequest =>
       val mediaRequest = MediaRequest(UUID.randomUUID().toString, null, JSONUtils.deserialize[Map[String,AnyRef]](jobRequest.request_data.replaceAll("artifactUrl","artifact_url")))
@@ -84,7 +84,7 @@ object VideoStreamingJob extends optional.Application with IJob {
     }.saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "job_id", "stage", "stage_status", "status", "iteration", "err_message"))
   }
 
-  private def _getCompletedRequests(processing: RDD[JobRequest], config: JobConfig)(implicit sc: SparkContext) = {
+  private def getCompletedRequests(processing: RDD[JobRequest], config: JobConfig)(implicit sc: SparkContext) = {
     val stageName = "STREAMING_JOB_COMPLETE"
     processing.map { jobRequest =>
       val mediaResponse:MediaResponse = mediaService.getJob(jobRequest.job_id.get)
@@ -102,7 +102,7 @@ object VideoStreamingJob extends optional.Application with IJob {
             val requestData = JSONUtils.deserialize[Map[String,AnyRef]](request.request_data).asInstanceOf[Map[String, AnyRef]]
             val contentId = requestData.getOrElse("content_id", "").asInstanceOf[String]
             val channel = requestData.getOrElse("channel", "").asInstanceOf[String]
-            if(_updatePreviewUrl(contentId, streamingUrl, channel)) {
+            if(updatePreviewUrl(contentId, streamingUrl, channel)) {
               val jobStatus = response.result.getOrElse("job", Map()).asInstanceOf[Map[String, AnyRef]].getOrElse("status","").asInstanceOf[String];
               StreamingStage(request.request_id, request.client_key, request.job_id.get, stageName, jobStatus, "FINISHED", iteration + 1);
             } else {
@@ -122,7 +122,7 @@ object VideoStreamingJob extends optional.Application with IJob {
 
   }
 
-  private def _updatePreviewUrl(contentId: String, streamingUrl: String, channel: String): Boolean = {
+  private def updatePreviewUrl(contentId: String, streamingUrl: String, channel: String): Boolean = {
     if(!streamingUrl.isEmpty && !contentId.isEmpty) {
       val requestBody = "{\"request\": {\"content\": {\"streamingUrl\":\""+ streamingUrl +"\"}}}"
       val url = contentServiceUrl + "/system/v3/content/update/" + contentId
