@@ -16,7 +16,7 @@ import scala.reflect.io.File
   */
 abstract class AzureMediaService extends IMediaService {
 
-  private val API_ACCESS_TOKEN = getToken()
+  private var API_ACCESS_TOKEN : String = _
 
   private def getToken(): String = {
     val tenant = AppConfig.getSystemConfig("azure.tanent")
