@@ -96,6 +96,7 @@ object ETBCoverageSummaryModel extends IBatchModelTemplate[Empty, ContentHierarc
         }
 
         data.flatMap(content => {
+            mapper = List()
             flattenHierarchy(content)
             mapper ::: getContentMeta(content, content.identifier, 1)
         })
