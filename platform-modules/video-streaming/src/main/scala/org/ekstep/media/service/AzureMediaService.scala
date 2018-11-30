@@ -19,7 +19,7 @@ abstract class AzureMediaService extends IMediaService {
   private var API_ACCESS_TOKEN : String = _
 
   private def getToken(): String = {
-    val tenant = AppConfig.getSystemConfig("azure.tanent")
+    val tenant = AppConfig.getSystemConfig("azure.tenant")
     val clientKey = AppConfig.getSystemConfig("azure.token.client_key")
     val clientSecret = AppConfig.getSystemConfig("azure.token.client_secret")
     val loginUrl = "https://login.microsoftonline.com/" + tenant + "/oauth2/token"
