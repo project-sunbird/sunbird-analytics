@@ -66,7 +66,7 @@ object UpdatePortalMetrics extends IBatchModelTemplate[DerivedEvent, WorkflowSum
     val totalContentPlaySession = data.filter(x => x.mode.equals(_constant.PLAY) && x.dType.equals(_constant.CONTENT)).map(_.totalSession).sum()
     val totalTimeSpent = data.filter(x => x.dType.equals(_constant.APP) || x.dType.equals(_constant.SESSION)).map(_.totalTs).sum()
     val totalContentPublished: Int = Try(ContentAdapter.getPublishedContentList().count).getOrElse(0)
-    sc.parallelize(Array(Metrics(uniqueDevicesCount, totalContentPlaySession, CommonUtil.roundDouble(totalTimeSpent, 2), totalContentPublished)))
+    sc.parallelize(Array(Metrics(uniqueDevicesCount, totalContentPlaySession, CommonUtil.roundDouble(totalTimeSpent/3600, 2), totalContentPublished)))
   }
 
   /**

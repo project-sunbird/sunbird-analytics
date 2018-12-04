@@ -93,7 +93,7 @@ class TestUpdatePortalMetrics extends SparkSpec(null) {
     val dashboardSummary = JSONUtils.deserialize[TestPortalMetrics](JSONUtils.serialize(result.metrics_summary))
     dashboardSummary.totalContentPublished should be(749)
     dashboardSummary.noOfUniqueDevices should be(7)
-    dashboardSummary.totalTimeSpent should be(1430.8)
+    dashboardSummary.totalTimeSpent should be(0.4)
     dashboardSummary.totalContentPlaySessions should be(138)
     println(JSONUtils.serialize(result))
   }
