@@ -10,7 +10,7 @@ object Model {
 
 }
 
-case class Filter(partner_id: Option[String] = None, group_user: Option[Boolean] = None, content_id: Option[String] = None, tag: Option[String] = None, tags: Option[Array[String]] = None, start_date: Option[String] = None, end_date: Option[String] = None, events: Option[Array[String]] = None, app_id: Option[String] = Option(""), channel: Option[String] = Option(""), user_id: Option[String] = None, device_id: Option[String] = None, metrics_type: Option[String] = None, mode: Option[String] = None);
+case class Filter(partner_id: Option[String] = None, group_user: Option[Boolean] = None, content_id: Option[String] = None, tag: Option[String] = None, tags: Option[Array[String]] = None, start_date: Option[String] = None, end_date: Option[String] = None, events: Option[Array[String]] = None, app_id: Option[String] = Option(""), channel: Option[String] = Option(""), user_id: Option[String] = None, device_id: Option[String] = None, metrics_type: Option[String] = None, mode: Option[String] = None)
 case class Trend(day: Option[Int], week: Option[Int], month: Option[Int])
 case class Request(filter: Option[Filter], summaries: Option[Array[String]], trend: Option[Trend], context: Option[Map[String, AnyRef]], query: Option[String], filters: Option[Map[String, AnyRef]], config: Option[Map[String, AnyRef]], limit: Option[Int], output_format: Option[String], dataset_id: Option[String], ip_addr: Option[String] = None, loc: Option[String] = None, dspec: Option[Map[String, AnyRef]] = None, channel: Option[String] = None);
 case class RequestBody(id: String, ver: String, ts: String, request: Request, params: Option[Params]);
@@ -69,21 +69,21 @@ object ResponseCode extends Enumeration {
 }
 
 object Constants {
-  val env = AppConf.getConfig("cassandra.keyspace_prefix");
-	val CONTENT_DB = env+"content_db";
-	val DEVICE_DB = env+"device_db";
-	val PLATFORML_DB = env+"platform_db";
-	val JOB_REQUEST = "job_request";
-	val CONTENT_SUMMARY_FACT_TABLE = "content_usage_summary_fact";
-	val CONTENT_POPULARITY_SUMMARY_FACT = "content_popularity_summary_fact";
-	val GENIE_LAUNCH_SUMMARY_FACT = "genie_launch_summary_fact";
-	val ITEM_USAGE_SUMMARY_FACT = "item_usage_summary_fact";
-	val USAGE_SUMMARY_FACT = "usage_summary_fact";
-	val WORKFLOW_USAGE_SUMMARY_FACT = "workflow_usage_summary_fact";
-	val DEVICE_RECOS_TABLE = "device_recos";
+  val env: String = AppConf.getConfig("cassandra.keyspace_prefix")
+	val CONTENT_DB: String = env+"content_db"
+	val DEVICE_DB: String = env+"device_db"
+	val PLATFORML_DB: String = env+"platform_db"
+	val JOB_REQUEST = "job_request"
+	val CONTENT_SUMMARY_FACT_TABLE = "content_usage_summary_fact"
+	val CONTENT_POPULARITY_SUMMARY_FACT = "content_popularity_summary_fact"
+	val GENIE_LAUNCH_SUMMARY_FACT = "genie_launch_summary_fact"
+	val ITEM_USAGE_SUMMARY_FACT = "item_usage_summary_fact"
+	val USAGE_SUMMARY_FACT = "usage_summary_fact"
+	val WORKFLOW_USAGE_SUMMARY_FACT = "workflow_usage_summary_fact"
+	val DEVICE_RECOS_TABLE = "device_recos"
 	val CONTENT_RECOS_TABLE = "content_recos"
-	val CONTENT_TO_VEC = "content_to_vector";
-	val REGISTERED_TAGS = "registered_tags";
+	val CONTENT_TO_VEC = "content_to_vector"
+	val REGISTERED_TAGS = "registered_tags"
 	val REQUEST_RECOS_TABLE = "request_recos"
 	val DEVICE_PROFILE_TABLE = "device_profile"
 }

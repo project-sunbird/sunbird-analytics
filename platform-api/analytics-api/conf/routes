@@ -18,7 +18,7 @@ DELETE /tag/delete/:tagId @controllers.Application.deleteTag(tagId: String)
 POST /metrics/workflow-usage @controllers.Metrics.workflowUsage
 POST /metrics/dial/usage @controllers.Metrics.dialcodeUsage
 
-POST /metrics/:datasetId/:summary @controllers.Metrics.get(datasetId: String, summary: String)
+POST /metrics/:datasetId/:summary @controllers.Metrics.getMetricsSummary(datasetId: String, summary: String)
 
 # Data Exhaust
 POST /dataset/request/submit @controllers.JobController.dataRequest
