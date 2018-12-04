@@ -57,7 +57,7 @@ class TestUpdatePortalMetrics extends SparkSpec(null) {
     dashboardSummary.totalContentPublished should be(749)
     dashboardSummary.noOfUniqueDevices should be(2)
     dashboardSummary.totalTimeSpent should be(0.0)
-    dashboardSummary.totalContentPlaySessions should be(8.0)
+    dashboardSummary.totalContentPlaySessions should be(0.0)
   }
 
   it should "populate zero records when no data is found in Database" in {
@@ -94,7 +94,7 @@ class TestUpdatePortalMetrics extends SparkSpec(null) {
     dashboardSummary.totalContentPublished should be(749)
     dashboardSummary.noOfUniqueDevices should be(7)
     dashboardSummary.totalTimeSpent should be(0.4)
-    dashboardSummary.totalContentPlaySessions should be(138)
+    dashboardSummary.totalContentPlaySessions should be(0.04)
     println(JSONUtils.serialize(result))
   }
 
