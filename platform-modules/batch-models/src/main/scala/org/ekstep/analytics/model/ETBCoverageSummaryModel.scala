@@ -127,7 +127,7 @@ object ETBCoverageSummaryModel extends IBatchModelTemplate[Empty, ContentHierarc
             val finalContentMap = measures.filter(x=> x._1.nonEmpty)
                 .map{ x => x._1 -> Map("ov" -> null, "nv" -> x._2) }
             GraphUpdateEvent(DateTime.now().getMillis, metric.contentId,
-                Map("properties" -> finalContentMap), metric.objectType)
+                Map("properties" -> finalContentMap), "Content")
         }
         output
     }
