@@ -13,7 +13,7 @@ import org.joda.time.DateTime
 /**
   * @author Manjunath Davanam <manjunathd@ilimi.in>
   */
-case class TestPortalMetrics(noOfUniqueDevices: Long, totalContentPlaySessions: Double, totalTimeSpent: Double, totalContentPublished: Long)
+case class TestPortalMetrics(noOfUniqueDevices: Long, totalContentPlayTime: Double, totalTimeSpent: Double, totalContentPublished: Long)
 
 class TestUpdatePortalMetrics extends SparkSpec(null) {
 
@@ -41,7 +41,7 @@ class TestUpdatePortalMetrics extends SparkSpec(null) {
     UpdatePortalMetrics.execute(sc.emptyRDD, Option(Map("date" -> new DateTime().toString(CommonUtil.dateFormat).asInstanceOf[AnyRef])))
   }
 
-  "UpdateDashboardModel" should "Should find the unique device count,totalContentPublished,totalTimeSpent,totalContentPlaySessions and should filter when d_time>0(Cumulative)" in {
+  "UpdateDashboardModel" should "Should find the unique device count,totalContentPublished,totalTimeSpent,totalContentPlayTime and should filter when d_time>0(Cumulative)" in {
     cleanDataBase()
     val inputData = Array(
       WorkFlowUsageSummaryFact(0, "b00bc992ef25f1a9a8d63291e20efc8d", "prod.diksha.app", "all", "content", "play", "874ed8a5-782e-4f6c-8f36-e0288455901e", "org.ekstep.delta", "all", DateTime.now, DateTime.now, DateTime.now, 450.0, 4, 112.5, 100, 23.56, 11, 2.15, 12, 15, 18, Array(1), Array(2), Array(3), Some("Textbook")),
@@ -57,7 +57,7 @@ class TestUpdatePortalMetrics extends SparkSpec(null) {
     dashboardSummary.totalContentPublished should be(749)
     dashboardSummary.noOfUniqueDevices should be(2)
     dashboardSummary.totalTimeSpent should be(0.0)
-    dashboardSummary.totalContentPlaySessions should be(0.0)
+    dashboardSummary.totalContentPlayTime should be(0.0)
   }
 
   it should "populate zero records when no data is found in Database" in {
@@ -69,7 +69,7 @@ class TestUpdatePortalMetrics extends SparkSpec(null) {
     dashboardSummary.totalContentPublished should be(749)
     dashboardSummary.noOfUniqueDevices should be(0)
     dashboardSummary.totalTimeSpent should be(0)
-    dashboardSummary.totalContentPlaySessions should be(0)
+    dashboardSummary.totalContentPlayTime should be(0)
     println(JSONUtils.serialize(result))
   }
 
@@ -94,7 +94,7 @@ class TestUpdatePortalMetrics extends SparkSpec(null) {
     dashboardSummary.totalContentPublished should be(749)
     dashboardSummary.noOfUniqueDevices should be(7)
     dashboardSummary.totalTimeSpent should be(0.4)
-    dashboardSummary.totalContentPlaySessions should be(0.04)
+    dashboardSummary.totalContentPlayTime should be(0.04)
     println(JSONUtils.serialize(result))
   }
 

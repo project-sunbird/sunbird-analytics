@@ -21,7 +21,7 @@ import scala.util.Try
 
 case class WorkflowSummaryEvents(deviceId: String, mode: String, dType: String, totalSession: Long, totalTs: Double) extends AlgoInput with Input
 
-case class Metrics(noOfUniqueDevices: Long, totalContentPlaySessions: Double, totalTimeSpent: Double, totalContentPublished: Long) extends AlgoOutput with Output
+case class Metrics(noOfUniqueDevices: Long, totalContentPlayTime: Double, totalTimeSpent: Double, totalContentPublished: Long) extends AlgoOutput with Output
 
 case class PortalMetrics(eid: String, ets: Long, syncts: Long, metrics_summary: Option[Metrics]) extends AlgoOutput with Output
 
@@ -52,7 +52,7 @@ object UpdatePortalMetrics extends IBatchModelTemplate[DerivedEvent, WorkflowSum
     * @param data   - RDD Workflow summary event data
     * @param config - Configurations to algorithm
     * @param sc     - Spark context
-    * @return - DashBoardSummary ->(uniqueDevices, totalContentPlaySession, totalTimeSpent,)
+    * @return - DashBoardSummary ->(uniqueDevices, totalContentPlayTime, totalTimeSpent,)
     */
   override def algorithm(data: RDD[WorkflowSummaryEvents], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[Metrics] = {
     object _constant extends Enumeration {
@@ -63,10 +63,10 @@ object UpdatePortalMetrics extends IBatchModelTemplate[DerivedEvent, WorkflowSum
       val ALL = "all"
     }
     val uniqueDevicesCount = data.filter(x => x.deviceId != _constant.ALL).map(_.deviceId).distinct().count()
-    val totalContentPlaySession = data.filter(x => x.mode.equals(_constant.PLAY) && x.dType.equals(_constant.CONTENT)).map(_.totalSession).sum()
+    val totalContentPlayTime = data.filter(x => x.mode.equals(_constant.PLAY) && x.dType.equals(_constant.CONTENT)).map(_.totalSession).sum()
     val totalTimeSpent = data.filter(x => x.dType.equals(_constant.APP) || x.dType.equals(_constant.SESSION)).map(_.totalTs).sum()
     val totalContentPublished: Int = Try(ContentAdapter.getPublishedContentList().count).getOrElse(0)
-    sc.parallelize(Array(Metrics(uniqueDevicesCount, CommonUtil.roundDouble(totalContentPlaySession/3600, 2), CommonUtil.roundDouble(totalTimeSpent/3600, 2), totalContentPublished)))
+    sc.parallelize(Array(Metrics(uniqueDevicesCount, CommonUtil.roundDouble(totalContentPlayTime/3600, 2), CommonUtil.roundDouble(totalTimeSpent/3600, 2), totalContentPublished)))
   }
 
   /**
@@ -78,7 +78,7 @@ object UpdatePortalMetrics extends IBatchModelTemplate[DerivedEvent, WorkflowSum
     */
   override def postProcess(data: RDD[Metrics], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[PortalMetrics] = {
     val record = data.first()
-    val measures = Metrics(record.noOfUniqueDevices, record.totalContentPlaySessions, record.totalTimeSpent, record.totalContentPublished)
+    val measures = Metrics(record.noOfUniqueDevices, record.totalContentPlayTime, record.totalTimeSpent, record.totalContentPublished)
     val metrics = PortalMetrics(EVENT_ID, System.currentTimeMillis(), System.currentTimeMillis(), Some(measures))
     if (config.getOrElse("dispatch", false).asInstanceOf[Boolean]) {
       AzureDispatcher.dispatch(Array(JSONUtils.serialize(metrics)), config)
