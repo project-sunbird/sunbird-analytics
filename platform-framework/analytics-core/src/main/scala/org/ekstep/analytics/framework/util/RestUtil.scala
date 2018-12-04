@@ -66,11 +66,14 @@ object RestUtil {
         }
     }
 
-    def patch[T](apiURL: String, body: String)(implicit mf: Manifest[T]) = {
+    def patch[T](apiURL: String, body: String, headers: Option[Map[String,String]] = None)(implicit mf: Manifest[T]) = {
 
         val request = new HttpPatch(apiURL);
         request.addHeader("user-id", "analytics");
         request.addHeader("Content-Type", "application/json");
+        headers.getOrElse(Map).asInstanceOf[Map[String,String]].map { header =>
+            request.addHeader(header._1, header._2)
+        }
         request.setEntity(new StringEntity(body));
         try {
             _call(request.asInstanceOf[HttpRequestBase]);

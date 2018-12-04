@@ -30,12 +30,12 @@ object ContentAdapter extends BaseAdapter {
 
     @tailrec
     def search(offset: Int, limit: Int, contents: Array[Map[String, AnyRef]], action: (Int, Int) => ContentResult): Array[Map[String, AnyRef]] = {
-        val result = action(offset, limit);
-        val c = contents ++ result.content;
+        val result = action(offset, limit)
+        val c = contents ++ result.content
         if (result.count > (offset + limit)) {
-            search((offset + limit), limit, c, action);
+            search((offset + limit), limit, c, action)
         } else {
-            c;
+            c
         }
     }
 
@@ -56,6 +56,16 @@ object ContentAdapter extends BaseAdapter {
         contents.map(f => ContentModel(f.getOrElse("identifier", "").asInstanceOf[String], f.getOrElse("domain", List("literacy")).asInstanceOf[List[String]], f.getOrElse("contentType", "").asInstanceOf[String], f.getOrElse("language", List[String]()).asInstanceOf[List[String]], f.getOrElse("gradeLevel", List[String]()).asInstanceOf[List[String]]))
     }
 
+    /**
+      * Which is used to get the total published contents list
+      * @return ContentResult
+      */
+    def getPublishedContentList(): ContentResult = {
+        val searchUrl = Constants.getContentSearch()
+        val request = Map("request" -> Map("filters" -> Map("contentType" -> "Resource")), "fields" -> List("identifier","objectType","resourceType"))
+        val resp = RestUtil.post[ContentResponse](searchUrl, JSONUtils.serialize(request))
+        resp.result
+    }
 
     def getContentWrapper(content: Map[String, AnyRef]): Content = {
         val mc = content.getOrElse("concepts", List[String]()).asInstanceOf[List[String]].toArray;
