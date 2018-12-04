@@ -46,10 +46,10 @@ object ETBCoverageSummaryModel extends IBatchModelTemplate[Empty, ContentHierarc
 
         var model: RDD[ContentHierarchyModel] = sc.emptyRDD[ContentHierarchyModel]
         Try {
-            val unescapedJsons: RDD[String] = data.map(x => JSONUtils.unescapeJSON(x))
-            model = unescapedJsons.map(jsonString => JSONUtils.deserialize[ContentHierarchyModel](jsonString))
-        }.recoverWith {
-            case exception => JobLogger.log("unable to parse JSON hierarchy content"); Failure(exception)
+            model = data.map(jsonString => JSONUtils.deserialize[ContentHierarchyModel](jsonString))
+        }.recover {
+            case exception => JobLogger.log("unable to parse JSON hierarchy content")
+                Failure(exception)
         }
 
         model.filter(x => x.contentType == "TextBook") // filter only Textbooks
