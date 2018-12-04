@@ -50,6 +50,17 @@ object ContentAdapter extends BaseAdapter {
         contents.map(f => ContentModel(f.getOrElse("identifier", "").asInstanceOf[String], f.getOrElse("domain", List("literacy")).asInstanceOf[List[String]], f.getOrElse("contentType", "").asInstanceOf[String], f.getOrElse("language", List[String]()).asInstanceOf[List[String]], f.getOrElse("gradeLevel", List[String]()).asInstanceOf[List[String]]))
     }
 
+    /**
+      * Which is used to get the total published contents list
+      * @return ContentResult
+      */
+    def getPublishedContentList(): ContentResult = {
+        val searchUrl = Constants.getContentSearch()
+        val request = Map("request" -> Map("filters" -> Map("contentType" -> "Resource")), "fields" -> List("identifier","objectType","resourceType"))
+        val resp = RestUtil.post[ContentResponse](searchUrl, JSONUtils.serialize(request))
+        resp.result
+    }
+
     def _search(offset: Int, limit: Int): ContentResult = {
         val searchUrl = Constants.getContentSearch();
         val request = Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "status" -> List("Draft", "Review", "Redraft", "Flagged", "Live", "Retired", "Mock", "Processing", "FlagDraft", "FlagReview")), "exists" -> List("lastPublishedOn", "downloadUrl"), "offset" -> offset, "limit" -> limit));
