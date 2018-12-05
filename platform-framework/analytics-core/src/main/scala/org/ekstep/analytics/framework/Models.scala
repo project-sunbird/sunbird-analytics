@@ -2,9 +2,7 @@ package org.ekstep.analytics.framework
 
 import java.io.Serializable
 import java.util.Date
-import scala.beans.BeanProperty
-import org.apache.spark.rdd.RDD
-import org.ekstep.analytics.framework.conf.AppConf
+
 import org.joda.time.DateTime
 
 class Models extends Serializable {}
@@ -42,7 +40,7 @@ case class DerivedEvent(eid: String, ets: Long, syncts: Long, ver: String, mid: 
 @scala.beans.BeanInfo
 case class MeasuredEvent(eid: String, ets: Long, syncts: Long, ver: String, mid: String, uid: String, channel: String, content_id: Option[String] = None, cdata: Option[CData], context: Context, dimensions: Dimensions, edata: MEEdata, etags: Option[ETags] = None, tags: Option[List[AnyRef]] = None, `object`: Option[V3Object] = None) extends Output  with AlgoOutput;
 @scala.beans.BeanInfo
-case class Dimensions(uid: Option[String], val did: Option[String], gdata: Option[GData], cdata: Option[CData], domain: Option[String], user: Option[UserProfile], pdata: Option[PData], loc: Option[String] = None, group_user: Option[Boolean] = None, anonymous_user: Option[Boolean] = None, tag: Option[String] = None, period: Option[Int] = None, content_id: Option[String] = None, ss_mid: Option[String] = None, item_id: Option[String] = None, sid: Option[String] = None, stage_id: Option[String] = None, funnel: Option[String] = None, dspec: Option[Map[String, AnyRef]] = None, onboarding: Option[Boolean] = None, genieVer: Option[String] = None, author_id: Option[String] = None, partner_id: Option[String] = None, concept_id: Option[String] = None, client: Option[Map[String, AnyRef]] = None, textbook_id: Option[String] = None, channel: Option[String] = None, `type`: Option[String] = None, mode: Option[String] = None, content_type: Option[String] = None, dial_code : Option[String] = None);
+case class Dimensions(uid: Option[String], val did: Option[String], gdata: Option[GData], cdata: Option[CData], domain: Option[String], user: Option[UserProfile], pdata: Option[PData], loc: Option[String] = None, group_user: Option[Boolean] = None, anonymous_user: Option[Boolean] = None, tag: Option[String] = None, period: Option[Int] = None, content_id: Option[String] = None, ss_mid: Option[String] = None, item_id: Option[String] = None, sid: Option[String] = None, stage_id: Option[String] = None, funnel: Option[String] = None, dspec: Option[Map[String, AnyRef]] = None, onboarding: Option[Boolean] = None, genieVer: Option[String] = None, author_id: Option[String] = None, partner_id: Option[String] = None, concept_id: Option[String] = None, client: Option[Map[String, AnyRef]] = None, textbook_id: Option[String] = None, channel: Option[String] = None, `type`: Option[String] = None, mode: Option[String] = None, content_type: Option[String] = None, dial_code: Option[String] = None);
 @scala.beans.BeanInfo
 case class PData(id: String, ver: String, model: Option[String] = None, pid: Option[String] = None);
 @scala.beans.BeanInfo
@@ -149,6 +147,9 @@ case class FetchConfig(params: Map[String, String])
 case class CsvColumnMapping(to: String, hidden: Boolean, mapFunc: String)
 case class CsvConfig(auto_extract_column_names: Boolean, columnMappings: Map[String, CsvColumnMapping])
 case class SaveConfig(params: Map[String, String])
+
+/* hierarchy store keyspace */
+case class ContentHierarchyTable(identifier: String, hierarchy: String)
 
 object Period extends Enumeration {
   type Period = Value

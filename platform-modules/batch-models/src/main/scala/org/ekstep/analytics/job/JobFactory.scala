@@ -192,6 +192,10 @@ object JobFactory {
                 DeviceProfileUpdater
             case "video-streaming" =>
                 VideoStreamingJob
+            case "dialcode-usage-summary" =>
+                DialcodeUsageSummarizer
+            case "etb-coverage-summary" =>
+                ETBCoverageSummarizer
             case "portal-metrics" =>
                 PortalMetricsUpdater
             case "dialcode-usage" =>
