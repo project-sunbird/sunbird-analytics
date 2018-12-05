@@ -28,10 +28,10 @@ object ETBCoverageSummaryModel extends IBatchModelTemplate[Empty, ContentHierarc
     override def preProcess(data: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentHierarchyModel] = {
         // format date to ISO format
         val fromDate = config.getOrElse("fromDate", new DateTime().toString(CommonUtil.dateFormat)).asInstanceOf[String]
-        val startDate = CommonUtil.df7.parseDateTime(fromDate).toDateTimeISO.toString
+        val startDate = CommonUtil.ISTDateTimeFormatter.parseDateTime(fromDate).toDateTimeISO.toString
 
         val toDate = config.getOrElse("toDate", new DateTime().toString(CommonUtil.dateFormat)).asInstanceOf[String]
-        val endDate = CommonUtil.df7.parseDateTime(toDate).plusHours(23).plusMinutes(59).plusSeconds(59).toDateTimeISO.toString
+        val endDate = CommonUtil.ISTDateTimeFormatter.parseDateTime(toDate).plusHours(23).plusMinutes(59).plusSeconds(59).toDateTimeISO.toString
 
         JobLogger.log("Started executing Job ETBCoverageSummaryModel")
 
@@ -105,13 +105,13 @@ object ETBCoverageSummaryModel extends IBatchModelTemplate[Empty, ContentHierarc
 
     override def algorithm(input: RDD[ContentHierarchyModel], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ETBCoverageOutput] = {
         computeMetrics(input)
-            .map(x => ETBCoverageOutput(
-                x.getOrElse("id", "").asInstanceOf[String],
-                x.getOrElse("objectType", "").asInstanceOf[String],
-                x.getOrElse("totalDialcodeAttached", 0).asInstanceOf[Int],
-                x.getOrElse("totalDialcode", Map()).asInstanceOf[Map[String, Int]],
-                x.getOrElse("totalDialcodeLinkedToContent", 0).asInstanceOf[Int],
-                x.getOrElse("level", 0).asInstanceOf[Int]
+            .map(metric => ETBCoverageOutput(
+                metric.getOrElse("id", "").asInstanceOf[String],
+                metric.getOrElse("objectType", "Content").asInstanceOf[String],
+                metric.getOrElse("totalDialcodeAttached", 0).asInstanceOf[Int],
+                metric.getOrElse("totalDialcode", Map()).asInstanceOf[Map[String, Int]],
+                metric.getOrElse("totalDialcodeLinkedToContent", 0).asInstanceOf[Int],
+                metric.getOrElse("level", 0).asInstanceOf[Int]
             ))
     }
 
@@ -123,11 +123,10 @@ object ETBCoverageSummaryModel extends IBatchModelTemplate[Empty, ContentHierarc
                 "me_totalDialcodeAttached" -> metric.totalDialcodeAttached,
                 "me_hierarchyLevel" -> metric.level
             )
-
             val finalContentMap = measures.filter(x=> x._1.nonEmpty)
                 .map{ x => x._1 -> Map("ov" -> null, "nv" -> x._2) }
             GraphUpdateEvent(DateTime.now().getMillis, metric.contentId,
-                Map("properties" -> finalContentMap), "Content")
+                Map("properties" -> finalContentMap), metric.objectType)
         }
         output
     }

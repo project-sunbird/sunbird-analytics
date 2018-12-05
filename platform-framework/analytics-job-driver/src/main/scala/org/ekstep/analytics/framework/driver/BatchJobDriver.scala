@@ -44,7 +44,7 @@ object BatchJobDriver {
         models.foreach { model =>
             JobContext.jobName = model.name
             // TODO: It is not necessary that the end date always exists. The below log statement might throw exceptions
-            val endDate = if (config.search.queries.isEmpty) "" else config.search.queries.get.last.endDate
+            val endDate = config.search.queries.getOrElse(Array(Query())).last.endDate
             JobLogger.start("Started processing of " + model.name, Option(Map("config" -> config, "model" -> model.name, "date" -> endDate)));
             try {
                 val result = _processModel(config, data, model);

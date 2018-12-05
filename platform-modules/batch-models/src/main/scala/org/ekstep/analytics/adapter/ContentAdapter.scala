@@ -42,7 +42,7 @@ object ContentAdapter extends BaseAdapter {
 
     def getPublishedContent(): Array[Map[String, AnyRef]] = {
         def _searchContent(offset: Int, limit: Int): ContentResult = {
-            val searchUrl = Constants.getContentSearch();
+            val searchUrl = Constants.COMPOSITE_SEARCH_URL
             val request = Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "status" -> List("Draft", "Review", "Redraft", "Flagged", "Live", "Retired", "Mock", "Processing", "FlagDraft", "FlagReview")), "exists" -> List("lastPublishedOn", "downloadUrl"), "offset" -> offset, "limit" -> limit));
             val resp = RestUtil.post[ContentResponse](searchUrl, JSONUtils.serialize(request));
             resp.result;
@@ -61,10 +61,18 @@ object ContentAdapter extends BaseAdapter {
       * @return ContentResult
       */
     def getPublishedContentList(): ContentResult = {
-        val searchUrl = Constants.getContentSearch()
-        val request = Map("request" -> Map("filters" -> Map("contentType" -> "Resource")), "fields" -> List("identifier","objectType","resourceType"))
-        val resp = RestUtil.post[ContentResponse](searchUrl, JSONUtils.serialize(request))
-        resp.result
+        val request =
+            s"""
+               |{
+               |    "request": {
+               |        "filters":{
+               |          "contentType": "Resource"
+               |        },
+               |        "fields": ["identifier", "objectType", "resourceType"]
+               |    }
+               |}
+             """.stripMargin
+        RestUtil.post[ContentResponse](Constants.COMPOSITE_SEARCH_URL, request).result
     }
 
     def getContentWrapper(content: Map[String, AnyRef]): Content = {
@@ -87,8 +95,6 @@ object ContentAdapter extends BaseAdapter {
         def _searchTextbook(offset: Int, limit: Int): ContentResult = {
             val min = s""""$lastUpdatedOnMin""""
             val max = s""""$lastUpdatedOnMax""""
-
-            val searchUrl = Constants.getContentSearch()
             val body =
                 s"""
                    |{
@@ -104,7 +110,7 @@ object ContentAdapter extends BaseAdapter {
                    |   }
                    |}
          """.stripMargin
-            RestUtil.post[ContentResponse](searchUrl, body).result
+            RestUtil.post[ContentResponse](Constants.COMPOSITE_SEARCH_URL, body).result
         }
 
         search(0, 200, Array[Map[String, AnyRef]](), _searchTextbook)

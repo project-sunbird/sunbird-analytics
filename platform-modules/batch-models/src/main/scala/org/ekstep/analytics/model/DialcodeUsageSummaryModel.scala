@@ -6,6 +6,8 @@ import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.util.CommonUtil
 
+import scala.collection.mutable.ListBuffer
+
 case class DialcodeScanMetrics(dialCode: String, channel: String, firstScan: Long, lastScan: Long, count: Int) extends AlgoOutput
 
 object DialcodeUsageSummaryModel extends IBatchModelTemplate[V3Event, V3Event, DialcodeScanMetrics, MeasuredEvent] with Serializable {
@@ -19,30 +21,31 @@ object DialcodeUsageSummaryModel extends IBatchModelTemplate[V3Event, V3Event, D
     }
 
     override def algorithm(input: RDD[V3Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DialcodeScanMetrics] = {
-        val mapDialCodes = (x: RDD[V3Event]) => x.map(y => {
-            var dailcode: List[String] = List()
-            val filters = y.edata.filters.getOrElse(Map()).asInstanceOf[Map[String, AnyRef]]
+        def mapDialCodes(events: RDD[V3Event]): RDD[(List[String], Long, String)] = events.map(event => {
+            var dialcode = new ListBuffer[String]()
+            val filters = event.edata.filters.getOrElse(Map()).asInstanceOf[Map[String, AnyRef]]
 
             if (filters("dialcodes").isInstanceOf[String]) {
-                dailcode = List(filters.getOrElse("dialcodes", "").asInstanceOf[String])
+                dialcode += filters.getOrElse("dialcodes", "").asInstanceOf[String]
             } else {
-                dailcode = filters.getOrElse("dialcodes", List()).asInstanceOf[List[String]]
+                dialcode ++= filters.getOrElse("dialcodes", List()).asInstanceOf[List[String]]
             }
-            (dailcode, y.ets, y.context.channel)
+            (dialcode.toList, event.ets, event.context.channel)
         })
-        val filterByDialcodeSearch = (x: RDD[V3Event]) => x.filter(_.edata.filters.getOrElse(Map()).asInstanceOf[Map[String, AnyRef]].contains("dialcodes"))
-        val deriveTimestamp = (data: Iterable[((String, String), (Long, Int))]) => {
+
+        def filterByDialcodeSearch(events: RDD[V3Event]): RDD[V3Event] = events.filter(_.edata.filters.getOrElse(Map()).asInstanceOf[Map[String, AnyRef]].contains("dialcodes"))
+        def deriveTimestamp(data: Iterable[((String, String), (Long, Int))]): (Long, Long) = {
             val scanTimestamp = data.map(x => x._2._1).toList.sorted
             (scanTimestamp.head, scanTimestamp.last)
         }
-        val scanCountSum = (data: Iterable[((String, String), (Long, Int))]) => data.map(x => x._2._2).sum
+        def totalScanCount(data: Iterable[((String, String), (Long, Int))]): Int = data.map(x => x._2._2).sum
 
-        val filteredData = filterByDialcodeSearch(input)
+        val filteredData: RDD[V3Event] = filterByDialcodeSearch(input)
         mapDialCodes(filteredData)
             .map(x => x._1.map(t => ((t, x._3), (x._2, 1)))) // ((dialcode, channel), (ets, count))
             .flatMap(identity)
             .groupBy(_._1) // group by (dialcode, channel)
-            .map(x => (x._1, deriveTimestamp(x._2), scanCountSum(x._2))) // ((dialcode, channel), (firstScan, lastScan), count)
+            .map(x => (x._1, deriveTimestamp(x._2), totalScanCount(x._2))) // ((dialcode, channel), (firstScan, lastScan), count)
             .map(x => DialcodeScanMetrics(x._1._1, x._1._2, x._2._1, x._2._2, x._3))
     }
 
