@@ -198,7 +198,7 @@ object JobFactory {
                 ETBCoverageSummarizer
             case "portal-metrics" =>
                 PortalMetricsUpdater
-            case "dialcode-usage" =>
+            case "dialcode-usage-updater" =>
                 DialcodeUsageUpdater
             case _ =>
                 throw new JobNotFoundException("Unknown job type found")
