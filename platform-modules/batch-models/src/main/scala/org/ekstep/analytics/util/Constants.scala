@@ -71,8 +71,10 @@ object Constants {
     val EDITOR_ENV = "contenteditor"
     val PORTAL_PDATAIDS = List("dev.ekstep.portal", "qa.ekstep.portal", "prod.ekstep.portal", "dev.sunbird.portal", "qa.sunbird.portal", "prod.sunbird.portal", "dev.diksha.portal", "qa.diksha.portal", "prod.diksha.portal")
 //    val PORTAL_PDATAIDS = List("in.ekstep.community", "org.ekstep.content.platform", "sunbird_portal", "in.ekstep.dev", "in.ekstep.qa")
+
     val HIERARCHY_STORE_KEY_SPACE_NAME = AppConf.getConfig("cassandra.hierarchy_store_prefix")+"hierarchy_store"
     val CONTENT_HIERARCHY_TABLE = "content_hierarchy"
+    val DIALCODE_USAGE_METRICS_TABLE = "dialcode_usage_metrics"
 
     def getContentList(): String = {
         s"$LP_URL/v2/analytics/content/list";
