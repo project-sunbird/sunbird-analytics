@@ -17,19 +17,19 @@ object JobFactory {
     def getJob(jobType: String): IJob = {
         jobType.toLowerCase() match {
             case "as" =>
-                AserScreenSummarizer;
+                AserScreenSummarizer
             case "ss" =>
-                LearnerSessionSummarizer;
+                LearnerSessionSummarizer
             case "las" =>
-                LearnerActivitySummarizer;
+                LearnerActivitySummarizer
             case "lp" =>
-                ProficiencyUpdater;
+                ProficiencyUpdater
             case "ls" =>
-                LearnerSnapshotUpdater;
+                LearnerSnapshotUpdater
             case "lcas" =>
-                LearnerContentActivityUpdater;
+                LearnerContentActivityUpdater
             case "lcr" =>
-                RecommendationEngineJob;
+                RecommendationEngineJob
             case "cus" =>
                 ContentUsageSummarizer
             case "cps" =>
