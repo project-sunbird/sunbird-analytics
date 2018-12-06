@@ -8,7 +8,9 @@ import org.apache.logging.log4j.core.LoggerContext
 import org.apache.logging.log4j.core.appender.mom.kafka.KafkaAppender
 import org.apache.logging.log4j.core.config.Property
 import org.apache.logging.log4j.core.layout.PatternLayout
-import org.ekstep.analytics.framework.{Context, MEEdata, MeasuredEvent, PData}
+import org.ekstep.analytics.framework.util.JSONUtils
+import org.ekstep.analytics.framework._
+import org.joda.time.DateTime
 
 object APILogger {
 	def init(jobName: String) = {
@@ -37,12 +39,19 @@ object APILogger {
 		logger.info(JSONUtils.serialize(getAccessMeasuredEvent("BE_ACCESS", "INFO", msg, data)));
 	}
 
-	private def getAccessMeasuredEvent(eid: String, level: String, msg: String, data: Option[AnyRef], status: Option[String] = None)(implicit className: String): MeasuredEvent = {
-		val mid = "";
+	private def getAccessMeasuredEvent(eid: String, level: String, msg: String, data: Option[AnyRef], status: Option[String] = None)(implicit className: String): V3Event = {
 		val apiConf = ConfigFactory.load();
 		val channel = apiConf.getString("default.channel.id")
-		MeasuredEvent(eid, System.currentTimeMillis(), System.currentTimeMillis(), "1.0", null, "",channel, None, None,
-			Context(PData("AnalyticsAPI", "1.0", Option("org.ekstep.analytics.api")), None, "EVENT", null),
-			null,MEEdata(Option(Map("message" -> msg, "data"-> data.getOrElse(null)))));
+		val measures = Map(
+			"level" -> level,
+			"message" -> msg,
+			"type" -> "api-access",
+			"data" -> data);
+		val edata = JSONUtils.deserialize[V3EData](JSONUtils.serialize(measures))
+		val ts = new DateTime().getMillis
+		val mid = org.ekstep.analytics.framework.util.CommonUtil.getMessageId(eid, level, ts, None, None);
+		val context = V3Context("in.ekstep", Option(V3PData("AnalyticsDataPipeline", Option("1.0"), Some("DeviceRegisterAPI"))), "analytics", None, None, None, None)
+		new V3Event(eid, System.currentTimeMillis(), new DateTime().toString(org.ekstep.analytics.framework.util.CommonUtil.df3), "3.0", mid, Actor("", "System"), context, None, edata)
+
 	}
 }
