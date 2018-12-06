@@ -18,7 +18,7 @@ import org.ekstep.analytics.framework.util.JobLogger
 case class RegisterDevice(did: String, ip: String, request: String, uaspec: Option[String])
 
 class DeviceRegisterService extends Actor {
-
+    implicit val className ="DeviceRegisterService"
     val config: Config = ConfigFactory.load()
     val geoLocationCityTableName: String = config.getString("postgres.table.geo_location_city.name")
     val geoLocationCityIpv4TableName: String = config.getString("postgres.table.geo_location_city_ipv4.name")
@@ -39,9 +39,6 @@ class DeviceRegisterService extends Actor {
             val data = updateDeviceProfile(did, channel, Option(location.state).map(_.trim).filterNot(_.isEmpty),
                 Option(location.city).map(_.trim).filterNot(_.isEmpty), deviceSpec, uaspec.map(_.trim).filterNot(_.isEmpty))
         }
-        implicit val className ="DeviceRegisterService"
-        val data = List(Map("request"-> request))
-        JobLogger.logAPIEvent("device register", data, None)
         JSONUtils.serialize(CommonUtil.OK("analytics.device-register",
             Map("message" -> s"Device registered successfully")))
 

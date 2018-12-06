@@ -80,10 +80,6 @@ object JobLogger {
         }
     }
 
-    def logAPIEvent(msg: String, data: List[Map[String, AnyRef]], status: Option[String])(implicit className: String): Unit = {
-      EventBusUtil.dipatchEvent(JSONUtils.serialize(getAPILOGEvent("LOG", "INFO", msg, data)))
-    }
-
     private def getMeasuredEvent(eid: String, level: String, msg: String, data: Option[AnyRef], status: Option[String] = None)(implicit className: String): MeasuredEvent = {
         val measures = Map(
             "class" -> className,
@@ -110,19 +106,6 @@ object JobLogger {
         val mid = CommonUtil.getMessageId(eid, level, ts, None, None);
         val context = V3Context("in.ekstep", Option(V3PData(pdata_id, Option("1.0"), Option(pdata_pid))), "analytics", None, None, None, None)
         V3DerivedEvent(eid, System.currentTimeMillis(), new DateTime().toString(CommonUtil.df3), "3.0", mid, Actor("", "System"), context, None, measures)
-    }
-
-    private def getAPILOGEvent(eid: String = "LOG", level: String = "INFO", msg: String = "", data: List[Map[String, AnyRef]], status: Option[String] = None, pdata_id: String = "AnalyticsDataPipeline", pdata_pid: String = "DeviceRegisterAPI")(implicit className: String): V3Event = {
-      val measures = Map(
-        "level" -> level,
-        "message" -> msg,
-        "type" -> "api-access",
-        "params" -> data);
-      val edata = JSONUtils.deserialize[V3EData](JSONUtils.serialize(measures))
-      val ts = new DateTime().getMillis
-      val mid = org.ekstep.analytics.framework.util.CommonUtil.getMessageId(eid, level, ts, None, None);
-      val context = V3Context("in.ekstep", Option(V3PData(pdata_id, Option("1.0"), Option(pdata_pid))), "analytics", None, None, None, None)
-      new V3Event(eid, System.currentTimeMillis(), new DateTime().toString(org.ekstep.analytics.framework.util.CommonUtil.df3), "3.0", mid, Actor("", "System"), context, None, edata)
     }
 
 
