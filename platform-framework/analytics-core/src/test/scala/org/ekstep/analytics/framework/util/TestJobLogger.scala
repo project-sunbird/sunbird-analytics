@@ -46,4 +46,11 @@ class TestJobLogger extends BaseSpec {
 
     }
 
+    it should "invoke API logger" in{
+        JobLogger.init(className);
+        JobLogger.start("testing start method", Option("START"))
+        var values = List(Map("url" -> "/app/test"))
+        JobLogger.logAPIEvent("", values, None)
+    }
+
 }

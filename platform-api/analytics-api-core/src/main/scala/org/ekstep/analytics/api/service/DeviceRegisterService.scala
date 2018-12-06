@@ -13,6 +13,7 @@ import com.datastax.driver.core.ResultSet
 import com.google.common.primitives.UnsignedInts
 import org.ekstep.analytics.api.util.DeviceLocation
 import is.tagomor.woothee.Classifier
+import org.ekstep.analytics.framework.util.JobLogger
 
 case class RegisterDevice(did: String, ip: String, request: String, uaspec: Option[String])
 
@@ -38,8 +39,12 @@ class DeviceRegisterService extends Actor {
             val data = updateDeviceProfile(did, channel, Option(location.state).map(_.trim).filterNot(_.isEmpty),
                 Option(location.city).map(_.trim).filterNot(_.isEmpty), deviceSpec, uaspec.map(_.trim).filterNot(_.isEmpty))
         }
+        implicit val className ="DeviceRegisterService"
+        val data = List(Map("request"-> request))
+        JobLogger.logAPIEvent("device register", data, None)
         JSONUtils.serialize(CommonUtil.OK("analytics.device-register",
             Map("message" -> s"Device registered successfully")))
+
     }
 
     def resolveLocation(ipAddress: String): DeviceLocation = {
