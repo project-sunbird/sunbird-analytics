@@ -1,13 +1,9 @@
 package org.ekstep.analytics.framework.util
 
-import org.ekstep.analytics.framework.MeasuredEvent
-import org.ekstep.analytics.framework.Context
-import org.ekstep.analytics.framework.MEEdata
-import org.ekstep.analytics.framework.PData
+import org.ekstep.analytics.framework.{Level => _, _}
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.apache.logging.log4j.core.LoggerContext
-import org.ekstep.analytics.framework.JobContext
 import org.ekstep.analytics.framework.Level._
 import org.ekstep.analytics.framework.conf.AppConf
 import org.apache.commons.lang3.StringUtils
@@ -15,13 +11,9 @@ import org.apache.logging.log4j.core.appender.mom.kafka.KafkaAppender
 import org.apache.logging.log4j.core.config.Property
 import org.apache.logging.log4j.core.layout.PatternLayout
 import java.nio.charset.Charset
+
 import org.apache.logging.log4j.core.config.AppenderRef
 import org.joda.time.DateTime
-import org.ekstep.analytics.framework.V3Context
-import org.ekstep.analytics.framework.V3PData
-import org.ekstep.analytics.framework.V3DerivedEvent
-import org.ekstep.analytics.framework.V3EData
-import org.ekstep.analytics.framework.Actor
 
 object JobLogger {
 
@@ -102,7 +94,7 @@ object JobLogger {
             null,
             MEEdata(measures));
     }
-    
+
     private def getV3JobEvent(eid: String, level: String, msg: String, data: Option[AnyRef], status: Option[String] = None, pdata_id: String = "AnalyticsDataPipeline", pdata_pid: String = JobContext.jobName)(implicit className: String): V3DerivedEvent = {
         val measures = Map(
             "class" -> className,
@@ -115,4 +107,8 @@ object JobLogger {
         val context = V3Context("in.ekstep", Option(V3PData(pdata_id, Option("1.0"), Option(pdata_pid))), "analytics", None, None, None, None)
         V3DerivedEvent(eid, System.currentTimeMillis(), new DateTime().toString(CommonUtil.df3), "3.0", mid, Actor("", "System"), context, None, measures)
     }
+
+
+
+
 }
