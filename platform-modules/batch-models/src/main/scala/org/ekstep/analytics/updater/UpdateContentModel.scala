@@ -40,7 +40,7 @@ object UpdateContentModel extends IBatchModelTemplate[DerivedEvent, PopularityUp
 
     override def algorithm(data: RDD[PopularityUpdaterInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[GraphUpdateEvent] = {
         data.map { x =>
-            val contentType = x.workflowSummary.map(_.m_content_type).getOrElse("Content")
+            val contentType = x.workflowSummary.map(_.m_content_type.getOrElse("Content")).getOrElse("Content")
             val objectType = getObjectType(contentType, config)
             val workflowUsageMap = x.workflowSummary.map(f =>
                 Map("me_totalSessionsCount" -> f.m_total_sessions,
@@ -61,7 +61,7 @@ object UpdateContentModel extends IBatchModelTemplate[DerivedEvent, PopularityUp
             val finalContentMap = metrics.filter(x=> x._1.nonEmpty)
               .map{ x => x._1 -> Map("ov" -> null, "nv" -> x._2) }
             GraphUpdateEvent(DateTime.now().getMillis, x.contentId,
-                Map("properties" -> finalContentMap), objectType.getOrElse("Content"))
+                Map("properties" -> finalContentMap), objectType)
         }.cache()
     }
 
