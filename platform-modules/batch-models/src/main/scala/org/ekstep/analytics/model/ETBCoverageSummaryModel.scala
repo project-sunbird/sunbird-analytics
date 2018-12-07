@@ -17,7 +17,7 @@ case class ContentFlatList(contentId: String, metric: List[Map[String, Any]])
 
 case class ETBCoverageOutput(contentId: String, objectType: String, totalDialcodeAttached: Int, totalDialcode: Map[String, Int], totalDialcodeLinkedToContent: Int, level: Int) extends AlgoOutput
 
-case class ContentHierarchyModel(mimeType: String, contentType: String, dialcodes: Option[List[String]], identifier: String, channel: String, status: String, resourceType: String, name: String, content: Map[String, AnyRef], children: Option[List[ContentHierarchyModel]], objectType: String) extends AlgoInput
+case class ContentHierarchyModel(mimeType: String, contentType: String, dialcodes: Option[List[String]], identifier: String, channel: String, status: String, name: String, content: Map[String, AnyRef], children: Option[List[ContentHierarchyModel]]) extends AlgoInput
 
 object ETBCoverageSummaryModel extends IBatchModelTemplate[Empty, ContentHierarchyModel, ETBCoverageOutput, GraphUpdateEvent] with Serializable {
 
@@ -80,7 +80,6 @@ object ETBCoverageSummaryModel extends IBatchModelTemplate[Empty, ContentHierarc
                     "totalDialcode" -> getDialcodesByLevel(content).groupBy(identity).map(t => (t._1, t._2.size)),
                     "totalDialcodeAttached" -> getDialcodesByLevel(content).distinct.size,
                     "totalDialcodeLinkedToContent" -> getDialcodeLinkedToContent(content),
-                    "objectType" -> content.objectType,
                     "mimeType" -> content.mimeType,
                     "level" -> level
                 )
