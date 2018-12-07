@@ -1,13 +1,13 @@
 package org.ekstep.analytics.adapter
 
+import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.model.BaseSpec
-import org.ekstep.analytics.framework.exception.DataAdapterException
-import org.ekstep.analytics.framework.exception.DataAdapterException
+import org.scalamock.scalatest.MockFactory
 
 /**
  * @author Santhosh
  */
-class TestContentAdapter extends BaseSpec {
+class TestContentAdapter extends BaseSpec with MockFactory{
   
     ignore should "return content list using v2 api" in {
         
@@ -42,5 +42,37 @@ class TestContentAdapter extends BaseSpec {
     ignore should "get published contents form content model" in {
         val contents = ContentAdapter.getPublishedContent();
         println("count", contents.size, "sample", contents.head);
+    }
+
+    "Search method" should "handle when result count 0" in {
+        trait util {
+            def action(offset: Int, limit: Int): ContentResult
+        }
+        val mockAction = mock[util]
+
+        val responseString = "{\"id\":\"ekstep.composite-search.search\",\"ver\":\"3.0\",\"ts\":\"2018-12-07T06:04:22ZZ\",\"params\":{\"resmsgid\":\"78d1afa1-32b0-47f1-96d8-a7372c1ee959\",\"msgid\":null,\"err\":null,\"status\":\"successful\",\"errmsg\":null},\"responseCode\":\"OK\",\"result\":{\"count\":0}}"
+        val response = JSONUtils.deserialize[ContentResponse](responseString)
+
+        (mockAction.action _).expects(0, 200).returns(response.result)
+
+        val result = ContentAdapter.search(0, 200, Array[Map[String, AnyRef]](), mockAction.action)
+        result.length should be(0)
+    }
+
+    it should "return the result when content is found" in {
+        trait util {
+            def action(offset: Int, limit: Int): ContentResult
+        }
+        val mockAction = mock[util]
+
+        val responseString = "{\"id\":\"ekstep.composite-search.search\",\"ver\":\"3.0\",\"ts\":\"2018-12-07T05:39:19ZZ\",\"params\":{\"resmsgid\":\"6512453e-a5af-4079-a9e0-2d4f79b8abcd\",\"msgid\":null,\"err\":null,\"status\":\"successful\",\"errmsg\":null},\"responseCode\":\"OK\",\"result\":{\"count\":1,\"content\":[{\"identifier\":\"do_1126053858324398081174\",\"objectType\":\"Content\"}]}}"
+        val response = JSONUtils.deserialize[ContentResponse](responseString)
+
+        (mockAction.action _).expects(0, 200).returns(response.result)
+
+        val result = ContentAdapter.search(0, 200, Array[Map[String, AnyRef]](), mockAction.action)
+
+        result.length should be(1)
+        result.head.getOrElse("identifier", "").asInstanceOf[String] should be("do_1126053858324398081174")
     }
 }

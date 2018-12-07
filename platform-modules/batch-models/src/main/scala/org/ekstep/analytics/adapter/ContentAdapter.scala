@@ -7,7 +7,7 @@ import org.ekstep.analytics.util.Constants
 import scala.annotation.tailrec
 
 case class ContentModel(id: String, subject: List[String], contentType: String, languageCode: List[String], gradeList: List[String] = List[String]());
-case class ContentResult(count: Int, content: Array[Map[String, AnyRef]])
+case class ContentResult(count: Int, content: Option[Array[Map[String, AnyRef]]])
 case class ContentResponse(id: String, ver: String, ts: String, params: Params, responseCode: String, result: ContentResult)
 
 /**
@@ -31,7 +31,7 @@ object ContentAdapter extends BaseAdapter {
     @tailrec
     def search(offset: Int, limit: Int, contents: Array[Map[String, AnyRef]], action: (Int, Int) => ContentResult): Array[Map[String, AnyRef]] = {
         val result = action(offset, limit)
-        val c = contents ++ result.content
+        val c = contents ++ result.content.getOrElse(Array())
         if (result.count > (offset + limit)) {
             search((offset + limit), limit, c, action)
         } else {
