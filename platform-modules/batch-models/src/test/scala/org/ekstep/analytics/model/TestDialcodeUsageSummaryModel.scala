@@ -20,6 +20,15 @@ class TestDialcodeUsageSummaryModel extends SparkSpec(null) {
     events.last.dimensions.channel.getOrElse("") should be("01235953109336064029413")
   }
 
+  it should "repeat-test: aggregate based on channel and dialcode" in {
+    val rdd1 = loadFile[V3Event]("src/test/resources/dialcode-usage-summary/dialcode_events.log")
+    val me0 = DialcodeUsageSummaryModel.execute(rdd1, None)
+    val events = me0.collect()
+    val me_event = JSONUtils.deserialize[DialUsageMetric](JSONUtils.serialize(events.last.edata.eks))
+
+    me0.count() should be(19)
+  }
+
   it should "aggregate dialcodes from different events based on channel" in {
     val rdd1 = loadFile[V3Event]("src/test/resources/dialcode-usage-summary/withSameDialcodeInDifferentEvents.log")
     val me0 = DialcodeUsageSummaryModel.execute(rdd1, None)
