@@ -35,21 +35,16 @@ object APILogger {
 		LogManager.getLogger("org.ekstep.analytics.api");
 	}
 
-	def log(msg: String, data: Option[AnyRef] = None)(implicit className: String) {
-		logger.info(JSONUtils.serialize(getAccessMeasuredEvent("LOG", "INFO", msg, data)));
+	def log(msg: String, data: Option[AnyRef] = None, apiName:String="AnalyticsAPI")(implicit className: String) {
+		logger.info(JSONUtils.serialize(getAccessMeasuredEvent("LOG", "INFO", msg, data, None, apiName)));
 	}
 
-	private def getAccessMeasuredEvent(eid: String, level: String, msg: String, data: Option[AnyRef], status: Option[String] = None)(implicit className: String): V3Event = {
+	private def getAccessMeasuredEvent(eid: String, level: String, msg: String, data: Option[AnyRef], status: Option[String] = None, apiName:String="AnalyticsAPI")(implicit className: String): V3Event = {
 		val apiConf = ConfigFactory.load();
-		val measures = Map(
-			"level" -> level,
-			"message" -> msg,
-			"type" -> "api-access",
-			"data" -> data);
-		val edata = JSONUtils.deserialize[V3EData](JSONUtils.serialize(measures))
+		val edata = JSONUtils.deserialize[V3EData](JSONUtils.serialize(data))
 		val ts = new DateTime().getMillis
 		val mid = org.ekstep.analytics.framework.util.CommonUtil.getMessageId(eid, level, ts, None, None);
-		val context = V3Context("analytics.api", Option(V3PData("AnalyticsAPI", Option("3.0"), Option(className))), "analytics", None, None, None, None)
+		val context = V3Context("analytics.api", Option(V3PData("AnalyticsAPI", Option("3.0"), Option(apiName))), "analytics", None, None, None, None)
    	new V3Event(eid, System.currentTimeMillis(), new DateTime().toString(org.ekstep.analytics.framework.util.CommonUtil.df3), "3.0", mid, Actor("", "System"), context, None, edata)
 	}
 }
