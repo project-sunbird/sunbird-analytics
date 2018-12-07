@@ -107,7 +107,7 @@ object ETBCoverageSummaryModel extends IBatchModelTemplate[Empty, ContentHierarc
         computeMetrics(input)
             .map(metric => ETBCoverageOutput(
                 metric.getOrElse("id", "").asInstanceOf[String],
-                metric.getOrElse("objectType", "Content").asInstanceOf[String],
+                "Content",          // collection mimeType has objectType "Content"
                 metric.getOrElse("totalDialcodeAttached", 0).asInstanceOf[Int],
                 metric.getOrElse("totalDialcode", Map()).asInstanceOf[Map[String, Int]],
                 metric.getOrElse("totalDialcodeLinkedToContent", 0).asInstanceOf[Int],
