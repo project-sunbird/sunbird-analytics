@@ -8,7 +8,7 @@ import org.ekstep.analytics.framework.util.CommonUtil
 
 import scala.collection.mutable.ListBuffer
 
-case class DialcodeScanMetrics(dialCode: String, channel: String, firstScan: Long, lastScan: Long, count: Int) extends AlgoOutput
+case class DialcodeScanMetrics(dialCode: String, channel: String, firstScan: Long, lastScan: Long, count: Int, syncts: Long) extends AlgoOutput
 
 object DialcodeUsageSummaryModel extends IBatchModelTemplate[V3Event, V3Event, DialcodeScanMetrics, MeasuredEvent] with Serializable {
 
@@ -46,7 +46,7 @@ object DialcodeUsageSummaryModel extends IBatchModelTemplate[V3Event, V3Event, D
             .flatMap(identity)
             .groupBy(_._1) // group by (dialcode, channel)
             .map(x => (x._1, deriveTimestamp(x._2), totalScanCount(x._2))) // ((dialcode, channel), (firstScan, lastScan), count)
-            .map(x => DialcodeScanMetrics(x._1._1, x._1._2, x._2._1, x._2._2, x._3))
+            .map(x => DialcodeScanMetrics(x._1._1, x._1._2, x._2._1, x._2._2, x._3, x._2._2))
     }
 
     override def postProcess(data: RDD[DialcodeScanMetrics], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
@@ -57,8 +57,8 @@ object DialcodeUsageSummaryModel extends IBatchModelTemplate[V3Event, V3Event, D
             val mid = CommonUtil.getMessageId(ME_ID, metric.dialCode, "DAY", metric.firstScan, None, Some(metric.channel))
             val measures = Map("total_dial_scans" -> metric.count, "first_scan" -> metric.firstScan, "last_scan" -> metric.lastScan)
 
-            MeasuredEvent(ME_ID, System.currentTimeMillis(), System.currentTimeMillis(), meEventVersion, mid, "", "", None, None,
-                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "DialcodeUsageSummarizer").asInstanceOf[String])), None, "DAY", DtRange(0, 0)),
+            MeasuredEvent(ME_ID, System.currentTimeMillis(), metric.lastScan, meEventVersion, mid, "", "", None, None,
+                Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "DialcodeUsageSummarizer").asInstanceOf[String])), None, "DAY", DtRange(metric.firstScan, metric.lastScan)),
                 Dimensions(None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, Option(metric.channel), None, None, None, Some(metric.dialCode)),
                 MEEdata(measures), None);
         }
