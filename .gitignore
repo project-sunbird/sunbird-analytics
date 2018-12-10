@@ -20,3 +20,5 @@ platform-modules/batch-models/logs
 platform-framework/analytics-core/files
 .DS_Store
 /.idea
+*.iml
+*.gz
