@@ -10,10 +10,18 @@ case class ContentModel(id: String, subject: List[String], contentType: String, 
 case class ContentResult(count: Int, content: Option[Array[Map[String, AnyRef]]])
 case class ContentResponse(id: String, ver: String, ts: String, params: Params, responseCode: String, result: ContentResult)
 
+
+trait ContentFetcher {
+    def getAllContent: Array[Content]
+    def search(offset: Int, limit: Int, contents: Array[Map[String, AnyRef]], action: (Int, Int) => ContentResult): Array[Map[String, AnyRef]]
+    def getPublishedContent: Array[Map[String, AnyRef]]
+    def getPublishedContentList: ContentResult
+    def getTextbookContents(lastUpdatedOnMin: String, lastUpdatedOnMax: String): Array[Map[String, AnyRef]]
+}
 /**
  * @author Santhosh
  */
-object ContentAdapter extends BaseAdapter {
+object ContentAdapter extends BaseAdapter with ContentFetcher {
 
     val relations = Array("concepts", "tags");
 
