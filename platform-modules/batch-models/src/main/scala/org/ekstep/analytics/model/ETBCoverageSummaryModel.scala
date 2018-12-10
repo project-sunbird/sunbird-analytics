@@ -17,7 +17,7 @@ case class ContentFlatList(contentId: String, metric: List[Map[String, Any]])
 
 case class ETBCoverageOutput(contentId: String, objectType: String, totalDialcodeAttached: Int, totalDialcode: Map[String, Int], totalDialcodeLinkedToContent: Int, level: Int) extends AlgoOutput
 
-case class ContentHierarchyModel(mimeType: String, contentType: String, dialcodes: Option[List[String]], identifier: String, channel: String, status: String, resourceType: String, name: String, content: Map[String, AnyRef], children: Option[List[ContentHierarchyModel]], objectType: String) extends AlgoInput
+case class ContentHierarchyModel(mimeType: String, contentType: String, dialcodes: Option[List[String]], identifier: String, channel: String, status: String, name: String, content: Map[String, AnyRef], children: Option[List[ContentHierarchyModel]]) extends AlgoInput
 
 object ETBCoverageSummaryModel extends IBatchModelTemplate[Empty, ContentHierarchyModel, ETBCoverageOutput, GraphUpdateEvent] with Serializable {
 
@@ -57,7 +57,6 @@ object ETBCoverageSummaryModel extends IBatchModelTemplate[Empty, ContentHierarc
 
     override def preProcess(data: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentHierarchyModel] = {
         val textbookIds = getPublishedTextbooks(config, ContentAdapter)
-        println("textbookIds " + textbookIds)
         getContentsFromCassandra(textbookIds)(sc)
     }
 
@@ -112,7 +111,7 @@ object ETBCoverageSummaryModel extends IBatchModelTemplate[Empty, ContentHierarc
         computeMetrics(input)
             .map(metric => ETBCoverageOutput(
                 metric.getOrElse("id", "").asInstanceOf[String],
-                "Content",
+                "Content",          // collection mimeType has objectType "Content"
                 metric.getOrElse("totalDialcodeAttached", 0).asInstanceOf[Int],
                 metric.getOrElse("totalDialcode", Map()).asInstanceOf[Map[String, Int]],
                 metric.getOrElse("totalDialcodeLinkedToContent", 0).asInstanceOf[Int],
