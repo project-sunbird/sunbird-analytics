@@ -36,8 +36,17 @@ class DeviceRegisterService extends Actor {
             println(s"Resolved Location for device_id $did: $location")
             val channel = body.request.channel.getOrElse("")
             val deviceSpec = body.request.dspec
-            val data = updateDeviceProfile(did, channel, Option(location.state).map(_.trim).filterNot(_.isEmpty),
-                Option(location.city).map(_.trim).filterNot(_.isEmpty), deviceSpec, uaspec.map(_.trim).filterNot(_.isEmpty))
+            val data = updateDeviceProfile(
+                did,
+                channel,
+                Option(location.countryCode).map(_.trim).filterNot(_.isEmpty),
+                Option(location.countryName).map(_.trim).filterNot(_.isEmpty),
+                Option(location.stateCode).map(_.trim).filterNot(_.isEmpty),
+                Option(location.state).map(_.trim).filterNot(_.isEmpty),
+                Option(location.city).map(_.trim).filterNot(_.isEmpty),
+                deviceSpec,
+                uaspec.map(_.trim).filterNot(_.isEmpty)
+            )
         }
         JSONUtils.serialize(CommonUtil.OK("analytics.device-register",
             Map("message" -> s"Device registered successfully")))
@@ -50,7 +59,9 @@ class DeviceRegisterService extends Actor {
             s"""
                |SELECT
                |  glc.continent_name,
+               |  glc.country_iso_code country_code,
                |  glc.country_name,
+               |  glc.subdivision_1_iso_code state_code,
                |  glc.subdivision_1_name state,
                |  glc.subdivision_2_name sub_div_2,
                |  glc.city_name city
@@ -74,12 +85,14 @@ class DeviceRegisterService extends Actor {
         }
     }
 
-    def updateDeviceProfile(did: String, channel: String, state: Option[String], city: Option[String],
+    def updateDeviceProfile(did: String, channel: String, countryCode: Option[String], country: Option[String],
+                            stateCode: Option[String], state: Option[String], city: Option[String],
                             deviceSpec: Option[Map[String, AnyRef]], uaspec: Option[String]): ResultSet = {
 
         val uaspecStr = parseUserAgent(uaspec)
         val queryMap: Map[String, Any] = Map("device_id" -> s"'$did'", "channel" -> s"'$channel'",
-            "state" -> s"'${state.getOrElse("")}'", "city" -> s"'${city.getOrElse("")}'",
+            "country_code" -> s"'${countryCode.getOrElse("")}'", "country" -> s"'${country.getOrElse("")}'",
+            "state_code" -> s"'${stateCode.getOrElse("")}'", "state" -> s"'${state.getOrElse("")}'", "city" -> s"'${city.getOrElse("")}'",
             "device_spec" -> deviceSpec.map(x => JSONUtils.serialize(x.mapValues(_.toString))
               .replaceAll("\"", "'")).getOrElse(Map()),
             "uaspec" -> uaspecStr.getOrElse(""), "updated_date" -> DateTime.now(DateTimeZone.UTC).getMillis)

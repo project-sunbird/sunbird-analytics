@@ -59,8 +59,11 @@ class TestDeviceRegisterService extends BaseSpec {
 
   "Resolve location" should "return location details given an IP address" in {
     when(deviceRegisterServiceMock.resolveLocation(ipAddress = "106.51.74.185"))
-      .thenReturn(DeviceLocation("Asia", "India", "Karnataka", "", "Bangalore"))
+      .thenReturn(DeviceLocation("Asia", "IN", "India", "KA", "Karnataka", "", "Bangalore"))
     val deviceLocation = deviceRegisterServiceMock.resolveLocation("106.51.74.185")
+    deviceLocation.countryCode should be("IN")
+    deviceLocation.countryName should be("India")
+    deviceLocation.stateCode should be("KA")
     deviceLocation.state should be("Karnataka")
     deviceLocation.city should be("Bangalore")
   }
@@ -69,6 +72,9 @@ class TestDeviceRegisterService extends BaseSpec {
     when(deviceRegisterServiceMock.resolveLocation(ipAddress = "106.51.74.185"))
       .thenReturn(new DeviceLocation())
     val deviceLocation = deviceRegisterServiceMock.resolveLocation("106.51.74.185")
+    deviceLocation.countryCode should be("")
+    deviceLocation.countryName should be("")
+    deviceLocation.stateCode should be("")
     deviceLocation.state should be("")
     deviceLocation.city should be("")
   }
@@ -77,6 +83,9 @@ class TestDeviceRegisterService extends BaseSpec {
     val resultSetMock = mock[ResultSet]
     val mockedRow = mock[Row]
     when(resultSetMock.one()).thenReturn(mockedRow)
+    when(mockedRow.getString("country_code")).thenReturn("IN")
+    when(mockedRow.getString("country")).thenReturn("India")
+    when(mockedRow.getString("state_code")).thenReturn("KA")
     when(mockedRow.getString("state")).thenReturn("Karnataka")
     when(mockedRow.getString("city")).thenReturn("Bangalore")
     when(mockedRow.getString("uaspec")).thenReturn(uaspec)
@@ -84,12 +93,17 @@ class TestDeviceRegisterService extends BaseSpec {
     val dspec = Map("cpu" -> "abi:  armeabi-v7a  ARMv7 Processor rev 4 (v7l)",
       "make" -> "Micromax Micromax A065", "os" -> "Android 4.4.2")
 
-    when(deviceRegisterServiceMock.updateDeviceProfile(did = "test-device-2", channel = "test-channel", state = Some("Karnataka"),
+    when(deviceRegisterServiceMock.updateDeviceProfile(did = "test-device-2", channel = "test-channel",
+      countryCode = Some("IN"), country = Some("India"), stateCode = Some("KA"), state = Some("Karnataka"),
       city = Some("Bangalore"), deviceSpec = Some(dspec), uaspec = Some(uaspec))).thenReturn(resultSetMock)
 
-    val resultRow = deviceRegisterServiceMock.updateDeviceProfile(did = "test-device-2", channel = "test-channel", state = Some("Karnataka"),
+    val resultRow = deviceRegisterServiceMock.updateDeviceProfile(did = "test-device-2", channel = "test-channel",
+      countryCode = Some("IN"), country = Some("India"), stateCode = Some("KA"), state = Some("Karnataka"),
       city = Some("Bangalore"), deviceSpec = Some(dspec), uaspec = Some(uaspec)).one()
 
+    resultRow.getString("country_code") should be("IN")
+    resultRow.getString("country") should be("India")
+    resultRow.getString("state_code") should be("KA")
     resultRow.getString("state") should be("Karnataka")
     resultRow.getString("city") should be("Bangalore")
     resultRow.getString("uaspec") should be(uaspec)
@@ -103,16 +117,24 @@ class TestDeviceRegisterService extends BaseSpec {
     val resultSetMock = mock[ResultSet]
     val mockedRow = mock[Row]
     when(resultSetMock.one()).thenReturn(mockedRow)
+    when(mockedRow.getString("country_code")).thenReturn("")
+    when(mockedRow.getString("country")).thenReturn("")
+    when(mockedRow.getString("state_code")).thenReturn("")
     when(mockedRow.getString("state")).thenReturn("")
     when(mockedRow.getString("city")).thenReturn("")
     when(mockedRow.getString("uaspec")).thenReturn(uaspec)
 
-    when(deviceRegisterServiceMock.updateDeviceProfile(did = "test-device-2", channel = "test-channel", state = None,
+    when(deviceRegisterServiceMock.updateDeviceProfile(did = "test-device-2", channel = "test-channel",
+      countryCode = None, country = None, stateCode = None, state = None,
       city = None, deviceSpec = Some(dspec), uaspec = Some(uaspec))).thenReturn(resultSetMock)
 
-    val resultRow = deviceRegisterServiceMock.updateDeviceProfile(did = "test-device-2", channel = "test-channel", state = None,
+    val resultRow = deviceRegisterServiceMock.updateDeviceProfile(did = "test-device-2", channel = "test-channel",
+      countryCode = None, country = None, stateCode = None, state = None,
       city = None, deviceSpec = Some(dspec), uaspec = Some(uaspec)).one()
 
+    resultRow.getString("country_code") should be("")
+    resultRow.getString("country") should be("")
+    resultRow.getString("state_code") should be("")
     resultRow.getString("state") should be("")
     resultRow.getString("city") should be("")
     resultRow.getString("uaspec") should be(uaspec)
@@ -126,16 +148,24 @@ class TestDeviceRegisterService extends BaseSpec {
     val resultSetMock = mock[ResultSet]
     val mockedRow = mock[Row]
     when(resultSetMock.one()).thenReturn(mockedRow)
+    when(mockedRow.getString("country_code")).thenReturn("IN")
+    when(mockedRow.getString("country")).thenReturn("India")
+    when(mockedRow.getString("state_code")).thenReturn("KA")
     when(mockedRow.getString("state")).thenReturn("Karnataka")
     when(mockedRow.getString("city")).thenReturn("Bangalore")
     when(mockedRow.getString("uaspec")).thenReturn("")
 
-    when(deviceRegisterServiceMock.updateDeviceProfile(did = "test-device-2", channel = "test-channel", state = None,
-      city = None, deviceSpec = Some(dspec), uaspec = None)).thenReturn(resultSetMock)
+    when(deviceRegisterServiceMock.updateDeviceProfile(did = "test-device-2", channel = "test-channel",
+      countryCode = Some("IN"), country = Some("India"), stateCode = Some("KA"), state = Some("Karnataka"),
+      city = Some("Bangalore"), deviceSpec = Some(dspec), uaspec = None)).thenReturn(resultSetMock)
 
-    val resultRow = deviceRegisterServiceMock.updateDeviceProfile(did = "test-device-2", channel = "test-channel", state = None,
-      city = None, deviceSpec = Some(dspec), uaspec = None).one()
+    val resultRow = deviceRegisterServiceMock.updateDeviceProfile(did = "test-device-2", channel = "test-channel",
+      countryCode = Some("IN"), country = Some("India"), stateCode = Some("KA"), state = Some("Karnataka"),
+      city = Some("Bangalore"), deviceSpec = Some(dspec), uaspec = None).one()
 
+    resultRow.getString("country_code") should be("IN")
+    resultRow.getString("country") should be("India")
+    resultRow.getString("state_code") should be("KA")
     resultRow.getString("state") should be("Karnataka")
     resultRow.getString("city") should be("Bangalore")
     resultRow.getString("uaspec") should be("")

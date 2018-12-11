@@ -29,14 +29,17 @@ object PostgresDBUtil {
     }
 }
 
-case class DeviceLocation(continentName: String, countryName: String, state: String, subDivsion2: String, city: String) {
-    def this() = this("", "", "", "", "")
+case class DeviceLocation(continentName: String, countryCode: String, countryName: String, stateCode: String,
+                          state: String, subDivsion2: String, city: String) {
+    def this() = this("", "", "", "", "", "", "")
 }
 
 object DeviceLocation extends SQLSyntaxSupport[DeviceLocation] {
     def apply(rs: WrappedResultSet) = new DeviceLocation(
         rs.string("continent_name"),
+        rs.string("country_code"),
         rs.string("country_name"),
+        rs.string("state_code"),
         rs.string("state"),
         rs.string("sub_div_2"),
         rs.string("city")
