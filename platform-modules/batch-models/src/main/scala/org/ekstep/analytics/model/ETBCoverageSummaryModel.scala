@@ -132,6 +132,8 @@ object ETBCoverageSummaryModel extends IBatchModelTemplate[Empty, ContentHierarc
             GraphUpdateEvent(DateTime.now().getMillis, metric.contentId,
                 Map("properties" -> finalContentMap), metric.objectType)
         }
+        JobLogger.log("ETB coverage Graph Event :" + output.foreach(x => println(JSONUtils.serialize(x))))
+        println("ETB coverage Graph Event :" + output.foreach(x => println(JSONUtils.serialize(x))))
         output
     }
 }
