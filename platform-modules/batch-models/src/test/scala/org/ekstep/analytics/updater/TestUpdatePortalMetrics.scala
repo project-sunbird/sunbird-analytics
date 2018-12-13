@@ -78,7 +78,9 @@ class TestUpdatePortalMetrics extends SparkSpec(null) {
     cleanDataBase()
     val inputData = Array(
       WorkFlowUsageSummaryFact(0, "b00bc992ef25f1a9a8d63291e20efc8d", "prod.diksha.app", "all", "content", "play", "874ed8a5-782e-4f6c-8f36-e0288455901e", "org.ekstep.delta", "all", DateTime.now, DateTime.now, DateTime.now, 450.0, 100, 100, 100, 23.56, 11, 2.15, 12, 15, 18, Array(1), Array(2), Array(3), Some("Textbook")),
-      WorkFlowUsageSummaryFact(0, "b00bc992ef25f1a9a8d63291e20efc8d", "prod.diksha.app", "all", "content", "play", "78349678-782e-4f6c-8f36-e02884559085", "org.ekstep.delta", "all", DateTime.now, DateTime.now, DateTime.now, 450.0, 30, 10, 100, 23.56, 11, 2.15, 12, 15, 18, Array(1), Array(2), Array(3), Some("Textbook")),
+      WorkFlowUsageSummaryFact(0, "b00bc992ef25f1a9a8d63291e20efc8d", "prod.diksha.app", "all", "content", "play", "all", "all", "all", DateTime.now, DateTime.now, DateTime.now, 450.0, 30, 10, 100, 23.56, 11, 2.15, 12, 15, 18, Array(1), Array(2), Array(3), Some("Textbook")),
+      WorkFlowUsageSummaryFact(0, "b00bc992ef25f1a9a8d63291e20efc8d", "prod.diksha.app", "all", "content", "play", "5345345345435", "all", "all", DateTime.now, DateTime.now, DateTime.now, 450.0, 30, 10, 100, 23.56, 11, 2.15, 12, 15, 18, Array(1), Array(2), Array(3), Some("Textbook")),
+      WorkFlowUsageSummaryFact(0, "b00bc992ef25f1a9a8d63291e20efc8fff", "prod.diksha.app", "all", "content", "play", "all", "all", "all", DateTime.now, DateTime.now, DateTime.now, 450.0, 30, 10, 100, 23.56, 11, 2.15, 12, 15, 18, Array(1), Array(2), Array(3), Some("Textbook")),
       WorkFlowUsageSummaryFact(0, "b00bc992ef25f1a9a8d63291e20efc8d", "prod.diksha.app", "all", "content", "play", "534557346543-782e-4f6c-8f36-e02884559085", "org.ekstep.delta", "all", DateTime.now, DateTime.now, DateTime.now, 450.0, 0, 20.5, 100, 23.56, 11, 2.15, 12, 15, 18, Array(1), Array(2), Array(3), Some("Textbook")),
       WorkFlowUsageSummaryFact(0, "b00bc992ef25f1a9a8d63291e20efc8d", "prod.diksha.app", "all", "content", "play", "all", "org.ekstep.delta", "all", DateTime.now, DateTime.now, DateTime.now, 450.0, 4, 112.5, 100, 23.56, 11, 2.15, 12, 10, 20, Array(1), Array(2), Array(3), Some("Textbook")),
       WorkFlowUsageSummaryFact(0, "b00bc992ef25f1a9a8d63291e20efc8df","prod.diksha.app", "all", "content", "play", "all", "org.ekstep.delta", "all", DateTime.now, DateTime.now, DateTime.now, 450.0, 4, 112.5, 100, 23.56, 11, 2.15, 12, 20, 600, Array(1), Array(2), Array(3), Some("Textbook")),
@@ -86,16 +88,22 @@ class TestUpdatePortalMetrics extends SparkSpec(null) {
       WorkFlowUsageSummaryFact(0, "b00bc992ef25f1a9a8d63291e20efc8da", "prod.diksha.app", "all", "app", "edit", "534557346543-782e-4f6c-8f36-e02884559085a", "org.ekstep.delta", "all", DateTime.now, DateTime.now, DateTime.now, 450.0, 30, 112.5, 100, 23.56, 11, 2.15, 12, 15, 18, Array(1), Array(2), Array(3), Some("Textbook")),
       WorkFlowUsageSummaryFact(0, "b00bc992ef25f1a9a8d63291e20efc8db", "prod.diksha.app", "all", "app", "edit", "534557346543-782e-4f6c-8f36-e02884559085b", "org.ekstep.delta", "all", DateTime.now, DateTime.now, DateTime.now, 450.0, 30, 112.5, 100, 23.56, 11, 2.15, 12, 15, 18, Array(1), Array(2), Array(3), Some("Textbook")),
       WorkFlowUsageSummaryFact(0, "b00bc992ef25f1a9a8d63291e20efc8dc", "prod.diksha.app", "all", "session", "edit", "534557346543-782e-4f6c-8f36-e02884559085c", "org.ekstep.delta", "all", DateTime.now, DateTime.now, DateTime.now, 100.0, 30, 112.5, 100, 23.56, 11, 2.15, 12, 15, 18, Array(1), Array(2), Array(3), Some("Textbook")),
-      WorkFlowUsageSummaryFact(0, "b00bc992ef25f1a9a8d63291e20efc8dd", "prod.diksha.app", "all", "session", "edit", "534557346543-782e-4f6c-8f36-e02884559085d", "org.ekstep.delta", "all", DateTime.now, DateTime.now, DateTime.now, 430.8, 30, 112.5, 100, 23.56, 11, 2.15, 12, 15, 18, Array(1), Array(2), Array(3), Some("Textbook"))
+      WorkFlowUsageSummaryFact(0, "b00bc992ef25f1a9a8d63291e20efc8dd", "prod.diksha.app", "all", "session", "edit", "all", "all", "all", DateTime.now, DateTime.now, DateTime.now, 430.8, 30, 112.5, 100, 23.56, 11, 2.15, 12, 15, 18, Array(1), Array(2), Array(3), Some("Textbook")),
+      WorkFlowUsageSummaryFact(0, "b00bc992ef25f1a9a8d63291e20efc8ddf", "prod.diksha.app", "all", "app", "edit", "all", "all", "all", DateTime.now, DateTime.now, DateTime.now, 430.8, 30, 112.5, 100, 23.56, 11, 2.15, 12, 15, 18, Array(1), Array(2), Array(3), Some("Textbook")),
+
+      WorkFlowUsageSummaryFact(0, "b00bc992ef25f1a9a8d63291e20efc8d", "prod.diksha.app", "all", "content", "play", "all", "org.ekstep.delta", "all", DateTime.now, DateTime.now, DateTime.now, 450.0, 100, 100, 100, 23.56, 11, 2.15, 12, 15, 18, Array(1), Array(2), Array(3), Some("Textbook")),
+      WorkFlowUsageSummaryFact(0, "b00bc992ef25f1a9a8d63291e20efc8d", "prod.diksha.app", "all", "content", "play", "986094586ffdfd", "org.ekstep.delta", "all", DateTime.now, DateTime.now, DateTime.now, 450.0, 100, 100, 100, 23.56, 11, 2.15, 12, 15, 18, Array(1), Array(2), Array(3), Some("Textbook"))
+
     )
     saveToDB(inputData)
     val result = executeDataProduct().collect().head
+    println(JSONUtils.serialize(result))
     val dashboardSummary = JSONUtils.deserialize[TestPortalMetrics](JSONUtils.serialize(result.metrics_summary))
     dashboardSummary.totalContentPublished should be(749)
     dashboardSummary.noOfUniqueDevices should be(7)
-    dashboardSummary.totalTimeSpent should be(0.4)
-    dashboardSummary.totalContentPlayTime should be(0.04)
-    println(JSONUtils.serialize(result))
+    dashboardSummary.totalTimeSpent should be(0.24)
+    dashboardSummary.totalContentPlayTime should be(60)
+
   }
 
 }
