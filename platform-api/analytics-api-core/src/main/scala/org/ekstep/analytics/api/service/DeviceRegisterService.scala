@@ -18,10 +18,11 @@ import org.ekstep.analytics.framework.util.JobLogger
 case class RegisterDevice(did: String, ip: String, request: String, uaspec: Option[String])
 
 class DeviceRegisterService extends Actor {
-    implicit val className ="DeviceRegisterService"
+    implicit val className: String ="DeviceRegisterService"
     val config: Config = ConfigFactory.load()
     val geoLocationCityTableName: String = config.getString("postgres.table.geo_location_city.name")
     val geoLocationCityIpv4TableName: String = config.getString("postgres.table.geo_location_city_ipv4.name")
+    val defaultChannel: String = config.getString("default.channel")
 
     def receive = {
         case RegisterDevice(did: String, ip: String, request: String, uaspec: Option[String]) => sender() ! registerDevice(did, ip, request, uaspec)
@@ -34,7 +35,7 @@ class DeviceRegisterService extends Actor {
         if (validIp.nonEmpty) {
             val location = resolveLocation(validIp)
             println(s"Resolved Location for device_id $did: $location")
-            val channel = body.request.channel.getOrElse("")
+            val channel = body.request.channel.getOrElse(defaultChannel)
             val deviceSpec = body.request.dspec
             val data = updateDeviceProfile(
                 did,
