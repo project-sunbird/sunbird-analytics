@@ -14,6 +14,7 @@ import com.datastax.spark.connector._
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.framework._
+import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.util.Constants
 import org.joda.time.DateTime
 
@@ -70,7 +71,7 @@ object UpdateMetrics extends IBatchModelTemplate[DerivedEvent, DerivedEvent, Met
       val eksMap = f.edata.eks.asInstanceOf[Map[String, AnyRef]]
       eksMap.getOrElse("total_pageviews_count", 0).asInstanceOf[Number].longValue()
     }.sum().toLong
-    sc.parallelize(Array(MetricsAlgoOutput(Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant()), totalContentPlaySessions, totalTimeSpent, totalInteractions, totalPageviews, new DateTime().getMillis)))
+    sc.parallelize(Array(MetricsAlgoOutput(Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant()), totalContentPlaySessions,CommonUtil.roundDouble(totalTimeSpent,2), totalInteractions, totalPageviews, new DateTime().getMillis)))
   }
 
   /**
