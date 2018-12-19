@@ -7,7 +7,6 @@ package org.ekstep.analytics.updater
   * @author Manjunath Davanam <manjunathd@ilimi.in>
   */
 
-import java.time.{LocalDate, ZoneId}
 import java.util.Date
 
 import com.datastax.spark.connector._
@@ -36,7 +35,14 @@ object UpdateWorkFlowUsageMetricsModel extends IBatchModelTemplate[DerivedEvent,
     * @return - ME_WORKFLOW_USAGE_SUMMARY
     */
   override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DerivedEvent] = {
-    DataFilter.filter(data, Filter("eid", "EQ", Option("ME_WORKFLOW_USAGE_SUMMARY"))).filter(f => ("all".equalsIgnoreCase(f.dimensions.did.getOrElse("")) && "all".equalsIgnoreCase(f.dimensions.uid.getOrElse("")) && "all".equalsIgnoreCase(f.dimensions.tag.getOrElse("")) && "all".equalsIgnoreCase(f.dimensions.content_id.getOrElse(""))))
+    DataFilter
+      .filter(data, Filter("eid", "EQ", Option("ME_WORKFLOW_USAGE_SUMMARY")))
+      .filter(f =>
+        "all".equalsIgnoreCase(f.dimensions.did.getOrElse("")) &&
+          "all".equalsIgnoreCase(f.dimensions.uid.getOrElse("")) &&
+          "all".equalsIgnoreCase(f.dimensions.tag.getOrElse("")) &&
+          "all".equalsIgnoreCase(f.dimensions.content_id.getOrElse(""))
+      )
   }
 
   /**
@@ -46,7 +52,9 @@ object UpdateWorkFlowUsageMetricsModel extends IBatchModelTemplate[DerivedEvent,
     * @param sc     - Spark context
     * @return - DashBoardSummary ->(uniqueDevices, totalContentPlayTime, totalTimeSpent,)
     */
-  override def algorithm(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[WorkFlowUsageMetricsAlgoOutput] = {
+  override def algorithm(data: RDD[DerivedEvent], config: Map[String, AnyRef])
+                        (implicit sc: SparkContext): RDD[WorkFlowUsageMetricsAlgoOutput] = {
+
     object _constant extends Enumeration {
       val APP = "app"
       val PLAY = "play"
@@ -54,24 +62,39 @@ object UpdateWorkFlowUsageMetricsModel extends IBatchModelTemplate[DerivedEvent,
       val SESSION = "session"
       val ALL = "all"
     }
-    val firstEventDate = data.first().ets
-    val totalContentPlaySessions = data.filter(x => x.dimensions.mode.getOrElse("").equalsIgnoreCase(_constant.PLAY) && x.dimensions.`type`.getOrElse("").equalsIgnoreCase(_constant.CONTENT)).map{f =>
+
+    val eventDate = data.first().syncts
+
+    val totalContentPlaySessions = data.filter(x =>
+      x.dimensions.mode.getOrElse("").equalsIgnoreCase(_constant.PLAY) &&
+        x.dimensions.`type`.getOrElse("").equalsIgnoreCase(_constant.CONTENT)).map { f =>
       val eksMap = f.edata.eks.asInstanceOf[Map[String, AnyRef]]
       eksMap.getOrElse("total_sessions", 0).asInstanceOf[Number].longValue()
     }.sum().toLong
-    val totalTimeSpent = data.filter(x => (x.dimensions.`type`.getOrElse("").equalsIgnoreCase(_constant.APP) || x.dimensions.`type`.getOrElse("").equalsIgnoreCase(_constant.SESSION))).map{f =>
+
+    val totalTimeSpent = data.filter(x =>
+      x.dimensions.`type`.getOrElse("").equalsIgnoreCase(_constant.APP) ||
+        x.dimensions.`type`.getOrElse("").equalsIgnoreCase(_constant.SESSION)).map { f =>
       val eksMap = f.edata.eks.asInstanceOf[Map[String, AnyRef]]
       eksMap.getOrElse("total_ts", 0.0).asInstanceOf[Number].doubleValue()
     }.sum()
-    val totalInteractions = data.filter(x => (x.dimensions.`type`.getOrElse("").equalsIgnoreCase(_constant.APP) || x.dimensions.`type`.getOrElse("").equalsIgnoreCase(_constant.SESSION))).map{f =>
+
+    val totalInteractions = data.filter(x =>
+      x.dimensions.`type`.getOrElse("").equalsIgnoreCase(_constant.APP) ||
+        x.dimensions.`type`.getOrElse("").equalsIgnoreCase(_constant.SESSION)).map { f =>
       val eksMap = f.edata.eks.asInstanceOf[Map[String, AnyRef]]
       eksMap.getOrElse("total_interactions", 0).asInstanceOf[Number].longValue()
     }.sum().toLong
-    val totalPageviews = data.filter(x => (x.dimensions.`type`.getOrElse("").equalsIgnoreCase(_constant.APP) || x.dimensions.`type`.getOrElse("").equalsIgnoreCase(_constant.SESSION))).map{f =>
+
+    val totalPageviews = data.filter(x =>
+      x.dimensions.`type`.getOrElse("").equalsIgnoreCase(_constant.APP) ||
+        x.dimensions.`type`.getOrElse("").equalsIgnoreCase(_constant.SESSION)).map { f =>
       val eksMap = f.edata.eks.asInstanceOf[Map[String, AnyRef]]
       eksMap.getOrElse("total_pageviews_count", 0).asInstanceOf[Number].longValue()
     }.sum().toLong
-    sc.parallelize(Array(WorkFlowUsageMetricsAlgoOutput(new Date(firstEventDate), totalContentPlaySessions,CommonUtil.roundDouble(totalTimeSpent,2), totalInteractions, totalPageviews, new DateTime().getMillis)))
+
+    sc.parallelize(Array(WorkFlowUsageMetricsAlgoOutput(new Date(eventDate), totalContentPlaySessions,
+      CommonUtil.roundDouble(totalTimeSpent, 2), totalInteractions, totalPageviews, new DateTime().getMillis)))
   }
 
   /**
@@ -81,7 +104,8 @@ object UpdateWorkFlowUsageMetricsModel extends IBatchModelTemplate[DerivedEvent,
     * @param sc     - Spark context
     * @return - ME_PORTAL_CUMULATIVE_METRICS MeasuredEvents
     */
-  override def postProcess(data: RDD[WorkFlowUsageMetricsAlgoOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[WorkFlowUsageMetricsAlgoOutput] = {
+  override def postProcess(data: RDD[WorkFlowUsageMetricsAlgoOutput], config: Map[String, AnyRef])
+                          (implicit sc: SparkContext): RDD[WorkFlowUsageMetricsAlgoOutput] = {
     data.saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.WORKFLOW_USAGE_SUMMARY)
     data
   }
