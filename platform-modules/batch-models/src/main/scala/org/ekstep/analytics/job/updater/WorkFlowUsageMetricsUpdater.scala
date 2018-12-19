@@ -8,16 +8,16 @@ import org.ekstep.analytics.framework.JobDriver
 import org.apache.spark.SparkContext
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.IJob
-import org.ekstep.analytics.updater.UpdateMetrics
+import org.ekstep.analytics.updater.UpdateWorkFlowUsageMetricsModel
 
-object MetricsUpdater extends optional.Application with IJob {
+object WorkFlowUsageMetricsUpdater extends optional.Application with IJob {
 
   implicit val className = "org.ekstep.analytics.job.MetricsUpdater"
 
   def main(config: String)(implicit sc: Option[SparkContext] = None) {
     implicit val sparkContext: SparkContext = sc.getOrElse(null);
     JobLogger.log("Started executing metrics job updater")
-    JobDriver.run("batch", config, UpdateMetrics)
+    JobDriver.run("batch", config, UpdateWorkFlowUsageMetricsModel)
     JobLogger.log("UpdateMetrics Job Completed!!")
   }
 }

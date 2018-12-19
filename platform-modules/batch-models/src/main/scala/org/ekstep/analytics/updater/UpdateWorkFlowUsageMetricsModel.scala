@@ -19,10 +19,10 @@ import org.ekstep.analytics.util.Constants
 import org.joda.time.DateTime
 
 
-case class MetricsAlgoOutput(event_data: Date, total_content_play_sessions: Long, total_timespent: Double, total_interactions: Long, total_pageviews: Long, last_updated_at: Long) extends AlgoOutput with Output
+case class WorkFlowUsageMetricsAlgoOutput(event_data: Date, total_content_play_sessions: Long, total_timespent: Double, total_interactions: Long, total_pageviews: Long, last_updated_at: Long) extends AlgoOutput with Output
 
 
-object UpdateMetrics extends IBatchModelTemplate[DerivedEvent, DerivedEvent, MetricsAlgoOutput, MetricsAlgoOutput] with Serializable {
+object UpdateWorkFlowUsageMetricsModel extends IBatchModelTemplate[DerivedEvent, DerivedEvent, WorkFlowUsageMetricsAlgoOutput, WorkFlowUsageMetricsAlgoOutput] with Serializable {
 
   val className = "org.ekstep.analytics.updater.UpdateMetrics"
   override def name: String = "UpdateMetrics"
@@ -46,7 +46,7 @@ object UpdateMetrics extends IBatchModelTemplate[DerivedEvent, DerivedEvent, Met
     * @param sc     - Spark context
     * @return - DashBoardSummary ->(uniqueDevices, totalContentPlayTime, totalTimeSpent,)
     */
-  override def algorithm(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MetricsAlgoOutput] = {
+  override def algorithm(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[WorkFlowUsageMetricsAlgoOutput] = {
     object _constant extends Enumeration {
       val APP = "app"
       val PLAY = "play"
@@ -71,7 +71,7 @@ object UpdateMetrics extends IBatchModelTemplate[DerivedEvent, DerivedEvent, Met
       val eksMap = f.edata.eks.asInstanceOf[Map[String, AnyRef]]
       eksMap.getOrElse("total_pageviews_count", 0).asInstanceOf[Number].longValue()
     }.sum().toLong
-    sc.parallelize(Array(MetricsAlgoOutput(Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant()), totalContentPlaySessions,CommonUtil.roundDouble(totalTimeSpent,2), totalInteractions, totalPageviews, new DateTime().getMillis)))
+    sc.parallelize(Array(WorkFlowUsageMetricsAlgoOutput(Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant()), totalContentPlaySessions,CommonUtil.roundDouble(totalTimeSpent,2), totalInteractions, totalPageviews, new DateTime().getMillis)))
   }
 
   /**
@@ -81,7 +81,7 @@ object UpdateMetrics extends IBatchModelTemplate[DerivedEvent, DerivedEvent, Met
     * @param sc     - Spark context
     * @return - ME_PORTAL_CUMULATIVE_METRICS MeasuredEvents
     */
-  override def postProcess(data: RDD[MetricsAlgoOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MetricsAlgoOutput] = {
+  override def postProcess(data: RDD[WorkFlowUsageMetricsAlgoOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[WorkFlowUsageMetricsAlgoOutput] = {
     data.saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.WORKFLOW_USAGE_SUMMARY)
     data
   }

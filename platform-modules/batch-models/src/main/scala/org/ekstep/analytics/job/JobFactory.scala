@@ -199,7 +199,7 @@ object JobFactory {
             case "portal-metrics" =>
                 PortalMetricsUpdater
             case "workflow-usage-metrics" =>
-                MetricsUpdater
+                WorkFlowUsageMetricsUpdater
             case "dialcode-usage-updater" =>
                 DialcodeUsageUpdater
             case _ =>
