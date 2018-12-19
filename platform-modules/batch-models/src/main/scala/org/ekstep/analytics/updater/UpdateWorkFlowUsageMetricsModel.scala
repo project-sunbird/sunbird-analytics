@@ -54,7 +54,7 @@ object UpdateWorkFlowUsageMetricsModel extends IBatchModelTemplate[DerivedEvent,
       val SESSION = "session"
       val ALL = "all"
     }
-
+    val firstEventDate = data.first().ets
     val totalContentPlaySessions = data.filter(x => x.dimensions.mode.getOrElse("").equalsIgnoreCase(_constant.PLAY) && x.dimensions.`type`.getOrElse("").equalsIgnoreCase(_constant.CONTENT)).map{f =>
       val eksMap = f.edata.eks.asInstanceOf[Map[String, AnyRef]]
       eksMap.getOrElse("total_sessions", 0).asInstanceOf[Number].longValue()
@@ -71,7 +71,7 @@ object UpdateWorkFlowUsageMetricsModel extends IBatchModelTemplate[DerivedEvent,
       val eksMap = f.edata.eks.asInstanceOf[Map[String, AnyRef]]
       eksMap.getOrElse("total_pageviews_count", 0).asInstanceOf[Number].longValue()
     }.sum().toLong
-    sc.parallelize(Array(WorkFlowUsageMetricsAlgoOutput(Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant()), totalContentPlaySessions,CommonUtil.roundDouble(totalTimeSpent,2), totalInteractions, totalPageviews, new DateTime().getMillis)))
+    sc.parallelize(Array(WorkFlowUsageMetricsAlgoOutput(new Date(firstEventDate), totalContentPlaySessions,CommonUtil.roundDouble(totalTimeSpent,2), totalInteractions, totalPageviews, new DateTime().getMillis)))
   }
 
   /**
