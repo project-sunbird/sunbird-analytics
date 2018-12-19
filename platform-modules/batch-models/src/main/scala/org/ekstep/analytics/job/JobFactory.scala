@@ -198,6 +198,8 @@ object JobFactory {
                 ETBCoverageSummarizer
             case "portal-metrics" =>
                 PortalMetricsUpdater
+            case "workflow-metrics" =>
+                MetricsUpdater
             case "dialcode-usage-updater" =>
                 DialcodeUsageUpdater
             case _ =>
