@@ -19,7 +19,7 @@ import org.ekstep.analytics.util.Constants
 import org.joda.time.DateTime
 
 
-case class WorkFlowUsageMetricsAlgoOutput(event_data: Date, total_content_play_sessions: Long, total_timespent: Double, total_interactions: Long, total_pageviews: Long, last_updated_at: Long) extends AlgoOutput with Output
+case class WorkFlowUsageMetricsAlgoOutput(event_date: Date, total_content_play_sessions: Long, total_timespent: Double, total_interactions: Long, total_pageviews: Long, last_updated_at: Long) extends AlgoOutput with Output
 
 
 object UpdateWorkFlowUsageMetricsModel extends IBatchModelTemplate[DerivedEvent, DerivedEvent, WorkFlowUsageMetricsAlgoOutput, WorkFlowUsageMetricsAlgoOutput] with Serializable {
