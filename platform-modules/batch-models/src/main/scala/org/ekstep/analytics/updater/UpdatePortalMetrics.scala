@@ -14,18 +14,17 @@ import org.ekstep.analytics.adapter.ContentAdapter
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.dispatcher.AzureDispatcher
 import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils}
-import org.ekstep.analytics.util.{Constants, WorkFlowUsageSummaryFact}
-
+import org.ekstep.analytics.util.Constants
 import scala.util.Try
 
 
-case class WorkflowSummaryEvents(deviceId: String, mode: String, dType: String, totalSession: Long, totalTs: Double) extends AlgoInput with Input
+case class WorkFlowUsageMetrics(noOfUniqueDevices: Long, totalContentPlaySessions: Long, totalTimeSpent: Double, totalContentPublished: Long) extends AlgoOutput with Output with AlgoInput
 
-case class Metrics(noOfUniqueDevices: Long, totalContentPlaySessions: Long, totalTimeSpent: Double, totalContentPublished: Long) extends AlgoOutput with Output
+case class PortalMetrics(eid: String, ets: Long, syncts: Long, metrics_summary: Option[WorkFlowUsageMetrics]) extends AlgoOutput with Output
 
-case class PortalMetrics(eid: String, ets: Long, syncts: Long, metrics_summary: Option[Metrics]) extends AlgoOutput with Output
+case class DeviceProfile(device_id: String)
 
-object UpdatePortalMetrics extends IBatchModelTemplate[DerivedEvent, WorkflowSummaryEvents, Metrics, PortalMetrics] with Serializable {
+object UpdatePortalMetrics extends IBatchModelTemplate[DerivedEvent, DerivedEvent, WorkFlowUsageMetrics, PortalMetrics] with Serializable {
 
   val className = "org.ekstep.analytics.updater.UpdatePortalMetrics"
 
@@ -34,17 +33,15 @@ object UpdatePortalMetrics extends IBatchModelTemplate[DerivedEvent, WorkflowSum
   override def name: String = "UpdatePortalMetrics"
 
   /**
-    * preProcess which will fetch the `WorkFlowUsageSummaryFact` Event data from the Cassandra Database.
+    * preProcess which will fetch the `workflow_usage_summary` Event data from the Cassandra Database.
     *
     * @param data   - RDD Event Data(Empty RDD event)
     * @param config - Configurations to run preProcess
     * @param sc     - SparkContext
-    * @return - workflowSummaryEvents
+    * @return -     DerivedEvent
     */
-  override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[WorkflowSummaryEvents] = {
-    sc.cassandraTable[WorkFlowUsageSummaryFact](Constants.PLATFORM_KEY_SPACE_NAME, Constants.WORKFLOW_USAGE_SUMMARY_FACT).filter { x => x.d_period == 0 && x.d_tag.equals("all") && x.d_content_id.equals("all") && x.d_user_id.equals("all") }.map(event => {
-      WorkflowSummaryEvents(event.d_device_id, event.d_mode, event.d_type, event.m_total_sessions, event.m_total_ts)
-    })
+  override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DerivedEvent] = {
+    data
   }
 
   /**
@@ -54,20 +51,15 @@ object UpdatePortalMetrics extends IBatchModelTemplate[DerivedEvent, WorkflowSum
     * @param sc     - Spark context
     * @return - DashBoardSummary ->(uniqueDevices, totalContentPlayTime, totalTimeSpent,)
     */
-  override def algorithm(data: RDD[WorkflowSummaryEvents], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[Metrics] = {
-    object _constant extends Enumeration {
-      val APP = "app"
-      val PLAY = "play"
-      val CONTENT = "content"
-      val SESSION = "session"
-      val ALL = "all"
-    }
-
-    val uniqueDevicesCount = data.filter(x => x.deviceId != _constant.ALL).map(_.deviceId).distinct().count()
-    val totalContentPlaySessions = data.filter(x => x.mode.equalsIgnoreCase(_constant.PLAY) && x.dType.equalsIgnoreCase(_constant.CONTENT) && x.deviceId.equals("all")).map(_.totalSession).sum().toLong
-    val totalTimeSpent = data.filter(x => (x.dType.equalsIgnoreCase(_constant.APP) || x.dType.equalsIgnoreCase(_constant.SESSION)) && x.deviceId.equals("all")).map(_.totalTs).sum()
+  override def algorithm(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[WorkFlowUsageMetrics] = {
     val totalContentPublished: Int = Try(ContentAdapter.getPublishedContentList().count).getOrElse(0)
-    sc.parallelize(Array(Metrics(uniqueDevicesCount, totalContentPlaySessions, CommonUtil.roundDouble(totalTimeSpent/3600, 2), totalContentPublished)))
+    val noOfUniqueDevices = sc.cassandraTable[DeviceProfile](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_PROFILE_TABLE).map(_.device_id).distinct().count()
+    val metrics =  sc.cassandraTable[WorkFlowUsageMetricsAlgoOutput](Constants.PLATFORM_KEY_SPACE_NAME, Constants.WORKFLOW_USAGE_SUMMARY).map(event => {
+      (event.total_timespent,event.total_content_play_sessions)
+    })
+    val totalTimeSpent = metrics.map(_._1).sum()
+    val totalContentPlaySessions = metrics.map(_._2).sum().toLong
+    sc.parallelize(Array(WorkFlowUsageMetrics(noOfUniqueDevices, totalContentPlaySessions, CommonUtil.roundDouble(totalTimeSpent / 3600, 2), totalContentPublished)))
   }
 
   /**
@@ -77,9 +69,9 @@ object UpdatePortalMetrics extends IBatchModelTemplate[DerivedEvent, WorkflowSum
     * @param sc     - Spark context
     * @return - ME_PORTAL_CUMULATIVE_METRICS MeasuredEvents
     */
-  override def postProcess(data: RDD[Metrics], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[PortalMetrics] = {
+  override def postProcess(data: RDD[WorkFlowUsageMetrics], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[PortalMetrics] = {
     val record = data.first()
-    val measures = Metrics(record.noOfUniqueDevices, record.totalContentPlaySessions, record.totalTimeSpent, record.totalContentPublished)
+    val measures = WorkFlowUsageMetrics(record.noOfUniqueDevices, record.totalContentPlaySessions, record.totalTimeSpent, record.totalContentPublished)
     val metrics = PortalMetrics(EVENT_ID, System.currentTimeMillis(), System.currentTimeMillis(), Some(measures))
     if (config.getOrElse("dispatch", false).asInstanceOf[Boolean]) {
       AzureDispatcher.dispatch(Array(JSONUtils.serialize(metrics)), config)
