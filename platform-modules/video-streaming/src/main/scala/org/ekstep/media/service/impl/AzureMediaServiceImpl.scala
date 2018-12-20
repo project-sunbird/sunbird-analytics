@@ -37,6 +37,9 @@ object AzureMediaServiceImpl extends AzureMediaService {
   }
 
   override def getStreamingPaths(jobId: String): MediaResponse = {
+    val response = getJobDetails(jobId)
+    if (response.responseCode != "OK")
+      return response
     val streamLocatorName = "sl-" + jobId
     val assetName = "asset-" + jobId
     val locatorResponse = createStreamingLocator(streamLocatorName, assetName)
