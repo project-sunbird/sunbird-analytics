@@ -10,17 +10,39 @@ package org.ekstep.analytics.updater
 import com.datastax.spark.connector._
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.ekstep.analytics.adapter.ContentAdapter
+import org.ekstep.analytics.adapter.{ContentAdapter, ContentResponse, ContentResult}
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.dispatcher.AzureDispatcher
-import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils}
+import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, RestUtil}
 import org.ekstep.analytics.util.Constants
 import scala.util.Try
 
 
-case class WorkFlowUsageMetrics(noOfUniqueDevices: Long, totalContentPlaySessions: Long, totalTimeSpent: Double, totalContentPublished: Long) extends AlgoOutput with Output with AlgoInput
+case class WorkFlowUsageMetrics(noOfUniqueDevices: Long, totalContentPlaySessions: Long, totalTimeSpent: Double, totalContentPublished: contentPublishedList) extends AlgoOutput with Output with AlgoInput
 
 case class PortalMetrics(eid: String, ets: Long, syncts: Long, metrics_summary: Option[WorkFlowUsageMetrics]) extends AlgoOutput with Output
+
+case class contentPublishedList(count: Int, languages: List[publisherByLanguage])
+
+case class publisherByLanguage(language: String, publishers: List[Publisher])
+
+case class Publisher(id: String, count: Double)
+
+case class ESResponse(aggregations: Aggregations)
+
+case class Aggregations(language_agg: Language_agg)
+
+case class Language_agg(buckets: List[Buckets])
+
+case class Buckets(key: String, doc_count: Double, publisher_agg: Language_agg)
+
+case class OrgResponse(id: String, ver: String, ts: String, params: Params, responseCode: String, result: OrgResult)
+
+case class OrgResult(response: ContentList)
+
+case class ContentList(count: Long, content: List[orgProps])
+
+case class orgProps(orgName: String, hashTagId: String, rootOrgId: String)
 
 case class DeviceProfile(device_id: String)
 
@@ -52,14 +74,16 @@ object UpdatePortalMetrics extends IBatchModelTemplate[DerivedEvent, DerivedEven
     * @return - DashBoardSummary ->(uniqueDevices, totalContentPlayTime, totalTimeSpent,)
     */
   override def algorithm(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[WorkFlowUsageMetrics] = {
-    val totalContentPublished: Int = Try(ContentAdapter.getPublishedContentList().count).getOrElse(0)
+    val languageList = getLanguageAndPublisherList()
+    println("event", JSONUtils.serialize(languageList))
+    val totalContentPublished = Try(ContentAdapter.getPublishedContentList().count).getOrElse(0)
     val noOfUniqueDevices = sc.cassandraTable[DeviceProfile](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_PROFILE_TABLE).map(_.device_id).distinct().count()
-    val metrics =  sc.cassandraTable[WorkFlowUsageMetricsAlgoOutput](Constants.PLATFORM_KEY_SPACE_NAME, Constants.WORKFLOW_USAGE_SUMMARY).map(event => {
-      (event.total_timespent,event.total_content_play_sessions)
+    val metrics = sc.cassandraTable[WorkFlowUsageMetricsAlgoOutput](Constants.PLATFORM_KEY_SPACE_NAME, Constants.WORKFLOW_USAGE_SUMMARY).map(event => {
+      (event.total_timespent, event.total_content_play_sessions)
     })
     val totalTimeSpent = metrics.map(_._1).sum()
     val totalContentPlaySessions = metrics.map(_._2).sum().toLong
-    sc.parallelize(Array(WorkFlowUsageMetrics(noOfUniqueDevices, totalContentPlaySessions, CommonUtil.roundDouble(totalTimeSpent / 3600, 2), totalContentPublished)))
+    sc.parallelize(Array(WorkFlowUsageMetrics(noOfUniqueDevices, totalContentPlaySessions, CommonUtil.roundDouble(totalTimeSpent / 3600, 2), contentPublishedList(totalContentPublished, languageList))))
   }
 
   /**
@@ -77,5 +101,43 @@ object UpdatePortalMetrics extends IBatchModelTemplate[DerivedEvent, DerivedEven
       AzureDispatcher.dispatch(Array(JSONUtils.serialize(metrics)), config)
     }
     sc.parallelize(Array(metrics))
+  }
+
+  private def getLanguageAndPublisherList(): List[publisherByLanguage] = {
+    val apiURL = Constants.ELASTIC_SEARCH_SERVICE_ENDPOINT + "/" + Constants.ELASTIC_SEARCH_INDEX_COMPOSITESEARCH_NAME + "/_search"
+    val request =
+      s"""
+         |{"_source":false,"query":{"bool":{"must":[{"match":{"status":{"query":"Live","operator":"AND","lenient":false,"zero_terms_query":"NONE"}}}],"should":[{"match":{"objectType":{"query":"Content","operator":"OR","lenient":false,"zero_terms_query":"NONE"}}},{"match":{"objectType":{"query":"ContentImage","operator":"OR","lenient":false,"zero_terms_query":"NONE"}}},{"match":{"contentType":{"query":"Resource","operator":"OR","lenient":false,"zero_terms_query":"NONE"}}},{"match":{"contentType":{"query":"Collection","operator":"OR","lenient":false,"zero_terms_query":"NONE"}}}]}},"aggs":{"language_agg":{"terms":{"field":"language.raw","size":300},"aggs":{"publisher_agg":{"terms":{"field":"lastPublishedBy.raw","size":1000}}}}}}
+                    """.stripMargin
+    val response = RestUtil.post[ESResponse](apiURL, request)
+    val orgResult = orgSearch()
+    response.aggregations.language_agg.buckets.map(languageBucket => {
+      val publishers = languageBucket.publisher_agg.buckets.map(publisherBucket => {
+        orgResult.result.response.content.map(org => {
+          if (org.hashTagId == publisherBucket.key) {
+            (Publisher(org.orgName, publisherBucket.doc_count))
+          } else {
+            (Publisher("", 0)) // Return empty publisher list
+          }
+        })
+      }).flatMap(f => f).filter(_.id.nonEmpty)
+      publisherByLanguage(languageBucket.key, publishers)
+    }).filter(_.publishers.size > 0)
+  }
+
+  private def orgSearch(): OrgResponse = {
+    val request =
+      s"""
+         |{
+         |"request": {
+         |  "filters": {
+         |    "isRootOrg": true
+         |  },
+         |  "limit": 1000,
+         |  "fields": ["orgName", "rootOrgId","hashTagId"]
+         |}
+         |}
+     """.stripMargin
+    RestUtil.post[OrgResponse](Constants.ORG_SEARCH_URL, request)
   }
 }
