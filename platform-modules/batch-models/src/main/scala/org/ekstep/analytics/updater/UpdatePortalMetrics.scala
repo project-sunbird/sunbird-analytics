@@ -8,6 +8,7 @@ package org.ekstep.analytics.updater
   */
 
 import com.datastax.spark.connector._
+import javax.ws.rs.core.HttpHeaders
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.adapter.ContentAdapter
@@ -15,6 +16,7 @@ import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.dispatcher.AzureDispatcher
 import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, RestUtil}
 import org.ekstep.analytics.util.Constants
+
 import scala.util.Try
 
 
@@ -218,6 +220,7 @@ object UpdatePortalMetrics extends IBatchModelTemplate[DerivedEvent, DerivedEven
          |  }
          |}
        """.stripMargin
-    RestUtil.post[OrgResponse](Constants.ORG_SEARCH_URL, request)
+    val requestHeaders = Map[String, String](HttpHeaders.AUTHORIZATION, Constants.ORG_SEARCH_API_KEY)
+    RestUtil.post[OrgResponse](Constants.ORG_SEARCH_URL, request, Some(requestHeaders))
   }
 }
