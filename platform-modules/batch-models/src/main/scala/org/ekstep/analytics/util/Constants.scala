@@ -41,6 +41,7 @@ object Constants {
     val CONCEPT_SNAPSHOT_SUMMARY = "concept_snapshot_summary";
     val ASSET_SNAPSHOT_SUMMARY = "asset_snapshot_summary";
     val USAGE_SUMMARY_FACT = "usage_summary_fact";
+    val WORKFLOW_USAGE_SUMMARY = "workflow_usage_summary";
     
     val WORKFLOW_USAGE_SUMMARY_FACT = "workflow_usage_summary_fact";
     val DEVICE_PROFILE_TABLE = "device_profile";
@@ -64,7 +65,7 @@ object Constants {
     val LP_URL = AppConf.getConfig("lp.url");
     val SEARCH_SERVICE_URL = AppConf.getConfig("service.search.url");
     val COMPOSITE_SEARCH_URL = s"$SEARCH_SERVICE_URL" + AppConf.getConfig("service.search.path")
-    
+    val ORG_SEARCH_URL = AppConf.getConfig("org.search.url") +  AppConf.getConfig("service.search.path")
     val GENIE_ENV = "Genie"
     val PLAYER_ENV = "ContentPlayer"
     val PORTAL_ENV = "portal"
@@ -75,6 +76,9 @@ object Constants {
     val HIERARCHY_STORE_KEY_SPACE_NAME = AppConf.getConfig("cassandra.hierarchy_store_prefix")+"hierarchy_store"
     val CONTENT_HIERARCHY_TABLE = "content_hierarchy"
     val DIALCODE_USAGE_METRICS_TABLE = "dialcode_usage_metrics"
+
+    val ELASTIC_SEARCH_SERVICE_ENDPOINT = AppConf.getConfig("elasticsearch.service.endpoint")
+    val ELASTIC_SEARCH_INDEX_COMPOSITESEARCH_NAME = AppConf.getConfig("elasticsearch.index.compositesearch.name")
 
     def getContentList(): String = {
         s"$LP_URL/v2/analytics/content/list";
