@@ -10,7 +10,7 @@ package org.ekstep.analytics.updater
 import com.datastax.spark.connector._
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.ekstep.analytics.adapter.{ContentAdapter, ContentResponse, ContentResult}
+import org.ekstep.analytics.adapter.ContentAdapter
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.dispatcher.AzureDispatcher
 import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, RestUtil}
@@ -107,37 +107,117 @@ object UpdatePortalMetrics extends IBatchModelTemplate[DerivedEvent, DerivedEven
     val apiURL = Constants.ELASTIC_SEARCH_SERVICE_ENDPOINT + "/" + Constants.ELASTIC_SEARCH_INDEX_COMPOSITESEARCH_NAME + "/_search"
     val request =
       s"""
-         |{"_source":false,"query":{"bool":{"must":[{"match":{"status":{"query":"Live","operator":"AND","lenient":false,"zero_terms_query":"NONE"}}}],"should":[{"match":{"objectType":{"query":"Content","operator":"OR","lenient":false,"zero_terms_query":"NONE"}}},{"match":{"objectType":{"query":"ContentImage","operator":"OR","lenient":false,"zero_terms_query":"NONE"}}},{"match":{"contentType":{"query":"Resource","operator":"OR","lenient":false,"zero_terms_query":"NONE"}}},{"match":{"contentType":{"query":"Collection","operator":"OR","lenient":false,"zero_terms_query":"NONE"}}}]}},"aggs":{"language_agg":{"terms":{"field":"language.raw","size":300},"aggs":{"publisher_agg":{"terms":{"field":"lastPublishedBy.raw","size":1000}}}}}}
-                    """.stripMargin
+         |{
+         |  "_source":false,
+         |  "query":{
+         |    "bool":{
+         |      "must":[
+         |        {
+         |          "match":{
+         |            "status":{
+         |              "query":"Live",
+         |              "operator":"AND",
+         |              "lenient":false,
+         |              "zero_terms_query":"NONE"
+         |            }
+         |          }
+         |        }
+         |      ],
+         |      "should":[
+         |        {
+         |          "match":{
+         |            "objectType":{
+         |              "query":"Content",
+         |              "operator":"OR",
+         |              "lenient":false,
+         |              "zero_terms_query":"NONE"
+         |            }
+         |          }
+         |        },
+         |        {
+         |          "match":{
+         |            "objectType":{
+         |              "query":"ContentImage",
+         |              "operator":"OR",
+         |              "lenient":false,
+         |              "zero_terms_query":"NONE"
+         |            }
+         |          }
+         |        },
+         |        {
+         |          "match":{
+         |            "contentType":{
+         |              "query":"Resource",
+         |              "operator":"OR",
+         |              "lenient":false,
+         |              "zero_terms_query":"NONE"
+         |            }
+         |          }
+         |        },
+         |        {
+         |          "match":{
+         |            "contentType":{
+         |              "query":"Collection",
+         |              "operator":"OR",
+         |              "lenient":false,
+         |              "zero_terms_query":"NONE"
+         |            }
+         |          }
+         |        }
+         |      ]
+         |    }
+         |  },
+         |  "aggs":{
+         |    "language_agg":{
+         |      "terms":{
+         |        "field":"language.raw",
+         |        "size":500
+         |      },
+         |      "aggs":{
+         |        "publisher_agg":{
+         |          "terms":{
+         |            "field":"createdFor.raw",
+         |            "size":1000
+         |          }
+         |        }
+         |      }
+         |    }
+         |  }
+         |}
+       """.stripMargin
     val response = RestUtil.post[ESResponse](apiURL, request)
     val orgResult = orgSearch()
     response.aggregations.language_agg.buckets.map(languageBucket => {
       val publishers = languageBucket.publisher_agg.buckets.map(publisherBucket => {
         orgResult.result.response.content.map(org => {
           if (org.hashTagId == publisherBucket.key) {
-            (Publisher(org.orgName, publisherBucket.doc_count))
+            Publisher(org.orgName, publisherBucket.doc_count)
           } else {
-            (Publisher("", 0)) // Return empty publisher list
+            Publisher("", 0) // Return empty publisher list
           }
         })
       }).flatMap(f => f).filter(_.id.nonEmpty)
       publisherByLanguage(languageBucket.key, publishers)
-    }).filter(_.publishers.size > 0)
+    }).filter(_.publishers.nonEmpty)
   }
 
   private def orgSearch(): OrgResponse = {
     val request =
       s"""
          |{
-         |"request": {
-         |  "filters": {
-         |    "isRootOrg": true
-         |  },
-         |  "limit": 1000,
-         |  "fields": ["orgName", "rootOrgId","hashTagId"]
+         |  "request":{
+         |    "filters":{
+         |      "isRootOrg":true
+         |    },
+         |    "limit":1000,
+         |    "fields":[
+         |      "orgName",
+         |      "rootOrgId",
+         |      "hashTagId"
+         |    ]
+         |  }
          |}
-         |}
-     """.stripMargin
+       """.stripMargin
     RestUtil.post[OrgResponse](Constants.ORG_SEARCH_URL, request)
   }
 }
