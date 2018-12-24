@@ -62,10 +62,11 @@ object Constants {
 
     val DEFAULT_APP_ID = "EkstepPortal";
 
-    val LP_URL = AppConf.getConfig("lp.url");
-    val SEARCH_SERVICE_URL = AppConf.getConfig("service.search.url");
+    val LP_URL = AppConf.getConfig("lp.url")
+    val SEARCH_SERVICE_URL = AppConf.getConfig("service.search.url")
     val COMPOSITE_SEARCH_URL = s"$SEARCH_SERVICE_URL" + AppConf.getConfig("service.search.path")
-    val ORG_SEARCH_URL = AppConf.getConfig("org.search.url") +  AppConf.getConfig("service.search.path")
+    val ORG_SEARCH_URL: String = AppConf.getConfig("org.search.api.url")
+    val ORG_SEARCH_API_KEY: String = AppConf.getConfig("org.search.api.key")
     val GENIE_ENV = "Genie"
     val PLAYER_ENV = "ContentPlayer"
     val PORTAL_ENV = "portal"
