@@ -24,7 +24,7 @@ case class WorkFlowUsageMetrics(noOfUniqueDevices: Long, totalContentPlaySession
 
 case class PortalMetrics(eid: String, ets: Long, syncts: Long, metrics_summary: Option[WorkFlowUsageMetrics]) extends AlgoOutput with Output
 
-case class ContentPublishedList(count: Int, languages: List[PublisherByLanguage])
+case class ContentPublishedList(count: Int, language_publisher_breakdown: List[PublisherByLanguage])
 
 case class PublisherByLanguage(language: String, publishers: List[Publisher])
 
