@@ -114,6 +114,7 @@ object UpdatePortalMetrics extends IBatchModelTemplate[DerivedEvent, DerivedEven
 
   private def getLanguageAndPublisherList(): List[PublisherByLanguage] = {
     val apiURL = Constants.ELASTIC_SEARCH_SERVICE_ENDPOINT + "/" + Constants.ELASTIC_SEARCH_INDEX_COMPOSITESEARCH_NAME + "/_search"
+    println("APIURL", apiURL);
     val request =
       s"""
          |{
@@ -195,6 +196,7 @@ object UpdatePortalMetrics extends IBatchModelTemplate[DerivedEvent, DerivedEven
          |}
        """.stripMargin
     val response = RestUtil.post[ESResponse](apiURL, request)
+    println("response", response);
     val orgResult = orgSearch()
     response.aggregations.language_agg.buckets.map(languageBucket => {
       val publishers = languageBucket.publisher_agg.buckets.map(publisherBucket => {
