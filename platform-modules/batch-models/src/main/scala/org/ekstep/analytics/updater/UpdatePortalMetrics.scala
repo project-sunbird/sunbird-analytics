@@ -79,7 +79,6 @@ object UpdatePortalMetrics extends IBatchModelTemplate[DerivedEvent, DerivedEven
   override def algorithm(data: RDD[DerivedEvent], config: Map[String, AnyRef])
                         (implicit sc: SparkContext): RDD[WorkFlowUsageMetrics] = {
     val publisherByLanguageList = getLanguageAndPublisherList()
-    println("event", JSONUtils.serialize(publisherByLanguageList))
     val totalContentPublished = Try(ContentAdapter.getPublishedContentList().count).getOrElse(0)
     val noOfUniqueDevices =
       sc.cassandraTable[DeviceProfile](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_PROFILE_TABLE)
@@ -228,7 +227,7 @@ object UpdatePortalMetrics extends IBatchModelTemplate[DerivedEvent, DerivedEven
          |  }
          |}
        """.stripMargin
-    val requestHeaders = Map[String, String](HttpHeaders.AUTHORIZATION, Constants.ORG_SEARCH_API_KEY)
+    val requestHeaders = Map(HttpHeaders.AUTHORIZATION -> Constants.ORG_SEARCH_API_KEY)
     RestUtil.post[OrgResponse](Constants.ORG_SEARCH_URL, request, Some(requestHeaders))
   }
 }
