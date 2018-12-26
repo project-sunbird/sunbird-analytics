@@ -21,7 +21,7 @@ class TestUpdateWorkflowUsageDB extends SparkSpec(null) {
         super.afterAll();
     }
 
-    ignore should "update all usage suammary db and check the updated fields" in {
+    it should "update all usage suammary db and check the updated fields" in {
         val rdd = loadFile[DerivedEvent]("src/test/resources/workflow-usage-updater/test-data.log");
         val rdd2 = UpdateWorkFlowUsageDB.execute(rdd, None);
         rdd2.count() should be(264)
@@ -38,6 +38,7 @@ class TestUpdateWorkflowUsageDB extends SparkSpec(null) {
             .where("d_content_id=?", "do_112399203071664128194")
             .where("d_user_id=?", "407").first
 
+        cumulativeWorkflowSumm.m_content_type.get should be("Content")
         cumulativeWorkflowSumm.m_total_ts should be(293.18)
         cumulativeWorkflowSumm.m_total_sessions should be(3)
         cumulativeWorkflowSumm.m_avg_ts_session should be(97.73)
@@ -60,6 +61,7 @@ class TestUpdateWorkflowUsageDB extends SparkSpec(null) {
             .where("d_content_id=?", "all")
             .where("d_user_id=?", "all").first
 
+        cumulativeAcrossAll.m_content_type.get should be("all")
         cumulativeAcrossAll.m_total_ts should be(840.17)
         cumulativeAcrossAll.m_total_sessions should be(12)
         cumulativeAcrossAll.m_avg_ts_session should be(70.01)

@@ -1,21 +1,14 @@
 package org.ekstep.analytics.api.service
 
-import scala.collection.JavaConverters.mapAsJavaMapConverter
+import akka.actor.{Actor, actorRef2Scala}
+import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.commons.lang.StringUtils
-import org.apache.spark.SparkContext
-import org.ekstep.analytics.api.APIIds
-import org.ekstep.analytics.api.Filter
-import org.ekstep.analytics.api.MetricsRequest
-import org.ekstep.analytics.api.MetricsRequestBody
-import org.ekstep.analytics.api.ResponseCode
+import org.ekstep.analytics.api._
 import org.ekstep.analytics.api.metrics._
 import org.ekstep.analytics.api.util.CommonUtil
-import org.ekstep.analytics.framework.util.JSONUtils
-import org.ekstep.analytics.framework.util.RestUtil
-import com.typesafe.config.Config
-import com.typesafe.config.ConfigFactory
-import akka.actor.Actor
-import akka.actor.actorRef2Scala
+import org.ekstep.analytics.framework.util.{JSONUtils, RestUtil}
+
+import scala.collection.JavaConverters.mapAsJavaMapConverter
 
 /**
  * @author mahesh
@@ -23,7 +16,7 @@ import akka.actor.actorRef2Scala
 
 object MetricsAPIService {
 
-    val reqPeriods = Array("LAST_7_DAYS", "LAST_14_DAYS", "LAST_30_DAYS", "LAST_5_WEEKS", "LAST_12_MONTHS", "CUMULATIVE")
+    val reqPeriods: Array[String] = Array("LAST_7_DAYS", "LAST_14_DAYS", "LAST_30_DAYS", "LAST_5_WEEKS", "LAST_12_MONTHS", "CUMULATIVE")
 
     case class ContentUsage(body: MetricsRequestBody, config: Config)
     case class ContentPopularity(body: MetricsRequestBody, fields: Array[String], config: Config)
@@ -31,17 +24,16 @@ object MetricsAPIService {
     case class GenieLaunch(body: MetricsRequestBody, config: Config)
     case class ItemUsage(body: MetricsRequestBody, config: Config)
     case class WorkflowUsage(body: MetricsRequestBody, config: Config)
+    case class DialcodeUsage(body: MetricsRequestBody, config: Config)
     case class Metrics(dataset: String, summary: String, body: MetricsRequestBody, config: Config)
 
     def metrics(dataset: String, summary: String, body: MetricsRequestBody)(implicit config: Config): String = {
 
         dataset match {
-            case "creation" =>
-                creationMetrics(summary, body)
-            case "consumption" =>
-                consumptionMetrics(summary, body)
-            case _ =>
-                CommonUtil.errorResponseSerialized(APIIds.METRICS_API, "Aggregations are not supported for dataset - " + summary, ResponseCode.SERVER_ERROR.toString())
+            case "creation" => creationMetrics(summary, body)
+            case "consumption" => consumptionMetrics(summary, body)
+            case _ => CommonUtil.errorResponseSerialized(APIIds.METRICS_API,
+                    err = s"Metrics API does not support dataset - $dataset", ResponseCode.SERVER_ERROR.toString)
         }
     }
 
@@ -58,12 +50,10 @@ object MetricsAPIService {
     private def consumptionMetrics(summary: String, body: MetricsRequestBody)(implicit config: Config): String = {
 
         summary match {
-            case "content-usage" =>
-                contentUsageMetrics(body)
-            case "device-summary" =>
-                deviceSummary(body)
-            case _ =>
-                CommonUtil.errorResponseSerialized(APIIds.METRICS_API, "Aggregations are not supported for summary - " + summary, ResponseCode.SERVER_ERROR.toString())
+            case "content-usage"    => contentUsageMetrics(body)
+            case "device-summary"   => deviceSummary(body)
+            case _                  => CommonUtil.errorResponseSerialized(APIIds.METRICS_API,
+                err = s"Metric summaries are not supported for summary type - $summary", ResponseCode.SERVER_ERROR.toString)
         }
     }
 
@@ -87,25 +77,31 @@ object MetricsAPIService {
     }
 
     def deviceSummary(body: MetricsRequestBody)(implicit config: Config): String = {
-        if (StringUtils.isEmpty(body.request.period) || reqPeriods.indexOf(body.request.period) == -1) {
-            CommonUtil.errorResponseSerialized(APIIds.DEVICE_SUMMARY, "period is missing or invalid.", ResponseCode.CLIENT_ERROR.toString())
+        val filter = body.request.filter.getOrElse(Filter())
+        if (StringUtils.isEmpty(body.request.period) || !reqPeriods.contains(body.request.period)) {
+            CommonUtil.errorResponseSerialized(APIIds.DEVICE_SUMMARY, "Mandatory parameter period is missing or invalid.",
+                ResponseCode.CLIENT_ERROR.toString)
+        } else if (filter.device_id.isEmpty) {
+            CommonUtil.errorResponseSerialized(APIIds.DEVICE_SUMMARY, "Mandatory filter device_id is missing.",
+                ResponseCode.CLIENT_ERROR.toString)
         } else {
             try {
-                val filter = body.request.filter.getOrElse(Filter())
-                val deviceId = filter.device_id.getOrElse("all")
-                val channelId = if (body.request.channel.isEmpty) config.getString("default.channel.id") else body.request.channel.get
-                val result = DeviceMetricsModel.fetch("all", "all", "CUMULATIVE", Array(), channelId, "all", deviceId)
+                val deviceId = filter.device_id.getOrElse("")
+                val channelId = body.request.channel.getOrElse(config.getString("default.channel.id"))
+                val result = DeviceMetricsModel.fetch(contentId = "all", tag = "all", period = "CUMULATIVE", Array(),
+                    channelId, userId = "all", deviceId)
                 JSONUtils.serialize(CommonUtil.OK(APIIds.DEVICE_SUMMARY, result))
             } catch {
                 case ex: Exception =>
-                    CommonUtil.errorResponseSerialized(APIIds.DEVICE_SUMMARY, ex.getMessage, ResponseCode.SERVER_ERROR.toString())
+                    CommonUtil.errorResponseSerialized(APIIds.DEVICE_SUMMARY, err = ex.getMessage, ResponseCode.SERVER_ERROR.toString)
             }
         }
     }
+
     private def contentSnapshotMetrics(body: MetricsRequestBody)(implicit config: Config): String = {
-        val url = config.getString("metrics.creation.es.url")
-        val indexes = config.getString("metrics.creation.es.indexes")
-        val apiURL = url + "/" + indexes + "/" + "_search"
+        val url = config.getString("elasticsearch.service.endpoint")
+        val indexes = config.getString("elasticsearch.index.compositesearch.name")
+        val apiURL = s"$url/$indexes/_search"
         if (body.request.rawQuery.isDefined) {
             val query = body.request.rawQuery.get ++ Map("size" -> 0)
             val result = RestUtil.post[Map[String, AnyRef]](apiURL, JSONUtils.serialize(query))
@@ -125,7 +121,9 @@ object MetricsAPIService {
         val rawQuery = """{"query": {"filtered": {"query": {"bool": {"must": [{"query": {"range": {"lastUpdatedOn": {"gt": "2017-07-24T00:00:00.000+0530", "lte": "2017-08-01T00:00:00.000+0530"} } } }, {"match": {"createdFor.raw": "Sunbird"} } ] } } } }, "size": 0, "aggs": {"created_on": {"date_histogram": {"field": "lastUpdatedOn", "interval": "1d", "format": "yyyy-MM-dd"} }, "status": {"terms": {"field": "status.raw", "include": ["draft", "live", "review"] }, "aggs": {"updated_on": {"date_histogram": {"field": "lastUpdatedOn", "interval": "1d", "format": "yyyy-MM-dd"} } } }, "authors.count": {"cardinality": {"field": "createdBy.raw", "precision_threshold": 100 } }, "content_count": {"terms": {"field": "objectType.raw", "include": "content"} } } }"""
         val request = MetricsRequest("", None, None, Option(JSONUtils.deserialize[Map[String, AnyRef]](rawQuery)))
         val body = MetricsRequestBody("org.ekstep.analytics.aggregate-metrics", "1.0", "", request, None)
-        implicit val config = ConfigFactory.parseMap(Map("metrics.creation.es.url" -> "http://localhost:9200", "metrics.creation.es.indexes" -> "compositesearch").asJava)
+        implicit val config = ConfigFactory.parseMap(Map("elasticsearch.service.endpoint" -> "http://localhost:9200",
+            "elasticsearch.index.compositesearch.name" -> "compositesearch",
+            "elasticsearch.index.dialcodemetrics.name" -> "dialcodemetrics").asJava)
         implicit val sc = org.ekstep.analytics.framework.util.CommonUtil.getSparkContext(1, "Test")
         println(metrics("creation", "content-snapshot", body))
     }
@@ -248,6 +246,36 @@ object MetricsAPIService {
         }
     }
 
+    def dialcodeUsage(body: MetricsRequestBody)(implicit config: Config): String = {
+        val url = config.getString("elasticsearch.service.endpoint")
+        val index = config.getString("elasticsearch.index.dialcodemetrics.name")
+        val apiURL = s"$url/$index/_search"
+        val dialcodes = body.request.dialcodes.getOrElse(List())
+        if (dialcodes.nonEmpty && dialcodes.size <= config.getInt("metrics.dialcodemetrics.request.limit")) {
+            val query =
+                s"""
+                   |{ "query":
+                   |  { "terms" :
+                   |    {
+                   |      "dial_code" : ${dialcodes.map(dialCode => s""""$dialCode"""").mkString("[", ",", "]")}
+                   |    }
+                   |  }
+                   |}
+                """.stripMargin
+            val result = RestUtil.post[ESResponse](apiURL, query)
+            try {
+                JSONUtils.serialize(CommonUtil.OK(APIIds.DIALCODE_USAGE, Map("metrics" -> result.hits.hits.map(_._source))))
+            } catch {
+                case ex: Exception =>
+                    CommonUtil.errorResponseSerialized(APIIds.DIALCODE_USAGE, ex.getMessage, ResponseCode.SERVER_ERROR.toString)
+            }
+        } else {
+            CommonUtil.errorResponseSerialized(APIIds.DIALCODE_USAGE,
+                s"Dialcode list cannot be empty or exceeded Dialcode limit of " +
+                  s"${config.getInt("metrics.dialcodemetrics.request.limit")} per request!", ResponseCode.SERVER_ERROR.toString)
+        }
+    }
+
     private def getTag(filter: Filter): String = {
         val tags = filter.tags.getOrElse(Array())
         if (tags.length == 0) {
@@ -269,6 +297,8 @@ class MetricsAPIService extends Actor {
         case GenieLaunch(body: MetricsRequestBody, config: Config)                               => sender() ! genieLaunch(body)(config)
         case ItemUsage(body: MetricsRequestBody, config: Config)                                 => sender() ! itemUsage(body)(config)
         case WorkflowUsage(body: MetricsRequestBody, config: Config)                             => sender() ! workflowUsage(body)(config)
+        case DialcodeUsage(body: MetricsRequestBody, config: Config)                             => sender() ! dialcodeUsage(body)(config);
         case Metrics(dataset: String, summary: String, body: MetricsRequestBody, config: Config) => sender() ! metrics(dataset, summary, body)(config)
     }
+
 }

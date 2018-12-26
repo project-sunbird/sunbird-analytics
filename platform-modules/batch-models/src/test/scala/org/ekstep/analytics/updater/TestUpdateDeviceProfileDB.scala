@@ -34,7 +34,7 @@ class TestUpdateDeviceProfileDB extends SparkSpec(null) {
     it should "check for first_access and last_access" in {
         CassandraConnector(sc.getConf).withSessionDo { session =>
             session.execute("TRUNCATE " + Constants.DEVICE_KEY_SPACE_NAME + "." + Constants.DEVICE_PROFILE_TABLE);
-            session.execute("INSERT INTO " + Constants.DEVICE_KEY_SPACE_NAME + "." + Constants.DEVICE_PROFILE_TABLE +"(device_id, channel, first_access, last_access, total_ts, total_launches, avg_ts, updated_date) VALUES ('48edda82418a1e916e9906a2fd7942cb', 'b00bc992ef25f1a9a8d63291e20efc8d', 1537550355883, 1537550364377, 18, 2, 9, 0);");
+            session.execute("INSERT INTO " + Constants.DEVICE_KEY_SPACE_NAME + "." + Constants.DEVICE_PROFILE_TABLE +"(device_id, channel, first_access, last_access, total_ts, total_launches, avg_ts, state, city, device_spec, uaspec, updated_date) VALUES ('48edda82418a1e916e9906a2fd7942cb', 'b00bc992ef25f1a9a8d63291e20efc8d', 1537550355883, 1537550364377, 18, 2, 9, 'Karnataka', 'Bangalore', {'os':'Android 6.0', 'make':'Motorola XT1706'}, {'raw':'xyz'}, 0);");
             session.execute("INSERT INTO " + Constants.DEVICE_KEY_SPACE_NAME + "." + Constants.DEVICE_PROFILE_TABLE +"(device_id, channel, first_access, last_access, total_ts, total_launches, avg_ts, updated_date) VALUES ('88edda82418a1e916e9906a2fd7942cb', 'b00bc992ef25f1a9a8d63291e20efc8d', 1537550355883, 1537550364377, 20, 2, 10, 0);");
         }
         val rdd = loadFile[DerivedEvent]("src/test/resources/device-profile/test-data2.log");
@@ -46,6 +46,10 @@ class TestUpdateDeviceProfileDB extends SparkSpec(null) {
         device1.total_ts.get should be(28)
         device1.total_launches.get should be(3)
         device1.avg_ts.get should be(9.33)
+        device1.city.get should be("Bangalore")
+        device1.state.get should be("Karnataka")
+        device1.device_spec.get should be(Map("os" -> "Android 6.0", "make" -> "Motorola XT1706"))
+        device1.uaspec.get should be(Map("raw" -> "xyz"))
         
         val device2 = sc.cassandraTable[DeviceProfileOutput](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_PROFILE_TABLE).where("device_id=?", "88edda82418a1e916e9906a2fd7942cb").where("channel=?", "b00bc992ef25f1a9a8d63291e20efc8d").first
         device2.first_access.get should be(1537450355883L)

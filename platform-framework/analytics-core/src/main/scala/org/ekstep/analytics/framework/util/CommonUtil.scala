@@ -1,44 +1,28 @@
 package org.ekstep.analytics.framework.util
 
-import java.io.BufferedInputStream
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.io.IOException
-import java.io.InputStream
+import java.io._
 import java.net.URL
-import java.nio.file.Files
-import java.nio.file.Paths
 import java.nio.file.Paths.get
-import java.nio.file.StandardCopyOption
+import java.nio.file.{Files, Paths, StandardCopyOption}
 import java.security.MessageDigest
 import java.util.Date
 import java.util.zip.GZIPOutputStream
-import scala.collection.mutable.ListBuffer
-import org.apache.spark.SparkConf
-import org.apache.spark.SparkContext
-import org.ekstep.analytics.framework._
-import org.ekstep.analytics.framework.DtRange
-import org.ekstep.analytics.framework.Event
-import org.ekstep.analytics.framework.JobConfig
+
+import org.apache.spark.{SparkConf, SparkContext}
 import org.ekstep.analytics.framework.Level._
 import org.ekstep.analytics.framework.Period._
+import org.ekstep.analytics.framework.{DtRange, Event, JobConfig, _}
+
+import scala.collection.mutable.ListBuffer
 //import org.ekstep.analytics.framework.conf.AppConf
-import org.joda.time.DateTime
-import org.joda.time.DateTimeZone
-import org.joda.time.Days
-import org.joda.time.LocalDate
-import org.joda.time.Weeks
-import org.joda.time.Years
-import org.joda.time.format.DateTimeFormat
-import org.joda.time.format.DateTimeFormatter
-import org.json4s.jvalue2extractable
-import org.json4s.string2JsonInput
+import java.util.zip.{ZipEntry, ZipOutputStream}
+
 import org.apache.commons.lang3.StringUtils
-import java.util.zip.ZipOutputStream
-import scala.util.control.Breaks._
-import java.util.zip.ZipEntry
+import org.joda.time.{DateTime, DateTimeZone, Days, LocalDate, Weeks, Years}
+import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 import org.sunbird.cloud.storage.conf.AppConf
+
+import scala.util.control.Breaks._
 
 object CommonUtil {
 
@@ -46,6 +30,7 @@ object CommonUtil {
     @transient val df3: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ssZZ").withZoneUTC();
     @transient val df5: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ").withZoneUTC();
     @transient val df6: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss").withZoneUTC();
+    @transient val ISTDateTimeFormatter: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd").withZone(DateTimeZone.forID("Asia/Kolkata"))
     @transient val dateFormat: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd").withZoneUTC();
     @transient val weekPeriodLabel: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-ww").withZoneUTC();
     @transient val dayPeriod: DateTimeFormatter = DateTimeFormat.forPattern("yyyyMMdd").withZone(DateTimeZone.forOffsetHoursMinutes(5, 30));

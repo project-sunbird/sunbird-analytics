@@ -1,11 +1,7 @@
 package org.ekstep.analytics.api
 
-import org.joda.time.DateTime
-import org.ekstep.analytics.framework.PData
-import org.ekstep.analytics.framework.Context
-import org.ekstep.analytics.framework.EData
-import org.ekstep.analytics.framework.MEEdata
 import org.ekstep.analytics.framework.conf.AppConf
+import org.joda.time.DateTime
 
 /**
  * @author Santhosh
@@ -14,11 +10,11 @@ object Model {
 
 }
 
-case class Filter(partner_id: Option[String] = None, group_user: Option[Boolean] = None, content_id: Option[String] = None, tag: Option[String] = None, tags: Option[Array[String]] = None, start_date: Option[String] = None, end_date: Option[String] = None, events: Option[Array[String]] = None, app_id: Option[String] = Option(""), channel: Option[String] = Option(""), user_id: Option[String] = None, device_id: Option[String] = None, metrics_type: Option[String] = None, mode: Option[String] = None);
+case class Filter(partner_id: Option[String] = None, group_user: Option[Boolean] = None, content_id: Option[String] = None, tag: Option[String] = None, tags: Option[Array[String]] = None, start_date: Option[String] = None, end_date: Option[String] = None, events: Option[Array[String]] = None, app_id: Option[String] = Option(""), channel: Option[String] = Option(""), user_id: Option[String] = None, device_id: Option[String] = None, metrics_type: Option[String] = None, mode: Option[String] = None)
 case class Trend(day: Option[Int], week: Option[Int], month: Option[Int])
-case class Request(filter: Option[Filter], summaries: Option[Array[String]], trend: Option[Trend], context: Option[Map[String, AnyRef]], query: Option[String], filters: Option[Map[String, AnyRef]], config: Option[Map[String, AnyRef]], limit: Option[Int], output_format: Option[String], dataset_id: Option[String]);
+case class Request(filter: Option[Filter], summaries: Option[Array[String]], trend: Option[Trend], context: Option[Map[String, AnyRef]], query: Option[String], filters: Option[Map[String, AnyRef]], config: Option[Map[String, AnyRef]], limit: Option[Int], output_format: Option[String], dataset_id: Option[String], ip_addr: Option[String] = None, loc: Option[String] = None, dspec: Option[Map[String, AnyRef]] = None, channel: Option[String] = None);
 case class RequestBody(id: String, ver: String, ts: String, request: Request, params: Option[Params]);
-case class MetricsRequest(period: String, filter: Option[Filter], channel: Option[String] = None, rawQuery: Option[Map[String, AnyRef]]);
+case class MetricsRequest(period: String, filter: Option[Filter], channel: Option[String] = None, rawQuery: Option[Map[String, AnyRef]], dialcodes: Option[List[String]] = None);
 case class MetricsRequestBody(id: String, ver: String, ts: String, request: MetricsRequest, param: Option[Params]);
 
 case class ContentSummary(period: Option[Int], total_ts: Double, total_sessions: Long, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double)
@@ -53,7 +49,7 @@ case class Rating(rating: Double, timestamp: Long)
 case class ItemUsageSummary(d_item_id: String, d_content_id: Option[String] = None, m_total_ts: Option[Double] = Option(0.0), m_total_count: Option[Long] = Option(0), m_correct_res_count: Option[Long] = Option(0), m_inc_res_count: Option[Long] = Option(0), m_correct_res: Option[List[AnyRef]] = Option(List()), m_top5_incorrect_res: Option[List[InCorrectRes]] = Option(List()), m_avg_ts: Option[Double] = Option(0.0), m_top5_mmc: Option[List[Misconception]] = Option(List()))
 case class ItemUsageMetrics(override val d_period: Option[Int] = None, label: Option[String] = None, items: Option[List[ItemUsageSummary]] = Option(List())) extends Metrics;
 
-case class JobRequest(client_key: Option[String], request_id: Option[String], job_id: Option[String], status: Option[String], request_data: Option[String], iteration: Option[Int], dt_job_submitted: Option[DateTime] = None, location: Option[String] = None, dt_file_created: Option[DateTime] = None, dt_first_event: Option[DateTime] = None, dt_last_event: Option[DateTime] = None, dt_expiration: Option[DateTime] = None, dt_job_processing: Option[DateTime] = None, dt_job_completed: Option[DateTime] = None, input_events: Option[Int] = None, output_events: Option[Int] = None, file_size: Option[Long] = None, latency: Option[Int] = None, execution_time: Option[Long] = None, err_message: Option[String] = None, stage: Option[String] = None, stage_status: Option[String] = None)
+case class JobRequest(client_key: Option[String], request_id: Option[String], job_id: Option[String], status: Option[String], request_data: Option[String], iteration: Option[Int], dt_job_submitted: Option[DateTime] = None, location: Option[String] = None, dt_file_created: Option[DateTime] = None, dt_first_event: Option[DateTime] = None, dt_last_event: Option[DateTime] = None, dt_expiration: Option[DateTime] = None, dt_job_processing: Option[DateTime] = None, dt_job_completed: Option[DateTime] = None, input_events: Option[Int] = None, output_events: Option[Int] = None, file_size: Option[Long] = None, latency: Option[Int] = None, execution_time: Option[Long] = None, err_message: Option[String] = None, stage: Option[String] = None, stage_status: Option[String] = None, job_name: Option[String] = None)
 
 case class RecommendationContent(device_id: String, scores: List[(String, Double)], updated_date: Long)
 case class RequestRecommendations(uid: String, requests: List[CreationRequest], updated_date: Long)
@@ -62,27 +58,32 @@ case class CreationRequest(grade_level: List[String], concepts: List[String], co
 case class ContentVectors(content_vectors: Array[ContentVector]);
 class ContentVector(val contentId: String, val text_vec: List[Double], val tag_vec: List[Double]);
 
+case class ESResponse(took: Double, timed_out: Boolean, _shards: _shards, hits: Hit)
+case class _shards(total: Option[Double], successful: Option[Double], skipped: Option[Double], failed: Option[Double])
+case class Hits(_score: Double, _type: String, _source: Map[String, AnyRef], _id: String, _index: String)
+case class Hit(total: Double, max_score: Double, hits: List[Hits])
+
 object ResponseCode extends Enumeration {
 	type Code = Value
 	val OK, CLIENT_ERROR, SERVER_ERROR, REQUEST_TIMEOUT, RESOURCE_NOT_FOUND, FORBIDDEN = Value
 }
 
 object Constants {
-  val env = AppConf.getConfig("cassandra.keyspace_prefix");
-	val CONTENT_DB = env+"content_db";
-	val DEVICE_DB = env+"device_db";
-	val PLATFORML_DB = env+"platform_db";
-	val JOB_REQUEST = "job_request";
-	val CONTENT_SUMMARY_FACT_TABLE = "content_usage_summary_fact";
-	val CONTENT_POPULARITY_SUMMARY_FACT = "content_popularity_summary_fact";
-	val GENIE_LAUNCH_SUMMARY_FACT = "genie_launch_summary_fact";
-	val ITEM_USAGE_SUMMARY_FACT = "item_usage_summary_fact";
-	val USAGE_SUMMARY_FACT = "usage_summary_fact";
-	val WORKFLOW_USAGE_SUMMARY_FACT = "workflow_usage_summary_fact";
-	val DEVICE_RECOS_TABLE = "device_recos";
+  val env: String = AppConf.getConfig("cassandra.keyspace_prefix")
+	val CONTENT_DB: String = env+"content_db"
+	val DEVICE_DB: String = env+"device_db"
+	val PLATFORML_DB: String = env+"platform_db"
+	val JOB_REQUEST = "job_request"
+	val CONTENT_SUMMARY_FACT_TABLE = "content_usage_summary_fact"
+	val CONTENT_POPULARITY_SUMMARY_FACT = "content_popularity_summary_fact"
+	val GENIE_LAUNCH_SUMMARY_FACT = "genie_launch_summary_fact"
+	val ITEM_USAGE_SUMMARY_FACT = "item_usage_summary_fact"
+	val USAGE_SUMMARY_FACT = "usage_summary_fact"
+	val WORKFLOW_USAGE_SUMMARY_FACT = "workflow_usage_summary_fact"
+	val DEVICE_RECOS_TABLE = "device_recos"
 	val CONTENT_RECOS_TABLE = "content_recos"
-	val CONTENT_TO_VEC = "content_to_vector";
-	val REGISTERED_TAGS = "registered_tags";
+	val CONTENT_TO_VEC = "content_to_vector"
+	val REGISTERED_TAGS = "registered_tags"
 	val REQUEST_RECOS_TABLE = "request_recos"
 	val DEVICE_PROFILE_TABLE = "device_profile"
 }
@@ -106,6 +107,7 @@ object APIIds {
 	val METRICS_API = "org.ekstep.analytics.metrics"
 	val CHANNEL_TELEMETRY_EXHAUST = "org.ekstep.analytics.telemetry"
 	val WORKFLOW_USAGE = "ekstep.analytics.metrics.workflow-usage"
+	val DIALCODE_USAGE = "ekstep.analytics.metrics.dialcode-usage"
 }
 
 case class JobOutput(location: Option[String] = None, file_size: Option[Long] = None, dt_file_created: Option[String] = None, dt_first_event: Option[Long] = None, dt_last_event: Option[Long] = None, dt_expiration: Option[Long] = None);

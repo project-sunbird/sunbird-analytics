@@ -101,12 +101,12 @@ object CommonUtil {
 
     def errorResponse(apiId: String, err: String, responseCode: String): Response = {
         Response(apiId, "1.0", df.print(System.currentTimeMillis()),
-            Params(UUID.randomUUID().toString(), null, responseCode, "failed", err),
-            responseCode, None);
+            Params(UUID.randomUUID().toString, null, responseCode, "failed", err),
+            responseCode, None)
     }
 
     def errorResponseSerialized(apiId: String, err: String, responseCode: String): String = {
-        JSONUtils.serialize(errorResponse(apiId, err, responseCode));
+        JSONUtils.serialize(errorResponse(apiId, err, responseCode))
     }
 
     def OK(apiId: String, result: Map[String, AnyRef]): Response = {

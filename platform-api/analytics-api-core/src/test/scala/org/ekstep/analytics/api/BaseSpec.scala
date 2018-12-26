@@ -7,18 +7,16 @@ import org.cassandraunit.utils.EmbeddedCassandraServerHelper
 import org.ekstep.analytics.api.util.DBUtil
 import org.ekstep.analytics.api.util.JSONUtils
 import org.ekstep.analytics.framework.conf.AppConf
-import org.scalatest.BeforeAndAfterAll
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers
-
+import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
 import com.typesafe.config.ConfigFactory
-
+import org.scalatest.mock.MockitoSugar
 
 /**
  * @author Santhosh
  */
-class BaseSpec extends FlatSpec with Matchers with BeforeAndAfterAll{
-  implicit val config = ConfigFactory.load();
+class BaseSpec extends FlatSpec with Matchers with BeforeAndAfterAll with MockitoSugar {
+  implicit val config = ConfigFactory.load()
+
   override def beforeAll() {
     if (embeddedCassandraMode) {
       System.setProperty("cassandra.unsafesystem", "true")

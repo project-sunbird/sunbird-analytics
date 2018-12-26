@@ -33,7 +33,7 @@ import org.joda.time.format.DateTimeFormatter
 import com.datastax.spark.connector._
 import com.github.wnameless.json.flattener.FlattenMode
 import com.github.wnameless.json.flattener.JsonFlattener
-import org.ekstep.ep.samza.converter.converters.TelemetryV3Converter
+//import org.ekstep.ep.samza.converter.converters.TelemetryV3Converter
 
 import scala.collection.JavaConverters._
 import com.google.gson.reflect.TypeToken
@@ -109,7 +109,7 @@ object DataExhaustUtils {
 
     def getAllRequest()(implicit sc: SparkContext): RDD[JobRequest] = {
         try {
-            val jobReq = sc.cassandraTable[JobRequest](Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST).filter { x => x.status.equals("SUBMITTED") }.cache;
+            val jobReq = sc.cassandraTable[JobRequest](Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST).filter { x => "DATA_EXHAUST".equals(x.job_name.getOrElse("")) && x.status.equals("SUBMITTED") }.cache;
             if (!jobReq.isEmpty()) {
                 jobReq.map { x => JobStage(x.request_id, x.client_key, "FETCHING_ALL_REQUEST", "COMPLETED", "PROCESSING") }.saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "stage", "stage_status", "status", "err_message", "dt_job_processing"))
                 jobReq;
@@ -200,7 +200,7 @@ object DataExhaustUtils {
 
     private def filterChannelAndApp(dataSetId: String, data: RDD[String], filter: Map[String, AnyRef]): RDD[String] = {
         if (List("eks-consumption-raw", "eks-creation-raw").contains(dataSetId)) {
-            val convertedData = DataExhaustUtils.convertData(data)
+//            val convertedData = DataExhaustUtils.convertData(data)
             val appIdFilter = (event: V3Event, appId: String) => {
                 val defaultAppId = AppConf.getConfig("default.consumption.app.id");
                 val app = event.context.pdata;
@@ -212,7 +212,7 @@ object DataExhaustUtils {
                     true;
                 }
             }
-            val rawRDD = convertedData.map { event =>
+            val rawRDD = data.map { event =>
                 try {
                     Option(JSONUtils.deserialize[V3Event](event))
                 } catch {
@@ -280,6 +280,7 @@ object DataExhaustUtils {
         }
     }
 
+    /*
     def convertData(data: RDD[String]): RDD[String] = {
         val mapType: java.lang.reflect.Type = new TypeToken[java.util.Map[String, Object]]() {}.getType();
         data.map { x =>
@@ -298,7 +299,7 @@ object DataExhaustUtils {
                 }
             }
         }.flatMap { x => x }.filter { x => (x != null && x.nonEmpty) }
-    }
+    }*/
 
     def getRequestDetails(date: String)(implicit sc: SparkContext): Array[RequestDetails] = {
         val dateFormat: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd").withZone(DateTimeZone.forOffsetHoursMinutes(5, 30));

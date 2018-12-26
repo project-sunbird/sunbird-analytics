@@ -188,7 +188,7 @@ object JobAPIService {
     private def _saveJobRequest(requestId: String, clientKey: String, request: Request, iteration: Int = 0): JobRequest = {
         val status = JobStatus.SUBMITTED.toString()
         val jobSubmitted = DateTime.now()
-        val jobRequest = JobRequest(Option(clientKey), Option(requestId), None, Option(status), Option(JSONUtils.serialize(request)), Option(iteration), Option(jobSubmitted), None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
+        val jobRequest = JobRequest(Option(clientKey), Option(requestId), None, Option(status), Option(JSONUtils.serialize(request)), Option(iteration), Option(jobSubmitted), None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, Option("DATA_EXHAUST"))
         DBUtil.saveJobRequest(Array(jobRequest))
         jobRequest
     }

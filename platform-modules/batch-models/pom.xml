@@ -27,6 +27,7 @@
 
 	<dependencies>
 
+		<!--
 		<dependency>
 			<groupId>org.ekstep.ecosystem</groupId>
 			<artifactId>ep-logger</artifactId>
@@ -48,6 +49,7 @@
 			<scope>system</scope>
 			<systemPath>${project.basedir}/lib/ep-telemetry-converter-0.0.8.jar</systemPath>
 		</dependency>
+		-->
 		<dependency>
 			<groupId>org.ekstep</groupId>
 			<artifactId>analytics-job-driver</artifactId>
@@ -123,9 +125,21 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
+			<groupId>org.scalactic</groupId>
+			<artifactId>scalactic_${scala.maj.version}</artifactId>
+			<version>3.0.5</version>
+		</dependency>
+		<dependency>
 			<groupId>org.scalatest</groupId>
 			<artifactId>scalatest_${scala.maj.version}</artifactId>
-			<version>2.2.4</version>
+			<version>3.0.5</version>
+			<scope>test</scope>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.scalamock/scalamock -->
+		<dependency>
+			<groupId>org.scalamock</groupId>
+			<artifactId>scalamock_${scala.maj.version}</artifactId>
+			<version>4.1.0</version>
 			<scope>test</scope>
 		</dependency>
 		<!-- -->
@@ -229,6 +243,11 @@
             <artifactId>json-schema-validator</artifactId>
             <version>2.2.8</version>
             <scope>test</scope>
+        </dependency>
+		<dependency>
+			<groupId>org.sunbird</groupId>
+			<artifactId>video-streaming</artifactId>
+            <version>1.0</version>
         </dependency>
         <!-- <dependency>
 			<groupId>org.sunbird</groupId>
