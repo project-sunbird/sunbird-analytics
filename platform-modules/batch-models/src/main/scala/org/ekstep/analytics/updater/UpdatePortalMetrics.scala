@@ -24,19 +24,19 @@ case class WorkFlowUsageMetrics(noOfUniqueDevices: Long, totalContentPlaySession
 
 case class PortalMetrics(eid: String, ets: Long, syncts: Long, metrics_summary: Option[WorkFlowUsageMetrics]) extends AlgoOutput with Output
 
-case class ContentPublishedList(count: Int, language_publisher_breakdown: List[PublisherByLanguage])
+case class ContentPublishedList(count: Int, language_publisher_breakdown: List[LanguageByPublisher])
 
-case class PublisherByLanguage(language: String, publishers: List[Publisher])
+case class LanguageByPublisher(publisher: String, languages: List[Language])
 
-case class Publisher(id: String, count: Double)
+case class Language(id: String, count: Double)
 
 case class ESResponse(aggregations: Aggregations)
 
-case class Aggregations(language_agg: AggregationResult)
+case class Aggregations(publisher_agg: AggregationResult)
 
 case class AggregationResult(buckets: List[Buckets])
 
-case class Buckets(key: String, doc_count: Double, publisher_agg: AggregationResult)
+case class Buckets(key: String, doc_count: Double, language_agg: AggregationResult)
 
 case class OrgResponse(id: String, ver: String, ts: String, params: Params, responseCode: String, result: OrgResult)
 
@@ -112,7 +112,7 @@ object UpdatePortalMetrics extends IBatchModelTemplate[DerivedEvent, DerivedEven
     sc.parallelize(Array(metrics))
   }
 
-  private def getLanguageAndPublisherList(): List[PublisherByLanguage] = {
+  private def getLanguageAndPublisherList(): List[LanguageByPublisher] = {
     val apiURL = Constants.ELASTIC_SEARCH_SERVICE_ENDPOINT + "/" + Constants.ELASTIC_SEARCH_INDEX_COMPOSITESEARCH_NAME + "/_search"
     println("APIURL", apiURL);
     val request =
@@ -178,15 +178,15 @@ object UpdatePortalMetrics extends IBatchModelTemplate[DerivedEvent, DerivedEven
          |    }
          |  },
          |  "aggs":{
-         |    "language_agg":{
+         |    "publisher_agg":{
          |      "terms":{
-         |        "field":"language.raw",
-         |        "size":500
+         |        "field":"createdFor.raw",
+         |        "size":1000
          |      },
          |      "aggs":{
-         |        "publisher_agg":{
+         |        "language_agg":{
          |          "terms":{
-         |            "field":"createdFor.raw",
+         |            "field":"language.raw",
          |            "size":1000
          |          }
          |        }
@@ -196,21 +196,20 @@ object UpdatePortalMetrics extends IBatchModelTemplate[DerivedEvent, DerivedEven
          |}
        """.stripMargin
     val response = RestUtil.post[ESResponse](apiURL, request)
-    println("response", response);
     val orgResult = orgSearch()
-    response.aggregations.language_agg.buckets.map(languageBucket => {
-      val publishers = languageBucket.publisher_agg.buckets.map(publisherBucket => {
-        orgResult.result.response.content.map(org => {
-          if (org.hashTagId == publisherBucket.key) {
-            Publisher(org.orgName, publisherBucket.doc_count)
-          } else {
-            Publisher("", 0) // Return empty publisher list
-          }
-        })
-      }).flatMap(f => f).filter(_.id.nonEmpty)
-      PublisherByLanguage(languageBucket.key, publishers)
-    }).filter(_.publishers.nonEmpty)
-  }
+    response.aggregations.publisher_agg.buckets.map(publisherBucket => {
+      val languages = publisherBucket.language_agg.buckets.map(languageBucket => {
+        Language(languageBucket.key, languageBucket.doc_count)
+      })
+      orgResult.result.response.content.map(org => {
+        if (org.hashTagId == publisherBucket.key) {
+          LanguageByPublisher(org.orgName, languages)
+        } else {
+          LanguageByPublisher("", List()) // Return empty publisher list
+        }
+      }).filter(_.publisher.nonEmpty)
+    })
+  }.flatMap(f=>f)
 
   private def orgSearch(): OrgResponse = {
     val request =
