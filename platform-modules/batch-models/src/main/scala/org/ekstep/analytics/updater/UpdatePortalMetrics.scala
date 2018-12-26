@@ -24,19 +24,19 @@ case class WorkFlowUsageMetrics(noOfUniqueDevices: Long, totalContentPlaySession
 
 case class PortalMetrics(eid: String, ets: Long, syncts: Long, metrics_summary: Option[WorkFlowUsageMetrics]) extends AlgoOutput with Output
 
-case class ContentPublishedList(count: Int, language_publisher_breakdown: List[PublisherByLanguage])
+case class ContentPublishedList(count: Int, language_publisher_breakdown: List[LanguageByPublisher])
 
-case class PublisherByLanguage(language: String, publishers: List[Publisher])
+case class LanguageByPublisher(publisher: String, languages: List[Language])
 
-case class Publisher(id: String, count: Double)
+case class Language(id: String, count: Double)
 
 case class ESResponse(aggregations: Aggregations)
 
-case class Aggregations(language_agg: AggregationResult)
+case class Aggregations(publisher_agg: AggregationResult)
 
 case class AggregationResult(buckets: List[Buckets])
 
-case class Buckets(key: String, doc_count: Double, publisher_agg: AggregationResult)
+case class Buckets(key: String, doc_count: Double, language_agg: AggregationResult)
 
 case class OrgResponse(id: String, ver: String, ts: String, params: Params, responseCode: String, result: OrgResult)
 
@@ -112,7 +112,7 @@ object UpdatePortalMetrics extends IBatchModelTemplate[DerivedEvent, DerivedEven
     sc.parallelize(Array(metrics))
   }
 
-  private def getLanguageAndPublisherList(): List[PublisherByLanguage] = {
+  private def getLanguageAndPublisherList(): List[LanguageByPublisher] = {
     val apiURL = Constants.ELASTIC_SEARCH_SERVICE_ENDPOINT + "/" + Constants.ELASTIC_SEARCH_INDEX_COMPOSITESEARCH_NAME + "/_search"
     println("APIURL", apiURL);
     val request =
@@ -178,15 +178,15 @@ object UpdatePortalMetrics extends IBatchModelTemplate[DerivedEvent, DerivedEven
          |    }
          |  },
          |  "aggs":{
-         |    "language_agg":{
+         |    "publisher_agg":{
          |      "terms":{
-         |        "field":"language.raw",
-         |        "size":500
+         |        "field":"createdFor.raw",
+         |        "size":1000
          |      },
          |      "aggs":{
-         |        "publisher_agg":{
+         |        "language_agg":{
          |          "terms":{
-         |            "field":"createdFor.raw",
+         |            "field":"language.raw",
          |            "size":1000
          |          }
          |        }
@@ -196,21 +196,27 @@ object UpdatePortalMetrics extends IBatchModelTemplate[DerivedEvent, DerivedEven
          |}
        """.stripMargin
     val response = RestUtil.post[ESResponse](apiURL, request)
-    println("response", response);
+//    val res =
+//      """
+//        |{"took":6,"timed_out":false,"_shards":{"total":5,"successful":5,"skipped":0,"failed":0},"hits":{"total":31623,"max_score":17.36364,"hits":[{"_index":"compositesearch","_type":"cs","_id":"do_112493573259223040148.img","_score":17.36364},{"_index":"compositesearch","_type":"cs","_id":"do_112240785235501056165.img","_score":17.087969},{"_index":"compositesearch","_type":"cs","_id":"do_112486539488894976118.img","_score":15.788908},{"_index":"compositesearch","_type":"cs","_id":"do_112598201993822208134.img","_score":15.784051},{"_index":"compositesearch","_type":"cs","_id":"do_112598258266931200138.img","_score":15.784051},{"_index":"compositesearch","_type":"cs","_id":"do_112504711405404160121.img","_score":15.583953},{"_index":"compositesearch","_type":"cs","_id":"do_112598181515247616132.img","_score":15.583953},{"_index":"compositesearch","_type":"cs","_id":"do_112599505273323520195.img","_score":15.583953},{"_index":"compositesearch","_type":"cs","_id":"do_112594747429896192186.img","_score":15.583953},{"_index":"compositesearch","_type":"cs","_id":"do_11259738771644416011.img","_score":15.574913}]},"aggregations":{"publisher_agg":{"doc_count_error_upper_bound":0,"sum_other_doc_count":0,"buckets":[{"key":"org_001","doc_count":28,"language_agg":{"doc_count_error_upper_bound":0,"sum_other_doc_count":0,"buckets":[{"key":"english","doc_count":28}]}},{"key":"0123653943740170242","doc_count":26,"language_agg":{"doc_count_error_upper_bound":0,"sum_other_doc_count":0,"buckets":[{"key":"english","doc_count":26}]}},{"key":"org.ekstep.partner.pratham","doc_count":4,"language_agg":{"doc_count_error_upper_bound":0,"sum_other_doc_count":0,"buckets":[{"key":"english","doc_count":2},{"key":"bengali","doc_count":1},{"key":"hindi","doc_count":1}]}},{"key":"0123673542904299520","doc_count":1,"language_agg":{"doc_count_error_upper_bound":0,"sum_other_doc_count":0,"buckets":[{"key":"english","doc_count":1}]}},{"key":"0123673689120112640","doc_count":1,"language_agg":{"doc_count_error_upper_bound":0,"sum_other_doc_count":0,"buckets":[{"key":"english","doc_count":1}]}},{"key":"0124226794392862720","doc_count":1,"language_agg":{"doc_count_error_upper_bound":0,"sum_other_doc_count":0,"buckets":[{"key":"english","doc_count":1}]}},{"key":"ap12345","doc_count":1,"language_agg":{"doc_count_error_upper_bound":0,"sum_other_doc_count":0,"buckets":[{"key":"english","doc_count":1}]}},{"key":"com.ekstep.303","doc_count":1,"language_agg":{"doc_count_error_upper_bound":0,"sum_other_doc_count":0,"buckets":[{"key":"english","doc_count":1}]}}]}}}
+//      """.stripMargin
+
+    println("response", JSONUtils.serialize(response))
     val orgResult = orgSearch()
-    response.aggregations.language_agg.buckets.map(languageBucket => {
-      val publishers = languageBucket.publisher_agg.buckets.map(publisherBucket => {
-        orgResult.result.response.content.map(org => {
-          if (org.hashTagId == publisherBucket.key) {
-            Publisher(org.orgName, publisherBucket.doc_count)
-          } else {
-            Publisher("", 0) // Return empty publisher list
-          }
-        })
-      }).flatMap(f => f).filter(_.id.nonEmpty)
-      PublisherByLanguage(languageBucket.key, publishers)
-    }).filter(_.publishers.nonEmpty)
-  }
+    println("OrgResult", JSONUtils.serialize(orgResult));
+    response.aggregations.publisher_agg.buckets.map(publisherBucket => {
+      val languages = publisherBucket.language_agg.buckets.map(languageBucket => {
+        Language(languageBucket.key, languageBucket.doc_count)
+      })
+      orgResult.result.response.content.map(org => {
+        if (org.hashTagId == publisherBucket.key) {
+          LanguageByPublisher(org.orgName, languages)
+        } else {
+          LanguageByPublisher("", List()) // Return empty publisher list
+        }
+      }).filter(_.publisher.nonEmpty)
+    })
+  }.flatMap(f=>f)
 
   private def orgSearch(): OrgResponse = {
     val request =
