@@ -43,7 +43,7 @@ object CommonUtil {
         config.parallelization.getOrElse(defParallelization);
     }
 
-    def getSparkContext(parallelization: Int, appName: String): SparkContext = {
+    def getSparkContext(parallelization: Int, appName: String, sparkCassandraConnectionHost: Option[AnyRef] = None): SparkContext = {
         JobLogger.log("Initializing Spark Context")
         val conf = new SparkConf().setAppName(appName);
         val master = conf.getOption("spark.master");
@@ -60,6 +60,11 @@ object CommonUtil {
         if (!conf.contains("reactiveinflux.url")) {
             conf.set("reactiveinflux.url", AppConf.getConfig("reactiveinflux.url"));
         }
+        if (sparkCassandraConnectionHost.nonEmpty) {
+            conf.set("spark.cassandra.connection.host", sparkCassandraConnectionHost.get.asInstanceOf[String])
+            println("spark.cassandra.connection.host", conf.get("spark.cassandra.connection.host"))
+        }
+
         // $COVERAGE-ON$
         val sc = new SparkContext(conf);
         setS3Conf(sc);
