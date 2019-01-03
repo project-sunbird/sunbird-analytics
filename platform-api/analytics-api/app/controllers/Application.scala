@@ -11,7 +11,7 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.concurrent.Future
 import javax.inject.Singleton
 import javax.inject.Inject
-import akka.actor.ActorSystem
+import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.pattern._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
@@ -20,7 +20,6 @@ import org.ekstep.analytics.api.exception.ClientException
 import org.ekstep.analytics.api.ResponseCode
 
 import scala.collection.JavaConverters._
-import akka.actor.Props
 import akka.routing.FromConfig
 import org.ekstep.analytics.api.service.HealthCheckAPIService.GetHealthStatus
 import org.ekstep.analytics.api.service.TagService.DeleteTag
@@ -93,21 +92,22 @@ class Application @Inject() (system: ActorSystem) extends BaseController {
     }
 	}
 
-	def registerDevice(deviceId: String) = Action.async { implicit request =>
-		val body: String = Json.stringify(request.body.asJson.get)
-		// The X-Forwarded-For header from Azure is in the format '61.12.65.222:33740, 61.12.65.222'
-		val ipAddr = request.headers.get("X-Forwarded-For").map {
-			x =>
-				val ipArray = x.split(",")
-				if (ipArray.length == 2) ipArray(1).trim else ipArray(0).trim
-		}
-		val ip = ipAddr.getOrElse("")
-		val uaspec = request.headers.get("User-Agent")
+  def registerDevice(deviceId: String) = Action.async { implicit request =>
+    val body: String = Json.stringify(request.body.asJson.get)
+    // The X-Forwarded-For header from Azure is in the format '61.12.65.222:33740, 61.12.65.222'
+    val ipAddr = request.headers.get("X-Forwarded-For").map {
+      x =>
+        val ipArray = x.split(",")
+        if (ipArray.length == 2) ipArray(1).trim else ipArray(0).trim
+    }
+    val ip = ipAddr.getOrElse("")
+    val uaspec = request.headers.get("User-Agent")
 
-
-		deviceRegisterServiceAPIActor.tell(RegisterDevice(deviceId, ip, body, uaspec))
-		Ok(JSONUtils.serialize(CommonUtil.OK("analytics.device-register",
-			Map("message" -> s"Device registered successfully"))))
-			.withHeaders(CONTENT_TYPE -> "application/json")
-	}
+    deviceRegisterServiceAPIActor.tell(RegisterDevice(deviceId, ip, body, uaspec), ActorRef.noSender)
+    Future {
+      Ok(JSONUtils.serialize(CommonUtil.OK("analytics.device-register",
+        Map("message" -> s"Device registered successfully"))))
+        .withHeaders(CONTENT_TYPE -> "application/json")
+    }
+  }
 }
