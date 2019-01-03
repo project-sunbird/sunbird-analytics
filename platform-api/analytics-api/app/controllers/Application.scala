@@ -8,14 +8,12 @@ import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
-import scala.concurrent.duration._
 import scala.concurrent.Future
 import javax.inject.Singleton
 import javax.inject.Inject
 import akka.actor.ActorSystem
 import akka.pattern._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import akka.util.Timeout
 
 import scala.concurrent.duration._
 import org.ekstep.analytics.api.exception.ClientException
@@ -75,7 +73,7 @@ class Application @Inject() (system: ActorSystem) extends BaseController {
 		val response: Future[String] = firstCompleted.recoverWith {
 			case ex: ClientException =>
 				Future { CommonUtil.errorResponseSerialized("ekstep.analytics.creation.recommendations", ex.getMessage, ResponseCode.CLIENT_ERROR.toString()) };
-		};
+		}
 		response.map { result =>
 			Ok(result).withHeaders(CONTENT_TYPE -> "application/json")
 		}
@@ -105,9 +103,11 @@ class Application @Inject() (system: ActorSystem) extends BaseController {
 		}
 		val ip = ipAddr.getOrElse("")
 		val uaspec = request.headers.get("User-Agent")
-		val result = ask(deviceRegisterServiceAPIActor, RegisterDevice(deviceId, ip, body, uaspec)).mapTo[String]
-		result.map { x =>
-			Ok(x).withHeaders(CONTENT_TYPE -> "application/json")
-		}
+
+
+		deviceRegisterServiceAPIActor.tell(RegisterDevice(deviceId, ip, body, uaspec))
+		Ok(JSONUtils.serialize(CommonUtil.OK("analytics.device-register",
+			Map("message" -> s"Device registered successfully"))))
+			.withHeaders(CONTENT_TYPE -> "application/json")
 	}
 }
