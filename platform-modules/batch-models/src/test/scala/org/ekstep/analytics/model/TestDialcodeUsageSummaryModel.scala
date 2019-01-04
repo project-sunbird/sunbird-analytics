@@ -6,7 +6,7 @@ case class DialUsageMetric(total_dial_scans: Int, first_scan: Long, last_scan: L
 
 class TestDialcodeUsageSummaryModel extends SparkSpec(null) {
 
-  "DialcodeUsageSummaryModel" should "aggregate based on channel and dialcode" in {
+  "DialcodeUsageSummaryModel" should "aggregate based on channel & dialcode and also ignore events with boolean value for dialcodes field" in {
     val rdd1 = loadFile[V3Event]("src/test/resources/dialcode-usage-summary/withSameDialcodeAndChannel.log")
     val me0 = DialcodeUsageSummaryModel.execute(rdd1, None)
     val events = me0.collect()
