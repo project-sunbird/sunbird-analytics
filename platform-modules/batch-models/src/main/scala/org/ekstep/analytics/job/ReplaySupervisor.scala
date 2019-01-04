@@ -20,7 +20,8 @@ object ReplaySupervisor extends Application {
 
         JobLogger.start("Started executing ReplaySupervisor", Option(Map("config" -> config, "model" -> model, "fromDate" -> fromDate, "toDate" -> toDate)))
         val con = JSONUtils.deserialize[JobConfig](config)
-        val sc = CommonUtil.getSparkContext(JobContext.parallelization, con.appName.getOrElse(con.model));
+        val sparkCassandraConnectionHost = con.modelParams.getOrElse(Map()).get("sparkCassandraConnectionHost")
+        val sc = CommonUtil.getSparkContext(JobContext.parallelization, con.appName.getOrElse(con.model), sparkCassandraConnectionHost);
         try {
             val result = CommonUtil.time({
                 execute(model, fromDate, toDate, config)(sc);
