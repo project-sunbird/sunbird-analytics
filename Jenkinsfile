@@ -15,7 +15,7 @@ node('build-slave') {
         }
        
        stage('Archving Artifact'){
-           archiveArtifacts("$WORKSPACE/platform-modules/batch-models/target/batch-models-1.0.jar, $WORKSPACE/platform-modules/job-manager/target/job-manager-1.0-distribution.tar.gz, $WORKSPACE/cp platform-api/analytics-api/target/analytics-api-1.0-dist.zip")
+           archiveArtifacts("platform-modules/batch-models/target/batch-models-1.0.jar, platform-modules/job-manager/target/job-manager-1.0-distribution.tar.gz, platform-api/analytics-api/target/analytics-api-1.0-dist.zip")
        }
     }
 
