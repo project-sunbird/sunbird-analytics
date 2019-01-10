@@ -2,6 +2,7 @@ node('build-slave') {
     try {
         ansiColor('xterm') {
             stage('Checkout') {
+                cleanWs()
                 checkout scm
             }
             
