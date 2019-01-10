@@ -26,13 +26,11 @@ node('build-slave') {
                         cp platform-modules/batch-models/target/batch-models-1.0.jar lpa_artifacts
                         cp platform-modules/job-manager/target/job-manager-1.0-distribution.tar.gz lpa_artifacts
                         cp platform-api/analytics-api/target/analytics-api-1.0-dist.zip lpa_artifacts
-                        zip -r lpa_artifacts.zip:${artifact_version} lpa_artifacts
-                        rm -rf lpa_artifacts
+                        zip -j lpa_artifacts.zip:${artifact_version} lpa_artifacts
                     """
                 archiveArtifacts artifacts: "lpa_artifacts.zip:${artifact_version}", fingerprint: true, onlyIfSuccessful: true
                 sh """echo {\\"artifact_name\\" : \\"lpa_artifacts.zip\\", \\"artifact_version\\" : \\"${artifact_version}\\", \\"node_name\\" : \\"${env.NODE_NAME}\\"} > metadata.json"""
                 archiveArtifacts artifacts: 'metadata.json', onlyIfSuccessful: true
-                sh "rm lpa_artifacts.zip:${artifact_version}"
             }
         }
     }
