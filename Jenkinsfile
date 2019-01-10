@@ -7,7 +7,7 @@ node('build-slave') {
 
             stage('Build') {
                     sh """
-                    cd platform-framework && mvn clean install -DskipTests=true
+                    cd $WORKSPACE/platform-framework && mvn clean install -DskipTests=true
                     cd ../platform-modules && mvn clean install -DskipTests 
                     cd job-manager && mvn clean package
                     cd ../../platform-api && mvn clean install -DskipTests=true 
