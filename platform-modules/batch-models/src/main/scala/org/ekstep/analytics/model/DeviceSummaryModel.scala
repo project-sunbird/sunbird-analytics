@@ -68,13 +68,18 @@ object DeviceSummaryModel extends IBatchModelTemplate[String, DeviceInput, Devic
             (index, DeviceSummary(index.device_id, index.channel, CommonUtil.roundDouble(total_ts, 2), total_launches, contents_played, unique_contents_played, content_downloads, DialStats(dial_count, dial_success, dial_failure), DtRange(startTimestamp, endTimestamp), syncts, startTimestamp))
         }
         val firstAccessFromCassandra = summary.map{ x => x._1}
-          .joinWithCassandraTable[Long](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_PROFILE_TABLE).select("first_access")
+          .joinWithCassandraTable[Option[Long]](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_PROFILE_TABLE).select("first_access")
           .on(SomeColumns("device_id", "channel"))
         summary.leftOuterJoin(firstAccessFromCassandra)
-          .map{ x => x._2._1.copy(firstAccess = x._2._2.getOrElse(x._2._1.firstAccess))}
+          .map{ x =>
+              val firstAccessValue = x._2._2.getOrElse(Option(0L))
+              if(firstAccessValue.getOrElse(0L) != 0)
+                  x._2._1.copy(firstAccess = firstAccessValue.getOrElse(x._2._1.firstAccess))
+              else x._2._1
+          }
     }
 
-    override def postProcess(data: RDD[DeviceSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {        
+    override def postProcess(data: RDD[DeviceSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
         data.map { x =>
             val mid = CommonUtil.getMessageId("ME_DEVICE_SUMMARY", x.device_id, "DAY", x.dt_range, "NA", None, Option(x.channel))
             val measures = Map(
