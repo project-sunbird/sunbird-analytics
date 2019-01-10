@@ -6,13 +6,13 @@ node('build-slave') {
             }
 
             stage('Build') {
-                    sh """
+                    sh '''
                     cd platform-framework && mvn clean install -DskipTests=true
                     cd ../platform-modules && mvn clean install -DskipTests 
                     cd job-manager && mvn clean package
                     cd ../../platform-api && mvn clean install -DskipTests=true 
                     mvn play2:dist -pl analytics-api
-                    """
+                    '''
             }
 
             stage('Archive artifacts'){
