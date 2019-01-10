@@ -9,8 +9,8 @@ node('build-slave') {
                sh '''
                 cd platform-framework && mvn clean install -DskipTests=true
                 cd ../platform-modules && mvn clean install -DskipTests
-                cd platform-api && mvn clean install -DskipTests=true
-                cd platform-api && mvn play2:dist -pl analytics-api
+                cd ../platform-api && mvn clean install -DskipTests=true
+                mvn play2:dist -pl analytics-api
                 '''
            }
             
