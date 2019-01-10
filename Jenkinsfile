@@ -4,17 +4,15 @@ node('build-slave') {
             stage('Checkout') {
                 cleanWs()
             }
-
-            stage('Build') {
-                    sh '''
-                    cd platform-framework && mvn clean install -DskipTests=true
-                    cd ../platform-modules && mvn clean install -DskipTests 
-                    cd job-manager && mvn clean package
-                    cd ../../platform-api && mvn clean install -DskipTests=true 
-                    mvn play2:dist -pl analytics-api
-                    '''
-            }
-
+            
+            stage('Build Assets'){
+               sh '''cd platform-framework && mvn clean install -DskipTests=true
+                cd platform-modules && mvn clean install -DskipTests
+                cd platform-api && mvn clean install -DskipTests=true
+                cd platform-api && mvn play2:dist -pl analytics-api
+                '''
+           }
+            
             stage('Archive artifacts'){
                 commit_hash = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
                 branch_name = sh(script: 'git name-rev --name-only HEAD | rev | cut -d "/" -f1| rev', returnStdout: true).trim()
