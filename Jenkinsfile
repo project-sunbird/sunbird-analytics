@@ -35,6 +35,17 @@ node('build-slave') {
                 echo "artifact_version: "+ artifact_version
             }
         }
+        
+              stage('Pre-Build') {
+                sh """
+                mkdir script
+                cp -r platform-scripts/python/main/BusinessMetrics script
+                cp -r platform-scripts/python/main/vidyavaani script
+                cp -r platform-scripts/VidyaVani/GenieSearch script
+                cp -r platform-scripts/VidyaVani/VidyavaniCnQ script
+                zip -r script.zip script
+                """
+            }
 
             stage('Build') {
                  sh '''
