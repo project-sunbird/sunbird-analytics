@@ -225,6 +225,7 @@ class TestETBCoverageSummaryModel extends FlatSpec with Matchers with MockFactor
         level1.head.ets should be < System.currentTimeMillis()
         level1.head.nodeUniqueId should be("do_312522397435895808114830")
         level1.head.operationType should be("UPDATE")
+        level1.head.audit should be(false)
 
         val level2 = metrics.filter(_.transactionData.getOrElse("properties", Map()).getOrElse("me_hierarchyLevel", Map()).getOrElse("nv", 0).asInstanceOf[Int] == 2)
         level2.length should be(3)
@@ -244,6 +245,7 @@ class TestETBCoverageSummaryModel extends FlatSpec with Matchers with MockFactor
         content2_1graphEvent.graphId should be("domain")
         content2_1graphEvent.ets should be < System.currentTimeMillis()
         content2_1graphEvent.operationType should be("UPDATE")
+        content2_1graphEvent.audit should be(false)
 
         val content2_2graphEvent = level2.find(_.nodeUniqueId.equals("do_312522403304308736114835")).get
         val content2_2 = content2_2graphEvent.transactionData.getOrElse("properties", Map())
@@ -261,6 +263,7 @@ class TestETBCoverageSummaryModel extends FlatSpec with Matchers with MockFactor
         content2_2graphEvent.graphId should be("domain")
         content2_2graphEvent.ets should be < System.currentTimeMillis()
         content2_2graphEvent.operationType should be("UPDATE")
+        content2_2graphEvent.audit should be(false)
 
         val content2_3graphEvent = level2.find(_.nodeUniqueId.equals("do_312522403304308736114834")).get
         val content2_3 = content2_3graphEvent.transactionData.getOrElse("properties", Map())
@@ -278,6 +281,7 @@ class TestETBCoverageSummaryModel extends FlatSpec with Matchers with MockFactor
         content2_3graphEvent.graphId should be("domain")
         content2_3graphEvent.ets should be < System.currentTimeMillis()
         content2_3graphEvent.operationType should be("UPDATE")
+        content2_3graphEvent.audit should be(false)
 
         val level3 = metrics.filter(_.transactionData.getOrElse("properties", Map()).getOrElse("me_hierarchyLevel", Map()).getOrElse("nv", 0).asInstanceOf[Int] == 3)
         level3.length should be(2)
@@ -298,6 +302,7 @@ class TestETBCoverageSummaryModel extends FlatSpec with Matchers with MockFactor
         content3_1graphEvent.graphId should be("domain")
         content3_1graphEvent.ets should be < System.currentTimeMillis()
         content3_1graphEvent.operationType should be("UPDATE")
+        content3_1graphEvent.audit should be(false)
 
         val content3_2graphEvent = level3.find(_.nodeUniqueId.equals("do_312522403304325120114842")).get
         val content3_2 = content3_2graphEvent.transactionData.getOrElse("properties", Map())
@@ -315,6 +320,7 @@ class TestETBCoverageSummaryModel extends FlatSpec with Matchers with MockFactor
         content3_2graphEvent.graphId should be("domain")
         content3_2graphEvent.ets should be < System.currentTimeMillis()
         content3_2graphEvent.operationType should be("UPDATE")
+        content3_2graphEvent.audit should be(false)
 
         val level4 = metrics.filter(_.transactionData.getOrElse("properties", Map()).getOrElse("me_hierarchyLevel", Map()).getOrElse("nv", 0).asInstanceOf[Int] == 4)
         level4.length should be(4)
@@ -335,6 +341,7 @@ class TestETBCoverageSummaryModel extends FlatSpec with Matchers with MockFactor
         content4_1graphEvent.graphId should be("domain")
         content4_1graphEvent.ets should be < System.currentTimeMillis()
         content4_1graphEvent.operationType should be("UPDATE")
+        content4_1graphEvent.audit should be(false)
 
         val content4_2graphEvent = level4.find(_.nodeUniqueId.equals("do_312522403304349696114858")).get
         val content4_2 = content4_2graphEvent.transactionData.getOrElse("properties", Map())
@@ -352,6 +359,7 @@ class TestETBCoverageSummaryModel extends FlatSpec with Matchers with MockFactor
         content4_2graphEvent.graphId should be("domain")
         content4_2graphEvent.ets should be < System.currentTimeMillis()
         content4_2graphEvent.operationType should be("UPDATE")
+        content4_2graphEvent.audit should be(false)
 
         val content4_3graphEvent = level4.find(_.nodeUniqueId.equals("do_312522403304333312114847")).get
         val content4_3 = content4_3graphEvent.transactionData.getOrElse("properties", Map())
@@ -369,6 +377,7 @@ class TestETBCoverageSummaryModel extends FlatSpec with Matchers with MockFactor
         content4_3graphEvent.graphId should be("domain")
         content4_3graphEvent.ets should be < System.currentTimeMillis()
         content4_3graphEvent.operationType should be("UPDATE")
+        content4_3graphEvent.audit should be(false)
 
         val content4_4graphEvent = level4.find(_.nodeUniqueId.equals("do_312522403304333312114846")).get
         val content4_4 = content4_4graphEvent.transactionData.getOrElse("properties", Map())
@@ -386,5 +395,6 @@ class TestETBCoverageSummaryModel extends FlatSpec with Matchers with MockFactor
         content4_4graphEvent.graphId should be("domain")
         content4_4graphEvent.ets should be < System.currentTimeMillis()
         content4_4graphEvent.operationType should be("UPDATE")
+        content4_4graphEvent.audit should be(false)
     }
 }

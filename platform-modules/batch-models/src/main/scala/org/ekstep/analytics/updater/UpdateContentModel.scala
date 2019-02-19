@@ -9,7 +9,7 @@ import org.ekstep.analytics.util.{Constants, ContentPopularitySummaryView, WorkF
 import org.joda.time.DateTime
 
 case class PopularityUpdaterInput(contentId: String, workflowSummary: Option[WorkFlowUsageSummaryFact], popularitySummary: Option[ContentPopularitySummaryView]) extends AlgoInput
-case class GraphUpdateEvent(ets: Long, nodeUniqueId: String, transactionData: Map[String, Map[String, Map[String, Any]]], objectType: String, operationType: String = "UPDATE", nodeType: String = "DATA_NODE", graphId: String = "domain", nodeGraphId: Int = 0) extends AlgoOutput with Output
+case class GraphUpdateEvent(ets: Long, nodeUniqueId: String, transactionData: Map[String, Map[String, Map[String, Any]]], objectType: String, operationType: String = "UPDATE", nodeType: String = "DATA_NODE", graphId: String = "domain", nodeGraphId: Int = 0, audit: Boolean = false) extends AlgoOutput with Output
 
 /**
  * @author Santhosh

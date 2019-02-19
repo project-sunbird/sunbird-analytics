@@ -76,6 +76,7 @@ class TestUpdateDialCodeUsageDB extends SparkSpec( file = null) {
     result.transactionData("properties")("last_scan")("nv") should be(1541456052000L)
     result.transactionData("properties")("average_scans_per_day")("nv") should be(2)
     result.nodeType should be("DIALCODE_METRICS")
+    result.audit should be(false)
   }
 
 }

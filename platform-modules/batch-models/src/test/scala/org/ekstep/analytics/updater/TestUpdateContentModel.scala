@@ -49,6 +49,8 @@ class TestUpdateContentModel extends SparkSpec(null) {
         dataMap.get("me_totalRatings").get.get("nv").get should be(3)
         dataMap.get("me_totalComments").get.get("nv").get should be(2)
 
+        data1.audit should be(false)
+
     }
 
     it should "populate content usage metrics when popularity metrics are blank in content model and vice-versa" in {
@@ -86,6 +88,8 @@ class TestUpdateContentModel extends SparkSpec(null) {
         dataMap1.get("me_totalRatings").isDefined should be(false)
         dataMap1.get("me_totalComments").isDefined should be(false)
 
+        data1.audit should be(false)
+
         val data2 = out.filter { x => "org.ekstep.vayuthewind".equals(x.nodeUniqueId) }.head
         data2.nodeUniqueId should be("org.ekstep.vayuthewind")
         val dataMap2 = data2.transactionData.get("properties").get
@@ -101,6 +105,7 @@ class TestUpdateContentModel extends SparkSpec(null) {
         dataMap2.get("me_totalRatings").get.get("nv").get should be(3)
         dataMap2.get("me_totalComments").get.get("nv").get should be(2)
 
+        data2.audit should be(false)
     }
     
     it should "return zero output when no records found for given date" in {
