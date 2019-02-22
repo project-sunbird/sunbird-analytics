@@ -62,7 +62,7 @@ object CommonUtil {
         }
         if (sparkCassandraConnectionHost.nonEmpty) {
             conf.set("spark.cassandra.connection.host", sparkCassandraConnectionHost.get.asInstanceOf[String])
-            println("spark.cassandra.connection.host", conf.get("spark.cassandra.connection.host"))
+            println("setting spark.cassandra.connection.host to lp-cassandra", conf.get("spark.cassandra.connection.host"))
         }
 
         // $COVERAGE-ON$

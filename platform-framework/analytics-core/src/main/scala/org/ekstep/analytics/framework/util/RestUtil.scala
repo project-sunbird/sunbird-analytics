@@ -50,19 +50,22 @@ object RestUtil {
         }
     }
 
-    def post[T](apiURL: String, body: String)(implicit mf: Manifest[T]) = {
+    def post[T](apiURL: String, body: String, requestHeaders: Option[Map[String, String]] = None)(implicit mf: Manifest[T]) = {
 
-        val request = new HttpPost(apiURL);
-        request.addHeader("user-id", "analytics");
-        request.addHeader("Content-Type", "application/json");
-        request.setEntity(new StringEntity(body));
+        val request = new HttpPost(apiURL)
+        request.addHeader("user-id", "analytics")
+        request.addHeader("Content-Type", "application/json")
+        requestHeaders.getOrElse(Map()).foreach {
+            case (headerName, headerValue) => request.addHeader(headerName, headerValue)
+        }
+        request.setEntity(new StringEntity(body))
         try {
-            _call(request.asInstanceOf[HttpRequestBase]);
+            _call(request.asInstanceOf[HttpRequestBase])
         } catch {
             case ex: Exception =>
                 JobLogger.log(ex.getMessage, Option(Map("url" -> apiURL, "body" -> body)), ERROR)
-                ex.printStackTrace();
-                null.asInstanceOf[T];
+                ex.printStackTrace()
+                null.asInstanceOf[T]
         }
     }
 

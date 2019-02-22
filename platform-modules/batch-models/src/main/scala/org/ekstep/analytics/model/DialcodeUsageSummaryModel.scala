@@ -4,7 +4,7 @@ import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.conf.AppConf
-import org.ekstep.analytics.framework.util.CommonUtil
+import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, JobLogger}
 
 import scala.collection.mutable.ListBuffer
 
@@ -27,8 +27,11 @@ object DialcodeUsageSummaryModel extends IBatchModelTemplate[V3Event, V3Event, D
 
             if (filters("dialcodes").isInstanceOf[String]) {
                 dialcode += filters.getOrElse("dialcodes", "").asInstanceOf[String]
-            } else {
+            } else if (filters("dialcodes").isInstanceOf[List[String]]) {
                 dialcode ++= filters.getOrElse("dialcodes", List()).asInstanceOf[List[String]]
+            }
+            else {
+                JobLogger.log("ignore event with dialcodes other than string and list. mid: " + event.mid, None, Level.INFO)
             }
             (dialcode.toList, event.ets, event.context.channel)
         })

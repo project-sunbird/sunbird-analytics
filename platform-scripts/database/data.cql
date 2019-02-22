@@ -693,10 +693,10 @@ CREATE TABLE IF NOT EXISTS local_content_store.content_data (
 
 CREATE TABLE IF NOT EXISTS local_platform_db.workflow_usage_summary (
     event_date date,
-		total_content_play_sessions bigint,
-		total_timespent double,
-		total_interactions bigint,
-		total_pageviews bigint,
+    total_content_play_sessions bigint,
+    total_timespent double,
+    total_interactions bigint,
+    total_pageviews bigint,
     last_updated_at timestamp,
-		PRIMARY KEY (event_date)
+    PRIMARY KEY (event_date)
 );

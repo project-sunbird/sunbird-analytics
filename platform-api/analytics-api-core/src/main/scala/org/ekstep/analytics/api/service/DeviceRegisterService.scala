@@ -68,7 +68,8 @@ class DeviceRegisterService extends Actor {
                |  glc.city_name city
                |FROM $geoLocationCityIpv4TableName gip,
                |  $geoLocationCityTableName glc
-               |WHERE gip.geoname_id = glc.geoname_id
+               |WHERE glc.country_iso_code = 'IN'
+               |  AND gip.geoname_id = glc.geoname_id
                |  AND gip.network_start_integer <= $ipAddressInt
                |  AND gip.network_last_integer >= $ipAddressInt
                """.stripMargin

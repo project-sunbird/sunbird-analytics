@@ -8,7 +8,7 @@ class TestDialcodeUsageSummarizer extends SparkSpec(null) {
 
   "DialcodeUsageSummarizer" should "execute the job and won't throw any Exception" in {
 
-    val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/dialcode-usage-summary/telemetry_test_data.log"))))), null, null, "org.ekstep.analytics.model.DialcodeUsageSummaryModel", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestDialcodeUsageSummarizer"), Option(true))
+    val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/dialcode-usage-summary/withSameDialcodeAndChannel.log"))))), null, null, "org.ekstep.analytics.model.DialcodeUsageSummaryModel", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestDialcodeUsageSummarizer"), Option(true))
     DialcodeUsageSummarizer.main(JSONUtils.serialize(config))(Option(sc));
   }
 }
