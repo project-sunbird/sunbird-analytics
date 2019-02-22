@@ -45,6 +45,9 @@ class DeviceRegisterService extends Actor {
                 Option(location.stateCode).map(_.trim).filterNot(_.isEmpty),
                 Option(location.state).map(_.trim).filterNot(_.isEmpty),
                 Option(location.city).map(_.trim).filterNot(_.isEmpty),
+                Option(location.stateCustom).map(_.trim).filterNot(_.isEmpty),
+                Option(location.stateCodeCustom).map(_.trim).filterNot(_.isEmpty),
+                Option(location.districtCustom).map(_.trim).filterNot(_.isEmpty),
                 deviceSpec,
                 uaspec.map(_.trim).filterNot(_.isEmpty)
             )
@@ -65,7 +68,10 @@ class DeviceRegisterService extends Actor {
                |  glc.subdivision_1_iso_code state_code,
                |  glc.subdivision_1_name state,
                |  glc.subdivision_2_name sub_div_2,
-               |  glc.city_name city
+               |  glc.city_name city,
+               |  glc.subdivision_1_custom_name state_custom,
+               |  glc.subdivision_1_custom_code state_code_custom,
+               |  glc.subdivision_2_custom_name district_custom
                |FROM $geoLocationCityIpv4TableName gip,
                |  $geoLocationCityTableName glc
                |WHERE glc.country_iso_code = 'IN'
@@ -89,12 +95,15 @@ class DeviceRegisterService extends Actor {
 
     def updateDeviceProfile(did: String, channel: String, countryCode: Option[String], country: Option[String],
                             stateCode: Option[String], state: Option[String], city: Option[String],
+                            stateCustom: Option[String], stateCodeCustom: Option[String], districtCustom: Option[String],
                             deviceSpec: Option[Map[String, AnyRef]], uaspec: Option[String]): ResultSet = {
 
         val uaspecStr = parseUserAgent(uaspec)
         val queryMap: Map[String, Any] = Map("device_id" -> s"'$did'", "channel" -> s"'$channel'",
             "country_code" -> s"'${countryCode.getOrElse("")}'", "country" -> s"'${country.getOrElse("")}'",
             "state_code" -> s"'${stateCode.getOrElse("")}'", "state" -> s"'${state.getOrElse("")}'", "city" -> s"'${city.getOrElse("")}'",
+            "state_custom" -> s"'${stateCustom.getOrElse("")}'","state_code_custom" -> s"'${stateCodeCustom.getOrElse("")}'",
+            "district_custom" -> s"'${districtCustom.getOrElse("")}'",
             "device_spec" -> deviceSpec.map(x => JSONUtils.serialize(x.mapValues(_.toString))
               .replaceAll("\"", "'")).getOrElse(Map()),
             "uaspec" -> uaspecStr.getOrElse(""), "updated_date" -> DateTime.now(DateTimeZone.UTC).getMillis)
