@@ -67,4 +67,21 @@ class TestUpdateDeviceProfileDB extends SparkSpec(null) {
         val rdd = loadFile[DerivedEvent]("src/test/resources/device-profile/test-data2.log")
         UpdateDeviceProfileDB.execute(rdd, None)
     }
+
+    it should "include new values and execute successfully" in {
+        CassandraConnector(sc.getConf).withSessionDo { session =>
+            session.execute("TRUNCATE " + Constants.DEVICE_KEY_SPACE_NAME + "." + Constants.DEVICE_PROFILE_TABLE)
+            session.execute("INSERT INTO " + Constants.DEVICE_KEY_SPACE_NAME + "." + Constants.DEVICE_PROFILE_TABLE +"(device_id, channel, state_custom, state_code_custom, district_custom) VALUES ('88edda82418a1e916e9906a2fd7942cb', 'b00bc992ef25f1a9a8d63291e20efc8d', 'karnataka', '29', 'bangalore')")
+        }
+        val rdd = loadFile[DerivedEvent]("src/test/resources/device-profile/test-data2.log")
+        UpdateDeviceProfileDB.execute(rdd, None)
+        val device = sc.cassandraTable[DeviceProfileOutput](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_PROFILE_TABLE).where("device_id=?", "88edda82418a1e916e9906a2fd7942cb").where("channel=?", "b00bc992ef25f1a9a8d63291e20efc8d").first
+        device.state_custom.get should be("karnataka")
+        device.state_code_custom.get should be("29")
+        device.district_custom.get should be("bangalore")
+        val device2 = sc.cassandraTable[DeviceProfileOutput](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_PROFILE_TABLE).where("device_id=?", "48edda82418a1e916e9906a2fd7942cb").where("channel=?", "b00bc992ef25f1a9a8d63291e20efc8d").first
+        device2.state_custom should be(None)
+        device2.state_code_custom should be(None)
+        device2.district_custom should be(None)
+    }
 }
