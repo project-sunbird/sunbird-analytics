@@ -389,4 +389,30 @@ class TestETBCoverageSummaryModel extends FlatSpec with Matchers with MockFactor
         content4_4graphEvent.ets should be < System.currentTimeMillis()
         content4_4graphEvent.operationType should be("UPDATE")
     }
+
+    "algorithm Method" should "generate ETBCoverageOutput" in {
+
+        val input = sc.textFile("src/test/resources/etb-coverage-summary/hierarchy_content_do_312522397435895808114830.log")
+        val hierarchyModelRDD = input.map(JSONString => JSONUtils.deserialize[ContentHierarchyModel](JSONString))
+        val config = Map[String, AnyRef]()
+
+        val output = ETBCoverageSummaryModel.algorithm(hierarchyModelRDD, config)(sc).collect()
+        output.length should be(10)
+
+        val topLevel = output.filter(x => x.level == 1)
+        topLevel.head.totalDialcodeAttached should be(2)
+        topLevel.flatMap(x => x.totalDialcode.flatMap(f => f.get("dialcodeId"))) sameElements (Array("DHUYDW","DI4UFJ"))
+
+        val secondLevel = output.filter(x => x.level == 2)
+        secondLevel.map(x => x.totalDialcodeAttached).sum should be (1)
+        secondLevel.flatMap(x => x.totalDialcode.flatMap(f => f.get("dialcodeId"))) should contain("DI4UFJ")
+
+        val thirdLevel = output.filter(x => x.level == 3)
+        thirdLevel.map(_.totalDialcodeAttached).sum should be(4)
+        thirdLevel.flatMap(x => x.totalDialcode.flatMap(f => f.get("dialcodeId"))) sameElements(Array("DUI3W4","DU97UG", "DIDQH7","DIMLIU"))
+
+        val fourthLevel = output.filter(x => x.level == 4)
+        fourthLevel.map(_.totalDialcodeAttached).sum should be(4)
+        fourthLevel.flatMap(x => x.totalDialcode.flatMap(f => f.get("dialcodeId"))) sameElements(Array("DUI3W4","DU97UG", "DIDQH7","DIMLIU"))
+    }
 }
