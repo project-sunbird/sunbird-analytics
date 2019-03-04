@@ -15,7 +15,7 @@ import scala.util.{Failure, Try}
 
 case class ContentFlatList(contentId: String, metric: List[Map[String, Any]])
 
-case class ETBCoverageOutput(contentId: String, objectType: String, totalDialcodeAttached: Int, totalDialcode: Map[String, Int], totalDialcodeLinkedToContent: Int, level: Int) extends AlgoOutput
+case class ETBCoverageOutput(contentId: String, objectType: String, totalDialcodeAttached: Int, totalDialcode: List[Map[String, Any]], totalDialcodeLinkedToContent: Int, level: Int) extends AlgoOutput
 
 case class ContentHierarchyModel(mimeType: String, contentType: String, dialcodes: Option[List[String]], identifier: String, channel: String, status: String, name: String, content: Map[String, AnyRef], children: Option[List[ContentHierarchyModel]]) extends AlgoInput
 
@@ -78,7 +78,7 @@ object ETBCoverageSummaryModel extends IBatchModelTemplate[Empty, ContentHierarc
                 "childCount" -> content.children.getOrElse(List()).length,
                 "dialcodes" -> content.dialcodes.getOrElse(List()),
                 "childrenIds" -> content.children.getOrElse(List()).map(x => x.identifier),
-                "totalDialcode" -> getDialcodesByLevel(content).groupBy(identity).map(t => (t._1, t._2.size)),
+                "totalDialcode" -> getDialcodesByLevel(content).groupBy(identity).map(t => Map("dialcodeId" -> t._1, "contentLinked"-> t._2.size)),
                 "totalDialcodeAttached" -> getDialcodesByLevel(content).distinct.size,
                 "totalDialcodeLinkedToContent" -> getContentCountLinkedToDialcode(content),
                 "mimeType" -> content.mimeType,
@@ -113,7 +113,7 @@ object ETBCoverageSummaryModel extends IBatchModelTemplate[Empty, ContentHierarc
                 metric.getOrElse("id", "").asInstanceOf[String],
                 "Content",          // collection mimeType has objectType "Content"
                 metric.getOrElse("totalDialcodeAttached", 0).asInstanceOf[Int],
-                metric.getOrElse("totalDialcode", Map()).asInstanceOf[Map[String, Int]],
+                metric.getOrElse("totalDialcode", List()).asInstanceOf[List[Map[String, Any]]],
                 metric.getOrElse("totalDialcodeLinkedToContent", 0).asInstanceOf[Int],
                 metric.getOrElse("level", 0).asInstanceOf[Int]
             ))
