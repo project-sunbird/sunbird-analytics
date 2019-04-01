@@ -8,25 +8,20 @@ jobs:
           key: dp-dependency-cache-{{ checksum "pom.xml" }}
       - run:
           name: analytics-framework-build
-          command: cd platform-framework && mvn clean install -DskipTests=true
+          command: cd platform-framework && mvn clean install #-DskipTests=true
       - run:
           name: data-products-build
-          command: cd platform-modules && mvn clean install -DskipTests
+          command: cd platform-modules && mvn clean install #-DskipTests
       - run: cd platform-modules/job-manager && mvn clean package
       - run:
           name: lpa-api-build
-          command: cd platform-api && mvn clean install -DskipTests=true
+          command: cd platform-api && mvn clean install #-DskipTests=true
       - run: cd platform-api && mvn play2:dist -pl analytics-api
+      
       - save_cache:
           key: dp-dependency-cache-{{ checksum "pom.xml" }}
           paths: ~/.m2
-      - run: mkdir temp && cp platform-framework/analytics-job-driver/target/analytics-framework-1.0.jar temp/
-      - run: cp platform-modules/batch-models/target/batch-models-1.0.jar temp/
-      - run: cp platform-modules/job-manager/target/job-manager-1.0-distribution.tar.gz temp/
-      - run: cp platform-api/analytics-api/target/analytics-api-1.0-dist.zip temp/
-      - store_artifacts:
-          path: temp
-          destination: temp/
+      
           
           
 workflows:
