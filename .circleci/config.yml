@@ -8,15 +8,8 @@ jobs:
           key: dp-dependency-cache-{{ checksum "pom.xml" }}
       - run:
           name: analytics-framework-build
-          command: cd platform-framework && mvn clean install #-DskipTests=true
-      - run:
-          name: data-products-build
-          command: cd platform-modules && mvn clean install #-DskipTests
-      - run: cd platform-modules/job-manager && mvn clean package
-      - run:
-          name: lpa-api-build
-          command: cd platform-api && mvn clean install #-DskipTests=true
-      - run: cd platform-api && mvn play2:dist -pl analytics-api
+          command: mvn clean install #-DskipTests=true
+      
       
       - save_cache:
           key: dp-dependency-cache-{{ checksum "pom.xml" }}
