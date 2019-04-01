@@ -78,4 +78,12 @@ class TestUpdateDialCodeUsageDB extends SparkSpec( file = null) {
     result.nodeType should be("DIALCODE_METRICS")
   }
 
+  it should "Create GraphUpdateEvent with objectType = DialCode " in {
+
+    val rdd = loadFile[DerivedEvent]("src/test/resources/dialcode-usage-updater/dialcode-usage-summary.log")
+    val result = UpdateDialcodeUsageDB.execute(rdd, None)
+    val objectTypes = result.map(x => x.objectType).collect()
+    objectTypes.foreach(x => x should be("DialCode"))
+  }
+
 }

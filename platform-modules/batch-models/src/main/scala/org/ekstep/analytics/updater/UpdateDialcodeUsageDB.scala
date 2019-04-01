@@ -73,7 +73,7 @@ object UpdateDialcodeUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
       )
       val finalMap = propertiesMap.filter(x => x._1.nonEmpty).map{ x => x._1 -> Map("ov" -> null, "nv" -> x._2)}
       GraphUpdateEvent(ets = DateTime.now().getMillis, nodeUniqueId = x.dial_code,
-        transactionData = Map("properties" -> finalMap), objectType = "", nodeType = "DIALCODE_METRICS")
+        transactionData = Map("properties" -> finalMap), objectType = "DialCode", nodeType = "DIALCODE_METRICS")
     }
   }
 
