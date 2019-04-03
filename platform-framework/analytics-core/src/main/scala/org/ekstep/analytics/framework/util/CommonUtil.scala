@@ -43,7 +43,7 @@ object CommonUtil {
         config.parallelization.getOrElse(defParallelization);
     }
 
-    def getSparkContext(parallelization: Int, appName: String, sparkCassandraConnectionHost: Option[AnyRef] = None): SparkContext = {
+    def getSparkContext(parallelization: Int, appName: String, sparkCassandraConnectionHost: Option[AnyRef] = None, sparkElasticsearchConnectionHost: Option[AnyRef] = None): SparkContext = {
         JobLogger.log("Initializing Spark Context")
         val conf = new SparkConf().setAppName(appName);
         val master = conf.getOption("spark.master");
@@ -63,6 +63,10 @@ object CommonUtil {
         if (sparkCassandraConnectionHost.nonEmpty) {
             conf.set("spark.cassandra.connection.host", sparkCassandraConnectionHost.get.asInstanceOf[String])
             println("setting spark.cassandra.connection.host to lp-cassandra", conf.get("spark.cassandra.connection.host"))
+        }
+
+        if (sparkElasticsearchConnectionHost.nonEmpty) {
+            conf.set("es.nodes", sparkCassandraConnectionHost.get.asInstanceOf[String])
         }
 
         // $COVERAGE-ON$
