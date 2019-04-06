@@ -14,7 +14,7 @@ trait Reporter {
     def fetchTable(spark: SparkSession, settings: Map[String, String]): DataFrame
     def prepareReport(spark: SparkSession, fetchTable: (SparkSession, Map[String, String]) => DataFrame): DataFrame
     def saveReportToES(reportDF: DataFrame): Unit
-    def uploadReportToCloud(reportDF: DataFrame): Unit
+    def uploadReportToCloud(reportDF: DataFrame, url: String): Unit
 }
 
 object UpdateCourseMetrics extends IBatchModelTemplate[Empty, Empty, Empty, Empty] with Serializable with Reporter {
@@ -23,10 +23,15 @@ object UpdateCourseMetrics extends IBatchModelTemplate[Empty, Empty, Empty, Empt
     override def name(): String = "UpdateCourseMetrics"
 
     override def preProcess(data: RDD[Empty], config: Predef.Map[String, AnyRef])(implicit sc: SparkContext): RDD[Empty] = {
+        val accName = AppConf.getStorageKey("azure")
+
+        //val url = s"wasbs://course-metrics@$accName.blob.core.windows.net/reports"
+        val url = "/Users/sunil/Downloads/course_report/dashboard"
+
         val spark = SparkSession.builder.config(sc.getConf).getOrCreate()
         val reportDF = prepareReport(spark, fetchTable)
-        //uploadReportToCloud(reportDF)
-        saveReportToES(reportDF)
+        //uploadReportToCloud(reportDF, url)
+        //saveReportToES(reportDF)
         sc.emptyRDD[Empty]
     }
 
@@ -56,7 +61,7 @@ object UpdateCourseMetrics extends IBatchModelTemplate[Empty, Empty, Empty, Empt
         * courseBatchDF is the primary source for the report
         * userCourseDF has details about the user details enrolled for a particular course/batch
         * */
-        val userCourseDenormDF = courseBatchDF.join(userCoursesDF, userCoursesDF.col("batchid") === courseBatchDF.col("id"), "inner")
+        val userCourseDenormDF = courseBatchDF.join(userCoursesDF, userCoursesDF.col("batchid") === courseBatchDF.col("id") && lower(userCoursesDF.col("active")).equalTo("true"), "inner")
             .select(col("batchid"),
                 col("userid"),
                 col("leafnodescount"),
@@ -86,9 +91,8 @@ object UpdateCourseMetrics extends IBatchModelTemplate[Empty, Empty, Empty, Empt
         * userDenormDF lacks organisation details, here we are mapping each users to get the organisationids
         * */
         val userOrgDenormDF =  userDenormDF
-            .join(userOrgDF, userOrgDF.col("userid") === userDenormDF.col("userid") && userOrgDF.col("isdeleted").equalTo(false), "inner")
+            .join(userOrgDF, userOrgDF.col("userid") === userDenormDF.col("userid") && lower(userOrgDF.col("isdeleted")).equalTo("false"), "inner")
             .select(userDenormDF.col("*"), col("organisationid"))
-
         /*
         * User table `loctionids` column is list of locationids for state, district, block, cluster.
         * list is flatten out here into multiple columns as below.
@@ -147,27 +151,27 @@ object UpdateCourseMetrics extends IBatchModelTemplate[Empty, Empty, Empty, Empt
         * */
         val resolvedOrgNameDF = foldLocationNameDF
             .join(organisationDF, organisationDF.col("id") === userLocationDenormDF.col("rootorgid"))
-            .select(foldLocationNameDF.col("*"), col("orgname").as("orgname_resolved"))
+            .select(foldLocationNameDF.col("userid"), col("orgname").as("orgname_resolved"))
 
         /*
         * Resolve school name from `orgid`
         * */
         val resolvedSchoolNameDF = foldLocationNameDF
             .join(organisationDF, organisationDF.col("id") === userLocationDenormDF.col("organisationid"))
-            .select(foldLocationNameDF.col("*"), col("orgname").as("schoolname_resolved"))
-
-        val resolvedDF = resolvedOrgNameDF
-            .join(resolvedSchoolNameDF, Seq("userid")).select(resolvedOrgNameDF.col("*"), resolvedSchoolNameDF.col("schoolname_resolved"))
+            .select(foldLocationNameDF.col("userid"), col("orgname").as("schoolname_resolved"))
 
         val toLongUDF = udf((value: Double) => value.toLong)
 
         /*
-        * calculate the course progress percentage from `progress` column which is no of content visited/read
+        * merge orgName and schoolName based on `userid` and calculate the course progress percentage from `progress` column which is no of content visited/read
         * */
-        resolvedDF
+        val resolvedDF = resolvedOrgNameDF
+            .join(resolvedSchoolNameDF, Seq("userid"))
+            .join(foldLocationNameDF, Seq("userid"))
+            .select(foldLocationNameDF.col("*"), resolvedSchoolNameDF.col("schoolname_resolved"), resolvedOrgNameDF.col("orgname_resolved"))
             .withColumn("course_completion", toLongUDF(round(expr("progress/leafnodescount * 100"))))
             .withColumn("generatedOn", date_format(from_utc_timestamp(current_timestamp.cast(DataTypes.TimestampType), "Asia/Kolkata"), "yyyy-MM-dd'T'HH:mm:ssXXX'Z'"))
-
+        resolvedDF
     }
 
 
@@ -206,18 +210,14 @@ object UpdateCourseMetrics extends IBatchModelTemplate[Empty, Empty, Empty, Empt
         ESDocDF.saveToEs("cbatchstats/doc")
     }
 
-    def uploadReportToCloud(reportDF: DataFrame): Unit = {
+    def uploadReportToCloud(reportDF: DataFrame, url: String): Unit = {
 
-        val toPercentageStringUDF = udf((value: Double) => s"$value%")
+        val toPercentageStringUDF = udf((value: Double) => s"${value.toInt}%")
 
         val defaultProgressUDF = udf((value: String) => value match {
             case null => "100%"
             case _    => value
         })
-
-        val accName = AppConf.getStorageKey("azure")
-
-        val baseDir = s"wasbs://course-metrics@$accName.blob.core.windows.net/reports"
 
         reportDF
             .select(
@@ -237,7 +237,7 @@ object UpdateCourseMetrics extends IBatchModelTemplate[Empty, Empty, Empty, Empt
             .mode("overwrite")
             .format("com.databricks.spark.csv")
             .option("header", "true")
-            .save(baseDir)
+            .save(url)
     }
 
     override def algorithm(events: RDD[Empty], config: Predef.Map[String, AnyRef])(implicit sc: SparkContext): RDD[Empty] = {
