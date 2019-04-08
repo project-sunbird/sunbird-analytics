@@ -42,18 +42,12 @@ class TestUpdateCourseMetrics extends SparkSpec( file = null) with MockFactory{
         /*
         * This has users 30 from user001 - user030
         * */
-        userDF = spark
-            .read
-            .json("src/test/resources/course-metrics-updater/userTable.json")
+        userDF = spark.read.json("src/test/resources/course-metrics-updater/userTable.json")
 
         /*
         * This has 30 unique location
         * */
-        locationDF = spark
-            .read
-            .format("com.databricks.spark.csv")
-            .option("header", "true")
-            .load("src/test/resources/course-metrics-updater/locationTable.csv")
+        locationDF = spark.read.format("com.databricks.spark.csv").option("header", "true").load("src/test/resources/course-metrics-updater/locationTable.csv")
 
         /*
         * There are 8 organisation added to the data, which can be mapped to `rootOrgId` in user table
@@ -109,53 +103,22 @@ class TestUpdateCourseMetrics extends SparkSpec( file = null) with MockFactory{
         assert(reportDF.count == 29)
         assert(reportDF.groupBy(col("batchid")).count().count() == 10)
 
-        reportDF
+        val reportData = reportDF
             .groupBy(col("batchid"))
             .count()
-            .select(col("count"))
-            .collect.map { r =>
-                r.get
+            .collect()
 
-            }
-
-        assert(reportDF
-            .groupBy(col("batchid"))
-            .count()
-            .select(col("count"))
-            .where(col("batchid") === "1002").collect.map(_.getLong(0)).head == 3)
-        assert(reportDF
-            .groupBy(col("batchid"))
-            .count()
-            .where(col("batchid") === "1003").collect.map(_.getLong(0)).head == 3)
-        assert(reportDF
-            .groupBy(col("batchid"))
-            .count()
-            .where(col("batchid") === "1004").collect.map(_.getLong(0)).head == 3)
-        assert(reportDF
-            .groupBy(col("batchid"))
-            .count()
-            .where(col("batchid") === "1005").collect.map(_.getLong(0)).head == 3)
-        assert(reportDF
-            .groupBy(col("batchid"))
-            .count()
-            .where(col("batchid") === "1006").collect.map(_.getLong(0)).head == 3)
-        assert(reportDF
-            .groupBy(col("batchid"))
-            .count()
-            .where(col("batchid") === "1007").collect.map(_.getLong(0)).head == 3)
-        assert(reportDF
-            .groupBy(col("batchid"))
-            .count()
-            .where(col("batchid") === "1008").collect.map(_.getLong(0)).head == 3)
-        assert(reportDF
-            .groupBy(col("batchid"))
-            .count()
-            .where(col("batchid") === "1009").collect.map(_.getLong(0)).head == 3)
-        assert(reportDF
-            .groupBy(col("batchid"))
-            .count()
-            .where(col("batchid") === "1010").collect.map(_.getLong(0)).head == 3)
-//        val url = "/Users/sunil/Downloads/course_report/dashboard"
-//        UpdateCourseMetrics.uploadReportToCloud(reportDF, url)
+        assert(reportData.filter(row => row.getString(0) == "1001").head.getLong(1) == 2)
+        assert(reportData.filter(row => row.getString(0) == "1002").head.getLong(1) == 3)
+        assert(reportData.filter(row => row.getString(0) == "1003").head.getLong(1) == 3)
+        assert(reportData.filter(row => row.getString(0) == "1004").head.getLong(1) == 3)
+        assert(reportData.filter(row => row.getString(0) == "1005").head.getLong(1) == 3)
+        assert(reportData.filter(row => row.getString(0) == "1006").head.getLong(1) == 3)
+        assert(reportData.filter(row => row.getString(0) == "1007").head.getLong(1) == 3)
+        assert(reportData.filter(row => row.getString(0) == "1008").head.getLong(1) == 3)
+        assert(reportData.filter(row => row.getString(0) == "1009").head.getLong(1) == 3)
+        assert(reportData.filter(row => row.getString(0) == "1010").head.getLong(1) == 3)
+        val url = "/Users/sunil/Downloads/course_report/dashboard"
+        UpdateCourseMetrics.uploadReportToCloud(reportDF, url)
     }
 }

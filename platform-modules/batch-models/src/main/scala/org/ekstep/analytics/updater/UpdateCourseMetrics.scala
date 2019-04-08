@@ -91,74 +91,32 @@ object UpdateCourseMetrics extends IBatchModelTemplate[Empty, Empty, Empty, Empt
         * userDenormDF lacks organisation details, here we are mapping each users to get the organisationids
         * */
         val userOrgDenormDF =  userDenormDF
-            .join(userOrgDF, userOrgDF.col("userid") === userDenormDF.col("userid") && lower(userOrgDF.col("isdeleted")).equalTo("false"), "inner")
-            .select(userDenormDF.col("*"), col("organisationid"))
-        /*
-        * User table `loctionids` column is list of locationids for state, district, block, cluster.
-        * list is flatten out here into multiple columns as below.
-        * */
-        val userLocationDF = userOrgDenormDF
-            .select(col("*"),
-                col("locationids")(0).as("loc1"),
-                col("locationids")(1).as("loc2"),
-                col("locationids")(2).as("loc3"),
-                col("locationids")(3).as("loc4"))
-        /*
-        * here, each locationids in the columns `loc*` can be mapped to either state or district or block or cluster.
-        * we have to map the loctionid and filter by district to find out the district name
-        * */
-        val userLoc1DF =  userLocationDF
-            .join(locationDF, locationDF.col("id") === userLocationDF.col("loc1") and locationDF.col("type") === "district", "inner")
-            .select(userLocationDF.col("userid"), locationDF.col("name").as("loc1_name"))
-        val userLoc2DF =  userLocationDF
-            .join(locationDF, locationDF.col("id") === userLocationDF.col("loc2") and locationDF.col("type") === "district", "inner")
-            .select(userLocationDF.col("userid"), locationDF.col("name").as("loc2_name"))
-        val userLoc3DF =  userLocationDF
-            .join(locationDF, locationDF.col("id") === userLocationDF.col("loc3") and locationDF.col("type") === "district", "inner")
-            .select(userLocationDF.col("userid"), locationDF.col("name").as("loc3_name"))
-        val userLoc4DF =  userLocationDF
-            .join(locationDF, locationDF.col("id") === userLocationDF.col("loc4") and locationDF.col("type") === "district", "inner")
-            .select(userLocationDF.col("userid"), locationDF.col("name").as("loc4_name"))
+          .join(userOrgDF, userOrgDF.col("userid") === userDenormDF.col("userid") && lower(userOrgDF.col("isdeleted")).equalTo("false"), "inner")
+          .select(userDenormDF.col("*"), col("organisationid"))
 
-        /*
-        * merge all the `userLoc*DenormDF` to `userLocationDF` to have all the details in one Dataframe
-        * */
-        val userLocationDenormDF =  userLocationDF
-            .join(userLoc1DF, Seq("userid"), "FullOuter")
-            .join(userLoc2DF, Seq("userid"), "FullOuter")
-            .join(userLoc3DF, Seq("userid"), "FullOuter")
-            .join(userLoc4DF, Seq("userid"), "FullOuter")
-            .drop("loc1", "loc2", "loc3", "loc4")
+        val explodeLocationDF = userOrgDenormDF.withColumn("exploded_location", explode(col("locationids")))
 
-        val toDistrictNameUDF = udf((loc1: String, loc2: String, loc3: String, loc4: String) => {
-            Seq(Option(loc1), Option(loc2), Option(loc3), Option(loc4)).flatten
-        })
+        val locationDenormDF = explodeLocationDF
+          .join(locationDF, col("exploded_location") === locationDF.col("id") && locationDF.col("type") === "district")
+          .groupBy("userid", "exploded_location")
+          .agg(concat_ws(",", collect_list(locationDF.col("name"))) as "district_name")
+          .drop(col("exploded_location"))
 
-        /*
-        * combine the `loc*_name` fields to get the district name
-        * */
-        val foldLocationNameDF = userLocationDenormDF
-            .withColumn("district_name",
-                toDistrictNameUDF(col("loc1_name"),
-                    col("loc2_name"),
-                    col("loc3_name"),
-                    col("loc4_name")
-                ))
-            .drop("loc1_name", "loc2_name", "loc3_name", "loc4_name")
+        val userLocationResolvedDF = userOrgDenormDF.join(locationDenormDF, Seq("userid"), "left_outer")
 
         /*
         * Resolve organisation name from `rootorgid`
         * */
-        val resolvedOrgNameDF = foldLocationNameDF
-            .join(organisationDF, organisationDF.col("id") === userLocationDenormDF.col("rootorgid"))
-            .select(foldLocationNameDF.col("userid"), col("orgname").as("orgname_resolved"))
+        val resolvedOrgNameDF = userLocationResolvedDF
+            .join(organisationDF, organisationDF.col("id") === userLocationResolvedDF.col("rootorgid"))
+            .select(userLocationResolvedDF.col("userid"), col("orgname").as("orgname_resolved"))
 
         /*
         * Resolve school name from `orgid`
         * */
-        val resolvedSchoolNameDF = foldLocationNameDF
-            .join(organisationDF, organisationDF.col("id") === userLocationDenormDF.col("organisationid"))
-            .select(foldLocationNameDF.col("userid"), col("orgname").as("schoolname_resolved"))
+        val resolvedSchoolNameDF = userLocationResolvedDF
+            .join(organisationDF, organisationDF.col("id") === userLocationResolvedDF.col("organisationid"))
+            .select(userLocationResolvedDF.col("userid"), col("orgname").as("schoolname_resolved"))
 
         val toLongUDF = udf((value: Double) => value.toLong)
 
@@ -166,9 +124,8 @@ object UpdateCourseMetrics extends IBatchModelTemplate[Empty, Empty, Empty, Empt
         * merge orgName and schoolName based on `userid` and calculate the course progress percentage from `progress` column which is no of content visited/read
         * */
         val resolvedDF = resolvedOrgNameDF
-            .join(resolvedSchoolNameDF, Seq("userid"))
-            .join(foldLocationNameDF, Seq("userid"))
-            .select(foldLocationNameDF.col("*"), resolvedSchoolNameDF.col("schoolname_resolved"), resolvedOrgNameDF.col("orgname_resolved"))
+            .join(resolvedSchoolNameDF, Seq("userid"), "full_outer")
+            .join(userLocationResolvedDF, Seq("userid"), "full_outer")
             .withColumn("course_completion", toLongUDF(round(expr("progress/leafnodescount * 100"))))
             .withColumn("generatedOn", date_format(from_utc_timestamp(current_timestamp.cast(DataTypes.TimestampType), "Asia/Kolkata"), "yyyy-MM-dd'T'HH:mm:ssXXX'Z'"))
         resolvedDF
@@ -202,7 +159,7 @@ object UpdateCourseMetrics extends IBatchModelTemplate[Empty, Empty, Empty, Empt
                 col("participantsCountPerBatch").as("participantCount"),
                 col("courseCompletionCountPerBatch").as("completedCount"),
                 col("course_completion").as("completedPercent"),
-                stringifySeqUDF(col("district_name")).as("districtName"),
+                col("district_name").as("districtName"),
                 date_format(col("enrolleddate"), "yyyy-MM-dd'T'HH:mm:ssXXX'Z'").as("enrolledOn")
             )
 
@@ -225,7 +182,7 @@ object UpdateCourseMetrics extends IBatchModelTemplate[Empty, Empty, Empty, Empt
                 col("batchid"),
                 col("email").as("Email ID"),
                 col("phone").as("Mobile Number"),
-                stringifySeqUDF(col("district_name")).as("District Name"),
+                col("district_name").as("District Name"),
                 col("orgname_resolved").as("Organisation Name"),
                 col("schoolname_resolved").as("School Name"),
                 defaultProgressUDF(toPercentageStringUDF(col("course_completion"))).as("Course Progress"),
