@@ -203,7 +203,7 @@ object JobFactory {
             case "dialcode-usage-updater" =>
                 DialcodeUsageUpdater
             case "course-dashboard-metrics" =>
-                CourseMetricsUpdater
+                CourseMetricsJob
             case _ =>
                 throw new JobNotFoundException("Unknown job type found")
         }

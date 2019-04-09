@@ -65,11 +65,10 @@ object CommonUtil {
             println("setting spark.cassandra.connection.host to lp-cassandra", conf.get("spark.cassandra.connection.host"))
         }
 
-        //if (sparkElasticsearchConnectionHost.nonEmpty) {
-        println("setting ES nodes")
-        conf.set("es.nodes", "localhost") //sparkCassandraConnectionHost.get.asInstanceOf[String])
-        conf.set("es.port","9200")
-        //}
+        if (sparkElasticsearchConnectionHost.nonEmpty) {
+            conf.set("es.nodes", sparkElasticsearchConnectionHost.get.asInstanceOf[String])
+            conf.set("es.port", "9200")
+        }
 
         // $COVERAGE-ON$
         val sc = new SparkContext(conf);
