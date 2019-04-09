@@ -700,3 +700,17 @@ CREATE TABLE IF NOT EXISTS local_platform_db.workflow_usage_summary (
     last_updated_at timestamp,
     PRIMARY KEY (event_date)
 );
+
+CREATE TABLE IF NOT EXISTS local_platform_db.dialcode_usage_metrics (
+    period int,
+    dial_code text,
+    channel text,
+    average_scans_per_day bigint,
+    first_scan timestamp,
+    last_scan timestamp,
+    total_dial_scans_global bigint,
+    total_dial_scans_local bigint,
+    updated_date timestamp,
+    PRIMARY KEY (period, dial_code, channel)
+);
+
