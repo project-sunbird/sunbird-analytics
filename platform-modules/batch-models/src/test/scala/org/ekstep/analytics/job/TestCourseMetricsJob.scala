@@ -116,8 +116,6 @@ class TestCourseMetricsJob extends SparkSpec(null) with MockFactory {
     assert(reportData.filter(row => row.getString(0) == "1008").head.getLong(1) == 3)
     assert(reportData.filter(row => row.getString(0) == "1009").head.getLong(1) == 3)
     assert(reportData.filter(row => row.getString(0) == "1010").head.getLong(1) == 3)
-
-    CourseMetricsJob.saveReportES(reportDF)
   }
 
   it should "should calculate the progress" in {
