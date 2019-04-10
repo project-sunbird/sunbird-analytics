@@ -14,7 +14,7 @@ class TestCourseMetricsJob extends SparkSpec(null) with MockFactory {
   var locationDF: DataFrame = _
   var orgDF: DataFrame = _
   var userOrgDF: DataFrame = _
-  var reporterMock: Reporter = mock[Reporter]
+  var reporterMock: ReportGenerator = mock[ReportGenerator]
 
   override def beforeAll(): Unit = {
     super.beforeAll()
@@ -72,31 +72,31 @@ class TestCourseMetricsJob extends SparkSpec(null) with MockFactory {
 
   "TestUpdateCourseMetrics" should "generate reports" in {
 
-    (reporterMock.fetchTable _)
+    (reporterMock.loadData _)
       .expects(spark, Map("table" -> "course_batch", "keyspace" -> "sunbird"))
       .returning(courseBatchDF).atLeastOnce()
 
-    (reporterMock.fetchTable _)
+    (reporterMock.loadData _)
       .expects(spark, Map("table" -> "user_courses", "keyspace" -> "sunbird"))
       .returning(userCoursesDF).atLeastOnce()
 
-    (reporterMock.fetchTable _)
+    (reporterMock.loadData _)
       .expects(spark, Map("table" -> "user", "keyspace" -> "sunbird"))
       .returning(userDF).atLeastOnce()
 
-    (reporterMock.fetchTable _)
+    (reporterMock.loadData _)
       .expects(spark, Map("table" -> "user_org", "keyspace" -> "sunbird"))
       .returning(userOrgDF).atLeastOnce()
 
-    (reporterMock.fetchTable _)
+    (reporterMock.loadData _)
       .expects(spark, Map("table" -> "organisation", "keyspace" -> "sunbird"))
       .returning(orgDF).atLeastOnce()
 
-    (reporterMock.fetchTable _)
+    (reporterMock.loadData _)
       .expects(spark, Map("table" -> "location", "keyspace" -> "sunbird"))
       .returning(locationDF).atLeastOnce()
 
-    val reportDF = CourseMetricsJob.prepareReport(spark, reporterMock.fetchTable)
+    val reportDF = CourseMetricsJob.prepareReport(spark, reporterMock.loadData)
 
     assert(reportDF.count == 29)
     assert(reportDF.groupBy(col("batchid")).count().count() == 10)
@@ -116,34 +116,36 @@ class TestCourseMetricsJob extends SparkSpec(null) with MockFactory {
     assert(reportData.filter(row => row.getString(0) == "1008").head.getLong(1) == 3)
     assert(reportData.filter(row => row.getString(0) == "1009").head.getLong(1) == 3)
     assert(reportData.filter(row => row.getString(0) == "1010").head.getLong(1) == 3)
+
+    CourseMetricsJob.saveReportES(reportDF)
   }
 
   it should "should calculate the progress" in {
-    (reporterMock.fetchTable _)
+    (reporterMock.loadData _)
       .expects(spark, Map("table" -> "course_batch", "keyspace" -> "sunbird"))
       .returning(courseBatchDF).atLeastOnce()
 
-    (reporterMock.fetchTable _)
+    (reporterMock.loadData _)
       .expects(spark, Map("table" -> "user_courses", "keyspace" -> "sunbird"))
       .returning(userCoursesDF).atLeastOnce()
 
-    (reporterMock.fetchTable _)
+    (reporterMock.loadData _)
       .expects(spark, Map("table" -> "user", "keyspace" -> "sunbird"))
       .returning(userDF).atLeastOnce()
 
-    (reporterMock.fetchTable _)
+    (reporterMock.loadData _)
       .expects(spark, Map("table" -> "user_org", "keyspace" -> "sunbird"))
       .returning(userOrgDF).atLeastOnce()
 
-    (reporterMock.fetchTable _)
+    (reporterMock.loadData _)
       .expects(spark, Map("table" -> "organisation", "keyspace" -> "sunbird"))
       .returning(orgDF).atLeastOnce()
 
-    (reporterMock.fetchTable _)
+    (reporterMock.loadData _)
       .expects(spark, Map("table" -> "location", "keyspace" -> "sunbird"))
       .returning(locationDF).atLeastOnce()
 
-    val reportDF = CourseMetricsJob.prepareReport(spark, reporterMock.fetchTable)
+    val reportDF = CourseMetricsJob.prepareReport(spark, reporterMock.loadData)
 
     //sampling report
     val data1 = reportDF
@@ -151,17 +153,17 @@ class TestCourseMetricsJob extends SparkSpec(null) with MockFactory {
       .where(col("batchid") === "1007" and col("userid") === "user017")
       .collect()
 
-    assert(data1.head.getLong(0) == 65)
+    assert(data1.head.getDouble(0) == 65)
 
     val data2 = reportDF
       .select("course_completion")
       .where(col("batchid") === "1009" and col("userid") === "user019")
       .collect()
 
-    assert(data2.head.getLong(0) == 93)
+    assert(data2.head.getDouble(0) == 92.5)
   }
 
-  it should "show course_completion as 100% if no. of course is 0" in {
+  it should "show course_completion as 100% if no. of leafnodeCount is 0" in {
 
   }
 }

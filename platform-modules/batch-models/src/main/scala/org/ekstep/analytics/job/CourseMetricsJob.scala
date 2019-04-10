@@ -9,8 +9,8 @@ import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, JobLogger}
 import org.sunbird.cloud.storage.conf.AppConf
 import scala.collection.{Map, _}
 
-trait Reporter {
-  def fetchTable(spark: SparkSession, settings: Map[String, String]): DataFrame
+trait ReportGenerator {
+  def loadData(spark: SparkSession, settings: Map[String, String]): DataFrame
 
   def prepareReport(spark: SparkSession, fetchTable: (SparkSession, Map[String, String]) => DataFrame): DataFrame
 
@@ -19,48 +19,52 @@ trait Reporter {
   def uploadReport(reportDF: DataFrame, url: String): Unit
 }
 
-object CourseMetricsJob extends optional.Application with IJob with Reporter {
+object CourseMetricsJob extends optional.Application with IJob with ReportGenerator {
 
-  implicit val className = "org.ekstep.analytics.updater.UpdateCourseMetrics"
+  implicit val className = "org.ekstep.analytics.job.CourseMetricsJob"
 
-  def name(): String = "UpdateCourseMetrics"
+  def name(): String = "CourseMetricsJob"
 
   def main(config: String)(implicit sc: Option[SparkContext] = None) {
 
-    JobLogger.init("DataExhaustJob")
-    JobLogger.start("DataExhaust Job Started executing", Option(Map("config" -> config, "model" -> name)))
-    val jobConfig = JSONUtils.deserialize[JobConfig](config);
+    JobLogger.init("CourseMetricsJob")
+    JobLogger.start("CourseMetrics Job Started executing", Option(Map("config" -> config, "model" -> name)))
+    val jobConfig = JSONUtils.deserialize[JobConfig](config)
+    JobContext.parallelization = 10
 
-    if (null == sc.orNull) {
-      JobContext.parallelization = 10
-      implicit val sparkContext = CommonUtil.getSparkContext(JobContext.parallelization, jobConfig.appName.getOrElse(jobConfig.model))
+    def runJob(sc: SparkContext): Unit = {
       try {
-        execute(jobConfig)
+        execute(jobConfig)(sc)
       } finally {
-        CommonUtil.closeSparkContext()
+        CommonUtil.closeSparkContext()(sc)
       }
-    } else {
-      implicit val sparkContext: SparkContext = sc.orNull
-      execute(jobConfig)
+    }
+
+    sc match {
+      case Some(value) => {
+        implicit val sparkContext: SparkContext = value
+        runJob(value)
+      }
+      case None => {
+        implicit val sparkContext = CommonUtil.getSparkContext(JobContext.parallelization, jobConfig.appName.getOrElse(jobConfig.model))
+        runJob(sparkContext)
+      }
     }
   }
 
   private def execute(config: JobConfig)(implicit sc: SparkContext) = {
-    val accName = AppConf.getStorageKey("azure")
-    val courseMetricsContainer = AppConf.getConfig("course.metrics.azure.container")
-
-    val url = s"wasbs://$courseMetricsContainer@$accName.blob.core.windows.net/reports"
+    val url = AppConf.getConfig("course.metrics.azure.blobURL")
 
     val sparkConf = sc.getConf
       .set("es.write.operation", "upsert")
 
     val spark = SparkSession.builder.config(sparkConf).getOrCreate()
-    val reportDF = prepareReport(spark, fetchTable)
+    val reportDF = prepareReport(spark, loadData)
     uploadReport(reportDF, url)
     saveReportES(reportDF)
   }
 
-  def fetchTable(spark: SparkSession, settings: Map[String, String]): DataFrame = {
+  def loadData(spark: SparkSession, settings: Map[String, String]): DataFrame = {
     spark
       .read
       .format("org.apache.spark.sql.cassandra")
@@ -68,14 +72,14 @@ object CourseMetricsJob extends optional.Application with IJob with Reporter {
       .load()
   }
 
-  def prepareReport(spark: SparkSession, fetchTable: (SparkSession, Map[String, String]) => DataFrame): DataFrame = {
+  def prepareReport(spark: SparkSession, loadData: (SparkSession, Map[String, String]) => DataFrame): DataFrame = {
     val sunbirdKeyspace = AppConf.getConfig("course.metrics.cassandra.keyspace")
-    val courseBatchDF = fetchTable(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdKeyspace))
-    val userCoursesDF = fetchTable(spark, Map("table" -> "user_courses", "keyspace" -> sunbirdKeyspace))
-    val userDF = fetchTable(spark, Map("table" -> "user", "keyspace" -> sunbirdKeyspace))
-    val userOrgDF = fetchTable(spark, Map("table" -> "user_org", "keyspace" -> sunbirdKeyspace))
-    val organisationDF = fetchTable(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace))
-    val locationDF = fetchTable(spark, Map("table" -> "location", "keyspace" -> sunbirdKeyspace))
+    val courseBatchDF = loadData(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdKeyspace))
+    val userCoursesDF = loadData(spark, Map("table" -> "user_courses", "keyspace" -> sunbirdKeyspace))
+    val userDF = loadData(spark, Map("table" -> "user", "keyspace" -> sunbirdKeyspace))
+    val userOrgDF = loadData(spark, Map("table" -> "user_org", "keyspace" -> sunbirdKeyspace))
+    val organisationDF = loadData(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace))
+    val locationDF = loadData(spark, Map("table" -> "location", "keyspace" -> sunbirdKeyspace))
 
     /*
     * courseBatchDF has details about the course and batch details for which we have to prepare the report
@@ -139,15 +143,13 @@ object CourseMetricsJob extends optional.Application with IJob with Reporter {
       .join(organisationDF, organisationDF.col("id") === userLocationResolvedDF.col("organisationid"))
       .select(userLocationResolvedDF.col("userid"), col("orgname").as("schoolname_resolved"))
 
-    val toLongUDF = udf((value: Double) => value.toLong)
-
     /*
     * merge orgName and schoolName based on `userid` and calculate the course progress percentage from `progress` column which is no of content visited/read
     * */
     resolvedOrgNameDF
       .join(resolvedSchoolNameDF, Seq("userid"))
       .join(userLocationResolvedDF, Seq("userid"))
-      .withColumn("course_completion", toLongUDF(round(expr("progress/leafnodescount * 100"))))
+      .withColumn("course_completion", format_number(expr("progress/leafnodescount * 100"), 2).cast("double"))
       .withColumn("generatedOn", date_format(from_utc_timestamp(current_timestamp.cast(DataTypes.TimestampType), "Asia/Kolkata"), "yyyy-MM-dd'T'HH:mm:ssXXX'Z'"))
   }
 
@@ -157,12 +159,16 @@ object CourseMetricsJob extends optional.Application with IJob with Reporter {
     import org.elasticsearch.spark.sql._
     val participantsCountPerBatchDF = reportDF
       .groupBy(col("batchid"))
-      .agg(count("*").as("participantsCountPerBatch"))
+      .count()
+      .withColumn("participantsCountPerBatch", col("count"))
+      .drop(col("count"))
 
     val courseCompletionCountPerBatchDF = reportDF
-      .filter(col("course_completion").equalTo(100))
+      .filter(col("course_completion").equalTo(100.0))
       .groupBy(col("batchid"))
-      .agg(count("*").as("courseCompletionCountPerBatch"))
+      .count()
+      .withColumn("courseCompletionCountPerBatch", col("count"))
+      .drop(col("count"))
 
     val batchStatsDF = participantsCountPerBatchDF
       .join(courseCompletionCountPerBatchDF, Seq("batchid"), "left_outer")
@@ -179,25 +185,20 @@ object CourseMetricsJob extends optional.Application with IJob with Reporter {
         col("courseid").as("courseId"),
         col("generatedOn").as("lastUpdatedOn"),
         col("batchid").as("batchId"),
-        col("course_completion").as("completedPercent"),
+        col("course_completion").cast("long").as("completedPercent"),
         col("district_name").as("districtName"),
         date_format(col("enrolleddate"), "yyyy-MM-dd'T'HH:mm:ssXXX'Z'").as("enrolledOn")
       )
 
-    var batchDetailsDF = participantsCountPerBatchDF
+    val batchDetailsDF = participantsCountPerBatchDF
       .join(courseCompletionCountPerBatchDF, Seq("batchid"), "left_outer")
       .join(reportDF, Seq("batchid"))
-      .groupBy(
+      .select(
         col("batchid").as("id"),
-        col("courseCompletionCountPerBatch").as("completedCount"),
-        col("participantsCountPerBatch").as("participantCount")
+        when(col("courseCompletionCountPerBatch").isNull, 0).otherwise(col("courseCompletionCountPerBatch")).as("completedCount"),
+        when(col("participantsCountPerBatch").isNull, 0).otherwise(col("participantsCountPerBatch")).as("participantCount")
       )
-      .count()
-      .drop(col("count"))
-
-    // fill null values with 0
-    batchDetailsDF = batchDetailsDF.na.fill(0, Seq("completedCount"))
-    batchDetailsDF = batchDetailsDF.na.fill(0, Seq("participantCount"))
+      .distinct()
 
     val cBatchStatsIndex = AppConf.getConfig("course.metrics.es.index.cbatchstats")
     val cBatchIndex = AppConf.getConfig("course.metrics.es.index.cbatch")
@@ -213,13 +214,6 @@ object CourseMetricsJob extends optional.Application with IJob with Reporter {
 
   def uploadReport(reportDF: DataFrame, url: String): Unit = {
 
-    val toPercentageStringUDF = udf((value: Double) => s"${value.toInt}%")
-
-    val defaultProgressUDF = udf((value: String) => value match {
-      case null => "100%"
-      case _ => value
-    })
-
     reportDF
       .select(
         concat_ws(" ", col("firstname"), col("lastname")).as("User Name"),
@@ -229,7 +223,11 @@ object CourseMetricsJob extends optional.Application with IJob with Reporter {
         col("district_name").as("District Name"),
         col("orgname_resolved").as("Organisation Name"),
         col("schoolname_resolved").as("School Name"),
-        defaultProgressUDF(toPercentageStringUDF(col("course_completion"))).as("Course Progress"),
+        concat(
+          when(col("course_completion").isNull, "100")
+            .otherwise(col("course_completion").cast("string")),
+          lit("%")
+        ).as("Course Progress"),
         col("generatedOn").as("last updated")
       )
       .coalesce(1)
