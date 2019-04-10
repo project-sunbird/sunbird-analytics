@@ -176,6 +176,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
       .select(
         concat_ws(" ", col("firstname"), col("lastname")).as("name"),
         concat_ws(":", col("userid"), col("batchid")).as("id"),
+        col("userid").as("userId"),
         col("email").as("maskedEmail"),
         col("phone").as("maskedPhone"),
         col("orgname_resolved").as("rootOrgName"),
