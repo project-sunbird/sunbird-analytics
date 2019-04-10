@@ -260,6 +260,12 @@
 		    <artifactId>cloud-store-sdk</artifactId>
 		    <version>1.0</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.elasticsearch/elasticsearch-hadoop -->
+		<dependency>
+			<groupId>org.elasticsearch</groupId>
+			<artifactId>elasticsearch-hadoop</artifactId>
+			<version>6.7.0</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<sourceDirectory>src/main/scala</sourceDirectory>

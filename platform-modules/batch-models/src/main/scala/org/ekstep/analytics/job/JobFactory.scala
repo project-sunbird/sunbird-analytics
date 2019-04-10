@@ -202,6 +202,8 @@ object JobFactory {
                 WorkFlowUsageMetricsUpdater
             case "dialcode-usage-updater" =>
                 DialcodeUsageUpdater
+            case "course-dashboard-metrics" =>
+                CourseMetricsJob
             case _ =>
                 throw new JobNotFoundException("Unknown job type found")
         }
