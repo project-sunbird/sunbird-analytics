@@ -30,8 +30,9 @@ object PostgresDBUtil {
 }
 
 case class DeviceLocation(continentName: String, countryCode: String, countryName: String, stateCode: String,
-                          state: String, subDivsion2: String, city: String) {
-    def this() = this("", "", "", "", "", "", "")
+                          state: String, subDivsion2: String, city: String,
+                          stateCustom: String, stateCodeCustom: String, districtCustom: String) {
+    def this() = this("", "", "", "", "", "", "","","","")
 }
 
 object DeviceLocation extends SQLSyntaxSupport[DeviceLocation] {
@@ -42,6 +43,9 @@ object DeviceLocation extends SQLSyntaxSupport[DeviceLocation] {
         rs.string("state_code"),
         rs.string("state"),
         rs.string("sub_div_2"),
-        rs.string("city")
+        rs.string("city"),
+        rs.string("state_custom"),
+        rs.string("state_code_custom"),
+        rs.string("district_custom")
     )
 }

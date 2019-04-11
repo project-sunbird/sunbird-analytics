@@ -1,21 +1,17 @@
 package org.ekstep.analytics.updater
 
-import org.ekstep.analytics.framework._
-import org.apache.spark.SparkContext
-import org.apache.spark.rdd.RDD
-import org.apache.spark.HashPartitioner
-import scala.collection.mutable.Buffer
-import org.ekstep.analytics.framework.util.CommonUtil
-import org.joda.time.LocalDate
-import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger}
-import org.ekstep.analytics.util.Constants
 import com.datastax.spark.connector._
-import org.ekstep.analytics.framework.conf.AppConf
-import org.apache.commons.lang3.StringUtils
+import org.apache.spark.{HashPartitioner, SparkContext}
+import org.apache.spark.rdd.RDD
+import org.ekstep.analytics.framework._
+import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.model.DeviceIndex
+import org.ekstep.analytics.util.Constants
+
+import scala.collection.mutable.Buffer
 
 case class DeviceProfileInput(index: DeviceIndex, currentData: Buffer[DerivedEvent], previousData: Option[DeviceProfileOutput]) extends AlgoInput
-case class DeviceProfileOutput(device_id: String, channel: String, first_access: Option[Long], last_access: Option[Long], total_ts: Option[Double], total_launches: Option[Long], avg_ts: Option[Double], device_spec: Option[Map[String, AnyRef]], uaspec: Option[Map[String, String]], state: Option[String], city: Option[String], country: Option[String], country_code:Option[String], state_code:Option[String], updated_date: Long) extends AlgoOutput
+case class DeviceProfileOutput(device_id: String, channel: String, first_access: Option[Long], last_access: Option[Long], total_ts: Option[Double], total_launches: Option[Long], avg_ts: Option[Double], device_spec: Option[Map[String, AnyRef]], uaspec: Option[Map[String, String]], state: Option[String], city: Option[String], country: Option[String], country_code:Option[String], state_code:Option[String], state_custom: Option[String], state_code_custom: Option[String], district_custom: Option[String], updated_date: Option[Long] = Option(System.currentTimeMillis())) extends AlgoOutput
 
 object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DeviceProfileInput, DeviceProfileOutput, Empty] with Serializable {
 
@@ -37,7 +33,7 @@ object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DevicePro
         data.map { events =>
             val eventsSortedByFromDate = events.currentData.sortBy { x => x.context.date_range.from };
             val eventsSortedByToDate = events.currentData.sortBy { x => x.context.date_range.to };
-            val prevProfileData = events.previousData.getOrElse(DeviceProfileOutput(events.index.device_id, events.index.channel, None, None, None, None, None, None, None, None, None, None, None, None, 0L));
+            val prevProfileData = events.previousData.getOrElse(DeviceProfileOutput(events.index.device_id, events.index.channel, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None));
             val eventStartTime = eventsSortedByFromDate.head.context.date_range.from
             val first_access = if (prevProfileData.first_access.isEmpty) eventStartTime else if (eventStartTime > prevProfileData.first_access.get) prevProfileData.first_access.get else eventStartTime;
             val eventEndTime = eventsSortedByToDate.last.context.date_range.to
@@ -51,7 +47,7 @@ object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DevicePro
             }.sum
             val total_launches = if (prevProfileData.total_launches.isEmpty) current_launches else current_launches + prevProfileData.total_launches.get
             val avg_ts = if (total_launches == 0) total_ts else CommonUtil.roundDouble(total_ts / total_launches, 2)
-            DeviceProfileOutput(events.index.device_id, events.index.channel, Option(first_access), Option(last_access), Option(total_ts), Option(total_launches), Option(avg_ts), prevProfileData.device_spec, prevProfileData.uaspec, prevProfileData.state, prevProfileData.city, prevProfileData.country, prevProfileData.country_code, prevProfileData.state_code, System.currentTimeMillis())
+            DeviceProfileOutput(events.index.device_id, events.index.channel, Option(first_access), Option(last_access), Option(total_ts), Option(total_launches), Option(avg_ts), prevProfileData.device_spec, prevProfileData.uaspec, prevProfileData.state, prevProfileData.city, prevProfileData.country, prevProfileData.country_code, prevProfileData.state_code, prevProfileData.state_custom, prevProfileData.state_code_custom, prevProfileData.district_custom)
         }
     }
 
