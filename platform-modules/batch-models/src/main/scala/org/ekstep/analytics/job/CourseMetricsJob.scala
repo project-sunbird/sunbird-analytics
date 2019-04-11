@@ -58,9 +58,11 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
 
   private def execute(config: JobConfig)(implicit sc: SparkContext) = {
     val url = AppConf.getConfig("course.metrics.azure.blobURL")
+    val readConsistencyLevel: String = AppConf.getConfig("course.metrics.cassandra.input.consistency")
 
     val sparkConf = sc.getConf
       .set("es.write.operation", "upsert")
+      .set("spark.cassandra.input.consistency.level", readConsistencyLevel)
 
     val spark = SparkSession.builder.config(sparkConf).getOrCreate()
     val reportDF = prepareReport(spark, loadData)
