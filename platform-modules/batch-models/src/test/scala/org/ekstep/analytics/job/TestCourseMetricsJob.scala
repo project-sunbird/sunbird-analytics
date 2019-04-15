@@ -30,8 +30,9 @@ class TestCourseMetricsJob extends SparkSpec(null) with MockFactory {
       .load("src/test/resources/course-metrics-updater/courseBatchTable.csv")
 
     /*
-     * Data created with 30 participants mapped to only batch from 1001 - 1010 (10), so report
-     * should be created for these 10 batch (1001 - 1010) and 29 participants (1 user is not active in the course)
+     * Data created with 35 participants mapped to only batch from 1001 - 1010 (10), so report
+     * should be created for these 10 batch (1001 - 1010) and 34 participants (1 user is not active in the course)
+     * and along with 5 existing users from 31-35 has been subscribed to another batch 1003-1007 also
      * */
     userCoursesDF = spark
       .read
@@ -98,7 +99,7 @@ class TestCourseMetricsJob extends SparkSpec(null) with MockFactory {
 
     val reportDF = CourseMetricsJob.prepareReport(spark, reporterMock.loadData)
 
-    assert(reportDF.count == 29)
+    assert(reportDF.count == 34)
     assert(reportDF.groupBy(col("batchid")).count().count() == 10)
 
     val reportData = reportDF
@@ -108,11 +109,11 @@ class TestCourseMetricsJob extends SparkSpec(null) with MockFactory {
 
     assert(reportData.filter(row => row.getString(0) == "1001").head.getLong(1) == 2)
     assert(reportData.filter(row => row.getString(0) == "1002").head.getLong(1) == 3)
-    assert(reportData.filter(row => row.getString(0) == "1003").head.getLong(1) == 3)
-    assert(reportData.filter(row => row.getString(0) == "1004").head.getLong(1) == 3)
-    assert(reportData.filter(row => row.getString(0) == "1005").head.getLong(1) == 3)
-    assert(reportData.filter(row => row.getString(0) == "1006").head.getLong(1) == 3)
-    assert(reportData.filter(row => row.getString(0) == "1007").head.getLong(1) == 3)
+    assert(reportData.filter(row => row.getString(0) == "1003").head.getLong(1) == 4)
+    assert(reportData.filter(row => row.getString(0) == "1004").head.getLong(1) == 4)
+    assert(reportData.filter(row => row.getString(0) == "1005").head.getLong(1) == 4)
+    assert(reportData.filter(row => row.getString(0) == "1006").head.getLong(1) == 4)
+    assert(reportData.filter(row => row.getString(0) == "1007").head.getLong(1) == 4)
     assert(reportData.filter(row => row.getString(0) == "1008").head.getLong(1) == 3)
     assert(reportData.filter(row => row.getString(0) == "1009").head.getLong(1) == 3)
     assert(reportData.filter(row => row.getString(0) == "1010").head.getLong(1) == 3)
