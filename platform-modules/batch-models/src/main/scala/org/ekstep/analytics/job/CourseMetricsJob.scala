@@ -83,7 +83,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     val courseBatchDF = loadData(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdKeyspace))
     val userCoursesDF = loadData(spark, Map("table" -> "user_courses", "keyspace" -> sunbirdKeyspace))
     val userDF = loadData(spark, Map("table" -> "user", "keyspace" -> sunbirdKeyspace))
-    val userOrgDF = loadData(spark, Map("table" -> "user_org", "keyspace" -> sunbirdKeyspace))
+    val userOrgDF = loadData(spark, Map("table" -> "user_org", "keyspace" -> sunbirdKeyspace)).filter(lower(col("isdeleted")) === "false")
     val organisationDF = loadData(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace))
     val locationDF = loadData(spark, Map("table" -> "location", "keyspace" -> sunbirdKeyspace))
 
@@ -113,8 +113,8 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
         userCourseDenormDF.col("*"),
         col("firstname"),
         col("lastname"),
-        col("email"),
-        col("phone"),
+        col("maskedemail"),
+        col("maskedphone"),
         col("rootorgid"),
         col("locationids"))
 
@@ -122,7 +122,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     * userDenormDF lacks organisation details, here we are mapping each users to get the organisationids
     * */
     val userOrgDenormDF = userDenormDF
-      .join(userOrgDF, userOrgDF.col("userid") === userDenormDF.col("userid") && lower(userOrgDF.col("isdeleted")).equalTo("false"), "inner")
+      .join(userOrgDF, userOrgDF.col("userid") === userDenormDF.col("userid"), "inner")
       .select(userDenormDF.col("*"), col("organisationid"))
 
     val locationDenormDF = userOrgDenormDF
@@ -139,22 +139,26 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     * Resolve organisation name from `rootorgid`
     * */
     val resolvedOrgNameDF = userLocationResolvedDF
-      .join(organisationDF, organisationDF.col("id") === userLocationResolvedDF.col("rootorgid"))
+      .join(organisationDF, organisationDF.col("id") === userLocationResolvedDF.col("rootorgid"), "left_outer")
+      .dropDuplicates(Seq("userid"))
       .select(userLocationResolvedDF.col("userid"), col("orgname").as("orgname_resolved"))
+
 
     /*
     * Resolve school name from `orgid`
     * */
     val resolvedSchoolNameDF = userLocationResolvedDF
-      .join(organisationDF, organisationDF.col("id") === userLocationResolvedDF.col("organisationid"))
+      .join(organisationDF, organisationDF.col("id") === userLocationResolvedDF.col("organisationid"), "left_outer")
+      .dropDuplicates(Seq("userid"))
       .select(userLocationResolvedDF.col("userid"), col("orgname").as("schoolname_resolved"))
 
     /*
     * merge orgName and schoolName based on `userid` and calculate the course progress percentage from `progress` column which is no of content visited/read
     * */
-    resolvedOrgNameDF
-      .join(resolvedSchoolNameDF, Seq("userid"))
-      .join(userLocationResolvedDF, Seq("userid"))
+
+    userLocationResolvedDF
+      .join(resolvedSchoolNameDF, Seq("userid"), "left_outer")
+      .join(resolvedOrgNameDF, Seq("userid"), "left_outer")
       .withColumn("course_completion", format_number(expr("progress/leafnodescount * 100"), 2).cast("double"))
       .withColumn("generatedOn", date_format(from_utc_timestamp(current_timestamp.cast(DataTypes.TimestampType), "Asia/Kolkata"), "yyyy-MM-dd'T'HH:mm:ssXXX'Z'"))
   }
@@ -183,8 +187,8 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
         concat_ws(" ", col("firstname"), col("lastname")).as("name"),
         concat_ws(":", col("userid"), col("batchid")).as("id"),
         col("userid").as("userId"),
-        col("email").as("maskedEmail"),
-        col("phone").as("maskedPhone"),
+        col("maskedemail").as("maskedEmail"),
+        col("maskedphone").as("maskedPhone"),
         col("orgname_resolved").as("rootOrgName"),
         col("schoolname_resolved").as("subOrgName"),
         col("startdate").as("startDate"),
@@ -225,17 +229,17 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
       .select(
         concat_ws(" ", col("firstname"), col("lastname")).as("User Name"),
         col("batchid"),
-        col("email").as("Email ID"),
-        col("phone").as("Mobile Number"),
+        col("maskedemail").as("Email ID"),
+        col("maskedphone").as("Mobile Number"),
         col("district_name").as("District Name"),
         col("orgname_resolved").as("Organisation Name"),
         col("schoolname_resolved").as("School Name"),
+        col("enrolleddate").as("Enrollment Date"),
         concat(
           when(col("course_completion").isNull, "100")
             .otherwise(col("course_completion").cast("string")),
           lit("%")
-        ).as("Course Progress"),
-        col("generatedOn").as("last updated")
+        ).as("Course Progress")
       )
       .coalesce(1)
       .write
