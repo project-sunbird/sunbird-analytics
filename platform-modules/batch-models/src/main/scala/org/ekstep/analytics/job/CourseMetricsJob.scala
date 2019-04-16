@@ -7,6 +7,9 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, JobLogger}
 import org.sunbird.cloud.storage.conf.AppConf
+import java.nio.file.{Files, StandardCopyOption}
+import java.io.File
+import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
 import scala.collection.{Map, _}
 
 trait ReportGenerator {
@@ -16,7 +19,7 @@ trait ReportGenerator {
 
   def saveReportES(reportDF: DataFrame): Unit
 
-  def uploadReport(reportDF: DataFrame, url: String): Unit
+  def saveReport(reportDF: DataFrame, url: String): Unit
 }
 
 object CourseMetricsJob extends optional.Application with IJob with ReportGenerator {
@@ -57,16 +60,18 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
   }
 
   private def execute(config: JobConfig)(implicit sc: SparkContext) = {
-    val url = AppConf.getConfig("course.metrics.azure.blobURL")
+    val tempDir = AppConf.getConfig("course.metrics.temp.dir")
     val readConsistencyLevel: String = AppConf.getConfig("course.metrics.cassandra.input.consistency")
-
+    val renamedDir = s"$tempDir/renamed"
     val sparkConf = sc.getConf
       .set("es.write.operation", "upsert")
       .set("spark.cassandra.input.consistency.level", readConsistencyLevel)
 
     val spark = SparkSession.builder.config(sparkConf).getOrCreate()
     val reportDF = prepareReport(spark, loadData)
-    uploadReport(reportDF, url)
+    saveReport(reportDF, tempDir)
+    renameReport(tempDir, renamedDir)
+    uploadReport(renamedDir)
     saveReportES(reportDF)
   }
 
@@ -223,7 +228,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
   }
 
 
-  def uploadReport(reportDF: DataFrame, url: String): Unit = {
+  def saveReport(reportDF: DataFrame, url: String): Unit = {
 
     reportDF
       .select(
@@ -248,6 +253,57 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
       .format("com.databricks.spark.csv")
       .option("header", "true")
       .save(url)
+  }
+
+  def uploadReport(sourcePath: String) = {
+    val provider = AppConf.getConfig("course.metrics.cloud.provider")
+    val container = AppConf.getConfig("course.metrics.cloud.container")
+    val objectKey = AppConf.getConfig("course.metrics.cloud.objectKey")
+
+    val storageService = StorageServiceFactory
+      .getStorageService(StorageConfig(provider, AppConf.getStorageKey(provider), AppConf.getStorageSecret(provider)))
+    storageService.upload(container, sourcePath, objectKey, isDirectory = Option(true))
+  }
+
+  private def recursiveListFiles(file: File, ext: String): Array[File] = {
+    val fileList = file.listFiles
+    val extOnly = fileList.filter(file => file.getName.endsWith(ext))
+    extOnly ++ fileList.filter(_.isDirectory).flatMap(recursiveListFiles(_,ext))
+  }
+
+  private def purgeDirectory(dir: File): Unit = {
+    for (file <- dir.listFiles) {
+      if (file.isDirectory) purgeDirectory(file)
+      file.delete
+    }
+  }
+
+  def renameReport(tempDir: String, outDir: String) = {
+    val regex = """\=.*/""".r // to get batchid from the path "somepath/batchid=12313144/part-0000.csv"
+    val temp = new File(tempDir)
+    val out = new File(outDir)
+
+    if(!temp.exists()) throw new Exception(s"path $tempDir doesn't exist")
+
+    if(out.exists()) {
+      purgeDirectory(out)
+      JobLogger.log(s"cleaning out the directory ${out.getPath}")
+    } else {
+      out.mkdirs()
+      JobLogger.log(s"creating the directory ${out.getPath}")
+    }
+
+    val fileList = recursiveListFiles(temp, ".csv")
+
+    JobLogger.log(s"moving ${fileList.length} files to ${out.getPath}")
+
+    fileList.foreach(file => {
+      val value = regex.findFirstIn(file.getPath).getOrElse("")
+      if (value.length > 1) {
+        val batchid = value.substring(1, value.length() - 1)
+        Files.copy(file.toPath, new File(s"${out.getPath}/report-$batchid.csv").toPath, StandardCopyOption.REPLACE_EXISTING)
+      }
+    })
   }
 }
 
