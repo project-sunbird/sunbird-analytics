@@ -5,6 +5,7 @@ import org.apache.spark.sql.functions._
 import org.ekstep.analytics.model.SparkSpec
 import org.scalamock.scalatest.MockFactory
 import scala.collection.Map
+import org.apache.spark.sql.functions._
 
 class TestCourseMetricsJob extends SparkSpec(null) with MockFactory {
   var spark: SparkSession = _
@@ -159,7 +160,7 @@ class TestCourseMetricsJob extends SparkSpec(null) with MockFactory {
       .where(col("batchid") === "1009" and col("userid") === "user019")
       .collect()
 
-    assert(data2.head.getDouble(0) == 92.5)
+    assert(data2.head.get(0) == null)
   }
 
   it should "show course_completion as 100% if no. of leafnodeCount is 0" in {

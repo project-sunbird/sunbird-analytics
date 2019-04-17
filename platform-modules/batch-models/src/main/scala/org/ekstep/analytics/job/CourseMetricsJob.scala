@@ -1,7 +1,7 @@
 package org.ekstep.analytics.job
 
 import org.apache.spark.SparkContext
-import org.apache.spark.sql.functions.{col, _}
+import org.apache.spark.sql.functions.{col, unix_timestamp, _}
 import org.apache.spark.sql.types.DataTypes
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.ekstep.analytics.framework._
@@ -9,7 +9,9 @@ import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, JobLogger}
 import org.sunbird.cloud.storage.conf.AppConf
 import java.nio.file.{Files, StandardCopyOption}
 import java.io.File
+
 import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
+
 import scala.collection.{Map, _}
 
 trait ReportGenerator {
@@ -203,9 +205,11 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
         col("courseid").as("courseId"),
         col("generatedOn").as("lastUpdatedOn"),
         col("batchid").as("batchId"),
-        col("course_completion").cast("long").as("completedPercent"),
+        when(col("course_completion").isNull, 100)
+          .otherwise(col("course_completion").cast("long"))
+          .as("completedPercent"),
         col("district_name").as("districtName"),
-        date_format(col("enrolleddate"), "yyyy-MM-dd'T'HH:mm:ssXXX'Z'").as("enrolledOn")
+        from_unixtime(unix_timestamp(col("enrolleddate"), "yyyy-MM-dd HH:mm:ss:SSSZ"),"yyyy-MM-dd'T'HH:mm:ss'Z'").as("enrolledOn")
       )
 
     val batchDetailsDF = participantsCountPerBatchDF
