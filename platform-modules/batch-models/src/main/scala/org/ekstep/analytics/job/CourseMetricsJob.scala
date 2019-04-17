@@ -51,9 +51,11 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
       case None => {
         val sparkCassandraConnectionHost =
           jobConfig.modelParams.getOrElse(Map[String, Option[AnyRef]]()).get("sparkCassandraConnectionHost")
+        val sparkElasticsearchConnectionHost =
+          jobConfig.modelParams.getOrElse(Map[String, Option[AnyRef]]()).get("sparkElasticsearchConnectionHost")
         implicit val sparkContext: SparkContext =
           CommonUtil.getSparkContext(JobContext.parallelization,
-            jobConfig.appName.getOrElse(jobConfig.model), sparkCassandraConnectionHost)
+            jobConfig.appName.getOrElse(jobConfig.model), sparkCassandraConnectionHost, sparkElasticsearchConnectionHost)
         runJob(sparkContext)
       }
     }
