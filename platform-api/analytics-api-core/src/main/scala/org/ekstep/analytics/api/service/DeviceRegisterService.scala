@@ -1,17 +1,15 @@
 package org.ekstep.analytics.api.service
 
-import org.ekstep.analytics.api.util.{CommonUtil, DBUtil, JSONUtils}
+import org.ekstep.analytics.api.util._
 import org.ekstep.analytics.api._
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
 import akka.actor.Actor
 import com.google.common.net.InetAddresses
 import com.typesafe.config.Config
-import org.ekstep.analytics.api.util.PostgresDBUtil
 import com.typesafe.config.ConfigFactory
 import com.datastax.driver.core.ResultSet
 import com.google.common.primitives.UnsignedInts
-import org.ekstep.analytics.api.util.DeviceLocation
 import is.tagomor.woothee.Classifier
 import org.ekstep.analytics.framework.util.JobLogger
 
@@ -25,7 +23,16 @@ class DeviceRegisterService extends Actor {
     val defaultChannel: String = config.getString("default.channel")
 
     def receive = {
-        case RegisterDevice(did: String, ip: String, request: String, uaspec: Option[String]) => sender() ! registerDevice(did, ip, request, uaspec)
+      case RegisterDevice(did: String, ip: String, request: String, uaspec: Option[String]) => {
+        try {
+          sender() ! registerDevice(did, ip, request, uaspec)
+        } catch {
+          case e: Exception => {
+            val errorMessage = "DeviceRegisterAPI failed due to " + e.getMessage
+            APILogger.log("", Option(Map("type" -> "api-access", "status" -> 500, "data" -> errorMessage)), "registerDevice")
+          }
+        }
+      }
     }
 
     def registerDevice(did: String, ipAddress: String, request: String, uaspec: Option[String]): String = {
