@@ -172,7 +172,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
         when(expr("progress/leafnodescount * 100").isNull, 100.0)
           .otherwise(expr("progress/leafnodescount * 100")), 2)
         .cast("double"))
-      .withColumn("generatedOn", date_format(from_utc_timestamp(current_timestamp.cast(DataTypes.TimestampType), "Asia/Kolkata"), "yyyy-MM-dd'T'HH:mm:ssXXX'Z'"))
+      .withColumn("generatedOn", date_format(from_utc_timestamp(current_timestamp.cast(DataTypes.TimestampType), "Asia/Kolkata"), "yyyy-MM-dd'T'HH:mm:ss'Z'"))
   }
 
 
