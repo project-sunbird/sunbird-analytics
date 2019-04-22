@@ -160,10 +160,13 @@ class TestCourseMetricsJob extends SparkSpec(null) with MockFactory {
       .where(col("batchid") === "1009" and col("userid") === "user019")
       .collect()
 
-    assert(data2.head.get(0) == null)
-  }
+    assert(data2.head.get(0) == 100.0)
 
-  it should "show course_completion as 100% if no. of leafnodeCount is 0" in {
+    val districtName = reportDF
+      .select("district_name")
+      .where(col("batchid") === "1006" and col("userid") === "user026")
+      .collect()
 
+    assert(districtName.head.get(0) == "GULBARGA")
   }
 }
