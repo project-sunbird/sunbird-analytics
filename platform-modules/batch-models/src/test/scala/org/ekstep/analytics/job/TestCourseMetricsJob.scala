@@ -167,8 +167,6 @@ class TestCourseMetricsJob extends SparkSpec(null) with MockFactory {
       .where(col("batchid") === "1006" and col("userid") === "user026")
       .collect()
 
-    // multi valued district names should be comma separated
-    assert(districtName.head.get(0) == "GULBARGA,GULBARGA,GULBARGA")
-
+    assert(districtName.head.get(0) == "GULBARGA")
   }
 }

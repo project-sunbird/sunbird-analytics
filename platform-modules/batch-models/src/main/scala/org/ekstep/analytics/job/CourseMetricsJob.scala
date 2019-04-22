@@ -138,8 +138,8 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     val locationDenormDF = userOrgDenormDF
       .withColumn("exploded_location", explode(col("locationids")))
       .join(locationDF, col("exploded_location") === locationDF.col("id") && locationDF.col("type") === "district")
-      .groupBy("userid", "exploded_location")
-      .agg(concat_ws(",", collect_list(locationDF.col("name"))) as "district_name")
+      .dropDuplicates(Seq("userid"))
+      .select(col("name").as("district_name"), col("userid"))
       .drop(col("exploded_location"))
 
     val userLocationResolvedDF = userOrgDenormDF
