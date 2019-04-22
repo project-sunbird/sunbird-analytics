@@ -77,6 +77,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     renameReport(tempDir, renamedDir)
     uploadReport(renamedDir)
     saveReportES(reportDF)
+    JobLogger.end("CourseMetrics Job completed successfully!", "SUCCESS", Option(Map("config" -> config, "model" -> name)))
   }
 
   def loadData(spark: SparkSession, settings: Map[String, String]): DataFrame = {
@@ -168,7 +169,10 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     userLocationResolvedDF
       .join(resolvedSchoolNameDF, Seq("userid"), "left_outer")
       .join(resolvedOrgNameDF, Seq("userid"), "left_outer")
-      .withColumn("course_completion", format_number(expr("progress/leafnodescount * 100"), 2).cast("double"))
+      .withColumn("course_completion", format_number(
+        when(expr("progress/leafnodescount * 100").isNull, 100.0)
+          .otherwise(expr("progress/leafnodescount * 100")), 2)
+        .cast("double"))
       .withColumn("generatedOn", date_format(from_utc_timestamp(current_timestamp.cast(DataTypes.TimestampType), "Asia/Kolkata"), "yyyy-MM-dd'T'HH:mm:ssXXX'Z'"))
   }
 
@@ -205,9 +209,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
         col("courseid").as("courseId"),
         col("generatedOn").as("lastUpdatedOn"),
         col("batchid").as("batchId"),
-        when(col("course_completion").isNull, 100)
-          .otherwise(col("course_completion").cast("long"))
-          .as("completedPercent"),
+        col("course_completion").cast("long").as("completedPercent"),
         col("district_name").as("districtName"),
         from_unixtime(unix_timestamp(col("enrolleddate"), "yyyy-MM-dd HH:mm:ss:SSSZ"),"yyyy-MM-dd'T'HH:mm:ss'Z'").as("enrolledOn")
       )
@@ -217,6 +219,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
       .join(reportDF, Seq("batchid"))
       .select(
         col("batchid").as("id"),
+        col("generatedOn").as("reportUpdatedOn"),
         when(col("courseCompletionCountPerBatch").isNull, 0).otherwise(col("courseCompletionCountPerBatch")).as("completedCount"),
         when(col("participantsCountPerBatch").isNull, 0).otherwise(col("participantsCountPerBatch")).as("participantCount")
       )
@@ -246,11 +249,8 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
         col("orgname_resolved").as("Organisation Name"),
         col("schoolname_resolved").as("School Name"),
         col("enrolleddate").as("Enrollment Date"),
-        concat(
-          when(col("course_completion").isNull, "100")
-            .otherwise(col("course_completion").cast("string")),
-          lit("%")
-        ).as("Course Progress")
+        concat(col("course_completion").cast("string"),lit("%"))
+          .as("Course Progress")
       )
       .coalesce(1)
       .write
