@@ -28,7 +28,7 @@ class DeviceRegisterService extends Actor {
           sender() ! registerDevice(did, ip, request, uaspec)
         } catch {
           case e: Exception => {
-            val errorMessage = "API is Failed due to " + e.getMessage
+            val errorMessage = "DeviceRegisterAPI failed due to " + e.getMessage
             APILogger.log("", Option(Map("type" -> "api-access", "status" -> 500, "data" -> errorMessage)), "registerDevice")
           }
         }
