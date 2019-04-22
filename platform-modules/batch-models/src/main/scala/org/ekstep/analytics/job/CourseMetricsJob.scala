@@ -140,7 +140,6 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
       .join(locationDF, col("exploded_location") === locationDF.col("id") && locationDF.col("type") === "district")
       .dropDuplicates(Seq("userid"))
       .select(col("name").as("district_name"), col("userid"))
-      .drop(col("exploded_location"))
 
     val userLocationResolvedDF = userOrgDenormDF
       .join(locationDenormDF, Seq("userid"), "left_outer")
