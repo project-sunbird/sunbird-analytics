@@ -204,6 +204,10 @@ object JobFactory {
                 DialcodeUsageUpdater
             case "course-dashboard-metrics" =>
                 CourseMetricsJob
+            case "telemetry-replay" =>
+                TelemetryReplayJob
+            case "summary-replay" =>
+                TelemetryReplayJob
             case _ =>
                 throw new JobNotFoundException("Unknown job type found")
         }
