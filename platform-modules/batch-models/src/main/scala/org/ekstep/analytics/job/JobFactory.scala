@@ -205,9 +205,9 @@ object JobFactory {
             case "course-dashboard-metrics" =>
                 CourseMetricsJob
             case "telemetry-replay" =>
-                TelemetryReplayJob
+                EventsReplayJob
             case "summary-replay" =>
-                TelemetryReplayJob
+                EventsReplayJob
             case _ =>
                 throw new JobNotFoundException("Unknown job type found")
         }
