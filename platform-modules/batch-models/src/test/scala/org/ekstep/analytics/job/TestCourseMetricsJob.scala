@@ -169,4 +169,46 @@ class TestCourseMetricsJob extends SparkSpec(null) with MockFactory {
 
     assert(districtName.head.get(0) == "GULBARGA")
   }
+
+  it should "should round course progress to 100 when it is greater than 100" in {
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "course_batch", "keyspace" -> "sunbird"))
+      .returning(courseBatchDF).atLeastOnce()
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user_courses", "keyspace" -> "sunbird"))
+      .returning(userCoursesDF).atLeastOnce()
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user", "keyspace" -> "sunbird"))
+      .returning(userDF).atLeastOnce()
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user_org", "keyspace" -> "sunbird"))
+      .returning(userOrgDF).atLeastOnce()
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "organisation", "keyspace" -> "sunbird"))
+      .returning(orgDF).atLeastOnce()
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "location", "keyspace" -> "sunbird"))
+      .returning(locationDF).atLeastOnce()
+
+    val reportDF = CourseMetricsJob.prepareReport(spark, reporterMock.loadData)
+
+    val data1 = reportDF
+      .select("course_completion")
+      .where(col("batchid") === "1006" and col("userid") === "user005")
+      .collect()
+
+    assert(data1.head.getDouble(0) == 100)
+
+    val data2 = reportDF
+      .select("course_completion")
+      .where(col("batchid") === "1005" and col("userid") === "user004")
+      .collect()
+
+    assert(data2.head.getDouble(0) == 100)
+  }
 }
