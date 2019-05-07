@@ -25,7 +25,7 @@ class DeviceRegisterService extends Actor {
     def receive = {
       case RegisterDevice(did: String, ip: String, request: String, uaspec: Option[String]) => {
         try {
-          sender() ! registerDevice(did, ip, request, uaspec)
+          registerDevice(did, ip, request, uaspec)
         } catch {
           case e: Exception => {
             val errorMessage = "DeviceRegisterAPI failed due to " + e.getMessage
