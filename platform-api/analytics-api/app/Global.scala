@@ -9,9 +9,9 @@ object Global extends WithFilters(RequestInterceptor) {
 
     override def beforeStart(app: Application) {
         APILogger.init("org.ekstep.analytics-api")
-        Logger.info("Caching content")
-        val config: Config = play.Play.application.configuration.underlying()
-        //CacheUtil.initCache()(config)
+        // Logger.info("Caching content")
+        // val config: Config = play.Play.application.configuration.underlying()
+        // CacheUtil.initCache()(config)
         Logger.info("Application has started...")
     }
 
