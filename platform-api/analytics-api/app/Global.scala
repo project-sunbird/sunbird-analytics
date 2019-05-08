@@ -11,7 +11,7 @@ object Global extends WithFilters(RequestInterceptor) {
         APILogger.init("org.ekstep.analytics-api")
         Logger.info("Caching content")
         val config: Config = play.Play.application.configuration.underlying()
-        CacheUtil.initCache()(config)
+        //CacheUtil.initCache()(config)
         Logger.info("Application has started...")
     }
 
