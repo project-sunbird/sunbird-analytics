@@ -26,7 +26,7 @@ class DeviceController @Inject()(system: ActorSystem) extends BaseController {
     val ip = ipAddr.getOrElse("")
     val uaspec = request.headers.get("User-Agent")
 
-    // deviceRegisterServiceAPIActor.tell(RegisterDevice(deviceId, ip, body, uaspec), ActorRef.noSender)
+    deviceRegisterServiceAPIActor.tell(RegisterDevice(deviceId, ip, body, uaspec), ActorRef.noSender)
     Future {
       Ok(JSONUtils.serialize(CommonUtil.OK("analytics.device-register",
         Map("message" -> s"Device registered successfully"))))
