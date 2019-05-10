@@ -1,7 +1,6 @@
 package controllers
 
 import akka.actor.{ActorRef, ActorSystem, Props}
-import akka.routing.FromConfig
 import com.google.inject.Inject
 import org.ekstep.analytics.api.service.{DeviceRegisterService, RegisterDevice}
 import org.ekstep.analytics.api.util.{CommonUtil, JSONUtils}
@@ -12,7 +11,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class DeviceController @Inject()(system: ActorSystem) extends BaseController {
 
-  implicit val ec: ExecutionContext = system.dispatchers.lookup("device-register-dispatcher")
+  implicit val ec: ExecutionContext = system.dispatchers.lookup("device-register-controller")
   private val deviceRegisterServiceAPIActor = system.actorOf(Props[DeviceRegisterService])
 
   def registerDevice(deviceId: String) = Action.async { implicit request =>
@@ -27,6 +26,7 @@ class DeviceController @Inject()(system: ActorSystem) extends BaseController {
     val uaspec = request.headers.get("User-Agent")
 
     deviceRegisterServiceAPIActor.tell(RegisterDevice(deviceId, ip, body, uaspec), ActorRef.noSender)
+
     Future {
       Ok(JSONUtils.serialize(CommonUtil.OK("analytics.device-register",
         Map("message" -> s"Device registered successfully"))))
