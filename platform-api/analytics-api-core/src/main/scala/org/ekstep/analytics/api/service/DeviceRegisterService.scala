@@ -26,17 +26,17 @@ class DeviceRegisterService extends Actor {
     val defaultChannel: String = config.getString("default.channel")
 
     def receive = {
-      case RegisterDevice(did: String, ip: String, request: String, uaspec: Option[String]) =>
-        Future {
-          registerDevice(did, ip, request, uaspec)
-        }.recover {
-          case ex: Exception =>
-            val errorMessage = "DeviceRegisterAPI failed due to " + ex.getMessage
-            APILogger.log("", Option(Map("type" -> "api_access",
-              "params" -> List(Map("status" -> 500, "method" -> "POST",
-                "rid" -> "registerDevice", "title" -> "registerDevice")), "data" -> errorMessage)),
-              "registerDevice")
-        }
+        case RegisterDevice(did: String, ip: String, request: String, uaspec: Option[String]) =>
+            try {
+                registerDevice(did, ip, request, uaspec)
+            } catch {
+                case ex: Exception =>
+                    val errorMessage = "DeviceRegisterAPI failed due to " + ex.getMessage
+                    APILogger.log("", Option(Map("type" -> "api_access",
+                        "params" -> List(Map("status" -> 500, "method" -> "POST",
+                            "rid" -> "registerDevice", "title" -> "registerDevice")), "data" -> errorMessage)),
+                        "registerDevice")
+            }
     }
 
     def registerDevice(did: String, ipAddress: String, request: String, uaspec: Option[String]): String = {
