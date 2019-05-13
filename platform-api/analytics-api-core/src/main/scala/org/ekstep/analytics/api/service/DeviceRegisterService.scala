@@ -12,7 +12,7 @@ import com.datastax.driver.core.ResultSet
 import com.google.common.primitives.UnsignedInts
 import is.tagomor.woothee.Classifier
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 case class RegisterDevice(did: String, ip: String, request: String, uaspec: Option[String])
 
