@@ -11,10 +11,17 @@ import org.apache.http.client.methods.HttpPatch
 import org.ekstep.analytics.framework.Level._
 import org.apache.http.client.methods.HttpRequestBase
 
+
+trait HTTPClient {
+    def get[T](apiURL: String)(implicit mf: Manifest[T]): T
+    def post[T](apiURL: String, body: String, requestHeaders: Option[Map[String, String]] = None)(implicit mf: Manifest[T]): T
+    def patch[T](apiURL: String, body: String, headers: Option[Map[String,String]] = None)(implicit mf: Manifest[T]): T
+}
+
 /**
  * @author Santhosh
  */
-object RestUtil {
+object RestUtil extends HTTPClient{
 
     implicit val className = "org.ekstep.analytics.framework.util.RestUtil"
 
