@@ -6,7 +6,7 @@ import org.joda.time.DateTime
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.OneInstancePerTest
 
-class TestUpdateContentRating  extends SparkSpec(null) with MockFactory with OneInstancePerTest {
+class TestUpdateContentRating  extends SparkSpec(null) with MockFactory {
 
     "UpdateContentRating" should "get content list which are rated in given time" in {
 
