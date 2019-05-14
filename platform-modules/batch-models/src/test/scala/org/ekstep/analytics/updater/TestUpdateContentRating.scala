@@ -4,7 +4,6 @@ import org.ekstep.analytics.framework.util.{HTTPClient, JSONUtils}
 import org.ekstep.analytics.model.SparkSpec
 import org.joda.time.DateTime
 import org.scalamock.scalatest.MockFactory
-import org.scalatest.OneInstancePerTest
 
 class TestUpdateContentRating  extends SparkSpec(null) with MockFactory {
 
@@ -18,6 +17,19 @@ class TestUpdateContentRating  extends SparkSpec(null) with MockFactory {
           .returns(List(Map("ContentId" -> "test-1"), Map("ContentId" -> "test-2")))
 
         val contentIds = UpdateContentRating.getRatedContents(Map("startDate" -> startDate.asInstanceOf[AnyRef], "endDate" -> endDate.asInstanceOf[AnyRef]), mockRestUtil)
+        contentIds.size should be(2)
+    }
+
+    it should "alter end date for replay scenario" in {
+
+        val startDate = new DateTime().minusDays(1).toString("yyyy-MM-dd")
+        val endDate = new DateTime().toString("yyyy-MM-dd")
+        val mockRestUtil = mock[HTTPClient]
+        (mockRestUtil.post[List[Map[String, AnyRef]]](_: String, _: String, _: Option[Map[String, String]])(_: Manifest[List[Map[String, AnyRef]]]))
+          .expects("http://localhost:8082/druid/v2/sql/", "{\"query\":\"SELECT DISTINCT \\\"object_id\\\" AS \\\"Id\\\"\\nFROM \\\"druid\\\".\\\"%s\\\" WHERE \\\"eid\\\" = 'FEEDBACK' AND \\\"__time\\\" BETWEEN TIMESTAMP '%s' AND TIMESTAMP '%s' \"}".format("telemetry-events", new DateTime(startDate).withTimeAtStartOfDay().toString("yyyy-MM-dd HH:mm:ss"), new DateTime(endDate).withTimeAtStartOfDay().toString("yyyy-MM-dd HH:mm:ss")), None, manifest[List[Map[String, AnyRef]]])
+          .returns(List(Map("ContentId" -> "test-1"), Map("ContentId" -> "test-2")))
+
+        val contentIds = UpdateContentRating.getRatedContents(Map("startDate" -> startDate.asInstanceOf[AnyRef], "endDate" -> startDate.asInstanceOf[AnyRef]), mockRestUtil)
         contentIds.size should be(2)
     }
 
