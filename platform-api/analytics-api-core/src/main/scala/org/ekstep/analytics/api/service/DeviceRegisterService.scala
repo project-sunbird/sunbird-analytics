@@ -11,11 +11,14 @@ import com.typesafe.config.ConfigFactory
 import com.datastax.driver.core.ResultSet
 import com.google.common.primitives.UnsignedInts
 import is.tagomor.woothee.Classifier
-import org.ekstep.analytics.framework.util.JobLogger
+
+import scala.concurrent.ExecutionContext
 
 case class RegisterDevice(did: String, ip: String, request: String, uaspec: Option[String])
 
 class DeviceRegisterService extends Actor {
+
+    implicit val ec: ExecutionContext = context.system.dispatchers.lookup("device-register-actor")
     implicit val className: String ="DeviceRegisterService"
     val config: Config = ConfigFactory.load()
     val geoLocationCityTableName: String = config.getString("postgres.table.geo_location_city.name")
@@ -23,16 +26,17 @@ class DeviceRegisterService extends Actor {
     val defaultChannel: String = config.getString("default.channel")
 
     def receive = {
-      case RegisterDevice(did: String, ip: String, request: String, uaspec: Option[String]) => {
-        try {
-          sender() ! registerDevice(did, ip, request, uaspec)
-        } catch {
-          case e: Exception => {
-            val errorMessage = "DeviceRegisterAPI failed due to " + e.getMessage
-            APILogger.log("", Option(Map("type" -> "api_access", "params" -> List(Map("status" -> 500, "method" -> "POST", "rid" -> "registerDevice", "title" -> "registerDevice")), "data" -> errorMessage)), "registerDevice")
-          }
-        }
-      }
+        case RegisterDevice(did: String, ip: String, request: String, uaspec: Option[String]) =>
+            try {
+                registerDevice(did, ip, request, uaspec)
+            } catch {
+                case ex: Exception =>
+                    val errorMessage = "DeviceRegisterAPI failed due to " + ex.getMessage
+                    APILogger.log("", Option(Map("type" -> "api_access",
+                        "params" -> List(Map("status" -> 500, "method" -> "POST",
+                            "rid" -> "registerDevice", "title" -> "registerDevice")), "data" -> errorMessage)),
+                        "registerDevice")
+            }
     }
 
     def registerDevice(did: String, ipAddress: String, request: String, uaspec: Option[String]): String = {

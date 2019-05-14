@@ -26,7 +26,7 @@ object RequestInterceptor extends Filter {
             val key = play.api.routing.Router.Tags.RouteActionMethod
             val apiName = if (request.tags.isDefinedAt(key)) request.tags(play.api.routing.Router.Tags.RouteActionMethod) else ""
             val queryParamsData = List(request.queryString.map { case (k, v) => k -> v.mkString })
-            val paramsData =  Map("status" -> result.header.status, "rid" -> apiName, "uip" -> request.remoteAddress, "title" -> apiName, "duration" -> requestTime, "protocol" -> "", "method" -> request.method,"category" -> "", "size" -> "") :: queryParamsData
+            val paramsData =  Map("status" -> result.header.status, "rid" -> apiName, "title" -> apiName, "duration" -> requestTime, "protocol" -> "", "method" -> request.method,"category" -> "", "size" -> "") :: queryParamsData
             APILogger.log("ekstep.analytics-api", Option(Map("type" -> "api_access", "value" -> 0, "params" -> paramsData)), apiName)
             result.withHeaders("Request-Time" -> requestTime.toString)
         }

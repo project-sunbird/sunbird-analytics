@@ -33,12 +33,14 @@ import org.ekstep.analytics.api.service.RecommendationAPIService.Creation
 
 @Singleton
 class Application @Inject() (system: ActorSystem) extends BaseController {
+
 	implicit override val className = "controllers.Application"
 	val recommendAPIActor = system.actorOf(Props[RecommendationAPIService].withRouter(FromConfig()), name = "recommendAPIActor")
 	val healthCheckAPIActor = system.actorOf(Props[HealthCheckAPIService].withRouter(FromConfig()), name = "healthCheckAPIActor")
 	val tagServiceAPIActor = system.actorOf(Props[TagService].withRouter(FromConfig()), name = "tagServiceAPIActor")
-	val deviceRegisterServiceAPIActor = system.actorOf(Props[DeviceRegisterService].withRouter(FromConfig()),
-		name = "deviceRegisterServiceAPIActor")
+
+	/*val deviceRegisterServiceAPIActor = system.actorOf(Props[DeviceRegisterService].withRouter(FromConfig()),
+		name = "deviceRegisterServiceAPIActor")*/
 
 	def checkAPIhealth() = Action.async { implicit request =>
     val result = ask(healthCheckAPIActor, GetHealthStatus).mapTo[String]
@@ -92,6 +94,7 @@ class Application @Inject() (system: ActorSystem) extends BaseController {
     }
 	}
 
+	/*
   def registerDevice(deviceId: String) = Action.async { implicit request =>
     val body: String = Json.stringify(request.body.asJson.get)
     // The X-Forwarded-For header from Azure is in the format '61.12.65.222:33740, 61.12.65.222'
@@ -103,11 +106,12 @@ class Application @Inject() (system: ActorSystem) extends BaseController {
     val ip = ipAddr.getOrElse("")
     val uaspec = request.headers.get("User-Agent")
 
-    deviceRegisterServiceAPIActor.tell(RegisterDevice(deviceId, ip, body, uaspec), ActorRef.noSender)
+		deviceRegisterServiceAPIActor.tell(RegisterDevice(deviceId, ip, body, uaspec), ActorRef.noSender)
     Future {
       Ok(JSONUtils.serialize(CommonUtil.OK("analytics.device-register",
         Map("message" -> s"Device registered successfully"))))
         .withHeaders(CONTENT_TYPE -> "application/json")
     }
   }
+  */
 }
