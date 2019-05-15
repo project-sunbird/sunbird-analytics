@@ -81,7 +81,7 @@ object RestUtil extends HTTPClient{
         val request = new HttpPatch(apiURL);
         request.addHeader("user-id", "analytics");
         request.addHeader("Content-Type", "application/json");
-        headers.getOrElse(Map).asInstanceOf[Map[String,String]].map { header =>
+        headers.getOrElse(Map()).foreach { header =>
             request.addHeader(header._1, header._2)
         }
         request.setEntity(new StringEntity(body));
