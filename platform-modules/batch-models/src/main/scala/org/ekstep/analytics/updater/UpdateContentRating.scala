@@ -1,14 +1,16 @@
 package org.ekstep.analytics.updater
 
+import java.io.Serializable
+
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.conf.AppConf
 import org.joda.time.DateTime
-import org.ekstep.analytics.framework.util.{HTTPClient, JobLogger, RestUtil}
+import org.ekstep.analytics.framework.util.{HTTPClient, JSONUtils, JobLogger, RestUtil}
 
 case class ContentRatingResult(contentId: String, averageRating: Double) extends AlgoOutput with Output
-case class Response(id: String, ver: String, ts: String, params: Params, responseCode: String, result: Map[String, String])
+case class Response(id: String, ver: String, ts: String, params: Params, responseCode: String, result: Map[String, AnyRef])
 
 object UpdateContentRating  extends IBatchModelTemplate[Empty, Empty, ContentRatingResult, ContentRatingResult] with Serializable {
 
@@ -33,7 +35,8 @@ object UpdateContentRating  extends IBatchModelTemplate[Empty, Empty, ContentRat
       if (data.count() > 0) {
           data.foreach { f =>
               val response = publishRatingToContentModel(f.contentId, f.averageRating, baseURL, RestUtil)
-              JobLogger.log("System Update API request for " + f.contentId + " is " + response.params.status.getOrElse(""), None, Level.INFO)
+              val msg = response.result.getOrElse("messages", List()).asInstanceOf[List[String]].mkString(",")
+              JobLogger.log("System Update API request for " + f.contentId + " is " + response.params.status.getOrElse(""), Option(Map("error" -> response.params.errmsg.getOrElse(""), "error_msg" -> msg)), Level.INFO)
           }
       }
       data
@@ -68,6 +71,7 @@ object UpdateContentRating  extends IBatchModelTemplate[Empty, Empty, ContentRat
              |  }
              |}
                """.stripMargin
-      restUtil.post[Response](systemUpdateURL, request)
+      val response = restUtil.patch[String](systemUpdateURL, request)
+      JSONUtils.deserialize[Response](response)
   }
 }
