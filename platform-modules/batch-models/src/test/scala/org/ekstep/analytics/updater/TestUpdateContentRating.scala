@@ -83,14 +83,65 @@ class TestUpdateContentRating  extends SparkSpec(null) with MockFactory {
              |}
            """.stripMargin
 
-        (mockRestUtil.patch[Response](_: String, _: String, _: Option[Map[String, String]])(_: Manifest[Response]))
-            .expects(systemUpdateURL, request, None, manifest[Response])
-            .returns(JSONUtils.deserialize[Response](mockResponse))
+        (mockRestUtil.patch[String](_: String, _: String, _: Option[Map[String, String]])(_: Manifest[String]))
+            .expects(systemUpdateURL, request, None, manifest[String])
+            .returns(mockResponse)
 
         val response = UpdateContentRating.publishRatingToContentModel("test-1", 5.0, "http://localhost:8080/learning-service/system/v3/content/update", mockRestUtil)
         println(response)
         response.params.status.getOrElse("") should be("successful")
         response.result.getOrElse("node_id", "") should be("test-1")
+
+    }
+
+    ignore should "check for system update API call failure" in {
+
+        val mockRestUtil = mock[HTTPClient]
+        val systemUpdateURL = "http://localhost:8080/learning-service/system/v3/content/update/test-1"
+        val request =
+            s"""
+               |{
+               |  "request": {
+               |    "content": {
+               |      "me_averageRating": 5.0
+               |    }
+               |  }
+               |}
+             """.stripMargin
+        val mockResponse =
+            s"""
+               |{
+               |    "id": "ekstep.learning.system.content.update",
+               |    "ver": "1.0",
+               |    "ts": "2019-05-14T14:43:36ZZ",
+               |    "params": {
+               |        "resmsgid": "c5369a14-eb6e-4eb0-9288-d4cb272d59b9",
+               |        "msgid": null,
+               |        "err": "ERR_GRAPH_UPDATE_NODE_VALIDATION_FAILED",
+               |        "status": "failed",
+               |        "errmsg": "Node Metadata validation failed"
+               |    },
+               |    "responseCode": "CLIENT_ERROR",
+               |    "result": {
+               |        "messages": [
+               |            "Please provide framework.",
+               |            "Metadata contentType should be one of: [Resource, Collection, TextBook, LessonPlan, Course, Template, Asset, Plugin, LessonPlanUnit, CourseUnit, TextBookUnit, TeachingMethod, PedagogyFlow]",
+               |            "Metadata resourceType should be one of: [Read, Learn, Teach, Play, Test, Practice, Experiment, Collection, Book, Lesson Plan, Course, Theory, Worksheet, Practical]"
+               |        ],
+               |        "node_id": "org.ekstep.jun16.story.test05"
+               |    }
+               |}
+           """.stripMargin
+
+
+        (mockRestUtil.patch[String](_: String, _: String, _: Option[Map[String, String]])( _: Manifest[String]))
+          .expects(systemUpdateURL, request, None, manifest[String])
+          .returns(mockResponse)
+
+        val response = UpdateContentRating.publishRatingToContentModel("test-1", 5.0, "http://localhost:8080/learning-service/system/v3/content/update", mockRestUtil)
+        println(response)
+        response.params.status.getOrElse("") should be("failed")
+        response.result.getOrElse("node_id", "") should be("org.ekstep.jun16.story.test05")
 
     }
 
