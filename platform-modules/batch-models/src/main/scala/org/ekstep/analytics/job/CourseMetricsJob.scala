@@ -131,9 +131,19 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     /*
     * userDenormDF lacks organisation details, here we are mapping each users to get the organisationids
     * */
-    val userOrgDenormDF = userDenormDF
-      .join(userOrgDF, userOrgDF.col("userid") === userDenormDF.col("userid"), "inner")
+    val userRootOrgDF = userDenormDF
+      .join(userOrgDF, userOrgDF.col("userid") === userDenormDF.col("userid") && userOrgDF.col("organisationid") === userDenormDF.col("rootorgid"))
       .select(userDenormDF.col("*"), col("organisationid"))
+
+    val userSubOrgDF = userDenormDF
+      .join(userOrgDF, userOrgDF.col("userid") === userDenormDF.col("userid") && userOrgDF.col("organisationid") =!= userDenormDF.col("rootorgid"))
+      .select(userDenormDF.col("*"), col("organisationid"))
+
+    val rootOnlyOrgDF = userRootOrgDF
+      .join(userSubOrgDF, Seq("userid"), "leftanti")
+      .select(userRootOrgDF.col("*"))
+
+    val userOrgDenormDF = rootOnlyOrgDF.union(userSubOrgDF)
 
     val locationDenormDF = userOrgDenormDF
       .withColumn("exploded_location", explode(col("locationids")))
