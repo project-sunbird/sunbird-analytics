@@ -38,12 +38,8 @@ object EventsReplayJob extends optional.Application with IJob {
   def process(jobConfig: JobConfig)(implicit sc: Option[SparkContext]): Long = {
 
     implicit val sparkContext = getSparkContext(jobConfig)(sc)
-    try {
-      val data = getInputData(jobConfig)
-      dispatchData(jobConfig, data)
-    } finally {
-      CommonUtil.closeSparkContext()(sparkContext)
-    }
+    val data = getInputData(jobConfig)
+    dispatchData(jobConfig, data)
   }
 
 }
