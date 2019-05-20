@@ -31,12 +31,16 @@ object APILogger {
 	}
 
 	
-	private def logger(): Logger = {
-		LogManager.getLogger("org.ekstep.analytics.api");
+	private def logger(name: String): Logger = {
+		LogManager.getLogger(name);
 	}
 
-	def log(msg: String, data: Option[AnyRef] = None, apiName:String="AnalyticsAPI")(implicit className: String) {
-		logger.info(JSONUtils.serialize(getAccessMeasuredEvent("LOG", "INFO", msg, data, None, apiName)));
+	def log(msg: String, data: Option[AnyRef] = None, apiName:String="AnalyticsAPI", name: String = "org.ekstep.analytics.api")(implicit className: String) {
+		logger(name).info(JSONUtils.serialize(getAccessMeasuredEvent("LOG", "INFO", msg, data, None, apiName)));
+	}
+
+	def logMetrics(metricsData: Option[AnyRef] = None, name: String = "org.ekstep.analytics.api.metrics")(implicit className: String) {
+		logger(name).info(JSONUtils.serialize(metricsData));
 	}
 
 	private def getAccessMeasuredEvent(eid: String, level: String, msg: String, data: Option[AnyRef], status: Option[String] = None, apiName:String="AnalyticsAPI")(implicit className: String): V3Event = {
