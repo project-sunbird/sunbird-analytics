@@ -25,13 +25,13 @@ object APIMetrics {
         errorCount = 0
     }
 
-    def updateMetrics(): Unit = {
+    def updateMetrics(interval: Int): Unit = {
         val currentTime = System.currentTimeMillis()
         if(lastSyncTime == 0L ) {
             writeMetricsToLog();
             lastSyncTime = currentTime
         }
-        else if(currentTime - lastSyncTime >= (1*60*1000) ) {
+        else if(currentTime - lastSyncTime >= (interval*60*1000) ) {
             writeMetricsToLog();
             lastSyncTime = currentTime
         }

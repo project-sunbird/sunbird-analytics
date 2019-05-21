@@ -22,6 +22,7 @@ class DeviceRegisterService extends Actor {
     val config: Config = ConfigFactory.load()
     val geoLocationCityTableName: String = config.getString("postgres.table.geo_location_city.name")
     val geoLocationCityIpv4TableName: String = config.getString("postgres.table.geo_location_city_ipv4.name")
+    val metricsTimeInterval: Int = config.getInt("metrics.time.interval")
 
     def receive = {
         case RegisterDevice(did: String, ip: String, request: String, uaspec: Option[String]) =>
@@ -35,7 +36,7 @@ class DeviceRegisterService extends Actor {
                         "params" -> List(Map("status" -> 500, "method" -> "POST",
                             "rid" -> "registerDevice", "title" -> "registerDevice")), "data" -> errorMessage)),
                         "registerDevice")
-                    APIMetrics.updateMetrics()
+                    APIMetrics.updateMetrics(metricsTimeInterval)
             }
     }
 
@@ -68,7 +69,7 @@ class DeviceRegisterService extends Actor {
                 uaspec.map(_.trim).filterNot(_.isEmpty)
             )
         }
-        APIMetrics.updateMetrics()
+        APIMetrics.updateMetrics(metricsTimeInterval)
         JSONUtils.serialize(CommonUtil.OK("analytics.device-register",
             Map("message" -> s"Device registered successfully")))
     }
