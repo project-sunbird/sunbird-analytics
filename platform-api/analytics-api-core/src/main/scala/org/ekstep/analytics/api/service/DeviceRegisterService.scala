@@ -48,11 +48,14 @@ class DeviceRegisterService extends Actor {
             val location = resolveLocation(validIp)
 
             // logging metrics
-            APILogger.log("", Option(Map("comments" -> s"$did resolved to state: ${location.state} city: ${location.city}")), "registerDevice")
-            if(isLocationResolved(location))
+            if(isLocationResolved(location)) {
+                APILogger.log("", Option(Map("comments" -> s"Location resolved for $did to state: ${location.state} and city: ${location.city}")), "registerDevice")
                 APIMetrics.incrementSuccessCount()
-            else
+            }
+            else {
+                APILogger.log("", Option(Map("comments" -> s"Location is not resolved for $did")), "registerDevice")
                 APIMetrics.incrementFailureCount()
+            }
 
             val deviceSpec = body.request.dspec
             val data = updateDeviceProfile(
@@ -100,7 +103,7 @@ class DeviceRegisterService extends Actor {
     }
 
     def isLocationResolved(loc: DeviceLocation): Boolean = {
-        (loc.state.nonEmpty && loc.city.nonEmpty)
+        loc.state.nonEmpty
     }
 
     def parseUserAgent(uaspec: Option[String]): Option[String] = {

@@ -38,11 +38,10 @@ object APIMetrics {
         else {}
     }
 
-    def writeMetricsToLog(jobName: String): Unit = {
-
+    def writeMetricsToLog(jobName: String) = synchronized {
         val data = Map("job-name" -> jobName, "api-version" -> "v1", "timestamp" -> System.currentTimeMillis(), "success-count" -> successCount, "failure-count" -> failureCount, "error-count" -> errorCount)
         APILogger.logMetrics(Option(data));
-      // reset counts
+        // reset counts
         resetCounts()
     }
 
