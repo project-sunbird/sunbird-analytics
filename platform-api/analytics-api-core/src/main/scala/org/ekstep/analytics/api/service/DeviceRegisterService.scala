@@ -22,7 +22,7 @@ class DeviceRegisterService extends Actor {
     val config: Config = ConfigFactory.load()
     val geoLocationCityTableName: String = config.getString("postgres.table.geo_location_city.name")
     val geoLocationCityIpv4TableName: String = config.getString("postgres.table.geo_location_city_ipv4.name")
-    val metricsTimeInterval: Int = config.getInt("metrics.time.interval")
+    val metricsTimeInterval: Int = config.getInt("metrics.time.interval.min")
 
     def receive = {
         case RegisterDevice(did: String, ip: String, request: String, uaspec: Option[String]) =>
