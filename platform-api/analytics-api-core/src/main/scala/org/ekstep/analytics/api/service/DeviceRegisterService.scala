@@ -36,7 +36,7 @@ class DeviceRegisterService extends Actor {
                         "params" -> List(Map("status" -> 500, "method" -> "POST",
                             "rid" -> "registerDevice", "title" -> "registerDevice")), "data" -> errorMessage)),
                         "registerDevice")
-                    APIMetrics.updateMetrics(metricsTimeInterval)
+                    APIMetrics.updateMetrics(metricsTimeInterval, className)
             }
     }
 
@@ -69,7 +69,7 @@ class DeviceRegisterService extends Actor {
                 uaspec.map(_.trim).filterNot(_.isEmpty)
             )
         }
-        APIMetrics.updateMetrics(metricsTimeInterval)
+        APIMetrics.updateMetrics(metricsTimeInterval, className)
         JSONUtils.serialize(CommonUtil.OK("analytics.device-register",
             Map("message" -> s"Device registered successfully")))
     }

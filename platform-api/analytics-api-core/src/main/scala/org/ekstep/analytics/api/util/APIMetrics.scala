@@ -1,7 +1,7 @@
 package org.ekstep.analytics.api.util
 
 object APIMetrics {
-    implicit val className: String ="DeviceRegisterMetrics"
+    implicit val className: String ="APIMetrics"
     var successCount: Int = 0
     var failureCount: Int = 0
     var errorCount: Int = 0
@@ -25,22 +25,22 @@ object APIMetrics {
         errorCount = 0
     }
 
-    def updateMetrics(interval: Int): Unit = {
+    def updateMetrics(interval: Int, jobName: String): Unit = {
         val currentTime = System.currentTimeMillis()
         if(lastSyncTime == 0L ) {
-            writeMetricsToLog();
+            writeMetricsToLog(jobName);
             lastSyncTime = currentTime
         }
         else if(currentTime - lastSyncTime >= (interval*60*1000) ) {
-            writeMetricsToLog();
+            writeMetricsToLog(jobName);
             lastSyncTime = currentTime
         }
         else {}
     }
 
-    def writeMetricsToLog(): Unit = {
+    def writeMetricsToLog(jobName: String): Unit = {
 
-        val data = Map("name" -> className, "api-version" -> "v1", "timestamp" -> System.currentTimeMillis(), "success-count" -> successCount, "failure-count" -> failureCount, "error-count" -> errorCount)
+        val data = Map("job-name" -> jobName, "api-version" -> "v1", "timestamp" -> System.currentTimeMillis(), "success-count" -> successCount, "failure-count" -> failureCount, "error-count" -> errorCount)
         APILogger.logMetrics(Option(data));
       // reset counts
         resetCounts()
