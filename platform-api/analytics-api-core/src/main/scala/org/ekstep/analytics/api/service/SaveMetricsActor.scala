@@ -46,7 +46,6 @@ class SaveMetricsActor extends Actor {
     case IncrementDeviceDbSaveSuccessCount => deviceDbSaveSuccessCount += 1
     case IncrementDeviceDbSaveErrorCount => deviceDbSaveErrorCount += 1
     case SaveMetrics => writeMetricsToLog()
-
   }
 
   def resetCounts() = {
@@ -61,9 +60,9 @@ class SaveMetricsActor extends Actor {
 
   def writeMetricsToLog() = {
     val data = Map("job-name" -> "DeviceRegisterAPI", "api-version" -> "v1", "timestamp" -> System.currentTimeMillis(),
-      "api-calls" -> apiCalls, "db-hit-count" -> locationDbHitCount, "db-success-count" -> locationDbSuccessCount,
-      "db-miss-count" -> locationDbMissCount, "db-error-count" -> locationDbErrorCount,
-      "db-save-success-count" -> deviceDbSaveSuccessCount, "db-save-error-count" -> deviceDbSaveErrorCount)
+      "api-calls" -> apiCalls, "location-db-hit-count" -> locationDbHitCount, "location-db-success-count" -> locationDbSuccessCount,
+      "location-db-miss-count" -> locationDbMissCount, "location-db-error-count" -> locationDbErrorCount,
+      "device-db-save-success-count" -> deviceDbSaveSuccessCount, "device-db-save-error-count" -> deviceDbSaveErrorCount)
     logger.info(JSONUtils.serialize(data))
     resetCounts()
   }
