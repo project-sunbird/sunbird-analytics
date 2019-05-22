@@ -2,6 +2,7 @@ package controllers
 
 import akka.actor.{ActorRef, ActorSystem, Props}
 import com.google.inject.Inject
+import javax.inject.Named
 import org.ekstep.analytics.api.service.{DeviceRegisterService, RegisterDevice}
 import org.ekstep.analytics.api.util.{CommonUtil, JSONUtils}
 import play.api.libs.json.Json
@@ -9,10 +10,10 @@ import play.api.mvc.Action
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class DeviceController @Inject()(system: ActorSystem) extends BaseController {
+class DeviceController @Inject()(system: ActorSystem, @Named("save-metrics-actor") metricsActor: ActorRef) extends BaseController {
 
   implicit val ec: ExecutionContext = system.dispatchers.lookup("device-register-controller")
-  private val deviceRegisterServiceAPIActor = system.actorOf(Props[DeviceRegisterService])
+  private val deviceRegisterServiceAPIActor = system.actorOf(Props(new DeviceRegisterService(metricsActor)))
 
   def registerDevice(deviceId: String) = Action.async { implicit request =>
     val body: String = Json.stringify(request.body.asJson.get)

@@ -4,34 +4,47 @@ import org.ekstep.analytics.api.util._
 import org.ekstep.analytics.api._
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
-import akka.actor.Actor
+import akka.actor.{Actor, ActorRef}
 import com.google.common.net.InetAddresses
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import com.datastax.driver.core.ResultSet
+import com.datastax.driver.core.exceptions.DriverException
 import com.google.common.primitives.UnsignedInts
 import is.tagomor.woothee.Classifier
+import org.postgresql.util.PSQLException
 
 import scala.concurrent.ExecutionContext
 
 case class RegisterDevice(did: String, ip: String, request: String, uaspec: Option[String])
 
-class DeviceRegisterService extends Actor {
+class DeviceRegisterService(saveMetricsActor: ActorRef) extends Actor {
 
     implicit val ec: ExecutionContext = context.system.dispatchers.lookup("device-register-actor")
     implicit val className: String ="DeviceRegisterService"
     val config: Config = ConfigFactory.load()
     val geoLocationCityTableName: String = config.getString("postgres.table.geo_location_city.name")
     val geoLocationCityIpv4TableName: String = config.getString("postgres.table.geo_location_city_ipv4.name")
-    val defaultChannel: String = config.getString("default.channel")
+    val metricsActor: ActorRef = saveMetricsActor //context.system.actorOf(Props[SaveMetricsActor])
 
     def receive = {
         case RegisterDevice(did: String, ip: String, request: String, uaspec: Option[String]) =>
             try {
+                metricsActor.tell(IncrementApiCalls, ActorRef.noSender)
                 registerDevice(did, ip, request, uaspec)
             } catch {
-                case ex: Exception =>
+                case ex: PSQLException =>
+                    ex.printStackTrace()
                     val errorMessage = "DeviceRegisterAPI failed due to " + ex.getMessage
+                    metricsActor.tell(IncrementLocationDbErrorCount, ActorRef.noSender)
+                    APILogger.log("", Option(Map("type" -> "api_access",
+                        "params" -> List(Map("status" -> 500, "method" -> "POST",
+                            "rid" -> "registerDevice", "title" -> "registerDevice")), "data" -> errorMessage)),
+                        "registerDevice")
+                case ex: DriverException =>
+                    ex.printStackTrace()
+                    val errorMessage = "DeviceRegisterAPI failed due to " + ex.getMessage
+                    metricsActor.tell(IncrementDeviceDbSaveErrorCount, ActorRef.noSender)
                     APILogger.log("", Option(Map("type" -> "api_access",
                         "params" -> List(Map("status" -> 500, "method" -> "POST",
                             "rid" -> "registerDevice", "title" -> "registerDevice")), "data" -> errorMessage)),
@@ -45,12 +58,20 @@ class DeviceRegisterService extends Actor {
         println(s"did: $did | device_spec: ${body.request.dspec} | uaspec: ${uaspec.getOrElse("")}")
         if (validIp.nonEmpty) {
             val location = resolveLocation(validIp)
-            println(s"Resolved Location for device_id $did: $location")
-            val channel = body.request.channel.getOrElse(defaultChannel)
+
+            // logging metrics
+            if(isLocationResolved(location)) {
+                APILogger.log("", Option(Map("comments" -> s"Location resolved for $did to state: ${location.state} and city: ${location.city}")), "registerDevice")
+                metricsActor.tell(IncrementLocationDbSuccessCount, ActorRef.noSender)
+            }
+            else {
+                APILogger.log("", Option(Map("comments" -> s"Location is not resolved for $did")), "registerDevice")
+                metricsActor.tell(IncrementLocationDbMissCount, ActorRef.noSender)
+            }
+
             val deviceSpec = body.request.dspec
-            val data = updateDeviceProfile(
+            updateDeviceProfile(
                 did,
-                channel,
                 Option(location.countryCode).map(_.trim).filterNot(_.isEmpty),
                 Option(location.countryName).map(_.trim).filterNot(_.isEmpty),
                 Option(location.stateCode).map(_.trim).filterNot(_.isEmpty),
@@ -63,9 +84,10 @@ class DeviceRegisterService extends Actor {
                 uaspec.map(_.trim).filterNot(_.isEmpty)
             )
         }
+
+        metricsActor.tell(IncrementDeviceDbSaveSuccessCount, ActorRef.noSender)
         JSONUtils.serialize(CommonUtil.OK("analytics.device-register",
             Map("message" -> s"Device registered successfully")))
-
     }
 
     def resolveLocation(ipAddress: String): DeviceLocation = {
@@ -90,7 +112,13 @@ class DeviceRegisterService extends Actor {
                |  AND gip.network_start_integer <= $ipAddressInt
                |  AND gip.network_last_integer >= $ipAddressInt
                """.stripMargin
+
+        metricsActor.tell(IncrementLocationDbHitCount, ActorRef.noSender)
         PostgresDBUtil.readLocation(query).headOption.getOrElse(new DeviceLocation())
+    }
+
+    def isLocationResolved(loc: DeviceLocation): Boolean = {
+        loc.state.nonEmpty
     }
 
     def parseUserAgent(uaspec: Option[String]): Option[String] = {
@@ -104,13 +132,13 @@ class DeviceRegisterService extends Actor {
         }
     }
 
-    def updateDeviceProfile(did: String, channel: String, countryCode: Option[String], country: Option[String],
+    def updateDeviceProfile(did: String, countryCode: Option[String], country: Option[String],
                             stateCode: Option[String], state: Option[String], city: Option[String],
                             stateCustom: Option[String], stateCodeCustom: Option[String], districtCustom: Option[String],
                             deviceSpec: Option[Map[String, AnyRef]], uaspec: Option[String]): ResultSet = {
 
         val uaspecStr = parseUserAgent(uaspec)
-        val queryMap: Map[String, Any] = Map("device_id" -> s"'$did'", "channel" -> s"'$channel'",
+        val queryMap: Map[String, Any] = Map("device_id" -> s"'$did'",
             "country_code" -> s"'${countryCode.getOrElse("")}'", "country" -> s"'${country.getOrElse("")}'",
             "state_code" -> s"'${stateCode.getOrElse("")}'", "state" -> s"'${state.getOrElse("")}'", "city" -> s"'${city.getOrElse("")}'",
             "state_custom" -> s"'${stateCustom.getOrElse("")}'","state_code_custom" -> s"'${stateCodeCustom.getOrElse("")}'",
