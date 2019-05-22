@@ -1,48 +1,63 @@
 package org.ekstep.analytics.api.util
 
 object APIMetrics {
+
     implicit val className: String ="APIMetrics"
-    var successCount: Int = 0
-    var failureCount: Int = 0
-    var errorCount: Int = 0
+
     var lastSyncTime = 0L
 
-    def incrementSuccessCount(): Unit = {
-        successCount += 1
-    }
+    var apiCalls: Int = 0
+    var dbHitCount: Int = 0
+    var dbSuccessCount: Int = 0
+    var dbMissCount: Int = 0
+    var dbErrorCount: Int = 0
+    var dbSaveSuccessCount: Int = 0
+    var dbSaveErrorCount: Int = 0
 
-    def incrementFailureCount(): Unit = {
-        failureCount += 1
+    def incrementAPICalls(): Unit = {
+        apiCalls += 1
     }
-
-    def incrementErrorCount(): Unit = {
-        errorCount += 1
+    def incrementDBHitCount(): Unit = {
+        dbHitCount += 1
+    }
+    def incrementDBSuccessCount(): Unit = {
+        dbSuccessCount += 1
+    }
+    def incrementDBMissCount(): Unit = {
+        dbMissCount += 1
+    }
+    def incrementDBErrorCount(): Unit = {
+        dbErrorCount += 1
+    }
+    def incrementDBSaveSuccessCount(): Unit = {
+        dbSaveSuccessCount += 1
+    }
+    def incrementDBSaveErrorCount(): Unit = {
+        dbSaveErrorCount += 1
     }
 
     def resetCounts(): Unit ={
-        successCount = 0
-        failureCount = 0
-        errorCount = 0
+        apiCalls = 0
+        dbHitCount = 0
+        dbSuccessCount = 0
+        dbMissCount = 0
+        dbErrorCount = 0
+        dbSaveSuccessCount = 0
+        dbSaveErrorCount = 0
+
     }
 
-    def updateMetrics(interval: Int, jobName: String): Unit = {
+    def writeMetrics(interval: Int, jobName: String): Boolean = {
         val currentTime = System.currentTimeMillis()
         if(lastSyncTime == 0L ) {
-            writeMetricsToLog(jobName);
             lastSyncTime = currentTime
+            true
         }
         else if(currentTime - lastSyncTime >= (interval*60*1000) ) {
-            writeMetricsToLog(jobName);
             lastSyncTime = currentTime
+            true
         }
-        else {}
+        else false
     }
-
-    def writeMetricsToLog(jobName: String) = synchronized {
-        val data = Map("job-name" -> jobName, "api-version" -> "v1", "timestamp" -> System.currentTimeMillis(), "success-count" -> successCount, "failure-count" -> failureCount, "error-count" -> errorCount)
-        APILogger.logMetrics(Option(data));
-        // reset counts
-        resetCounts()
-    }
-
 }
+
