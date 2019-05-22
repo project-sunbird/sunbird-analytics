@@ -44,7 +44,7 @@
 		<Logger name="org.ekstep.analytics.api" level="info" additivity="false">
 			<AppenderRef ref="Async"/>
 		</Logger>
-		<Logger name="org.ekstep.analytics.api.metrics" level="debug" additivity="false">
+		<Logger name="metrics-logger" level="debug" additivity="false">
 			<AppenderRef ref="Metrics-RollingFileAppender"/>
 		</Logger>
 		<Root level="error">

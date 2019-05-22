@@ -1,12 +1,15 @@
 package org.ekstep.analytics.api.service
 
 import akka.actor.Actor
-import org.ekstep.analytics.api.util.APILogger
+import org.apache.logging.log4j.LogManager
 import org.ekstep.analytics.api.util.APIMetrics._
+import org.ekstep.analytics.api.util.JSONUtils
 
 case class SaveMetrics(jobName: String)
 
 class SaveMetricsActor extends Actor {
+
+  private val logger = LogManager.getLogger("metrics-logger")
 
   def receive = {
     case SaveMetrics(jobName: String) => {
@@ -15,7 +18,7 @@ class SaveMetricsActor extends Actor {
         "api-calls" -> apiCalls, "db-hit-count" -> dbHitCount, "db-success-count" -> dbSuccessCount,
         "db-miss-count" -> dbMissCount, "db-error-count" -> dbErrorCount, "db-save-success-count" -> dbSaveSuccessCount,
         "db-save-error-count" -> dbSaveErrorCount)
-      APILogger.logMetrics(Option(data));
+      logger.info(JSONUtils.serialize(data))
       // reset counts
       resetCounts()
     }
