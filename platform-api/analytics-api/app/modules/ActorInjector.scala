@@ -1,8 +1,6 @@
 package modules
 
-import akka.actor.ActorRef
 import com.google.inject.AbstractModule
-import com.google.inject.name.Names
 import org.ekstep.analytics.api.service.SaveMetricsActor
 import play.api.libs.concurrent.AkkaGuiceSupport
 

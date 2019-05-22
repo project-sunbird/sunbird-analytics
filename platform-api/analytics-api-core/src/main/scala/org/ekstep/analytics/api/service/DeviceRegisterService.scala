@@ -4,7 +4,7 @@ import org.ekstep.analytics.api.util._
 import org.ekstep.analytics.api._
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
-import akka.actor.{Actor, ActorRef, Props}
+import akka.actor.{Actor, ActorRef}
 import com.google.common.net.InetAddresses
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
@@ -25,35 +25,30 @@ class DeviceRegisterService(saveMetricsActor: ActorRef) extends Actor {
     val config: Config = ConfigFactory.load()
     val geoLocationCityTableName: String = config.getString("postgres.table.geo_location_city.name")
     val geoLocationCityIpv4TableName: String = config.getString("postgres.table.geo_location_city_ipv4.name")
-    val metricsTimeInterval: Int = config.getInt("metrics.time.interval.min")
-    val metricsActor = saveMetricsActor //context.system.actorOf(Props[SaveMetricsActor])
+    val metricsActor: ActorRef = saveMetricsActor //context.system.actorOf(Props[SaveMetricsActor])
 
     def receive = {
         case RegisterDevice(did: String, ip: String, request: String, uaspec: Option[String]) =>
             try {
-                APIMetrics.incrementAPICalls()
+                metricsActor.tell(IncrementApiCalls, ActorRef.noSender)
                 registerDevice(did, ip, request, uaspec)
             } catch {
                 case ex: PSQLException =>
                     ex.printStackTrace()
                     val errorMessage = "DeviceRegisterAPI failed due to " + ex.getMessage
-                    APIMetrics.incrementDBErrorCount()
+                    metricsActor.tell(IncrementLocationDbErrorCount, ActorRef.noSender)
                     APILogger.log("", Option(Map("type" -> "api_access",
                         "params" -> List(Map("status" -> 500, "method" -> "POST",
                             "rid" -> "registerDevice", "title" -> "registerDevice")), "data" -> errorMessage)),
                         "registerDevice")
-                    if(APIMetrics.writeMetrics(metricsTimeInterval, className))
-                        metricsActor.tell(SaveMetrics(className), ActorRef.noSender)
                 case ex: DriverException =>
                     ex.printStackTrace()
                     val errorMessage = "DeviceRegisterAPI failed due to " + ex.getMessage
-                    APIMetrics.incrementDBSaveErrorCount()
+                    metricsActor.tell(IncrementDeviceDbSaveErrorCount, ActorRef.noSender)
                     APILogger.log("", Option(Map("type" -> "api_access",
                         "params" -> List(Map("status" -> 500, "method" -> "POST",
                             "rid" -> "registerDevice", "title" -> "registerDevice")), "data" -> errorMessage)),
                         "registerDevice")
-                    if(APIMetrics.writeMetrics(metricsTimeInterval, className))
-                        metricsActor.tell(SaveMetrics(className), ActorRef.noSender)
             }
     }
 
@@ -67,15 +62,15 @@ class DeviceRegisterService(saveMetricsActor: ActorRef) extends Actor {
             // logging metrics
             if(isLocationResolved(location)) {
                 APILogger.log("", Option(Map("comments" -> s"Location resolved for $did to state: ${location.state} and city: ${location.city}")), "registerDevice")
-                APIMetrics.incrementDBSuccessCount()
+                metricsActor.tell(IncrementLocationDbSuccessCount, ActorRef.noSender)
             }
             else {
                 APILogger.log("", Option(Map("comments" -> s"Location is not resolved for $did")), "registerDevice")
-                APIMetrics.incrementDBMissCount()
+                metricsActor.tell(IncrementLocationDbMissCount, ActorRef.noSender)
             }
 
             val deviceSpec = body.request.dspec
-            val data = updateDeviceProfile(
+            updateDeviceProfile(
                 did,
                 Option(location.countryCode).map(_.trim).filterNot(_.isEmpty),
                 Option(location.countryName).map(_.trim).filterNot(_.isEmpty),
@@ -89,10 +84,8 @@ class DeviceRegisterService(saveMetricsActor: ActorRef) extends Actor {
                 uaspec.map(_.trim).filterNot(_.isEmpty)
             )
         }
-        APIMetrics.incrementDBSaveSuccessCount()
-        if(APIMetrics.writeMetrics(metricsTimeInterval, className))
-            metricsActor.tell(SaveMetrics(className), ActorRef.noSender)
 
+        metricsActor.tell(IncrementDeviceDbSaveSuccessCount, ActorRef.noSender)
         JSONUtils.serialize(CommonUtil.OK("analytics.device-register",
             Map("message" -> s"Device registered successfully")))
     }
@@ -119,7 +112,8 @@ class DeviceRegisterService(saveMetricsActor: ActorRef) extends Actor {
                |  AND gip.network_start_integer <= $ipAddressInt
                |  AND gip.network_last_integer >= $ipAddressInt
                """.stripMargin
-        APIMetrics.incrementDBHitCount()
+
+        metricsActor.tell(IncrementLocationDbHitCount, ActorRef.noSender)
         PostgresDBUtil.readLocation(query).headOption.getOrElse(new DeviceLocation())
     }
 
