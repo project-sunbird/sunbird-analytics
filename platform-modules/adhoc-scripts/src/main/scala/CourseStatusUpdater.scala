@@ -9,7 +9,7 @@ import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, RestUtil}
 
 case class UpdaterConfig(bucket: Option[String], prefix: Option[String], startDate: Option[String], endDate: Option[String], courseId: String, batchId: String,
                          userId: Option[String], cassandraHost: Option[String], apiToken: Option[String], mode: Option[String], file: Option[String],
-                         dryrun: Option[Boolean], syncData: Option[Boolean], syncURL: Option[String])
+                         dryrun: Option[Boolean], syncData: Option[Boolean], syncURL: Option[String], updateCourseConsumption: Option[Boolean])
 
 case class ContentConsumption(id: String, batchid: String, contentid: String, courseid: String, status: Int, userid: String)
 
@@ -47,10 +47,18 @@ object CourseStatusUpdater extends optional.Application {
   def correctCourseConsumption(data: RDD[V3Event], config: UpdaterConfig)(implicit sc: SparkContext): Unit = {
 
     Console.println("Correct course consumption entries....");
-    val playerEndEvents = DataFilter.filter(data, Array(Filter("eid", "EQ", Option("END")))).filter(f => f.context.pdata.nonEmpty && f.context.pdata.get.pid.nonEmpty && f.context.pdata.get.pid.get.equals("sunbird.app.contentplayer"));
+    val playerEndEvents = DataFilter.filter(data, Array(Filter("eid", "EQ", Option("END")))).filter(f => f.context.pdata.nonEmpty && f.context.pdata.get.pid.nonEmpty && (f.context.pdata.get.pid.get.equals("sunbird.app.contentplayer") || f.context.pdata.get.pid.get.equals("sunbird-portal.contentplayer")));
     val courseEndEvents = playerEndEvents.filter(f => {
-      ((f.context.rollup.nonEmpty && f.context.rollup.get.l1.equals(config.courseId)) ||
-        (f.`object`.nonEmpty && f.`object`.get.rollup.nonEmpty && f.`object`.get.rollup.get.l1.equals(config.courseId)))
+      try {
+        ((f.context != null && f.context.rollup.nonEmpty && f.context.rollup.get.l1 != null && f.context.rollup.get.l1.equals(config.courseId)) ||
+          (f.`object`.nonEmpty && f.`object`.get.rollup.nonEmpty && f.`object`.get.rollup.get.l1 != null && f.`object`.get.rollup.get.l1.equals(config.courseId))) ||
+          (f.context.cdata.nonEmpty && f.context.cdata.get.filter(p => p.`type`.equalsIgnoreCase("course")).size > 0 && f.context.cdata.get.filter(p => p.`type`.equalsIgnoreCase("course")).head.id.equals(config.courseId))
+      } catch {
+        case ex: Exception =>
+          Console.println("Failed Event - " + JSONUtils.serialize(f))
+          throw ex;
+      }
+
     }).filter(f => f.`object`.nonEmpty).groupBy(f => (f.actor.id, f.`object`.get.id)).mapValues(f => f.size);
     val contentConsumptionRecords = courseEndEvents.map(f => {
       ContentConsumption(hash(Array(f._1._1, f._1._2, config.courseId, config.batchId)), config.batchId, f._1._2, config.courseId, 2, f._1._1);
@@ -60,7 +68,7 @@ object CourseStatusUpdater extends optional.Application {
       contentConsumptionRecords.collect().foreach(f => Console.println(f));
     } else {
       Console.println("Updating course consumption records - " + contentConsumptionRecords.count())
-      contentConsumptionRecords.saveToCassandra("sunbird", "content_consumption", SomeColumns("id", "batchid", "contentid", "status", "userid"))
+      contentConsumptionRecords.saveToCassandra("sunbird", "content_consumption", SomeColumns("id", "batchid", "contentid", "courseid", "status", "userid"))
     }
 
   }

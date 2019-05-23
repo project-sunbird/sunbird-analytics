@@ -22,6 +22,20 @@
                 </Delete>
             </DefaultRolloverStrategy>
 		</RollingFile>
+		<RollingFile name="Metrics-RollingFileAppender" fileName="${baseDir}/api-metrics.log" filePattern="${baseDir}/api-metrics-%d{MM-dd-yyyy}-%i.log">
+			<PatternLayout>
+				<Pattern>%m%n</Pattern>
+			</PatternLayout>
+			<Policies>
+				<TimeBasedTriggeringPolicy />
+			</Policies>
+			<DefaultRolloverStrategy>
+				<Delete basePath="${baseDir}/" maxDepth="1" testMode="false">
+					<IfFileName glob="api-metrics-*.log" />
+					<IfLastModified age="7d" />
+				</Delete>
+			</DefaultRolloverStrategy>
+		</RollingFile>
 		<Async name="Async">
 			<AppenderRef ref="RollingFileAppender" />
 		</Async>
@@ -29,6 +43,9 @@
 	<Loggers>
 		<Logger name="org.ekstep.analytics.api" level="info" additivity="false">
 			<AppenderRef ref="Async"/>
+		</Logger>
+		<Logger name="metrics-logger" level="info" additivity="false">
+			<AppenderRef ref="Metrics-RollingFileAppender"/>
 		</Logger>
 		<Root level="error">
 			<AppenderRef ref="Console" />

@@ -211,4 +211,38 @@ class TestCourseMetricsJob extends SparkSpec(null) with MockFactory {
 
     assert(data2.head.getDouble(0) == 100)
   }
+
+  it should "[Issue SB-12141] report should have 1 record for users mapped to two organisation (root and suborg)" in {
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "course_batch", "keyspace" -> "sunbird"))
+      .returning(courseBatchDF).atLeastOnce()
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user_courses", "keyspace" -> "sunbird"))
+      .returning(userCoursesDF).atLeastOnce()
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user", "keyspace" -> "sunbird"))
+      .returning(userDF).atLeastOnce()
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user_org", "keyspace" -> "sunbird"))
+      .returning(userOrgDF).atLeastOnce()
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "organisation", "keyspace" -> "sunbird"))
+      .returning(orgDF).atLeastOnce()
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "location", "keyspace" -> "sunbird"))
+      .returning(locationDF).atLeastOnce()
+
+    val reportDF = CourseMetricsJob.prepareReport(spark, reporterMock.loadData)
+
+    val data1 = reportDF
+      .where(col("batchid") === "1003" and col("userid") === "user013")
+      .count()
+
+    assert(data1 == 1)
+  }
 }
