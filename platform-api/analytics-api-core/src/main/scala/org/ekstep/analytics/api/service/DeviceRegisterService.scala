@@ -161,7 +161,7 @@ class DeviceRegisterService(saveMetricsActor: ActorRef) extends Actor {
                | (${finalQueryValues.keys.mkString(",")})
                | VALUES(${finalQueryValues.values.mkString(",")})
            """.stripMargin
-        println(query)
+        // println(query)
         DBUtil.session.execute(query)
     }
 }
