@@ -17,7 +17,7 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.concurrent.duration._
 import org.ekstep.analytics.api.exception.ClientException
-import org.ekstep.analytics.api.ResponseCode
+import org.ekstep.analytics.api.{APIIds, ResponseCode}
 
 import scala.collection.JavaConverters._
 import akka.routing.FromConfig
@@ -38,7 +38,7 @@ class Application @Inject() (system: ActorSystem) extends BaseController {
 	val recommendAPIActor = system.actorOf(Props[RecommendationAPIService].withRouter(FromConfig()), name = "recommendAPIActor")
 	val healthCheckAPIActor = system.actorOf(Props[HealthCheckAPIService].withRouter(FromConfig()), name = "healthCheckAPIActor")
 	val tagServiceAPIActor = system.actorOf(Props[TagService].withRouter(FromConfig()), name = "tagServiceAPIActor")
-
+	val clientLogAPIActor = system.actorOf(Props[ClientLogsAPIService].withRouter(FromConfig()), name = "clientLogAPIActor")
 	/*val deviceRegisterServiceAPIActor = system.actorOf(Props[DeviceRegisterService].withRouter(FromConfig()),
 		name = "deviceRegisterServiceAPIActor")*/
 
@@ -92,6 +92,40 @@ class Application @Inject() (system: ActorSystem) extends BaseController {
     result.map { x =>
       Ok(x).withHeaders(CONTENT_TYPE -> "application/json")
     }
+	}
+
+	def logClientErrors() = Action.async { implicit request =>
+		val body: String = Json.stringify(request.body.asJson.get)
+		try {
+			val requestObj = JSONUtils.deserialize[ClientLogRequest](body)
+			val validator: ValidatorMessage = validateLogClientErrorRequest(requestObj)
+			if (validator.status) {
+				clientLogAPIActor.tell(ClientLogRequest(requestObj.request), ActorRef.noSender)
+				Future {
+					Ok(JSONUtils.serialize(CommonUtil.OK(APIIds.CLIENT_LOG,
+						Map("message" -> s"Log captured successfully!"))))
+						.withHeaders(CONTENT_TYPE -> "application/json")
+				}
+			} else {
+				Future {
+					BadRequest(JSONUtils.serialize(CommonUtil.errorResponse(APIIds.CLIENT_LOG, validator.msg, ResponseCode.CLIENT_ERROR.toString)))
+						.withHeaders(CONTENT_TYPE -> "application/json")
+				}
+			}
+		} catch {
+			case ex: Exception => Future {
+				InternalServerError(JSONUtils.serialize(CommonUtil.errorResponse(APIIds.CLIENT_LOG, ex.getMessage, ResponseCode.SERVER_ERROR.toString )))
+					.withHeaders(CONTENT_TYPE -> "application/json")
+			}
+		}
+	}
+
+	def validateLogClientErrorRequest(requestObj: ClientLogRequest): ValidatorMessage = {
+		if (!requestObj.validate.status) {
+			ValidatorMessage(false, requestObj.validate.msg)
+		} else {
+			ValidatorMessage(true, "")
+		}
 	}
 
 	/*

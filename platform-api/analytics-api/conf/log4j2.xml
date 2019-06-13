@@ -36,6 +36,20 @@
 				</Delete>
 			</DefaultRolloverStrategy>
 		</RollingFile>
+		<RollingFile name="Client-RollingFileAppender" fileName="${baseDir}/client-logs.log" filePattern="${baseDir}/client-logs-%d{MM-dd-yyyy}-%i.log">
+			<PatternLayout>
+				<Pattern>%m%n</Pattern>
+			</PatternLayout>
+			<Policies>
+				<TimeBasedTriggeringPolicy />
+			</Policies>
+			<DefaultRolloverStrategy>
+				<Delete basePath="${baseDir}/" maxDepth="1" testMode="false">
+					<IfFileName glob="client-logs-*.log" />
+					<IfLastModified age="7d" />
+				</Delete>
+			</DefaultRolloverStrategy>
+		</RollingFile>
 		<Async name="Async">
 			<AppenderRef ref="RollingFileAppender" />
 		</Async>
@@ -46,6 +60,9 @@
 		</Logger>
 		<Logger name="metrics-logger" level="info" additivity="false">
 			<AppenderRef ref="Metrics-RollingFileAppender"/>
+		</Logger>
+		<Logger name="client-logger" level="info" additivity="false">
+			<AppenderRef ref="Client-RollingFileAppender"/>
 		</Logger>
 		<Root level="error">
 			<AppenderRef ref="Console" />
