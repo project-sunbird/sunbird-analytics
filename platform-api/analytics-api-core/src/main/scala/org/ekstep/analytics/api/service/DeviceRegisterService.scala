@@ -118,7 +118,7 @@ class DeviceRegisterService(saveMetricsActor: ActorRef) extends Actor {
     }
 
     def isLocationResolved(loc: DeviceLocation): Boolean = {
-        loc.state.nonEmpty
+        Option(loc.state).nonEmpty
     }
 
     def parseUserAgent(uaspec: Option[String]): Option[String] = {
@@ -161,7 +161,6 @@ class DeviceRegisterService(saveMetricsActor: ActorRef) extends Actor {
                | (${finalQueryValues.keys.mkString(",")})
                | VALUES(${finalQueryValues.values.mkString(",")})
            """.stripMargin
-        println(query)
         DBUtil.session.execute(query)
     }
 }
