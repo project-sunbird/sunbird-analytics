@@ -36,7 +36,7 @@
 				</Delete>
 			</DefaultRolloverStrategy>
 		</RollingFile>
-		<RollingFile name="Client-RollingFileAppender" fileName="${baseDir}/client-logs.log" filePattern="${baseDir}/client-logs-%d{MM-dd-yyyy}-%i.log">
+		<RollingFile name="Crash-Log-RollingFileAppender" fileName="${baseDir}/crash-logs.log" filePattern="${baseDir}/crash-logs-%d{MM-dd-yyyy}-%i.log">
 			<PatternLayout>
 				<Pattern>%m%n</Pattern>
 			</PatternLayout>
@@ -45,7 +45,7 @@
 			</Policies>
 			<DefaultRolloverStrategy>
 				<Delete basePath="${baseDir}/" maxDepth="1" testMode="false">
-					<IfFileName glob="client-logs-*.log" />
+					<IfFileName glob="crash-logs-*.log" />
 					<IfLastModified age="7d" />
 				</Delete>
 			</DefaultRolloverStrategy>
@@ -61,8 +61,8 @@
 		<Logger name="metrics-logger" level="info" additivity="false">
 			<AppenderRef ref="Metrics-RollingFileAppender"/>
 		</Logger>
-		<Logger name="client-logger" level="info" additivity="false">
-			<AppenderRef ref="Client-RollingFileAppender"/>
+		<Logger name="crash-logger" level="info" additivity="false">
+			<AppenderRef ref="Crash-Log-RollingFileAppender"/>
 		</Logger>
 		<Root level="error">
 			<AppenderRef ref="Console" />

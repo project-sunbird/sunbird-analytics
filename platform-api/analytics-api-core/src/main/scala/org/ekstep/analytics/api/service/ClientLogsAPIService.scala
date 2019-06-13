@@ -83,7 +83,7 @@ case class ClientLogRequest(request: Option[ClientRequestBody]) extends validato
 }
 
 class ClientLogsAPIService extends Actor {
-  private val logger = LogManager.getLogger("client-logger")
+  private val logger = LogManager.getLogger("crash-logger")
   override def receive: Receive = {
     case ClientLogRequest(request: Option[ClientRequestBody]) => {
       request match {
