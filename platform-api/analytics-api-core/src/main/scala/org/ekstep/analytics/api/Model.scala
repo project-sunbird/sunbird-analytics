@@ -108,6 +108,7 @@ object APIIds {
 	val CHANNEL_TELEMETRY_EXHAUST = "org.ekstep.analytics.telemetry"
 	val WORKFLOW_USAGE = "ekstep.analytics.metrics.workflow-usage"
 	val DIALCODE_USAGE = "ekstep.analytics.metrics.dialcode-usage"
+	val CLIENT_LOG = "ekstep.analytics.client-log"
 }
 
 case class JobOutput(location: Option[String] = None, file_size: Option[Long] = None, dt_file_created: Option[String] = None, dt_first_event: Option[Long] = None, dt_last_event: Option[Long] = None, dt_expiration: Option[Long] = None);
