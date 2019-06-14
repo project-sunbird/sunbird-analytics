@@ -71,7 +71,8 @@ class TestUpdateDeviceProfileDB extends SparkSpec(null) {
     it should "include new values and execute successfully" in {
         CassandraConnector(sc.getConf).withSessionDo { session =>
             session.execute("TRUNCATE " + Constants.DEVICE_KEY_SPACE_NAME + "." + Constants.DEVICE_PROFILE_TABLE)
-            session.execute("INSERT INTO " + Constants.DEVICE_KEY_SPACE_NAME + "." + Constants.DEVICE_PROFILE_TABLE +"(device_id,  state_custom, state_code_custom, district_custom) VALUES ('88edda82418a1e916e9906a2fd7942cb', 'karnataka', '29', 'bangalore')")
+            session.execute("INSERT INTO " + Constants.DEVICE_KEY_SPACE_NAME + "." + Constants.DEVICE_PROFILE_TABLE +"(device_id,  state_custom, state_code_custom, district_custom, fcm_token, producer_id) VALUES ('88edda82418a1e916e9906a2fd7942cb', 'karnataka', '29', 'bangalore', 'token-xyz', 'sunbird-app')")
+            session.execute("INSERT INTO " + Constants.DEVICE_KEY_SPACE_NAME + "." + Constants.DEVICE_PROFILE_TABLE +"(device_id,  state_custom, state_code_custom, district_custom, fcm_token, producer_id) VALUES ('test-device-1', 'Karnataka', '29', 'Bangalore', '', 'sunbird-portal')")
         }
         val rdd = loadFile[DerivedEvent]("src/test/resources/device-profile/test-data2.log")
         UpdateDeviceProfileDB.execute(rdd, None)
@@ -79,9 +80,16 @@ class TestUpdateDeviceProfileDB extends SparkSpec(null) {
         device.state_custom.get should be("karnataka")
         device.state_code_custom.get should be("29")
         device.district_custom.get should be("bangalore")
+        device.fcm_token.get should be("token-xyz")
+        device.producer_id.get should be("sunbird-app")
         val device2 = sc.cassandraTable[DeviceProfileOutput](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_PROFILE_TABLE).where("device_id=?", "48edda82418a1e916e9906a2fd7942cb").first
         device2.state_custom should be(None)
         device2.state_code_custom should be(None)
         device2.district_custom should be(None)
+        device2.fcm_token should be(None)
+        device2.producer_id should be(None)
+        val device3 = sc.cassandraTable[DeviceProfileOutput](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_PROFILE_TABLE).where("device_id=?", "test-device-1").first
+        device3.fcm_token.get should be("")
+        device3.producer_id.get should be("sunbird-portal")
     }
 }
