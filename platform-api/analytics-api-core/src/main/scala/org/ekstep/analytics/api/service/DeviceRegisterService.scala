@@ -70,6 +70,8 @@ class DeviceRegisterService(saveMetricsActor: ActorRef) extends Actor {
             }
 
             val deviceSpec = body.request.dspec
+            val fcmToken = body.request.fcmToken
+            val producer = body.request.producer
             updateDeviceProfile(
                 did,
                 Option(location.countryCode).map(_.trim).filterNot(_.isEmpty),
@@ -81,7 +83,9 @@ class DeviceRegisterService(saveMetricsActor: ActorRef) extends Actor {
                 Option(location.stateCodeCustom).map(_.trim).filterNot(_.isEmpty),
                 Option(location.districtCustom).map(_.trim).filterNot(_.isEmpty),
                 deviceSpec,
-                uaspec.map(_.trim).filterNot(_.isEmpty)
+                uaspec.map(_.trim).filterNot(_.isEmpty),
+                fcmToken,
+                producer
             )
         }
 
@@ -135,7 +139,7 @@ class DeviceRegisterService(saveMetricsActor: ActorRef) extends Actor {
     def updateDeviceProfile(did: String, countryCode: Option[String], country: Option[String],
                             stateCode: Option[String], state: Option[String], city: Option[String],
                             stateCustom: Option[String], stateCodeCustom: Option[String], districtCustom: Option[String],
-                            deviceSpec: Option[Map[String, AnyRef]], uaspec: Option[String]): ResultSet = {
+                            deviceSpec: Option[Map[String, AnyRef]], uaspec: Option[String], fcmToken: Option[String], producer: Option[String]): ResultSet = {
 
         val uaspecStr = parseUserAgent(uaspec)
         val queryMap: Map[String, Any] = Map("device_id" -> s"'$did'",
@@ -145,7 +149,7 @@ class DeviceRegisterService(saveMetricsActor: ActorRef) extends Actor {
             "district_custom" -> s"'${districtCustom.getOrElse("")}'",
             "device_spec" -> deviceSpec.map(x => JSONUtils.serialize(x.mapValues(_.toString))
               .replaceAll("\"", "'")).getOrElse(Map()),
-            "uaspec" -> uaspecStr.getOrElse(""), "updated_date" -> DateTime.now(DateTimeZone.UTC).getMillis)
+            "uaspec" -> uaspecStr.getOrElse(""), "fcm_token" -> s"'${fcmToken.getOrElse("")}'", "producer_id" -> s"'${producer.getOrElse("")}'", "updated_date" -> DateTime.now(DateTimeZone.UTC).getMillis)
 
         val finalQueryValues = queryMap.filter {
             m =>
