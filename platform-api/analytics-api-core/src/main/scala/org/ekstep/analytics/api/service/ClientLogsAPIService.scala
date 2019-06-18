@@ -36,7 +36,7 @@ case class Pdata (id: String, ver: String, pid: String) extends validator {
   }
 }
 
-case class Log(id: String, ts: Long, log: String) extends validator {
+case class Log(id: String, ts: Long, log: String, appver: String, pageid: String) extends validator {
   def validate: ValidatorMessage = {
     if (isNullOrEmpty(log)) {
       ValidatorMessage(false, "property: logs*.log is missing!")
