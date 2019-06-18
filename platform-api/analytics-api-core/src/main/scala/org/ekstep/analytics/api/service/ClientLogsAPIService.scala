@@ -12,24 +12,10 @@ class validator() {
   def isNullOrEmpty(str: String): Boolean = if (str != null && ! str.isEmpty) false else true
 }
 
-case class Context (pdata: Pdata, did: String) extends validator {
+case class Context (did: String, dspec: Option[Dspec], extras: Map[String, String]) extends validator {
   def validate: ValidatorMessage = {
-    if (pdata == null) {
-      ValidatorMessage(false, "property: pdata is missing!")
-    } else if (isNullOrEmpty(did)) {
-      ValidatorMessage(false, "property: did is null or empty!")
-    } else {
-      ValidatorMessage(true, "")
-    }
-  }
-}
-
-case class Edata (dspec: Option[Dspec], crashts: String, crash_logs: String) extends validator {
-  def validate: ValidatorMessage = {
-    if (isNullOrEmpty(crashts)) {
-      ValidatorMessage(false, "property: crashts is null or empty!")
-    } else if (isNullOrEmpty(crash_logs)) {
-      ValidatorMessage(false, "property: crash_logs is null or empty!")
+    if (isNullOrEmpty(did)) {
+      ValidatorMessage(false, "property: context.did is null or empty!")
     } else {
       ValidatorMessage(true, "")
     }
@@ -50,12 +36,26 @@ case class Pdata (id: String, ver: String, pid: String) extends validator {
   }
 }
 
-case class ClientRequestBody (context: Context, edata: Edata) extends validator {
+case class Log(id: String, ts: Long, log: String, appver: String, pageid: String) extends validator {
+  def validate: ValidatorMessage = {
+    if (isNullOrEmpty(log)) {
+      ValidatorMessage(false, "property: logs*.log is missing!")
+    } else if (ts == 0) {
+      ValidatorMessage(false, "property: logs*.ts is not a valid timestamp!")
+    } else {
+      ValidatorMessage(true, "")
+    }
+  }
+}
+
+case class ClientRequestBody (context: Context, pdata: Pdata, logs: List[Log]) extends validator {
   def validate: ValidatorMessage = {
     if (context == null) {
       ValidatorMessage(false, "property: context is missing!")
-    } else if (edata == null) {
-      ValidatorMessage(false, "property: edata is missing!")
+    } else if (pdata == null) {
+      ValidatorMessage(false, "property: pdata is missing!")
+    } else if (logs == null) {
+      ValidatorMessage(false, "property: logs is missing!")
     } else {
       ValidatorMessage(true, "")
     }
@@ -71,10 +71,10 @@ case class ClientLogRequest(request: Option[ClientRequestBody]) extends validato
         ValidatorMessage(false, requestObj.validate.msg)
       } else if (!requestObj.context.validate.status) {
         ValidatorMessage(false,  requestObj.context.validate.msg)
-      } else if (!requestObj.context.pdata.validate.status) {
-        ValidatorMessage(false,  requestObj.context.pdata.validate.msg)
-      } else if (!requestObj.edata.validate.status) {
-        ValidatorMessage(false,  requestObj.edata.validate.msg)
+      } else if (!requestObj.pdata.validate.status) {
+        ValidatorMessage(false,  requestObj.pdata.validate.msg)
+      } else if (requestObj.logs.map(_.validate.status).count(_ == false) > 0) {
+        ValidatorMessage(false,  "property: logs, mandatory fields are missing or type mismatch!")
       } else {
         ValidatorMessage(true, "")
       }
@@ -87,7 +87,9 @@ class ClientLogsAPIService extends Actor {
   override def receive: Receive = {
     case ClientLogRequest(request: Option[ClientRequestBody]) => {
       request match {
-        case Some(log) => logger.info(JSONUtils.serialize(log))
+        case Some(log) => {
+          logger.info(JSONUtils.serialize(log))
+        }
       }
     }
   }

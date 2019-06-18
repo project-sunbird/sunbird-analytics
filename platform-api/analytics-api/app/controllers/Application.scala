@@ -121,11 +121,11 @@ class Application @Inject() (system: ActorSystem) extends BaseController {
 	}
 
 	def validateLogClientErrorRequest(requestObj: ClientLogRequest): ValidatorMessage = {
-		if (!requestObj.validate.status) {
-			ValidatorMessage(false, requestObj.validate.msg)
-		} else {
-			ValidatorMessage(true, "")
-		}
+			if (!requestObj.validate.status) {
+				ValidatorMessage(false, requestObj.validate.msg)
+			} else {
+				ValidatorMessage(true, "")
+			}
 	}
 
 	/*
