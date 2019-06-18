@@ -38,10 +38,10 @@ case class Pdata (id: String, ver: String, pid: String) extends validator {
 
 case class Log(id: String, ts: Long, log: String) extends validator {
   def validate: ValidatorMessage = {
-    if (isNullOrEmpty(id)) {
-      ValidatorMessage(false, "property: logs.id is missing!")
-    } else if (isNullOrEmpty(log)) {
-      ValidatorMessage(false, "property: logs.logs is missing!")
+    if (isNullOrEmpty(log)) {
+      ValidatorMessage(false, "property: logs*.log is missing!")
+    } else if (ts == 0) {
+      ValidatorMessage(false, "property: logs*.ts is not a valid timestamp!")
     } else {
       ValidatorMessage(true, "")
     }
@@ -74,7 +74,7 @@ case class ClientLogRequest(request: Option[ClientRequestBody]) extends validato
       } else if (!requestObj.pdata.validate.status) {
         ValidatorMessage(false,  requestObj.pdata.validate.msg)
       } else if (requestObj.logs.map(_.validate.status).count(_ == false) > 0) {
-        ValidatorMessage(false,  "property: logs, mandatory fields are missing!")
+        ValidatorMessage(false,  "property: logs, mandatory fields are missing or type mismatch!")
       } else {
         ValidatorMessage(true, "")
       }

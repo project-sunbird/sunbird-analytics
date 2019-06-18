@@ -121,20 +121,11 @@ class Application @Inject() (system: ActorSystem) extends BaseController {
 	}
 
 	def validateLogClientErrorRequest(requestObj: ClientLogRequest): ValidatorMessage = {
-		if (!requestObj.validate.status) {
-			ValidatorMessage(false, requestObj.validate.msg)
-		} else {
-			requestObj.request match {
-				case Some(request) => {
-					play.Logger.info(s"request logs size exceeded! ${config.getInt("clientErrorAPI.log.limit")}")
-					if (request.logs.size > config.getInt("clientErrorAPI.log.limit")) {
-						ValidatorMessage(false, s"property: logs, max size limit ${config.getInt("clientErrorAPI.log.limit")} exceeded!")
-					} else {
-						ValidatorMessage(true, "")
-					}
-				}
+			if (!requestObj.validate.status) {
+				ValidatorMessage(false, requestObj.validate.msg)
+			} else {
+				ValidatorMessage(true, "")
 			}
-		}
 	}
 
 	/*
