@@ -28,7 +28,7 @@ object ProcessFailedEvents extends optional.Application {
 //        val queryConfig = """{"type":"local","queries":[{"file":"/Users/sowmya/test-duration-conversion.txt"}]}""";
 //        val rdd = DataFetcher.fetchBatchData[Map[String, AnyRef]](JSONUtils.deserialize[Fetcher](queryConfig));
 
-        val queries = Option(Array(Query(Option("telemetry-data-store"), Option("failed/"), Option(fromDate), Option(toDate), Option(0))));
+        val queries = Option(Array(Query(Option("telemetry-data-store"), Option("failed/"), Option(fromDate), Option(toDate))));
         val rdd = DataFetcher.fetchBatchData[Map[String, AnyRef]](Fetcher("azure", None, queries))
 
         val validationFailures = rdd.filter{ f =>
