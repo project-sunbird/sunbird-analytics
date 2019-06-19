@@ -44,8 +44,8 @@ object ProcessFailedEvents extends optional.Application {
             val correctedDuration = if(duration.isInstanceOf[String]) java.lang.Double.parseDouble(duration.asInstanceOf[String]) else duration.asInstanceOf[Double]
             val correctedEdata = edata ++ Map("duration" -> correctedDuration.asInstanceOf[Double])
             // add corrected edata and remove metadata
-            val flags =  Map("flags" -> Map("duration_corrected" -> true))
-            val finalData = f ++ flags ++ Map("edata" -> correctedEdata) ++ Map("metadata" -> null)
+            val newFlags =  f.getOrElse("flags", Map[String, AnyRef]()).asInstanceOf[Map[String, AnyRef]] ++ Map("duration_corrected" -> true)
+            val finalData = f ++ Map("edata" -> correctedEdata) ++ Map("metadata" -> null) ++ Map("flags" -> newFlags)
 //            println("final data: " + JSONUtils.serialize(finalData))
             JSONUtils.serialize(finalData)
         }
