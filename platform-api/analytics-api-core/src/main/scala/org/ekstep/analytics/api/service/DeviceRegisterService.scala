@@ -16,7 +16,7 @@ import org.postgresql.util.PSQLException
 
 import scala.concurrent.ExecutionContext
 
-case class RegisterDevice(did: String, ip: String, request: String, uaspec: Option[String])
+case class RegisterDevice(did: String, headerIP: String, ip_addr: Option[String], fcmToken: Option[String], producer: Option[String], dspec: Option[String], uaspec: Option[String])
 
 class DeviceRegisterService(saveMetricsActor: ActorRef) extends Actor {
 
@@ -27,11 +27,12 @@ class DeviceRegisterService(saveMetricsActor: ActorRef) extends Actor {
     val geoLocationCityIpv4TableName: String = config.getString("postgres.table.geo_location_city_ipv4.name")
     val metricsActor: ActorRef = saveMetricsActor //context.system.actorOf(Props[SaveMetricsActor])
 
+
     def receive = {
-        case RegisterDevice(did: String, ip: String, request: String, uaspec: Option[String]) =>
+        case RegisterDevice(did: String, headerIP: String, ip_addr: Option[String], fcmToken: Option[String], producer: Option[String], dspec: Option[String], uaspec: Option[String]) =>
             try {
                 metricsActor.tell(IncrementApiCalls, ActorRef.noSender)
-                registerDevice(did, ip, request, uaspec)
+                registerDevice(did, headerIP, ip_addr, fcmToken, producer, dspec, uaspec)
             } catch {
                 case ex: PSQLException =>
                     ex.printStackTrace()
@@ -52,10 +53,10 @@ class DeviceRegisterService(saveMetricsActor: ActorRef) extends Actor {
             }
     }
 
-    def registerDevice(did: String, ipAddress: String, request: String, uaspec: Option[String]): String = {
-        val body = JSONUtils.deserialize[RequestBody](request)
-        val validIp = if (ipAddress.startsWith("192")) body.request.ip_addr.getOrElse("") else ipAddress
-        println(s"did: $did | device_spec: ${body.request.dspec} | uaspec: ${uaspec.getOrElse("")}")
+    def registerDevice(did: String, headerIP: String, ip_addr: Option[String], fcmToken: Option[String], producer: Option[String], dspec: Option[String], uaspec: Option[String]) = {
+        //val body = JSONUtils.deserialize[RequestBody](request)
+        val validIp = if (headerIP.startsWith("192")) ip_addr.getOrElse("") else headerIP
+        println(s"did: $did | device_spec: ${dspec.getOrElse("")} | uaspec: ${uaspec.getOrElse("")}")
         if (validIp.nonEmpty) {
             val location = resolveLocation(validIp)
 
@@ -69,9 +70,11 @@ class DeviceRegisterService(saveMetricsActor: ActorRef) extends Actor {
                 metricsActor.tell(IncrementLocationDbMissCount, ActorRef.noSender)
             }
 
-            val deviceSpec = body.request.dspec
-            val fcmToken = body.request.fcmToken
-            val producer = body.request.producer
+            val deviceSpec: Map[String, AnyRef] = dspec match {
+                case Some(value) => JSONUtils.deserialize[Map[String, AnyRef]](value)
+                case None => Map()
+            }
+
             updateDeviceProfile(
                 did,
                 Option(location.countryCode).map(_.trim).filterNot(_.isEmpty),
@@ -82,7 +85,7 @@ class DeviceRegisterService(saveMetricsActor: ActorRef) extends Actor {
                 Option(location.stateCustom).map(_.trim).filterNot(_.isEmpty),
                 Option(location.stateCodeCustom).map(_.trim).filterNot(_.isEmpty),
                 Option(location.districtCustom).map(_.trim).filterNot(_.isEmpty),
-                deviceSpec,
+                Option(deviceSpec),
                 uaspec.map(_.trim).filterNot(_.isEmpty),
                 fcmToken,
                 producer
@@ -90,12 +93,11 @@ class DeviceRegisterService(saveMetricsActor: ActorRef) extends Actor {
         }
 
         metricsActor.tell(IncrementDeviceDbSaveSuccessCount, ActorRef.noSender)
-        JSONUtils.serialize(CommonUtil.OK("analytics.device-register",
-            Map("message" -> s"Device registered successfully")))
     }
 
     def resolveLocation(ipAddress: String): DeviceLocation = {
         val ipAddressInt: Long = UnsignedInts.toLong(InetAddresses.coerceToInteger(InetAddresses.forString(ipAddress)))
+        
         val query =
             s"""
                |SELECT
@@ -116,7 +118,7 @@ class DeviceRegisterService(saveMetricsActor: ActorRef) extends Actor {
                |  AND gip.network_start_integer <= $ipAddressInt
                |  AND gip.network_last_integer >= $ipAddressInt
                """.stripMargin
-
+               
         metricsActor.tell(IncrementLocationDbHitCount, ActorRef.noSender)
         PostgresDBUtil.readLocation(query).headOption.getOrElse(new DeviceLocation())
     }
