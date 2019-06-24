@@ -4,6 +4,7 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.functions._
 import org.ekstep.analytics.model.SparkSpec
 import org.scalamock.scalatest.MockFactory
+
 import scala.collection.Map
 import org.apache.spark.sql.functions._
 
@@ -244,5 +245,37 @@ class TestCourseMetricsJob extends SparkSpec(null) with MockFactory {
       .count()
 
     assert(data1 == 1)
+  }
+
+  it should "[Issue SB-13080] report should have externalid,orgname,location,completedon fields" in {
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "course_batch", "keyspace" -> "sunbird"))
+      .returning(courseBatchDF).atLeastOnce()
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user_courses", "keyspace" -> "sunbird"))
+      .returning(userCoursesDF).atLeastOnce()
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user", "keyspace" -> "sunbird"))
+      .returning(userDF).atLeastOnce()
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user_org", "keyspace" -> "sunbird"))
+      .returning(userOrgDF).atLeastOnce()
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "organisation", "keyspace" -> "sunbird"))
+      .returning(orgDF).atLeastOnce()
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "location", "keyspace" -> "sunbird"))
+      .returning(locationDF).atLeastOnce()
+
+    val reportDF = CourseMetricsJob.prepareReport(spark, reporterMock.loadData)
+    assert(reportDF.columns.contains("location").equals(true))
+    assert(reportDF.columns.contains("userid").equals(true))
+    assert(reportDF.columns.contains("completedon").equals(true))
+    assert(reportDF.columns.contains("externalid").equals(true))
   }
 }
