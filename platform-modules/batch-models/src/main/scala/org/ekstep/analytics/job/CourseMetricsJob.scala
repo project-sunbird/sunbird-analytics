@@ -163,7 +163,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     val resolvedOrgNameDF = userLocationResolvedDF
       .join(organisationDF, organisationDF.col("id") === userLocationResolvedDF.col("rootorgid"), "left_outer")
       .dropDuplicates(Seq("userid"))
-      .select(userLocationResolvedDF.col("userid"), col("externalid"), col("orgname").as("orgname_resolved"))
+      .select(userLocationResolvedDF.col("userid"), col("orgname").as("orgname_resolved"))
 
 
 
@@ -173,7 +173,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     val resolvedSchoolNameDF = userLocationResolvedDF
       .join(organisationDF, organisationDF.col("id") === userLocationResolvedDF.col("organisationid"), "left_outer")
       .dropDuplicates(Seq("userid"))
-      .select(userLocationResolvedDF.col("userid"), col("externalid"), col("orgname").as("schoolname_resolved"))
+      .select(userLocationResolvedDF.col("userid"), col("orgname").as("schoolname_resolved"))
 
     /*
     * merge orgName and schoolName based on `userid` and calculate the course progress percentage from `progress` column which is no of content visited/read
