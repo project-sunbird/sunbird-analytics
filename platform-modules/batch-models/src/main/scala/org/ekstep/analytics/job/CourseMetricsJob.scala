@@ -127,7 +127,6 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
         col("maskedemail"),
         col("maskedphone"),
         col("rootorgid"),
-        col("location"),
         col("userid"),
         col("locationids"))
 
@@ -154,32 +153,40 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
       .dropDuplicates(Seq("userid"))
       .select(col("name").as("district_name"), col("userid"))
 
+    val blockDenormDF = userOrgDenormDF
+      .withColumn("exploded_location", explode(col("locationids")))
+      .join(locationDF, col("exploded_location") === locationDF.col("id") && locationDF.col("type") === "block")
+      .dropDuplicates(Seq("userid"))
+      .select(col("name").as("block_name"), col("userid"))
+
     val userLocationResolvedDF = userOrgDenormDF
       .join(locationDenormDF, Seq("userid"), "left_outer")
+
+    val userBlockResolvedDF = userLocationResolvedDF.join(blockDenormDF, Seq("userid"), "left_outer")
 
     /*
     * Resolve organisation name from `rootorgid`
     * */
-    val resolvedOrgNameDF = userLocationResolvedDF
-      .join(organisationDF, organisationDF.col("id") === userLocationResolvedDF.col("rootorgid"), "left_outer")
+    val resolvedOrgNameDF = userBlockResolvedDF
+      .join(organisationDF, organisationDF.col("id") === userBlockResolvedDF.col("rootorgid"), "left_outer")
       .dropDuplicates(Seq("userid"))
-      .select(userLocationResolvedDF.col("userid"), col("orgname").as("orgname_resolved"))
+      .select(userBlockResolvedDF.col("userid"), col("orgname").as("orgname_resolved"))
 
 
 
     /*
     * Resolve school name from `orgid`
     * */
-    val resolvedSchoolNameDF = userLocationResolvedDF
-      .join(organisationDF, organisationDF.col("id") === userLocationResolvedDF.col("organisationid"), "left_outer")
+    val resolvedSchoolNameDF = userBlockResolvedDF
+      .join(organisationDF, organisationDF.col("id") === userBlockResolvedDF.col("organisationid"), "left_outer")
       .dropDuplicates(Seq("userid"))
-      .select(userLocationResolvedDF.col("userid"), col("orgname").as("schoolname_resolved"))
+      .select(userBlockResolvedDF.col("userid"), col("orgname").as("schoolname_resolved"))
 
     /*
     * merge orgName and schoolName based on `userid` and calculate the course progress percentage from `progress` column which is no of content visited/read
     * */
 
-    userLocationResolvedDF
+    userBlockResolvedDF
       .join(resolvedSchoolNameDF, Seq("userid"), "left_outer")
       .join(resolvedOrgNameDF, Seq("userid"), "left_outer")
       .withColumn("course_completion", format_number(
@@ -225,6 +232,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
         col("batchid").as("batchId"),
         col("course_completion").cast("long").as("completedPercent"),
         col("district_name").as("districtName"),
+        col("block_name").as("blockName"),
         from_unixtime(unix_timestamp(col("enrolleddate"), "yyyy-MM-dd HH:mm:ss:SSSZ"),"yyyy-MM-dd'T'HH:mm:ss'Z'").as("enrolledOn")
       )
 
@@ -259,6 +267,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
         col("maskedemail").as("Email ID"),
         col("maskedphone").as("Mobile Number"),
         col("district_name").as("District Name"),
+        col("block_name").as("Block Name"),
         col("orgname_resolved").as("Organisation Name"),
         col("schoolname_resolved").as("School Name"),
         col("enrolleddate").as("Enrollment Date"),
