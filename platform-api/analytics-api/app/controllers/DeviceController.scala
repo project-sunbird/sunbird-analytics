@@ -1,18 +1,19 @@
 package controllers
 
-import akka.actor.{ActorRef, ActorSystem, Props}
+import akka.actor.{ActorRef, ActorSystem}
 import appconf.AppConf
 import com.google.inject.Inject
-import javax.inject.{Named, Singleton}
-import org.ekstep.analytics.api.{Params, Request, RequestBody}
-import org.ekstep.analytics.api.service.{DeviceRegisterService, RegisterDevice}
-import org.ekstep.analytics.api.util.{APILogger, CommonUtil, JSONUtils}
-import org.ekstep.analytics.framework.util.JobLogger
-import play.api.libs.json
-import play.api.libs.json.{JsResult, JsString, JsSuccess, JsValue, Json, Reads}
+import org.ekstep.analytics.api.service.{RegisterDevice}
+import org.ekstep.analytics.api.util.{ CommonUtil, JSONUtils}
+import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.Action
 
 import scala.concurrent.{ExecutionContext, Future}
+
+object deviceControllerResponse {
+  val success = JSONUtils.serialize(CommonUtil.OK("analytics.device-register",
+    Map("message" -> s"Device registered successfully")))
+}
 
 class DeviceController @Inject()(system: ActorSystem) extends BaseController {
 
@@ -20,7 +21,7 @@ class DeviceController @Inject()(system: ActorSystem) extends BaseController {
 
   def registerDevice(deviceId: String) = Action.async(parse.json) { implicit request =>
     val deviceRegisterServiceAPIActor = AppConf.getActorRef("deviceRegisterService")
-    val successResponse = AppConf.successResponse
+    val successResponse = deviceControllerResponse.success
     val body: JsValue = request.body
     // The X-Forwarded-For header from Azure is in the format '61.12.65.222:33740, 61.12.65.222'
     val ipAddr = request.headers.get("X-Forwarded-For").map {

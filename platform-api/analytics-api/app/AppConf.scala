@@ -9,8 +9,7 @@ import scala.collection.JavaConverters.mapAsJavaMapConverter
 
 object AppConf {
 
-    var actors = scala.collection.mutable.Map[String, ActorRef]()
-
+  var actors = scala.collection.mutable.Map[String, ActorRef]()
 
   val config: Config = play.Play.application.configuration.underlying()
     .withFallback(ConfigFactory.parseMap(Map("content2vec.scripts_path" -> "",
@@ -33,7 +32,4 @@ object AppConf {
     def getActorRef(name: String): ActorRef = {
         actors(name)
     }
-
-    val successResponse = JSONUtils.serialize(CommonUtil.OK("analytics.device-register",
-        Map("message" -> s"Device registered successfully")))
 }
