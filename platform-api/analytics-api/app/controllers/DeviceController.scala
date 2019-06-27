@@ -24,15 +24,15 @@ class DeviceController @Inject()(system: ActorSystem) extends BaseController {
     val successResponse = deviceControllerResponse.success
     val body: JsValue = request.body
     // The X-Forwarded-For header from Azure is in the format '61.12.65.222:33740, 61.12.65.222'
-    val ipAddr = request.headers.get("X-Forwarded-For").map {
+    val ip = request.headers.get("X-Forwarded-For").map {
       x =>
         val ipArray = x.split(",")
         if (ipArray.length == 2) ipArray(1).trim else ipArray(0).trim
     }
 
-    val headerIP = ipAddr.getOrElse("")
+    val headerIP = ip.getOrElse("")
     val uaspec = request.headers.get("User-Agent")
-    val ip_addr = (body \ "request" \ "ip_addr").asOpt[String]
+    val ipAddr = (body \ "request" \ "ip_addr").asOpt[String]
     val fcmToken = (body \ "request" \ "fcmToken").asOpt[String]
     val producer = (body \ "request" \ "producer").asOpt[String]
     val dspec: Option[String] = (body \ "request" \ "dspec").toOption  match {
@@ -40,7 +40,7 @@ class DeviceController @Inject()(system: ActorSystem) extends BaseController {
       case None => None
     }
 
-    deviceRegisterServiceAPIActor.tell(RegisterDevice(deviceId, headerIP, ip_addr, fcmToken, producer, dspec, uaspec), ActorRef.noSender)
+    deviceRegisterServiceAPIActor.tell(RegisterDevice(deviceId, headerIP, ipAddr, fcmToken, producer, dspec, uaspec), ActorRef.noSender)
 
     Future {
       Ok(successResponse)
