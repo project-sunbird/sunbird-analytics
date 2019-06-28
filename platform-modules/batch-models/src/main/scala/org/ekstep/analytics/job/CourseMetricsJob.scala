@@ -10,6 +10,7 @@ import org.sunbird.cloud.storage.conf.AppConf
 import java.nio.file.{Files, StandardCopyOption}
 import java.io.File
 
+import org.ekstep.analytics.framework.Level.INFO
 import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
 
 import scala.collection.{Map, _}
@@ -244,6 +245,14 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
 
     // upsert batch details to cbatch index
     batchDetailsDF.saveToEs(s"$cBatchIndex/_doc", Map("es.mapping.id" -> "id"))
+
+    val batchStatsPerBatchCount = batchStatsDF.groupBy("batchId").count().collect().map(_.toSeq)
+    val batchStatsCount  = batchStatsDF.count()
+
+    val batchDetailsPerBatchCount = batchDetailsDF.groupBy("id").count().collect().map(_.toSeq)
+    val batchDetailsCount = batchDetailsDF.count()
+
+    JobLogger.log(s"CourseMetricsJob: Elasticsearch index stats { $cBatchStatsIndex : { perBatchCount: ${JSONUtils.serialize(batchStatsPerBatchCount)}, totalNoOfRecords: $batchStatsCount }, $cBatchIndex: { perBatchCount: ${JSONUtils.serialize(batchDetailsPerBatchCount)}, totalNoOfRecords: $batchDetailsCount } }", None, INFO)
   }
 
 
@@ -269,6 +278,10 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
       .format("com.databricks.spark.csv")
       .option("header", "true")
       .save(url)
+
+    val perBatchCount = reportDF.groupBy("batchid").count().collect().map(_.toSeq)
+    val noOfRecords = reportDF.count()
+    JobLogger.log(s"CourseMetricsJob: records stats before cloud upload: { perBatchCount: ${JSONUtils.serialize(perBatchCount)}, totalNoOfRecords: $noOfRecords } ", None, INFO)
   }
 
   def uploadReport(sourcePath: String) = {

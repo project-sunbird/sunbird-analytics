@@ -6,6 +6,7 @@ import org.ekstep.analytics.api.util.DeviceLocation
 import org.ekstep.analytics.framework.Response
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.mockito.Mockito._
+import org.mockito.{Mockito, Spy}
 
 class TestDeviceRegisterService extends BaseSpec {
 
@@ -46,15 +47,32 @@ class TestDeviceRegisterService extends BaseSpec {
 
   val uaspec = s"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36"
 
-  "DeviceRegisterService" should "register given device" in {
 
-    when(deviceRegisterServiceMock.registerDevice(did = "test-device-1", ipAddress = "10.6.0.16", request = request, uaspec = Some(uaspec)))
-      .thenReturn(successResponse)
+  ignore should "register given device" in {
+    when(deviceRegisterServiceMock.resolveLocation(ipAddress = "10.6.0.16"))
+      .thenReturn(DeviceLocation("Asia", "IN", "India", "KA", "Karnataka", "", "Bangalore", "KARNATAKA", "29", "BANGALORE"))
 
-    val response = deviceRegisterServiceMock.registerDevice(did = "test-device-1", ipAddress = "10.6.0.16", request = request, uaspec = Some(uaspec))
-    val resp = JSONUtils.deserialize[Response](response)
-    resp.id should be("analytics.device-register")
-    resp.params.status should be(Some("successful"))
+    val dspec = JSONUtils.deserialize[Map[String, AnyRef]]("{\"cpu\":\"abi:  armeabi-v7a  ARMv7 Processor rev 4 (v7l)\",\"make\":\"Micromax Micromax A065\",\"os\":\"Android 4.4.2\"}")
+
+    //val updateDeviceProfileSpy = Mockito.spy(deviceRegisterServiceMock)
+
+    deviceRegisterServiceMock.
+      registerDevice(did = "test-device-1", "10.6.0.16", None, None, None, None, uaspec = Some(uaspec))
+
+    Mockito.verify(deviceRegisterServiceMock, atLeastOnce).updateDeviceProfile(
+      "test-device-1",
+      Some("IN"),
+      Some("India"),
+      Some("KA"),
+      Some("Karnataka"),
+      Some("Bangalore"),
+      Some("KARNATAKA"),
+      Some("29"),
+      Some("BANGALORE"),
+      Some(dspec),
+      Some(uaspec),
+      None,
+      None)
   }
 
   "Resolve location" should "return location details given an IP address" in {
