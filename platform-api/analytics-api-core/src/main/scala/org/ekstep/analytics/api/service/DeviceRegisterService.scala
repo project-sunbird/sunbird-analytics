@@ -54,9 +54,7 @@ class DeviceRegisterService(saveMetricsActor: ActorRef) extends Actor {
     }
 
     def registerDevice(did: String, headerIP: String, ip_addr: Option[String], fcmToken: Option[String], producer: Option[String], dspec: Option[String], uaspec: Option[String]) = {
-        //val body = JSONUtils.deserialize[RequestBody](request)
         val validIp = if (headerIP.startsWith("192")) ip_addr.getOrElse("") else headerIP
-        println(s"did: $did | device_spec: ${dspec.getOrElse("")} | uaspec: ${uaspec.getOrElse("")}")
         if (validIp.nonEmpty) {
             val location = resolveLocation(validIp)
 
