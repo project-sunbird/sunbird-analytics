@@ -221,6 +221,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
         concat_ws(" ", col("firstname"), col("lastname")).as("name"),
         concat_ws(":", col("userid"), col("batchid")).as("id"),
         col("userid").as("userId"),
+        col("completedon").as("completedOn"),
         col("maskedemail").as("maskedEmail"),
         col("maskedphone").as("maskedPhone"),
         col("orgname_resolved").as("rootOrgName"),
@@ -264,6 +265,8 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
       .select(
         concat_ws(" ", col("firstname"), col("lastname")).as("User Name"),
         col("batchid"),
+        col("userid").as("User Id"),
+        col("completedon").as("Completed On"),
         col("maskedemail").as("Email ID"),
         col("maskedphone").as("Mobile Number"),
         col("district_name").as("District Name"),
