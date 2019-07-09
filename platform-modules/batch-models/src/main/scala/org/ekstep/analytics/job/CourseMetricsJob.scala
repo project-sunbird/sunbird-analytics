@@ -131,7 +131,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
         col("rootorgid"),
         col("userid"),
         col("locationids"))
-    val externalIdMap = userDF.join(externalIdentityDF, externalIdentityDF.col("idtype") ===  userDF.col("channel") &&  externalIdentityDF.col("provider") === userDF.col("channel") && externalIdentityDF.col("userid") === userDF.col("userid"), "inner")
+    val externalIdMapDF = userDF.join(externalIdentityDF, externalIdentityDF.col("idtype") ===  userDF.col("channel") &&  externalIdentityDF.col("provider") === userDF.col("channel") && externalIdentityDF.col("userid") === userDF.col("userid"), "inner")
       .select(externalIdentityDF.col("externalid"), externalIdentityDF.col("userid"))
     /*
     * userDenormDF lacks organisation details, here we are mapping each users to get the organisationids
@@ -167,7 +167,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
 
     val userBlockResolvedDF = userLocationResolvedDF.join(blockDenormDF, Seq("userid"), "left_outer")
 
-    val resolvedExternalIdDF = userBlockResolvedDF.join(externalIdMap, Seq("userid"), "left_outer")
+    val resolvedExternalIdDF = userBlockResolvedDF.join(externalIdMapDF, Seq("userid"), "left_outer")
 
 
     /*
@@ -207,7 +207,6 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
 
 
   def saveReportES(reportDF: DataFrame): Unit = {
-
     import org.elasticsearch.spark.sql._
     val participantsCountPerBatchDF = reportDF
       .groupBy(col("batchid"))
@@ -242,7 +241,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
         col("course_completion").cast("long").as("completedPercent"),
         col("district_name").as("districtName"),
         col("block_name").as("blockName"),
-        col("externalid").as("ExternalIdentifier"),
+        col("externalid").as("ExternalId"),
         from_unixtime(unix_timestamp(col("enrolleddate"), "yyyy-MM-dd HH:mm:ss:SSSZ"),"yyyy-MM-dd'T'HH:mm:ss'Z'").as("enrolledOn")
       )
 
@@ -283,7 +282,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
         col("orgname_resolved").as("Organisation Name"),
         col("schoolname_resolved").as("School Name"),
         col("enrolleddate").as("Enrollment Date"),
-        col("externalid").as("External Identifier"),
+        col("externalid").as("External ID"),
         concat(col("course_completion").cast("string"),lit("%"))
           .as("Course Progress")
       )
