@@ -131,8 +131,12 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
         col("rootorgid"),
         col("userid"),
         col("locationids"))
+    /**
+      * externalIdMapDF - Filter out the external id by idType and provider and Mapping userId and externalId
+      */
     val externalIdMapDF = userDF.join(externalIdentityDF, externalIdentityDF.col("idtype") ===  userDF.col("channel") &&  externalIdentityDF.col("provider") === userDF.col("channel") && externalIdentityDF.col("userid") === userDF.col("userid"), "inner")
       .select(externalIdentityDF.col("externalid"), externalIdentityDF.col("userid"))
+
     /*
     * userDenormDF lacks organisation details, here we are mapping each users to get the organisationids
     * */
@@ -156,6 +160,9 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
       .dropDuplicates(Seq("userid"))
       .select(col("name").as("district_name"), col("userid"))
 
+    /**
+      * Resolve the block name by filtering location type = "BLOCK" for the locationids
+      */
     val blockDenormDF = userOrgDenormDF
       .withColumn("exploded_location", explode(col("locationids")))
       .join(locationDF, col("exploded_location") === locationDF.col("id") && locationDF.col("type") === "block")
