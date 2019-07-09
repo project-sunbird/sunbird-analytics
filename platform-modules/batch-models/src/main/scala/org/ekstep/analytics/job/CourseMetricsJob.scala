@@ -96,6 +96,8 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     val userOrgDF = loadData(spark, Map("table" -> "user_org", "keyspace" -> sunbirdKeyspace)).filter(lower(col("isdeleted")) === "false")
     val organisationDF = loadData(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace))
     val locationDF = loadData(spark, Map("table" -> "location", "keyspace" -> sunbirdKeyspace))
+    val externalIdentityDF = loadData(spark, Map("table" -> "usr_external_identity", "keyspace" -> sunbirdKeyspace))
+
 
     /*
     * courseBatchDF has details about the course and batch details for which we have to prepare the report
@@ -129,7 +131,8 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
         col("rootorgid"),
         col("userid"),
         col("locationids"))
-
+    val externalIdMap = userDF.join(externalIdentityDF, externalIdentityDF.col("idtype") ===  userDF.col("channel") &&  externalIdentityDF.col("provider") === userDF.col("channel") && externalIdentityDF.col("userid") === userDF.col("userid"), "inner")
+      .select(externalIdentityDF.col("externalid"), externalIdentityDF.col("userid"))
     /*
     * userDenormDF lacks organisation details, here we are mapping each users to get the organisationids
     * */
@@ -164,29 +167,34 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
 
     val userBlockResolvedDF = userLocationResolvedDF.join(blockDenormDF, Seq("userid"), "left_outer")
 
+    val resolvedExternalIdDF = userBlockResolvedDF.join(externalIdMap, Seq("userid"), "left_outer")
+
+
     /*
     * Resolve organisation name from `rootorgid`
     * */
-    val resolvedOrgNameDF = userBlockResolvedDF
-      .join(organisationDF, organisationDF.col("id") === userBlockResolvedDF.col("rootorgid"), "left_outer")
+    val resolvedOrgNameDF = resolvedExternalIdDF
+      .join(organisationDF, organisationDF.col("id") === resolvedExternalIdDF.col("rootorgid"), "left_outer")
       .dropDuplicates(Seq("userid"))
-      .select(userBlockResolvedDF.col("userid"), col("orgname").as("orgname_resolved"))
+      .select(resolvedExternalIdDF.col("userid"), col("orgname").as("orgname_resolved"))
 
 
 
     /*
     * Resolve school name from `orgid`
     * */
-    val resolvedSchoolNameDF = userBlockResolvedDF
-      .join(organisationDF, organisationDF.col("id") === userBlockResolvedDF.col("organisationid"), "left_outer")
+    val resolvedSchoolNameDF = resolvedExternalIdDF
+      .join(organisationDF, organisationDF.col("id") === resolvedExternalIdDF.col("organisationid"), "left_outer")
       .dropDuplicates(Seq("userid"))
-      .select(userBlockResolvedDF.col("userid"), col("orgname").as("schoolname_resolved"))
+      .select(resolvedExternalIdDF.col("userid"), col("orgname").as("schoolname_resolved"))
+
+
 
     /*
     * merge orgName and schoolName based on `userid` and calculate the course progress percentage from `progress` column which is no of content visited/read
     * */
 
-    userBlockResolvedDF
+    resolvedExternalIdDF
       .join(resolvedSchoolNameDF, Seq("userid"), "left_outer")
       .join(resolvedOrgNameDF, Seq("userid"), "left_outer")
       .withColumn("course_completion", format_number(
@@ -234,6 +242,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
         col("course_completion").cast("long").as("completedPercent"),
         col("district_name").as("districtName"),
         col("block_name").as("blockName"),
+        col("externalid").as("ExternalIdentifier"),
         from_unixtime(unix_timestamp(col("enrolleddate"), "yyyy-MM-dd HH:mm:ss:SSSZ"),"yyyy-MM-dd'T'HH:mm:ss'Z'").as("enrolledOn")
       )
 
@@ -274,6 +283,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
         col("orgname_resolved").as("Organisation Name"),
         col("schoolname_resolved").as("School Name"),
         col("enrolleddate").as("Enrollment Date"),
+        col("externalid").as("External Identifier"),
         concat(col("course_completion").cast("string"),lit("%"))
           .as("Course Progress")
       )
