@@ -10,8 +10,14 @@ import org.sunbird.cloud.storage.conf.AppConf
 import java.nio.file.{Files, StandardCopyOption}
 import java.io.File
 
+import org.apache.http.client.methods.HttpRequestBase
+import org.ekstep.analytics.framework.Level._
+import org.ekstep.analytics.framework.util.RestUtil._call
+import org.ekstep.analytics.util.ESUtil
+import org.joda.time.DateTime
 import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
 
+import scala.collection.mutable.ListBuffer
 import scala.collection.{Map, _}
 
 trait ReportGenerator {
@@ -134,7 +140,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     /**
       * externalIdMapDF - Filter out the external id by idType and provider and Mapping userId and externalId
       */
-    val externalIdMapDF = userDF.join(externalIdentityDF, externalIdentityDF.col("idtype") ===  userDF.col("channel") &&  externalIdentityDF.col("provider") === userDF.col("channel") && externalIdentityDF.col("userid") === userDF.col("userid"), "inner")
+    val externalIdMapDF = userDF.join(externalIdentityDF, externalIdentityDF.col("idtype") === userDF.col("channel") && externalIdentityDF.col("provider") === userDF.col("channel") && externalIdentityDF.col("userid") === userDF.col("userid"), "inner")
       .select(externalIdentityDF.col("externalid"), externalIdentityDF.col("userid"))
 
     /*
@@ -184,7 +190,6 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
       .join(organisationDF, organisationDF.col("id") === resolvedExternalIdDF.col("rootorgid"), "left_outer")
       .dropDuplicates(Seq("userid"))
       .select(resolvedExternalIdDF.col("userid"), col("orgname").as("orgname_resolved"))
-
 
 
     /*
@@ -249,7 +254,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
         col("district_name").as("districtName"),
         col("block_name").as("blockName"),
         col("externalid").as("ExternalId"),
-        from_unixtime(unix_timestamp(col("enrolleddate"), "yyyy-MM-dd HH:mm:ss:SSSZ"),"yyyy-MM-dd'T'HH:mm:ss'Z'").as("enrolledOn")
+        from_unixtime(unix_timestamp(col("enrolleddate"), "yyyy-MM-dd HH:mm:ss:SSSZ"), "yyyy-MM-dd'T'HH:mm:ss'Z'").as("enrolledOn")
       )
 
     val batchDetailsDF = participantsCountPerBatchDF
@@ -263,17 +268,61 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
       )
       .distinct()
 
-    val cBatchStatsIndex = AppConf.getConfig("course.metrics.es.index.cbatchstats")
     val cBatchIndex = AppConf.getConfig("course.metrics.es.index.cbatch")
-
-    //Save to sunbird platform Elasticsearch instance
-    // upsert batch stats to cbatchstats index
-    batchStatsDF.saveToEs(s"$cBatchStatsIndex/_doc", Map("es.mapping.id" -> "id"))
-
-    // upsert batch details to cbatch index
-    batchDetailsDF.saveToEs(s"$cBatchIndex/_doc", Map("es.mapping.id" -> "id"))
+    val aliasName = AppConf.getConfig("course.metrics.es.alias")
+    val date = new DateTime()
+    val cBatchStatsIndex = "cbatchstats-" + date.getMillis()
+    try {
+      prepareEsIndex(cBatchStatsIndex, aliasName)
+      val indexList = getIndexName(aliasName)
+      val index = indexList.mkString(",")
+      if (index.nonEmpty) {
+        batchStatsDF.saveToEs(s"$index/_doc", Map("es.mapping.id" -> "id"))
+      } else {
+        JobLogger.log("Skipping the indexing of batchStatsDF due to index name is empty:" + index, Option(index), ERROR)
+      }
+      // upsert batch details to cbatch index
+      batchDetailsDF.saveToEs(s"$cBatchIndex/_doc", Map("es.mapping.id" -> "id"))
+    } catch {
+      case ex: Exception => {
+        JobLogger.log(ex.getMessage, None, ERROR)
+        ex.printStackTrace();
+      }
+    }
   }
 
+  def prepareEsIndex(indexName: String, aliasName: String): Unit = {
+    val createIndexResponse = ESUtil.createIndex(indexName, AppConf.getConfig("course.metrics.es.mapping"))
+    val olderIndexList = getIndexName(aliasName)
+    if (createIndexResponse.acknowledged) {
+      JobLogger.log("Newly created  index name is:" + indexName + "and" + "Alias Name is:" + aliasName, Option(indexName), INFO)
+      val addIndexToAliasResponse = ESUtil.addIndexToAlias(indexName, aliasName)
+      if (addIndexToAliasResponse.acknowledged && olderIndexList.nonEmpty) {
+        val deleteIndexResponse = ESUtil.deleteIndex(olderIndexList)
+        if (deleteIndexResponse.acknowledged) {
+          JobLogger.log("Delete index is success! Index Name: " + olderIndexList, None, INFO)
+        } else {
+          JobLogger.log("Delete index is failed! Index Name: " + olderIndexList, None, ERROR)
+          JobLogger.log(deleteIndexResponse.toString, None, ERROR)
+        }
+      } else {
+        JobLogger.log("Adding alias " + aliasName + " to index " + indexName + " is failed", None, ERROR)
+        JobLogger.log(addIndexToAliasResponse.toString, None, ERROR)
+      }
+    } else {
+      JobLogger.log("Create Elastic search index " + indexName + " is got failed", None, ERROR)
+      JobLogger.log(createIndexResponse.toString, None, ERROR)
+    }
+  }
+
+  def getIndexName(aliasName: String): List[String] = {
+    val indexMap = ESUtil.listIndexByAlias(aliasName)
+    var indexListBuffer = new ListBuffer[String]()
+    indexMap.foreach(element => {
+      indexListBuffer += element.getOrElse("index", null)
+    })
+    indexListBuffer.toList
+  }
 
   def saveReport(reportDF: DataFrame, url: String): Unit = {
     reportDF
@@ -290,7 +339,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
         col("schoolname_resolved").as("School Name"),
         col("enrolleddate").as("Enrollment Date"),
         col("externalid").as("External ID"),
-        concat(col("course_completion").cast("string"),lit("%"))
+        concat(col("course_completion").cast("string"), lit("%"))
           .as("Course Progress")
       )
       .coalesce(1)
@@ -315,7 +364,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
   private def recursiveListFiles(file: File, ext: String): Array[File] = {
     val fileList = file.listFiles
     val extOnly = fileList.filter(file => file.getName.endsWith(ext))
-    extOnly ++ fileList.filter(_.isDirectory).flatMap(recursiveListFiles(_,ext))
+    extOnly ++ fileList.filter(_.isDirectory).flatMap(recursiveListFiles(_, ext))
   }
 
   private def purgeDirectory(dir: File): Unit = {
@@ -330,9 +379,9 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     val temp = new File(tempDir)
     val out = new File(outDir)
 
-    if(!temp.exists()) throw new Exception(s"path $tempDir doesn't exist")
+    if (!temp.exists()) throw new Exception(s"path $tempDir doesn't exist")
 
-    if(out.exists()) {
+    if (out.exists()) {
       purgeDirectory(out)
       JobLogger.log(s"cleaning out the directory ${out.getPath}")
     } else {

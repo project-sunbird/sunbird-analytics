@@ -3,6 +3,8 @@ package org.ekstep.analytics.framework.util
 import scala.io.Source
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.client.methods.HttpPost
+import org.apache.http.client.methods.HttpPut
+import org.apache.http.client.methods.HttpDelete
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.HttpClients
 import org.ekstep.analytics.framework.Response
@@ -16,6 +18,8 @@ trait HTTPClient {
     def get[T](apiURL: String)(implicit mf: Manifest[T]): T
     def post[T](apiURL: String, body: String, requestHeaders: Option[Map[String, String]] = None)(implicit mf: Manifest[T]): T
     def patch[T](apiURL: String, body: String, headers: Option[Map[String,String]] = None)(implicit mf: Manifest[T]): T
+    def put[T](apiURL:String, body:String,headers:Option[Map[String,String]] = None)(implicit mf:Manifest[T]):T
+    def delete[T](apiURL: String, requestHeaders: Option[Map[String, String]])(implicit mf: Manifest[T]):T
 }
 
 /**
@@ -94,5 +98,38 @@ object RestUtil extends HTTPClient{
                 null.asInstanceOf[T];
         }
     }
+    def put[T](apiURL: String, body: String, headers: Option[Map[String,String]] = None)(implicit mf: Manifest[T]) = {
 
+        val request = new HttpPut(apiURL)
+        request.addHeader("user-id", "analytics")
+        request.addHeader("Content-Type", "application/json");
+        headers.getOrElse(Map()).foreach { header =>
+            request.addHeader(header._1, header._2)
+        }
+        request.setEntity(new StringEntity(body));
+        try {
+            _call(request.asInstanceOf[HttpRequestBase]);
+        } catch {
+            case ex: Exception =>
+                JobLogger.log(ex.getMessage, Option(Map("url" -> apiURL, "body" -> body)), ERROR)
+                ex.printStackTrace();
+                null.asInstanceOf[T];
+        }
+    }
+    def delete[T](apiURL: String, headers: Option[Map[String,String]] = None)(implicit mf: Manifest[T]) = {
+        val request = new HttpDelete(apiURL)
+        headers.getOrElse(Map()).foreach { header =>
+            request.addHeader(header._1, header._2)
+        }
+        request.addHeader("user-id", "analytics")
+        request.addHeader("Content-Type", "application/json");
+        try {
+            _call(request.asInstanceOf[HttpRequestBase]);
+        } catch {
+            case ex: Exception =>
+                JobLogger.log(ex.getMessage, Option(Map("url" -> apiURL)), ERROR)
+                ex.printStackTrace();
+                null.asInstanceOf[T];
+        }
+    }
 }

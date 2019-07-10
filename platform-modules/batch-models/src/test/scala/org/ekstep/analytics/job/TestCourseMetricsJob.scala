@@ -113,6 +113,7 @@ class TestCourseMetricsJob extends SparkSpec(null) with MockFactory {
       .returning(externalIdentityDF).atLeastOnce()
 
     val reportDF = CourseMetricsJob.prepareReport(spark, reporterMock.loadData)
+    CourseMetricsJob.saveReportES(reportDF)
 
 
     assert(reportDF.count == 34)
@@ -350,9 +351,6 @@ class TestCourseMetricsJob extends SparkSpec(null) with MockFactory {
     val reportDF = CourseMetricsJob.prepareReport(spark, reporterMock.loadData)
     val result = reportDF.filter(reportDF("userid")==="user030" && reportDF("block_name")==="TUMKUR").count()
     assert(result===1)
-
-
-
   }
 
 }
