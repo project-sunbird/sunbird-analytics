@@ -15,6 +15,7 @@ import org.ekstep.analytics.framework.Level._
 import org.ekstep.analytics.framework.util.RestUtil._call
 import org.ekstep.analytics.util.ESUtil
 import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormat
 import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
 
 import scala.collection.mutable.ListBuffer
@@ -272,13 +273,12 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
 
     val cBatchIndex = AppConf.getConfig("course.metrics.es.index.cbatch")
     val aliasName = AppConf.getConfig("course.metrics.es.alias")
-    val date = new DateTime()
-    val cBatchStatsIndex = "cbatchstats-" + date.getMillis()
+    val cBatchStatsIndex = getFormatedIndexName()
     try {
       val response: ESIndexResponse = createEsIndex(cBatchStatsIndex, aliasName)
       if (response.isIndexCreated && response.isIndexLinkedToAlias) {
         val indexList = getIndexName(aliasName)
-        val index = indexList.mkString(",")
+        val index = indexList.mkString("")
         batchStatsDF.saveToEs(s"$index/_doc", Map("es.mapping.id" -> "id"))
         JobLogger.log("Indexing batchStatsDF is success: " + index, None, INFO)
       } else {
@@ -292,6 +292,12 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
         ex.printStackTrace()
       }
     }
+  }
+
+  def getFormatedIndexName(): String = {
+    val date: String = DateTimeFormat.forPattern("dd-MM-yyyy").print(DateTime.now())
+    val indexPrefixName = AppConf.getConfig("course.metrics.es.index.cbatchstats.prefix")
+    indexPrefixName + date
   }
 
   def createEsIndex(indexName: String, aliasName: String): ESIndexResponse = {

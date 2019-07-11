@@ -53,7 +53,7 @@ object ESUtil extends ESService {
       s"""
          |{
          |    "actions" : [
-         |        { "remove" : { "index" : "*", "alias" : $aliasName } }
+         |        { "remove" : { "index" : "*", "alias" : "$aliasName" } }
          |    ]
          |}
     """.stripMargin
