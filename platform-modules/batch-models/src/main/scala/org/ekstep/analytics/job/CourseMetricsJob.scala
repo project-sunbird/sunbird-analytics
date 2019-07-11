@@ -30,6 +30,8 @@ trait ReportGenerator {
   def saveReport(reportDF: DataFrame, url: String): Unit
 }
 
+case class ESIndexResponse(isIndexCreated: Boolean, isOldIndexDeleted: Boolean, isIndexLinkedToAlias: Boolean)
+
 object CourseMetricsJob extends optional.Application with IJob with ReportGenerator {
 
   implicit val className = "org.ekstep.analytics.job.CourseMetricsJob"
@@ -273,45 +275,51 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     val date = new DateTime()
     val cBatchStatsIndex = "cbatchstats-" + date.getMillis()
     try {
-      prepareEsIndex(cBatchStatsIndex, aliasName)
-      val indexList = getIndexName(aliasName)
-      val index = indexList.mkString(",")
-      if (index.nonEmpty) {
+      val response: ESIndexResponse = createEsIndex(cBatchStatsIndex, aliasName)
+      if (response.isIndexCreated && response.isIndexLinkedToAlias) {
+        val indexList = getIndexName(aliasName)
+        val index = indexList.mkString(",")
         batchStatsDF.saveToEs(s"$index/_doc", Map("es.mapping.id" -> "id"))
+        JobLogger.log("Indexing batchStatsDF is success: " + index, None, INFO)
       } else {
-        JobLogger.log("Skipping the indexing of batchStatsDF due to index name is empty:" + index, Option(index), ERROR)
+        JobLogger.log("Indexing batchStatsDF data into older es-index, Due to newer index is not created please check the logs", None, ERROR)
       }
       // upsert batch details to cbatch index
       batchDetailsDF.saveToEs(s"$cBatchIndex/_doc", Map("es.mapping.id" -> "id"))
     } catch {
       case ex: Exception => {
         JobLogger.log(ex.getMessage, None, ERROR)
-        ex.printStackTrace();
+        ex.printStackTrace()
       }
     }
   }
 
-  def prepareEsIndex(indexName: String, aliasName: String): Unit = {
+  def createEsIndex(indexName: String, aliasName: String): ESIndexResponse = {
     val createIndexResponse = ESUtil.createIndex(indexName, AppConf.getConfig("course.metrics.es.mapping"))
     val olderIndexList = getIndexName(aliasName)
     if (createIndexResponse.acknowledged) {
-      JobLogger.log("Newly created  index name is:" + indexName + "and" + "Alias Name is:" + aliasName, Option(indexName), INFO)
+      JobLogger.log("Newly created  index name is:" + indexName + " and " + "Alias Name is:" + aliasName, Option(indexName), INFO)
       val addIndexToAliasResponse = ESUtil.addIndexToAlias(indexName, aliasName)
       if (addIndexToAliasResponse.acknowledged && olderIndexList.nonEmpty) {
+        JobLogger.log("Adding index (" + indexName + ") to alias(" + aliasName + ") is success", None, INFO)
         val deleteIndexResponse = ESUtil.deleteIndex(olderIndexList)
         if (deleteIndexResponse.acknowledged) {
           JobLogger.log("Delete index is success! Index Name: " + olderIndexList, None, INFO)
+          ESIndexResponse(createIndexResponse.acknowledged, deleteIndexResponse.acknowledged, addIndexToAliasResponse.acknowledged)
         } else {
           JobLogger.log("Delete index is failed! Index Name: " + olderIndexList, None, ERROR)
           JobLogger.log(deleteIndexResponse.toString, None, ERROR)
+          ESIndexResponse(createIndexResponse.acknowledged, deleteIndexResponse.acknowledged, addIndexToAliasResponse.acknowledged)
         }
       } else {
-        JobLogger.log("Adding alias " + aliasName + " to index " + indexName + " is failed", None, ERROR)
+        JobLogger.log("Adding alias " + aliasName + " to index " + indexName + " status is: " + addIndexToAliasResponse.acknowledged, None, ERROR)
         JobLogger.log(addIndexToAliasResponse.toString, None, ERROR)
+        ESIndexResponse(createIndexResponse.acknowledged, false, addIndexToAliasResponse.acknowledged)
       }
     } else {
       JobLogger.log("Create Elastic search index " + indexName + " is got failed", None, ERROR)
       JobLogger.log(createIndexResponse.toString, None, ERROR)
+      ESIndexResponse(createIndexResponse.acknowledged, false, false)
     }
   }
 

@@ -2,8 +2,13 @@ package org.ekstep.analytics.job
 
 import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.model.SparkSpec
+import org.ekstep.analytics.util.{ESUtil, EsResponse}
+import org.joda.time.DateTime
+import org.mockito.Mockito.when
 import org.scalamock.scalatest.MockFactory
+import org.sunbird.cloud.storage.conf.AppConf
 
 import scala.collection.Map
 
@@ -24,6 +29,7 @@ class TestCourseMetricsJob extends SparkSpec(null) with MockFactory {
   override def beforeAll(): Unit = {
     super.beforeAll()
     spark = SparkSession.builder.config(sc.getConf).getOrCreate()
+
 
     /*
      * Data created with 31 active batch from batchid = 1000 - 1031
@@ -352,5 +358,17 @@ class TestCourseMetricsJob extends SparkSpec(null) with MockFactory {
     val result = reportDF.filter(reportDF("userid")==="user030" && reportDF("block_name")==="TUMKUR").count()
     assert(result===1)
   }
+//  it should "[Issue SB-13080] Should create an index " in {
+//    //case class EsResponse(acknowledged: Boolean, shards_acknowledged: Boolean, index: String, error: Any, status: Any)
+//    val successResponse = "{\"error\":null,\"status\":null,\"acknowledged\":true,\"index\":null,\"shards_acknowledged\":true}"
+//    val response = JSONUtils.deserialize[EsResponse](successResponse)
+//    val date = new DateTime()
+//    val indexName = "cbatchstats-" + date.getMillis()
+//    val aliasName = AppConf.getConfig("course.metrics.es.alias")
+//    when(ESUtilMock.createIndex(indexName, AppConf.getConfig("course.metrics.es.mapping"))).thenReturn(null)
+//    val result: ESIndexResponse = CourseMetricsJob.createEsIndex(indexName, aliasName)
+//    println("result" + result)
+//
+//  }
 
 }
