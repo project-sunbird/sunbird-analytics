@@ -2,18 +2,25 @@ package org.ekstep.analytics.util
 
 import org.ekstep.analytics.framework.util.RestUtil
 import org.sunbird.cloud.storage.conf.AppConf
+
 trait ESService {
   def createIndex(indexName: String, mapping: String): EsResponse
+
   def addIndexToAlias(indexName: String, aliasName: String): EsResponse
+
   def removeIndexFromAlias(indexName: List[String], aliasName: String): EsResponse
+
   def removeAllIndexFromAlias(aliasName: String): EsResponse
+
   def listIndexByAlias(aliasName: String): List[Map[String, String]]
+
   def deleteIndex(index: List[String]): EsResponse
 }
+
 case class EsResponse(acknowledged: Boolean, shards_acknowledged: Boolean, index: String, error: Any, status: Any)
 
 object ESUtil extends ESService {
-  val elasticSearchURL: String = AppConf.getConfig("es.host") + AppConf.getConfig("es.port")
+  val elasticSearchURL: String = AppConf.getConfig("es.host") + ":" + AppConf.getConfig("es.port")
 
   def createIndex(indexName: String, mapping: String): EsResponse = {
     val requestURL = elasticSearchURL + "/" + indexName
