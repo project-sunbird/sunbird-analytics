@@ -119,6 +119,7 @@ class TestCourseMetricsJob extends SparkSpec(null) with MockFactory {
       .returning(externalIdentityDF).atLeastOnce()
 
     val reportDF = CourseMetricsJob.prepareReport(spark, reporterMock.loadData)
+    //println("reportDF" + reportDF.show(3))
     CourseMetricsJob.saveReportES(reportDF)
 
 
@@ -179,7 +180,7 @@ class TestCourseMetricsJob extends SparkSpec(null) with MockFactory {
       .where(col("batchid") === "1007" and col("userid") === "user017")
       .collect()
 
-    assert(data1.head.getDouble(0) == 65)
+    assert(data1.head.getInt(0) == 65)
 
     val data2 = reportDF
       .select("course_completion")
@@ -232,14 +233,14 @@ class TestCourseMetricsJob extends SparkSpec(null) with MockFactory {
       .where(col("batchid") === "1006" and col("userid") === "user005")
       .collect()
 
-    assert(data1.head.getDouble(0) == 100)
+    assert(data1.head.getInt(0) == 100)
 
     val data2 = reportDF
       .select("course_completion")
       .where(col("batchid") === "1005" and col("userid") === "user004")
       .collect()
 
-    assert(data2.head.getDouble(0) == 100)
+    assert(data2.head.getInt(0) == 100)
   }
 
   it should "[Issue SB-12141] report should have 1 record for users mapped to two organisation (root and suborg)" in {

@@ -212,10 +212,10 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     resolvedExternalIdDF
       .join(resolvedSchoolNameDF, Seq("userid"), "left_outer")
       .join(resolvedOrgNameDF, Seq("userid"), "left_outer")
-      .withColumn("course_completion", format_number(
-        when(expr("progress/leafnodescount * 100").isNull, 100.0)
-          .when(expr("progress/leafnodescount * 100") > 100, 100.0)
-          .otherwise(expr("progress/leafnodescount * 100")), 2)
+      .withColumn("course_completion",
+        when(expr("progress/leafnodescount * 100").isNull, 100)
+          .when(expr("progress/leafnodescount * 100") > 100, 100)
+          .otherwise(expr("progress/leafnodescount * 100"))
         .cast("int"))
       .withColumn("generatedOn", date_format(from_utc_timestamp(current_timestamp.cast(DataTypes.TimestampType), "Asia/Kolkata"), "yyyy-MM-dd'T'HH:mm:ss'Z'"))
   }
@@ -285,7 +285,15 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
         JobLogger.log("Indexing batchStatsDF data into older es-index, Due to newer index is not created please check the logs", None, ERROR)
       }
       // upsert batch details to cbatch index
-      batchDetailsDF.saveToEs(s"$cBatchIndex/_doc", Map("es.mapping.id" -> "id"))
+     batchDetailsDF.saveToEs(s"$cBatchIndex/_doc", Map("es.mapping.id" -> "id"))
+    val batchStatsPerBatchCount = batchStatsDF.groupBy("batchId").count().collect().map(_.toSeq)
+    val batchStatsCount  = batchStatsDF.count()
+
+    val batchDetailsPerBatchCount = batchDetailsDF.groupBy("id").count().collect().map(_.toSeq)
+    val batchDetailsCount = batchDetailsDF.count()
+
+    JobLogger.log(s"CourseMetricsJob: Elasticsearch index stats { $cBatchStatsIndex : { perBatchCount: ${JSONUtils.serialize(batchStatsPerBatchCount)}, totalNoOfRecords: $batchStatsCount }, $cBatchIndex: { perBatchCount: ${JSONUtils.serialize(batchDetailsPerBatchCount)}, totalNoOfRecords: $batchDetailsCount } }", None, INFO)
+
     } catch {
       case ex: Exception => {
         JobLogger.log(ex.getMessage, None, ERROR)
@@ -363,6 +371,10 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
       .format("com.databricks.spark.csv")
       .option("header", "true")
       .save(url)
+
+    val perBatchCount = reportDF.groupBy("batchid").count().collect().map(_.toSeq)
+    val noOfRecords = reportDF.count()
+    JobLogger.log(s"CourseMetricsJob: records stats before cloud upload: { perBatchCount: ${JSONUtils.serialize(perBatchCount)}, totalNoOfRecords: $noOfRecords } ", None, INFO)
   }
 
   def uploadReport(sourcePath: String) = {
