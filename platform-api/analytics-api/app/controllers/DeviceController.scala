@@ -10,18 +10,12 @@ import play.api.mvc.Action
 
 import scala.concurrent.{ExecutionContext, Future}
 
-object deviceControllerResponse {
-  val success = JSONUtils.serialize(CommonUtil.OK("analytics.device-register",
-    Map("message" -> s"Device registered successfully")))
-}
-
 class DeviceController @Inject()(system: ActorSystem) extends BaseController {
 
   implicit val ec: ExecutionContext = system.dispatchers.lookup("device-register-controller")
 
   def registerDevice(deviceId: String) = Action.async(parse.json) { implicit request =>
     val deviceRegisterServiceAPIActor = AppConf.getActorRef("deviceRegisterService")
-    val successResponse = deviceControllerResponse.success
     val body: JsValue = request.body
     // The X-Forwarded-For header from Azure is in the format '61.12.65.222:33740, 61.12.65.222'
     val ip = request.headers.get("X-Forwarded-For").map {
@@ -43,7 +37,8 @@ class DeviceController @Inject()(system: ActorSystem) extends BaseController {
     deviceRegisterServiceAPIActor.tell(RegisterDevice(deviceId, headerIP, ipAddr, fcmToken, producer, dspec, uaspec), ActorRef.noSender)
 
     Future {
-      Ok(successResponse)
+      Ok(JSONUtils.serialize(CommonUtil.OK("analytics.device-register",
+        Map("message" -> s"Device registered successfully"))))
         .withHeaders(CONTENT_TYPE -> "application/json")
     }
   }
