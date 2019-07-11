@@ -1,11 +1,19 @@
 package org.ekstep.analytics.job
 
+import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.{DataFrame, SparkSession}
-import org.apache.spark.sql.functions._
+import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.model.SparkSpec
+import org.ekstep.analytics.util.{ESUtil, EsResponse}
+import org.joda.time.DateTime
+import org.mockito.Mockito.when
 import org.scalamock.scalatest.MockFactory
+import org.sunbird.cloud.storage.conf.AppConf
+
 import scala.collection.Map
-import org.apache.spark.sql.functions._
+
+
+
 
 class TestCourseMetricsJob extends SparkSpec(null) with MockFactory {
   var spark: SparkSession = _
@@ -15,11 +23,13 @@ class TestCourseMetricsJob extends SparkSpec(null) with MockFactory {
   var locationDF: DataFrame = _
   var orgDF: DataFrame = _
   var userOrgDF: DataFrame = _
+  var externalIdentityDF:DataFrame = _
   var reporterMock: ReportGenerator = mock[ReportGenerator]
 
   override def beforeAll(): Unit = {
     super.beforeAll()
     spark = SparkSession.builder.config(sc.getConf).getOrCreate()
+
 
     /*
      * Data created with 31 active batch from batchid = 1000 - 1031
@@ -29,6 +39,13 @@ class TestCourseMetricsJob extends SparkSpec(null) with MockFactory {
       .format("com.databricks.spark.csv")
       .option("header", "true")
       .load("src/test/resources/course-metrics-updater/courseBatchTable.csv")
+
+    externalIdentityDF = spark
+      .read
+      .format("com.databricks.spark.csv")
+      .option("header", "true")
+      .load("src/test/resources/course-metrics-updater/usr_external_identity.csv")
+
 
     /*
      * Data created with 35 participants mapped to only batch from 1001 - 1010 (10), so report
@@ -73,7 +90,6 @@ class TestCourseMetricsJob extends SparkSpec(null) with MockFactory {
 
 
   "TestUpdateCourseMetrics" should "generate reports" in {
-
     (reporterMock.loadData _)
       .expects(spark, Map("table" -> "course_batch", "keyspace" -> "sunbird"))
       .returning(courseBatchDF).atLeastOnce()
@@ -98,7 +114,14 @@ class TestCourseMetricsJob extends SparkSpec(null) with MockFactory {
       .expects(spark, Map("table" -> "location", "keyspace" -> "sunbird"))
       .returning(locationDF).atLeastOnce()
 
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "usr_external_identity", "keyspace" -> "sunbird"))
+      .returning(externalIdentityDF).atLeastOnce()
+
     val reportDF = CourseMetricsJob.prepareReport(spark, reporterMock.loadData)
+    //println("reportDF" + reportDF.show(3))
+    CourseMetricsJob.saveReportES(reportDF)
+
 
     assert(reportDF.count == 34)
     assert(reportDF.groupBy(col("batchid")).count().count() == 10)
@@ -145,6 +168,10 @@ class TestCourseMetricsJob extends SparkSpec(null) with MockFactory {
       .expects(spark, Map("table" -> "location", "keyspace" -> "sunbird"))
       .returning(locationDF).atLeastOnce()
 
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "usr_external_identity", "keyspace" -> "sunbird"))
+      .returning(externalIdentityDF).atLeastOnce()
+
     val reportDF = CourseMetricsJob.prepareReport(spark, reporterMock.loadData)
 
     //sampling report
@@ -153,7 +180,7 @@ class TestCourseMetricsJob extends SparkSpec(null) with MockFactory {
       .where(col("batchid") === "1007" and col("userid") === "user017")
       .collect()
 
-    assert(data1.head.getDouble(0) == 65)
+    assert(data1.head.getInt(0) == 65)
 
     val data2 = reportDF
       .select("course_completion")
@@ -195,6 +222,10 @@ class TestCourseMetricsJob extends SparkSpec(null) with MockFactory {
       .expects(spark, Map("table" -> "location", "keyspace" -> "sunbird"))
       .returning(locationDF).atLeastOnce()
 
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "usr_external_identity", "keyspace" -> "sunbird"))
+      .returning(externalIdentityDF).atLeastOnce()
+
     val reportDF = CourseMetricsJob.prepareReport(spark, reporterMock.loadData)
 
     val data1 = reportDF
@@ -202,14 +233,14 @@ class TestCourseMetricsJob extends SparkSpec(null) with MockFactory {
       .where(col("batchid") === "1006" and col("userid") === "user005")
       .collect()
 
-    assert(data1.head.getDouble(0) == 100)
+    assert(data1.head.getInt(0) == 100)
 
     val data2 = reportDF
       .select("course_completion")
       .where(col("batchid") === "1005" and col("userid") === "user004")
       .collect()
 
-    assert(data2.head.getDouble(0) == 100)
+    assert(data2.head.getInt(0) == 100)
   }
 
   it should "[Issue SB-12141] report should have 1 record for users mapped to two organisation (root and suborg)" in {
@@ -237,6 +268,10 @@ class TestCourseMetricsJob extends SparkSpec(null) with MockFactory {
       .expects(spark, Map("table" -> "location", "keyspace" -> "sunbird"))
       .returning(locationDF).atLeastOnce()
 
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "usr_external_identity", "keyspace" -> "sunbird"))
+      .returning(externalIdentityDF).atLeastOnce()
+
     val reportDF = CourseMetricsJob.prepareReport(spark, reporterMock.loadData)
 
     val data1 = reportDF
@@ -245,4 +280,96 @@ class TestCourseMetricsJob extends SparkSpec(null) with MockFactory {
 
     assert(data1 == 1)
   }
+
+  it should "[Issue SB-13080] report should have externalid,orgname, block_name, completedOn fields" in {
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "course_batch", "keyspace" -> "sunbird"))
+      .returning(courseBatchDF).atLeastOnce()
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user_courses", "keyspace" -> "sunbird"))
+      .returning(userCoursesDF).atLeastOnce()
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user", "keyspace" -> "sunbird"))
+      .returning(userDF).atLeastOnce()
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user_org", "keyspace" -> "sunbird"))
+      .returning(userOrgDF).atLeastOnce()
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "organisation", "keyspace" -> "sunbird"))
+      .returning(orgDF).atLeastOnce()
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "location", "keyspace" -> "sunbird"))
+      .returning(locationDF).atLeastOnce()
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "usr_external_identity", "keyspace" -> "sunbird"))
+      .returning(externalIdentityDF).atLeastOnce()
+
+    val reportDF = CourseMetricsJob.prepareReport(spark, reporterMock.loadData)
+    assert(reportDF.columns.contains("userid").equals(true))
+    assert(reportDF.columns.contains("completedon").equals(true))
+    assert(reportDF.columns.contains("externalid").equals(true))
+    assert(reportDF.columns.contains("block_name").equals(true))
+    // Externalid must not be null for user010, user030
+    val user10DF = reportDF.filter(reportDF.col("userid") === "user010")
+    val is10DFPresent =  user10DF.select("externalid").collect().map(_(0)).toList.contains(null)
+    val user030DF = reportDF.filter(reportDF.col("userid") === "user030")
+    val is30DFPresent =  user030DF.select("externalid").collect().map(_(0)).toList.contains(null)
+    assert(is10DFPresent === false)
+    assert(is30DFPresent === false)
+
+
+  }
+
+  it should "[Issue SB-13080] report should validate the block_name for the locationids " in {
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "course_batch", "keyspace" -> "sunbird"))
+      .returning(courseBatchDF).atLeastOnce()
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user_courses", "keyspace" -> "sunbird"))
+      .returning(userCoursesDF).atLeastOnce()
+
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user_org", "keyspace" -> "sunbird"))
+      .returning(userOrgDF).atLeastOnce()
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "organisation", "keyspace" -> "sunbird"))
+      .returning(orgDF).atLeastOnce()
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "location", "keyspace" -> "sunbird"))
+      .returning(locationDF).atLeastOnce()
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user", "keyspace" -> "sunbird"))
+      .returning(userDF).atLeastOnce()
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "usr_external_identity", "keyspace" -> "sunbird"))
+      .returning(externalIdentityDF).atLeastOnce()
+
+    val reportDF = CourseMetricsJob.prepareReport(spark, reporterMock.loadData)
+    val result = reportDF.filter(reportDF("userid")==="user030" && reportDF("block_name")==="TUMKUR").count()
+    assert(result===1)
+  }
+//  it should "[Issue SB-13080] Should create an index " in {
+//    //case class EsResponse(acknowledged: Boolean, shards_acknowledged: Boolean, index: String, error: Any, status: Any)
+//    val successResponse = "{\"error\":null,\"status\":null,\"acknowledged\":true,\"index\":null,\"shards_acknowledged\":true}"
+//    val response = JSONUtils.deserialize[EsResponse](successResponse)
+//    val date = new DateTime()
+//    val indexName = "cbatchstats-" + date.getMillis()
+//    val aliasName = AppConf.getConfig("course.metrics.es.alias")
+//    when(ESUtilMock.createIndex(indexName, AppConf.getConfig("course.metrics.es.mapping"))).thenReturn(null)
+//    val result: ESIndexResponse = CourseMetricsJob.createEsIndex(indexName, aliasName)
+//    println("result" + result)
+//
+//  }
+
 }
