@@ -230,7 +230,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
       .drop(col("count"))
 
     val courseCompletionCountPerBatchDF = reportDF
-      .filter(col("course_completion").equalTo(100.0))
+      .filter(col("course_completion").equalTo(100))
       .groupBy(col("batchid"))
       .count()
       .withColumn("courseCompletionCountPerBatch", col("count"))
