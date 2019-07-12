@@ -1,7 +1,7 @@
 
 
 #!/bin/sh
-
+#Script is used to create an es index with mapping object
 #Configuration
 des_index="cbatchstats_duplicate"
 host="localhost" # Change it to ES IP
