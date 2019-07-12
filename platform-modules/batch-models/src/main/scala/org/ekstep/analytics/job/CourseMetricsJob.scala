@@ -256,7 +256,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
         col("course_completion").cast("long").as("completedPercent"),
         col("district_name").as("districtName"),
         col("block_name").as("blockName"),
-        col("externalid").as("ExternalId"),
+        col("externalid").as("externalId"),
         from_unixtime(unix_timestamp(col("enrolleddate"), "yyyy-MM-dd HH:mm:ss:SSSZ"), "yyyy-MM-dd'T'HH:mm:ss'Z'").as("enrolledOn")
       )
 
