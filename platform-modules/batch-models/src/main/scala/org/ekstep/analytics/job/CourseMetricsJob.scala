@@ -276,14 +276,17 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     val cBatchStatsIndex = getFormatedIndexName()
     try {
       val response: ESIndexResponse = createEsIndex(cBatchStatsIndex, aliasName)
-      if (response.isIndexCreated && response.isIndexLinkedToAlias) {
-        val indexList = getIndexName(aliasName)
-        val index = indexList.mkString("")
+      val indexList = getIndexName(aliasName)
+      val index = indexList.mkString("")
+      if(index.nonEmpty){
         batchStatsDF.saveToEs(s"$index/_doc", Map("es.mapping.id" -> "id"))
         JobLogger.log("Indexing batchStatsDF is success: " + index, None, INFO)
-      } else {
-        JobLogger.log("Indexing batchStatsDF data into older es-index, Due to newer index is not created please check the logs", None, ERROR)
+      }else{
+        JobLogger.log("Indexing batchStatsDF is got failed: " + index, None, ERROR)
       }
+
+
+
       // upsert batch details to cbatch index
      batchDetailsDF.saveToEs(s"$cBatchIndex/_doc", Map("es.mapping.id" -> "id"))
     val batchStatsPerBatchCount = batchStatsDF.groupBy("batchId").count().collect().map(_.toSeq)
