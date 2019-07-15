@@ -3,7 +3,7 @@ import appconf.AppConf
 import play.api._
 import play.api.mvc._
 import filter.RequestInterceptor
-import org.ekstep.analytics.api.service.{DeviceRegisterService, SaveMetricsActor}
+import org.ekstep.analytics.api.service.{DeviceRegisterService, ExperimentService, SaveMetricsActor}
 import org.ekstep.analytics.api.util.APILogger
 
 object Global extends WithFilters(RequestInterceptor) {
@@ -16,7 +16,9 @@ object Global extends WithFilters(RequestInterceptor) {
         Logger.info("Application has started...")
         val metricsActor: ActorRef = app.actorSystem.actorOf(Props[SaveMetricsActor])
         val deviceRegsiterActor = app.actorSystem.actorOf(Props(new DeviceRegisterService(metricsActor)))
+        val experimentActor = app.actorSystem.actorOf(Props(new ExperimentService()))
         AppConf.setActorRef("deviceRegisterService", deviceRegsiterActor)
+        AppConf.setActorRef("experimentService", experimentActor)
     }
 
     override def onStop(app: Application) {
