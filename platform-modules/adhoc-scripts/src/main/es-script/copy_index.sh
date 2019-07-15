@@ -6,7 +6,7 @@
 #Configuration
 src_index="cbatchstats"
 des_index="cbatchstats_duplicate"
-host="localhost" # Change it to ES IP
+host="localhost" # Change it to Elastic search IP  use: groups['core-es'][0]
 
 
 echo "Copy index from $src_index to $des_index"
