@@ -6,7 +6,7 @@
 
 #Configurations
 index_name="" # Please mention the index name here : ex:cbatchstats
-host="localhost" #Change this to ES IP
+host="localhost" #Change this to Elastic search IP use: groups['core-es'][0]
 
 echo "Delete of $index_name index is started.."
 
