@@ -10,9 +10,15 @@ import org.sunbird.cloud.storage.conf.AppConf
 import java.nio.file.{Files, StandardCopyOption}
 import java.io.File
 
-import org.ekstep.analytics.framework.Level.INFO
+import org.apache.http.client.methods.HttpRequestBase
+import org.ekstep.analytics.framework.Level._
+import org.ekstep.analytics.framework.util.RestUtil._call
+import org.ekstep.analytics.util.ESUtil
+import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormat
 import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
 
+import scala.collection.mutable.ListBuffer
 import scala.collection.{Map, _}
 
 trait ReportGenerator {
@@ -24,6 +30,8 @@ trait ReportGenerator {
 
   def saveReport(reportDF: DataFrame, url: String): Unit
 }
+
+case class ESIndexResponse(isIndexCreated: Boolean, isOldIndexDeleted: Boolean, isIndexLinkedToAlias: Boolean)
 
 object CourseMetricsJob extends optional.Application with IJob with ReportGenerator {
 
@@ -97,6 +105,8 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     val userOrgDF = loadData(spark, Map("table" -> "user_org", "keyspace" -> sunbirdKeyspace)).filter(lower(col("isdeleted")) === "false")
     val organisationDF = loadData(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace))
     val locationDF = loadData(spark, Map("table" -> "location", "keyspace" -> sunbirdKeyspace))
+    val externalIdentityDF = loadData(spark, Map("table" -> "usr_external_identity", "keyspace" -> sunbirdKeyspace))
+
 
     /*
     * courseBatchDF has details about the course and batch details for which we have to prepare the report
@@ -111,6 +121,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
         col("enddate"),
         col("startdate"),
         col("enrolleddate"),
+        col("completedon"),
         col("active"),
         courseBatchDF.col("courseid"))
 
@@ -127,7 +138,13 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
         col("maskedemail"),
         col("maskedphone"),
         col("rootorgid"),
+        col("userid"),
         col("locationids"))
+    /**
+      * externalIdMapDF - Filter out the external id by idType and provider and Mapping userId and externalId
+      */
+    val externalIdMapDF = userDF.join(externalIdentityDF, externalIdentityDF.col("idtype") === userDF.col("channel") && externalIdentityDF.col("provider") === userDF.col("channel") && externalIdentityDF.col("userid") === userDF.col("userid"), "inner")
+      .select(externalIdentityDF.col("externalid"), externalIdentityDF.col("userid"))
 
     /*
     * userDenormDF lacks organisation details, here we are mapping each users to get the organisationids
@@ -152,44 +169,59 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
       .dropDuplicates(Seq("userid"))
       .select(col("name").as("district_name"), col("userid"))
 
+    /**
+      * Resolve the block name by filtering location type = "BLOCK" for the locationids
+      */
+    val blockDenormDF = userOrgDenormDF
+      .withColumn("exploded_location", explode(col("locationids")))
+      .join(locationDF, col("exploded_location") === locationDF.col("id") && locationDF.col("type") === "block")
+      .dropDuplicates(Seq("userid"))
+      .select(col("name").as("block_name"), col("userid"))
+
     val userLocationResolvedDF = userOrgDenormDF
       .join(locationDenormDF, Seq("userid"), "left_outer")
+
+    val userBlockResolvedDF = userLocationResolvedDF.join(blockDenormDF, Seq("userid"), "left_outer")
+
+    val resolvedExternalIdDF = userBlockResolvedDF.join(externalIdMapDF, Seq("userid"), "left_outer")
+
 
     /*
     * Resolve organisation name from `rootorgid`
     * */
-    val resolvedOrgNameDF = userLocationResolvedDF
-      .join(organisationDF, organisationDF.col("id") === userLocationResolvedDF.col("rootorgid"), "left_outer")
+    val resolvedOrgNameDF = resolvedExternalIdDF
+      .join(organisationDF, organisationDF.col("id") === resolvedExternalIdDF.col("rootorgid"), "left_outer")
       .dropDuplicates(Seq("userid"))
-      .select(userLocationResolvedDF.col("userid"), col("orgname").as("orgname_resolved"))
+      .select(resolvedExternalIdDF.col("userid"), col("orgname").as("orgname_resolved"))
 
 
     /*
     * Resolve school name from `orgid`
     * */
-    val resolvedSchoolNameDF = userLocationResolvedDF
-      .join(organisationDF, organisationDF.col("id") === userLocationResolvedDF.col("organisationid"), "left_outer")
+    val resolvedSchoolNameDF = resolvedExternalIdDF
+      .join(organisationDF, organisationDF.col("id") === resolvedExternalIdDF.col("organisationid"), "left_outer")
       .dropDuplicates(Seq("userid"))
-      .select(userLocationResolvedDF.col("userid"), col("orgname").as("schoolname_resolved"))
+      .select(resolvedExternalIdDF.col("userid"), col("orgname").as("schoolname_resolved"))
+
+
 
     /*
     * merge orgName and schoolName based on `userid` and calculate the course progress percentage from `progress` column which is no of content visited/read
     * */
 
-    userLocationResolvedDF
+    resolvedExternalIdDF
       .join(resolvedSchoolNameDF, Seq("userid"), "left_outer")
       .join(resolvedOrgNameDF, Seq("userid"), "left_outer")
-      .withColumn("course_completion", format_number(
-        when(expr("progress/leafnodescount * 100").isNull, 100.0)
-          .when(expr("progress/leafnodescount * 100") > 100, 100.0)
-          .otherwise(expr("progress/leafnodescount * 100")), 2)
-        .cast("double"))
+      .withColumn("course_completion",
+        when(expr("progress/leafnodescount * 100").isNull, 100)
+          .when(expr("progress/leafnodescount * 100") > 100, 100)
+          .otherwise(expr("progress/leafnodescount * 100"))
+        .cast("int"))
       .withColumn("generatedOn", date_format(from_utc_timestamp(current_timestamp.cast(DataTypes.TimestampType), "Asia/Kolkata"), "yyyy-MM-dd'T'HH:mm:ss'Z'"))
   }
 
 
   def saveReportES(reportDF: DataFrame): Unit = {
-
     import org.elasticsearch.spark.sql._
     val participantsCountPerBatchDF = reportDF
       .groupBy(col("batchid"))
@@ -198,7 +230,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
       .drop(col("count"))
 
     val courseCompletionCountPerBatchDF = reportDF
-      .filter(col("course_completion").equalTo(100.0))
+      .filter(col("course_completion").equalTo(100))
       .groupBy(col("batchid"))
       .count()
       .withColumn("courseCompletionCountPerBatch", col("count"))
@@ -211,6 +243,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
         concat_ws(" ", col("firstname"), col("lastname")).as("name"),
         concat_ws(":", col("userid"), col("batchid")).as("id"),
         col("userid").as("userId"),
+        col("completedon").as("completedOn"),
         col("maskedemail").as("maskedEmail"),
         col("maskedphone").as("maskedPhone"),
         col("orgname_resolved").as("rootOrgName"),
@@ -222,7 +255,9 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
         col("batchid").as("batchId"),
         col("course_completion").cast("long").as("completedPercent"),
         col("district_name").as("districtName"),
-        from_unixtime(unix_timestamp(col("enrolleddate"), "yyyy-MM-dd HH:mm:ss:SSSZ"),"yyyy-MM-dd'T'HH:mm:ss'Z'").as("enrolledOn")
+        col("block_name").as("blockName"),
+        col("externalid").as("externalId"),
+        from_unixtime(unix_timestamp(col("enrolleddate"), "yyyy-MM-dd HH:mm:ss:SSSZ"), "yyyy-MM-dd'T'HH:mm:ss'Z'").as("enrolledOn")
       )
 
     val batchDetailsDF = participantsCountPerBatchDF
@@ -236,16 +271,24 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
       )
       .distinct()
 
-    val cBatchStatsIndex = AppConf.getConfig("course.metrics.es.index.cbatchstats")
     val cBatchIndex = AppConf.getConfig("course.metrics.es.index.cbatch")
+    val aliasName = AppConf.getConfig("course.metrics.es.alias")
+    val cBatchStatsIndex = getFormatedIndexName()
+    try {
+      val response: ESIndexResponse = createEsIndex(cBatchStatsIndex, aliasName)
+      val indexList = getIndexName(aliasName)
+      val index = indexList.mkString("")
+      if(index.nonEmpty){
+        batchStatsDF.saveToEs(s"$index/_doc", Map("es.mapping.id" -> "id"))
+        JobLogger.log("Indexing batchStatsDF is success: " + index, None, INFO)
+      }else{
+        JobLogger.log("Indexing batchStatsDF is got failed: " + index, None, ERROR)
+      }
 
-    //Save to sunbird platform Elasticsearch instance
-    // upsert batch stats to cbatchstats index
-    batchStatsDF.saveToEs(s"$cBatchStatsIndex/_doc", Map("es.mapping.id" -> "id"))
 
-    // upsert batch details to cbatch index
-    batchDetailsDF.saveToEs(s"$cBatchIndex/_doc", Map("es.mapping.id" -> "id"))
 
+      // upsert batch details to cbatch index
+     batchDetailsDF.saveToEs(s"$cBatchIndex/_doc", Map("es.mapping.id" -> "id"))
     val batchStatsPerBatchCount = batchStatsDF.groupBy("batchId").count().collect().map(_.toSeq)
     val batchStatsCount  = batchStatsDF.count()
 
@@ -253,22 +296,75 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     val batchDetailsCount = batchDetailsDF.count()
 
     JobLogger.log(s"CourseMetricsJob: Elasticsearch index stats { $cBatchStatsIndex : { perBatchCount: ${JSONUtils.serialize(batchStatsPerBatchCount)}, totalNoOfRecords: $batchStatsCount }, $cBatchIndex: { perBatchCount: ${JSONUtils.serialize(batchDetailsPerBatchCount)}, totalNoOfRecords: $batchDetailsCount } }", None, INFO)
+
+    } catch {
+      case ex: Exception => {
+        JobLogger.log(ex.getMessage, None, ERROR)
+        ex.printStackTrace()
+      }
+    }
   }
 
+  def getFormatedIndexName(): String = {
+    val date: String = DateTimeFormat.forPattern("dd-MM-yyyy").print(DateTime.now())
+    val indexPrefixName = AppConf.getConfig("course.metrics.es.index.cbatchstats.prefix")
+    indexPrefixName + date
+  }
+
+  def createEsIndex(indexName: String, aliasName: String): ESIndexResponse = {
+    val createIndexResponse = ESUtil.createIndex(indexName, AppConf.getConfig("course.metrics.es.mapping"))
+    val olderIndexList = getIndexName(aliasName)
+    if (createIndexResponse.acknowledged) {
+      JobLogger.log("Newly created  index name is:" + indexName + " and " + "Alias Name is:" + aliasName, Option(indexName), INFO)
+      val addIndexToAliasResponse = ESUtil.addIndexToAlias(indexName, aliasName)
+      if (addIndexToAliasResponse.acknowledged && olderIndexList.nonEmpty) {
+        JobLogger.log("Adding index (" + indexName + ") to alias(" + aliasName + ") is success", None, INFO)
+        val deleteIndexResponse = ESUtil.deleteIndex(olderIndexList)
+        if (deleteIndexResponse.acknowledged) {
+          JobLogger.log("Delete index is success! Index Name: " + olderIndexList, None, INFO)
+          ESIndexResponse(createIndexResponse.acknowledged, deleteIndexResponse.acknowledged, addIndexToAliasResponse.acknowledged)
+        } else {
+          JobLogger.log("Delete index is failed! Index Name: " + olderIndexList, None, ERROR)
+          JobLogger.log(deleteIndexResponse.toString, None, ERROR)
+          ESIndexResponse(createIndexResponse.acknowledged, deleteIndexResponse.acknowledged, addIndexToAliasResponse.acknowledged)
+        }
+      } else {
+        JobLogger.log("Adding alias " + aliasName + " to index " + indexName + " status is: " + addIndexToAliasResponse.acknowledged, None, ERROR)
+        JobLogger.log(addIndexToAliasResponse.toString, None, ERROR)
+        ESIndexResponse(createIndexResponse.acknowledged, false, addIndexToAliasResponse.acknowledged)
+      }
+    } else {
+      JobLogger.log("Create Elastic search index " + indexName + " is got failed", None, ERROR)
+      JobLogger.log(createIndexResponse.toString, None, ERROR)
+      ESIndexResponse(createIndexResponse.acknowledged, false, false)
+    }
+  }
+
+  def getIndexName(aliasName: String): List[String] = {
+    val indexMap = ESUtil.listIndexByAlias(aliasName)
+    var indexListBuffer = new ListBuffer[String]()
+    indexMap.foreach(element => {
+      indexListBuffer += element.getOrElse("index", null)
+    })
+    indexListBuffer.toList
+  }
 
   def saveReport(reportDF: DataFrame, url: String): Unit = {
-
     reportDF
       .select(
         concat_ws(" ", col("firstname"), col("lastname")).as("User Name"),
         col("batchid"),
+        col("userid").as("User Id"),
+        col("completedon").as("Completed On"),
         col("maskedemail").as("Email ID"),
         col("maskedphone").as("Mobile Number"),
         col("district_name").as("District Name"),
+        col("block_name").as("Block Name"),
         col("orgname_resolved").as("Organisation Name"),
         col("schoolname_resolved").as("School Name"),
         col("enrolleddate").as("Enrollment Date"),
-        concat(col("course_completion").cast("string"),lit("%"))
+        col("externalid").as("External ID"),
+        concat(col("course_completion").cast("string"), lit("%"))
           .as("Course Progress")
       )
       .coalesce(1)
@@ -297,7 +393,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
   private def recursiveListFiles(file: File, ext: String): Array[File] = {
     val fileList = file.listFiles
     val extOnly = fileList.filter(file => file.getName.endsWith(ext))
-    extOnly ++ fileList.filter(_.isDirectory).flatMap(recursiveListFiles(_,ext))
+    extOnly ++ fileList.filter(_.isDirectory).flatMap(recursiveListFiles(_, ext))
   }
 
   private def purgeDirectory(dir: File): Unit = {
@@ -312,9 +408,9 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     val temp = new File(tempDir)
     val out = new File(outDir)
 
-    if(!temp.exists()) throw new Exception(s"path $tempDir doesn't exist")
+    if (!temp.exists()) throw new Exception(s"path $tempDir doesn't exist")
 
-    if(out.exists()) {
+    if (out.exists()) {
       purgeDirectory(out)
       JobLogger.log(s"cleaning out the directory ${out.getPath}")
     } else {
