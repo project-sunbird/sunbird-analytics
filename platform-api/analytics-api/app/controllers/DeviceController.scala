@@ -64,8 +64,9 @@ class DeviceController @Inject()(system: ActorSystem) extends BaseController {
     }
 
     deviceRegisterServiceAPIActor.tell(RegisterDevice(deviceId, headerIP, ipAddr, fcmToken, producer, dspec, uaspec), ActorRef.noSender)
-    val future = experimentActor ? ExperimentRequest(experimentInputMap)
-    future.map { expData => {
+
+    val result = experimentActor ? ExperimentRequest(experimentInputMap)
+    result.map { expData => {
       var logData: Map[String, String] = experimentInputMap
         val res = expData match {
           case Some(data: ExperimentData) => {
@@ -80,20 +81,6 @@ class DeviceController @Inject()(system: ActorSystem) extends BaseController {
           "rid" -> "experimentService", "title" -> "experimentService")))),
         "experimentService")
 
-<<<<<<< HEAD
-    // mock response, it should be replaced with actual implementation
-    val experimentData = Map("id" -> "experiment-1",
-          "name" -> "first-experiment",
-          "endDate" -> "2019-08-09",
-          "startDate" -> "2019-07-09",
-          "launchConfig" -> Map("url" -> "http://xyz.com/page1", "key" -> "2342-2314-5345-1231")
-      )
-
-    Future {
-      Ok(JSONUtils.serialize(CommonUtil.OK("analytics.device-register",
-        Map("message" -> s"Device registered successfully", "experimentData" -> experimentData))))
-        .withHeaders(CONTENT_TYPE -> "application/json")
-=======
         Ok(JSONUtils.serialize(CommonUtil.OK("analytics.device-register",
           Map("message" -> s"Device registered successfully", "actions" -> res))))
           .withHeaders(CONTENT_TYPE -> "application/json")
@@ -109,7 +96,6 @@ class DeviceController @Inject()(system: ActorSystem) extends BaseController {
             ex.getMessage, "ERROR"))
         ).withHeaders(CONTENT_TYPE -> "application/json")
       }
->>>>>>> 815328a67... Issue #SC-1074 feat: API to determine the experiment for a user
     }
   }
 

@@ -16,18 +16,20 @@ object ElasticsearchService extends ESsearch {
     private lazy val config: Config = ConfigFactory.load()
     private lazy val host =  config.getString("elasticsearch.host")
     private lazy val port = config.getInt("elasticsearch.port")
+    private lazy val fieldWeight: String =  config.getString("elasticsearch.searchExperiment.fieldWeight")
+    private lazy val fieldWeightMap: Map[String, Double] = JSONUtils.deserialize[Map[String, Double]](fieldWeight)
+    private lazy val queryWeight = config.getDouble("elasticsearch.searchExperiment.queryWeight")
 
     private def getConnection = HttpClient(ElasticsearchClientUri(host, port))
 
     def searchExperiment(fields: Map[String, String]): Either[RequestFailure, RequestSuccess[SearchResponse]] = {
-        val indexName = config.getString("elasticsearch.index.experiment")
-        val fieldWeight: Map[String, Double] = Map("userId" -> 3.0, "deviceId" -> 3.0, "url" -> 3.0)
+        val indexName = config.getString("elasticsearch.searchExperiment.index")
 
         val functionList: List[ScoreFunctionDefinition] = List(
-            weightScore(9.0).filter(boolQuery().must(fields.map { field =>
+            weightScore(queryWeight).filter(boolQuery().must(fields.map { field =>
                 matchQuery(field._1, field._2)
             }))
-        ) ::: fieldWeight.map { fw =>
+        ) ::: fieldWeightMap.map { fw =>
                 weightScore(fw._2).filter(boolQuery().not(existsQuery(fw._1)))
         }.toList
 
