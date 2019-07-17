@@ -352,20 +352,21 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
   def saveReport(reportDF: DataFrame, url: String): Unit = {
     reportDF
       .select(
-        concat_ws(" ", col("firstname"), col("lastname")).as("User Name"),
-        col("batchid"),
+        col("externalid").as("External ID"),
         col("userid").as("User Id"),
-        col("completedon").as("Completed On"),
+        concat_ws(" ", col("firstname"), col("lastname")).as("User Name"),
         col("maskedemail").as("Email ID"),
         col("maskedphone").as("Mobile Number"),
-        col("district_name").as("District Name"),
-        col("block_name").as("Block Name"),
         col("orgname_resolved").as("Organisation Name"),
+        col("district_name").as("District Name"),
         col("schoolname_resolved").as("School Name"),
+        col("block_name").as("Block Name"),
         col("enrolleddate").as("Enrollment Date"),
-        col("externalid").as("External ID"),
         concat(col("course_completion").cast("string"), lit("%"))
-          .as("Course Progress")
+          .as("Course Progress"),
+        col("completedon").as("Completed On"),
+        col("batchid")
+
       )
       .coalesce(1)
       .write
