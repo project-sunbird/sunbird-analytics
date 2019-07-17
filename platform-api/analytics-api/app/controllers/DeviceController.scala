@@ -6,22 +6,21 @@ import com.google.inject.Inject
 import org.ekstep.analytics.api.service.{ExperimentData, ExperimentRequest, RegisterDevice}
 import org.ekstep.analytics.api.util.{APILogger, CommonUtil, JSONUtils}
 import play.api.libs.json.{JsValue, Json}
-import play.api.mvc.Action
+import play.api.mvc.{Action, Result}
 import akka.pattern.ask
-import akka.util.Timeout
+import com.typesafe.config.{Config, ConfigFactory}
 
-import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class DeviceController @Inject()(system: ActorSystem) extends BaseController {
 
   implicit val ec: ExecutionContext = system.dispatchers.lookup("device-register-controller")
+  lazy val configuration: Config = ConfigFactory.load()
+  lazy val isExperimentEnabled = configuration.getBoolean("deviceRegisterAPI.experiment.enable")
 
   def registerDevice(deviceId: String) = Action.async(parse.json) { implicit request =>
     val deviceRegisterServiceAPIActor: ActorRef = AppConf.getActorRef("deviceRegisterService")
-    val experimentActor: ActorRef = AppConf.getActorRef("experimentService")
-    var experimentInputMap: Map[String, String] = Map("deviceId" -> deviceId)
-    implicit val timeout = Timeout(5 seconds)
+    var inputMap: Map[String, String] = Map("deviceId" -> deviceId)
 
     val body: JsValue = request.body
     // The X-Forwarded-For header from Azure is in the format '61.12.65.222:33740, 61.12.65.222'
@@ -46,12 +45,12 @@ class DeviceController @Inject()(system: ActorSystem) extends BaseController {
         val userId = (value \ "userid").asOpt[String]
         val url = (value \ "url").asOpt[String]
         userId match {
-          case Some(data) => experimentInputMap += ("userId" -> data)
+          case Some(data) => inputMap += ("userId" -> data)
           case None => None
         }
 
         url match {
-          case Some(data) => experimentInputMap += ("url" -> data)
+          case Some(data) => inputMap += ("url" -> data)
           case None => None
         }
       }
@@ -59,38 +58,54 @@ class DeviceController @Inject()(system: ActorSystem) extends BaseController {
     }
 
     producer match {
-      case Some(data) => experimentInputMap += ("platform" -> data)
+      case Some(data) => inputMap += ("platform" -> data)
       case None => None
     }
 
     deviceRegisterServiceAPIActor.tell(RegisterDevice(deviceId, headerIP, ipAddr, fcmToken, producer, dspec, uaspec), ActorRef.noSender)
 
-    val result = experimentActor ? ExperimentRequest(experimentInputMap)
-    result.map { expData => {
-      var logData: Map[String, String] = experimentInputMap
-        val res = expData match {
-          case Some(data: ExperimentData) => {
-            logData = logData ++ Map("title" -> "experiment", "experimentId" -> data.id, "experimentName" -> data.name, "key" -> data.key)
-            List(Map("type" -> "experiment", "data" -> data))
-          }
-          case None => List()
-        }
+    if (isExperimentEnabled) {
+      sendExperimentData(inputMap)
+    } else {
+      Future {
+        Ok(JSONUtils.serialize(CommonUtil.OK("analytics.device-register",
+          Map("message" -> s"Device registered successfully", "actions" -> List()))))
+          .withHeaders(CONTENT_TYPE -> "application/json")
+      }
+    }
+  }
 
-        APILogger.log("", Option(Map("type" -> "api_access",
+  def sendExperimentData(input: Map[String, String]): Future[Result] = {
+    val experimentActor: ActorRef = AppConf.getActorRef("experimentService")
+
+    val result = experimentActor ? ExperimentRequest(input)
+
+    result.map { expData => {
+      var logData: Map[String, String] = input
+      val res = expData match {
+        case Some(data: ExperimentData) => {
+          val expData = Map("title" -> "experiment", "experimentId" -> data.id, "experimentName" -> data.name, "key" -> data.key, "startDate" -> data.startDate, "endDate" -> data.endDate)
+          logData = Map("experimentAssigned" -> "true") ++ logData ++ expData
+          List(Map("type" -> "experiment", "data" -> expData))
+        }
+        case None => List()
+      }
+
+      APILogger.log("", Option(Map("type" -> "api_access",
         "params" -> List(logData ++ Map("status" -> 200, "method" -> "POST",
           "rid" -> "experimentService", "title" -> "experimentService")))),
-        "experimentService")
+        "ExperimentService")
 
-        Ok(JSONUtils.serialize(CommonUtil.OK("analytics.device-register",
-          Map("message" -> s"Device registered successfully", "actions" -> res))))
-          .withHeaders(CONTENT_TYPE -> "application/json")
+      Ok(JSONUtils.serialize(CommonUtil.OK("analytics.device-register",
+        Map("message" -> s"Device registered successfully", "actions" -> res))))
+        .withHeaders(CONTENT_TYPE -> "application/json")
       }
     }.recover {
       case ex: Exception => {
         APILogger.log("", Option(Map("type" -> "api_access",
           "params" -> List(Map("status" -> 500, "method" -> "POST",
             "rid" -> "experimentService", "title" -> "experimentService")), "data" -> ex.getMessage)),
-          "experimentService")
+          "ExperimentService")
         InternalServerError(
           JSONUtils.serialize(CommonUtil.errorResponse("analytics.device-register",
             ex.getMessage, "ERROR"))
@@ -98,5 +113,4 @@ class DeviceController @Inject()(system: ActorSystem) extends BaseController {
       }
     }
   }
-
 }
