@@ -22,3 +22,4 @@ platform-framework/analytics-core/files
 /.idea
 *.iml
 *.gz
+*.class
