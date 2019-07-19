@@ -88,6 +88,8 @@ class DeviceRegisterService(saveMetricsActor: ActorRef) extends Actor {
                 fcmToken,
                 producer
             )
+
+            updateDeviceFirstAccess(did)
         }
 
         metricsActor.tell(IncrementDeviceDbSaveSuccessCount, ActorRef.noSender)
@@ -164,6 +166,16 @@ class DeviceRegisterService(saveMetricsActor: ActorRef) extends Actor {
                |INSERT INTO ${Constants.DEVICE_DB}.${Constants.DEVICE_PROFILE_TABLE}
                | (${finalQueryValues.keys.mkString(",")})
                | VALUES(${finalQueryValues.values.mkString(",")})
+           """.stripMargin
+        DBUtil.session.execute(query)
+    }
+
+    def updateDeviceFirstAccess(did: String): Unit = {
+        val query =
+            s"""
+               |UPDATE ${Constants.DEVICE_DB}.${Constants.DEVICE_PROFILE_TABLE}
+               | SET first_access = ${new DateTime(DateTimeZone.UTC).getMillis}
+               | WHERE device_id = '$did' IF first_access = null
            """.stripMargin
         DBUtil.session.execute(query)
     }
