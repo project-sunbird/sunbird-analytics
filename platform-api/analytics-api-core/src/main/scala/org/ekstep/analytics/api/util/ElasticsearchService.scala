@@ -11,14 +11,14 @@ trait ESsearch {
     def searchExperiment(fields: Map[String, String]): Either[RequestFailure, RequestSuccess[SearchResponse]]
 }
 
-object ElasticsearchService extends ESsearch {
+class ElasticsearchService extends ESsearch {
 
     private lazy val config: Config = ConfigFactory.load()
     private lazy val host =  config.getString("elasticsearch.host")
     private lazy val port = config.getInt("elasticsearch.port")
     private lazy val fieldWeight: String =  config.getString("elasticsearch.searchExperiment.fieldWeight")
     private lazy val fieldWeightMap: Map[String, Double] = JSONUtils.deserialize[Map[String, Double]](fieldWeight)
-    private lazy val queryWeight = config.getDouble("elasticsearch.searchExperiment.queryWeight")
+    private lazy val queryWeight = config.getDouble("elasticsearch.searchExperiment.matchQueryScore")
 
     private def getConnection = HttpClient(ElasticsearchClientUri(host, port))
 

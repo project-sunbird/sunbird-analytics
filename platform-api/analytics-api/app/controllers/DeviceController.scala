@@ -3,12 +3,13 @@ package controllers
 import akka.actor._
 import appconf.AppConf
 import com.google.inject.Inject
-import org.ekstep.analytics.api.service.{ExperimentData, ExperimentRequest, RegisterDevice}
+import org.ekstep.analytics.api.service.{RegisterDevice}
 import org.ekstep.analytics.api.util.{APILogger, CommonUtil, JSONUtils}
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, Result}
 import akka.pattern.ask
 import com.typesafe.config.{Config, ConfigFactory}
+import org.ekstep.analytics.api.service.experiment.{ExperimentData, ExperimentRequest}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -20,7 +21,6 @@ class DeviceController @Inject()(system: ActorSystem) extends BaseController {
 
   def registerDevice(deviceId: String) = Action.async(parse.json) { implicit request =>
     val deviceRegisterServiceAPIActor: ActorRef = AppConf.getActorRef("deviceRegisterService")
-    var inputMap: Map[String, String] = Map("deviceId" -> deviceId)
 
     val body: JsValue = request.body
     // The X-Forwarded-For header from Azure is in the format '61.12.65.222:33740, 61.12.65.222'
@@ -35,37 +35,24 @@ class DeviceController @Inject()(system: ActorSystem) extends BaseController {
     val ipAddr = (body \ "request" \ "ip_addr").asOpt[String]
     val fcmToken = (body \ "request" \ "fcmToken").asOpt[String]
     val producer = (body \ "request" \ "producer").asOpt[String]
-    val dspec: Option[String] = (body \ "request" \ "dspec").toOption  match {
-      case Some(value) => Option(Json.stringify(value))
-      case None => None
+    val dspec: Option[String] = (body \ "request" \ "dspec").toOption.map {
+      value => Json.stringify(value)
     }
 
-    (body \ "request" \ "ext").toOption match {
-      case Some(value) => {
+    val extMap: Option[Map[String, String]] = (body \ "request" \ "ext").toOption.map {
+      value => {
         val userId = (value \ "userid").asOpt[String]
         val url = (value \ "url").asOpt[String]
-        userId match {
-          case Some(data) => inputMap += ("userId" -> data)
-          case None => None
-        }
-
-        url match {
-          case Some(data) => inputMap += ("url" -> data)
-          case None => None
-        }
+        val userIdMap = userId.map { data =>  Map("userId" -> data) }
+        val urlMap = url.map { data => Map("url" -> data) }
+        userIdMap.getOrElse(Map()) ++ urlMap.getOrElse(Map())
       }
-      case None => None
-    }
-
-    producer match {
-      case Some(data) => inputMap += ("platform" -> data)
-      case None => None
     }
 
     deviceRegisterServiceAPIActor.tell(RegisterDevice(deviceId, headerIP, ipAddr, fcmToken, producer, dspec, uaspec), ActorRef.noSender)
 
     if (isExperimentEnabled) {
-      sendExperimentData(inputMap)
+      sendExperimentData(deviceId, extMap.getOrElse(Map()).getOrElse("userId", null), extMap.getOrElse(Map()).getOrElse("url", null), producer.orNull)
     } else {
       Future {
         Ok(JSONUtils.serialize(CommonUtil.OK("analytics.device-register",
@@ -75,24 +62,24 @@ class DeviceController @Inject()(system: ActorSystem) extends BaseController {
     }
   }
 
-  def sendExperimentData(input: Map[String, String]): Future[Result] = {
+  def sendExperimentData(deviceId: String, userId: String, url: String, producer: String): Future[Result] = {
     val experimentActor: ActorRef = AppConf.getActorRef("experimentService")
 
-    val result = experimentActor ? ExperimentRequest(input)
+    val result = experimentActor ? ExperimentRequest(deviceId, userId, url, producer)
 
     result.map { expData => {
-      var logData: Map[String, String] = input
+      var log: Map[String, String] = Map("experimentAssigned" -> "false", "userId" -> userId, "deviceId" -> deviceId, "url" -> url, "producer" -> producer)
       val res = expData match {
         case Some(data: ExperimentData) => {
-          val expData = Map("title" -> "experiment", "experimentId" -> data.id, "experimentName" -> data.name, "key" -> data.key, "startDate" -> data.startDate, "endDate" -> data.endDate)
-          logData = Map("experimentAssigned" -> "true") ++ logData ++ expData
-          List(Map("type" -> "experiment", "data" -> expData))
+          val result = Map("title" -> "experiment", "experimentId" -> data.id, "experimentName" -> data.name, "key" -> data.key, "startDate" -> data.startDate, "endDate" -> data.endDate)
+          log = log ++ result ++ Map("experimentAssigned" -> "true")
+          List(Map("type" -> "experiment", "data" -> result))
         }
         case None => List()
       }
 
       APILogger.log("", Option(Map("type" -> "api_access",
-        "params" -> List(logData ++ Map("status" -> 200, "method" -> "POST",
+        "params" -> List(log ++ Map("status" -> 200, "method" -> "POST",
           "rid" -> "experimentService", "title" -> "experimentService")))),
         "ExperimentService")
 

@@ -3,8 +3,10 @@ import appconf.AppConf
 import play.api._
 import play.api.mvc._
 import filter.RequestInterceptor
-import org.ekstep.analytics.api.service.{DeviceRegisterService, ExperimentService, SaveMetricsActor}
-import org.ekstep.analytics.api.util.APILogger
+import org.ekstep.analytics.api.service.experiment.{ExperimentResolver, ExperimentService}
+import org.ekstep.analytics.api.service.experiment.Resolver.ModulusResolver
+import org.ekstep.analytics.api.service.{DeviceRegisterService, SaveMetricsActor}
+import org.ekstep.analytics.api.util.{APILogger, ElasticsearchService, RedisUtil}
 
 object Global extends WithFilters(RequestInterceptor) {
 
@@ -16,8 +18,13 @@ object Global extends WithFilters(RequestInterceptor) {
         Logger.info("Application has started...")
         val metricsActor: ActorRef = app.actorSystem.actorOf(Props[SaveMetricsActor])
         val deviceRegsiterActor = app.actorSystem.actorOf(Props(new DeviceRegisterService(metricsActor)))
-        val experimentActor = app.actorSystem.actorOf(Props(new ExperimentService()))
         AppConf.setActorRef("deviceRegisterService", deviceRegsiterActor)
+
+        // experiment Service
+        ExperimentResolver.register(new ModulusResolver())
+        val redisUtil = new RedisUtil()
+        val elasticsearchService = new ElasticsearchService()
+        val experimentActor = app.actorSystem.actorOf(Props(new ExperimentService(redisUtil, elasticsearchService)))
         AppConf.setActorRef("experimentService", experimentActor)
     }
 
