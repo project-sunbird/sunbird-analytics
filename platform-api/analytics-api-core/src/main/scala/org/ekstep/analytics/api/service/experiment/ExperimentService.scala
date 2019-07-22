@@ -20,7 +20,7 @@ class ExperimentService(redisUtil: RedisUtil, elasticsearchService :Elasticsearc
   val databaseIndex: Int = config.getInt("redis.experimentIndex")
   val emptyValueExpirySeconds: Int = config.getInt("experimentService.redisEmptyValueExpirySeconds")
   implicit val jedisConnection: Jedis = redisUtil.getConnection(databaseIndex)
-  val NO_EXPERIMENT_ASSIGNED = "NO_EXPERIMENT_ASSIGNED"
+  val noExperimentAssigned = "NO_EXPERIMENT_ASSIGNED"
 
   def receive: Receive = {
     case ExperimentRequest(deviceId, userId, url, producer) => {
@@ -51,7 +51,7 @@ class ExperimentService(redisUtil: RedisUtil, elasticsearchService :Elasticsearc
           redisUtil.addCache(key, JSONUtils.serialize(res))
           resolveExperiment(res)
         }.getOrElse {
-          redisUtil.addCache(key, NO_EXPERIMENT_ASSIGNED, emptyValueExpirySeconds)
+          redisUtil.addCache(key, noExperimentAssigned, emptyValueExpirySeconds)
           None
         }
       }
@@ -73,10 +73,10 @@ class ExperimentService(redisUtil: RedisUtil, elasticsearchService :Elasticsearc
   def keyGen(deviceId: Option[String], userId: Option[String], url: Option[String], producer: Option[String]): String = {
     // key format "deviceId:userId:url:producer"
     val value = new StringBuilder()
-    if (deviceId.isEmpty) value ++= "NA" else value ++= deviceId.get
-    if (userId.isEmpty) value ++= ":NA" else value ++= s":${userId.get}"
-    if (url.isEmpty) value ++= ":NA" else value ++= s":${url.get}"
-    if (producer.isEmpty) value ++= ":NA" else value ++= s":${producer.get}"
+    value ++= deviceId.getOrElse("NA")
+    value ++= ":" + userId.getOrElse("NA")
+    value ++= ":" + url.getOrElse("NA")
+    value ++= ":" + producer.getOrElse("NA")
     value.toString
   }
 
