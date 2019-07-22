@@ -353,7 +353,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     reportDF
       .select(
         col("externalid").as("External ID"),
-        col("userid").as("User Id"),
+        col("userid").as("User ID"),
         concat_ws(" ", col("firstname"), col("lastname")).as("User Name"),
         col("maskedemail").as("Email ID"),
         col("maskedphone").as("Mobile Number"),
@@ -364,7 +364,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
         col("enrolleddate").as("Enrollment Date"),
         concat(col("course_completion").cast("string"), lit("%"))
           .as("Course Progress"),
-        col("completedon").as("Completed On"),
+        col("completedon").as("Completion Date"),
         col("batchid")
 
       )
