@@ -51,7 +51,7 @@ class TestExperimentService extends BaseSpec {
           value.id should be("exp1")
           value.name should be("first-exp")
 
-          verify(redisUtilMock, times(1)).addCache(key, JSONUtils.serialize(result))
+          verify(redisUtilMock, timeout(1000).times(1)).addCache(key, JSONUtils.serialize(value))
         }
       }
       case Failure(exception) => exception.printStackTrace()
@@ -73,11 +73,11 @@ class TestExperimentService extends BaseSpec {
     when(redisUtilMock.getKey(key)).thenReturn(None)
 
     val result = experimentService.getExperiment(Some(deviceId), Some(userId), None, None)
+    verify(redisUtilMock, timeout(1000).times(1)).addCache(key, "NO_EXPERIMENT_ASSIGNED", emptyValueExpirySeconds)
 
     result onComplete {
       case Success(data) =>
         data should be(None)
-        verify(redisUtilMock, times(1)).addCache(key, "NO_EXPERIMENT_ASSIGNED", emptyValueExpirySeconds)(null)
       case Failure(exception) => exception.printStackTrace()
     }
 
@@ -130,12 +130,10 @@ class TestExperimentService extends BaseSpec {
 
     val result = experimentService.getExperiment(Some(deviceId), Some(userId), None, None)
 
-    result onComplete {
-      case Success(data) => {
-        data should be(None)
+    verify(redisUtilMock, timeout(1000).times(1)).addCache(key, "")
 
-        verify(redisUtilMock, times(1)).addCache(key, JSONUtils.serialize(result))
-      }
+    result onComplete {
+      case Success(data) => data should be(None)
       case Failure(exception) => exception.printStackTrace()
     }
   }
