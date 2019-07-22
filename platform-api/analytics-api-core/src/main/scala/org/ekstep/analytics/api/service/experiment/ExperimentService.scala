@@ -72,12 +72,12 @@ class ExperimentService(redisUtil: RedisUtil, elasticsearchService :Elasticsearc
 
   def keyGen(deviceId: Option[String], userId: Option[String], url: Option[String], producer: Option[String]): String = {
     // key format "deviceId:userId:url:producer"
-    val value = new StringBuilder()
-    value ++= deviceId.getOrElse("NA")
-    value ++= ":" + userId.getOrElse("NA")
-    value ++= ":" + url.getOrElse("NA")
-    value ++= ":" + producer.getOrElse("NA")
-    value.toString
+    List(
+      deviceId.getOrElse("NA"),
+      userId.getOrElse("NA"),
+      url.getOrElse("NA"),
+      producer.getOrElse("NA")
+    ).mkString(":").toString
   }
 
   def getFieldsMap(deviceId: Option[String], userId: Option[String], url: Option[String], producer: Option[String]): Map[String, String] = {
