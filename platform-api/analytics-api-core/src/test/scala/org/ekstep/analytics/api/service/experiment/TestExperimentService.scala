@@ -8,6 +8,10 @@ import org.ekstep.analytics.api.BaseSpec
 import org.ekstep.analytics.api.service.experiment.Resolver.ModulusResolver
 import org.ekstep.analytics.api.util.{ElasticsearchService, JSONUtils, RedisUtil}
 import org.mockito.Mockito._
+import redis.clients.jedis.Jedis
+
+import scala.concurrent.Future
+import scala.util.{Failure, Success}
 
 class TestExperimentService extends BaseSpec {
   val redisUtilMock = mock[RedisUtil]
@@ -17,6 +21,8 @@ class TestExperimentService extends BaseSpec {
   val experimentService = TestActorRef(new ExperimentService(redisUtilMock, elasticsearchServiceMock)).underlyingActor
   val redisIndex: Int = config.getInt("redis.experimentIndex")
   val emptyValueExpirySeconds = config.getInt("experimentService.redisEmptyValueExpirySeconds")
+  implicit val executor =  scala.concurrent.ExecutionContext.global
+  implicit val jedisConnection = redisUtilMock.getConnection(redisIndex)
 
   override def beforeAll() {
     ExperimentResolver.register(new ModulusResolver())
@@ -26,23 +32,31 @@ class TestExperimentService extends BaseSpec {
     val userId = "user1"
     val deviceId = "device1"
     val url = "http://diksha.gov.in/home"
-    val searchResult: SearchResponse = JSONUtils.deserialize[SearchResponse](Constants.SEARCH_RESPONSE)
-    val fields = experimentService.getFieldsMap(deviceId, userId, url, null)
-    val key = experimentService.keyGen(deviceId, userId, url, null)
+    val experimentData: ExperimentData = JSONUtils.deserialize[ExperimentData](Constants.EXPERIMENT_DATA)
+    val fields = experimentService.getFieldsMap(Some(deviceId), Some(userId), Some(url), None)
+    val key = experimentService.keyGen(Some(deviceId), Some(userId), Some(url), None)
 
     when(elasticsearchServiceMock.searchExperiment(fields))
-      .thenReturn(Right(RequestSuccess[SearchResponse](200, Some(""), Map("ContentType" -> "application/json"), searchResult)))
+      .thenReturn(Future(Some(experimentData)))
 
-    val result = experimentService.getExperiment(deviceId, userId, url, null)
-    verify(redisUtilMock, times(1)).addCache(key, JSONUtils.serialize(result), redisIndex, 0)
-    result match {
-      case Some(value) => {
-        value.userId should be("user1")
-        value.key should be("325324123413")
-        value.id should be("exp1")
-        value.name should be("first-exp")
+    when(redisUtilMock.getKey(key)).thenReturn(None)
+
+    val result = experimentService.getExperiment(Some(deviceId), Some(userId), Some(url), None)
+
+    result onComplete {
+      case Success(data) => data match {
+        case Some(value) => {
+          value.userId should be("user1")
+          value.key should be("325324123413")
+          value.id should be("exp1")
+          value.name should be("first-exp")
+
+          verify(redisUtilMock, times(1)).addCache(key, JSONUtils.serialize(result))
+        }
       }
+      case Failure(exception) => exception.printStackTrace()
     }
+
   }
 
   it should "return None if no experiment is defined" in {
@@ -51,16 +65,24 @@ class TestExperimentService extends BaseSpec {
     // no experiment defined for this input
     val userId = "user45"
     val deviceId = "device45"
-    val key = experimentService.keyGen(deviceId, userId, null, null)
-    val fields = experimentService.getFieldsMap(deviceId, userId, null, null)
-    val searchResult: SearchResponse = JSONUtils.deserialize[SearchResponse](Constants.EMPTY_RESPONSE)
+    val key = experimentService.keyGen(Some(deviceId), Some(userId), None, None)
+    val fields = experimentService.getFieldsMap(Some(deviceId), Some(userId), None, None)
 
     when(elasticsearchServiceMock.searchExperiment(fields))
-      .thenReturn(Right(RequestSuccess[SearchResponse](200, Some(""), Map("ContentType" -> "application/json"), searchResult)))
+      .thenReturn(Future(None))
+    when(redisUtilMock.getKey(key)).thenReturn(None)
 
-    val result: Option[ExperimentData] = experimentService.getExperiment(deviceId, userId, null, null)
-    verify(redisUtilMock, times(1)).addCache(key, "", redisIndex, emptyValueExpirySeconds)
-    result should be(None)
+    val result = experimentService.getExperiment(Some(deviceId), Some(userId), None, None)
+
+    result onComplete {
+      case Success(data) => {
+        data should be(None)
+
+        verify(redisUtilMock, times(1)).addCache(key, "", emptyValueExpirySeconds)(null)
+      }
+      case Failure(exception) => exception.printStackTrace()
+    }
+
   }
 
   it should "should evaluate 'modulus' type experiment and return response" in {
@@ -69,23 +91,28 @@ class TestExperimentService extends BaseSpec {
     // no experiment defined for this input
     val userId = "user3"
     val deviceId = "device3"
-    val key = experimentService.keyGen(deviceId, userId, null, null)
-    val fields = experimentService.getFieldsMap(deviceId, userId, null, null)
-    val searchResult: SearchResponse = JSONUtils.deserialize[SearchResponse](Constants.MODULUS_EXPERIMENT_RESPONSE)
+    val key = experimentService.keyGen(Some(deviceId), Some(userId), None, None)
+    val fields = experimentService.getFieldsMap(Some(deviceId), Some(userId), None, None)
+    val experimentData = JSONUtils.deserialize[ExperimentData](Constants.MODULUS_EXPERIMENT_DATA)
 
     when(elasticsearchServiceMock.searchExperiment(fields))
-      .thenReturn(Right(RequestSuccess[SearchResponse](200, Some(""), Map("ContentType" -> "application/json"), searchResult)))
+      .thenReturn(Future(Some(experimentData)))
+    when(redisUtilMock.getKey(key)).thenReturn(None)
 
-    val result: Option[ExperimentData] = experimentService.getExperiment(deviceId, userId, null, null)
-    verify(redisUtilMock, times(1)).addCache(key, JSONUtils.serialize(result), redisIndex)
-    result match {
-      case Some(value) => {
-        value.userId should be("user3")
-        value.key should be("modulus-exp-key-2")
-        value.expType should be("modulus")
-        value.id should be("modulus-exp-2")
-        value.name should be("modulus-exp-2")
+    val result = experimentService.getExperiment(Some(deviceId), Some(userId), None, None)
+    result onComplete {
+      case Success(data) => data match {
+        case Some(value) => {
+          value.userId should be("user3")
+          value.key should be("modulus-exp-key-2")
+          value.expType should be("modulus")
+          value.id should be("modulus-exp-2")
+          value.name should be("modulus-exp-2")
+
+          verify(redisUtilMock, times(1)).addCache(key, JSONUtils.serialize(value))
+        }
       }
+      case Failure(exception) => exception.printStackTrace()
     }
   }
 
@@ -95,16 +122,24 @@ class TestExperimentService extends BaseSpec {
     // no experiment defined for this input
     val userId = "user4"
     val deviceId = "device4"
-    val key = experimentService.keyGen(deviceId, userId, null, null)
-    val fields = experimentService.getFieldsMap(deviceId, userId, null, null)
-    val searchResult: SearchResponse = JSONUtils.deserialize[SearchResponse](Constants.MODULUS_EXPERIMENT_RESPONSE_NON_ZERO)
+    val key = experimentService.keyGen(Some(deviceId), Some(userId), None, None)
+    val fields = experimentService.getFieldsMap(Some(deviceId), Some(userId), None, None)
+    val experimentData = JSONUtils.deserialize[ExperimentData](Constants.MODULUS_EXPERIMENT_DATA_NON_ZERO)
 
     when(elasticsearchServiceMock.searchExperiment(fields))
-      .thenReturn(Right(RequestSuccess[SearchResponse](200, Some(""), Map("ContentType" -> "application/json"), searchResult)))
+      .thenReturn(Future(Some(experimentData)))
+    when(redisUtilMock.getKey(key)).thenReturn(None)
 
-    val result: Option[ExperimentData] = experimentService.getExperiment(deviceId, userId, null, null)
-    verify(redisUtilMock, times(1)).addCache(key, JSONUtils.serialize(result), redisIndex)
-    result should be(None)
+    val result = experimentService.getExperiment(Some(deviceId), Some(userId), None, None)
+
+    result onComplete {
+      case Success(data) => {
+        data should be(None)
+
+        verify(redisUtilMock, times(1)).addCache(key, JSONUtils.serialize(result))
+      }
+      case Failure(exception) => exception.printStackTrace()
+    }
   }
 
   it should "return data from cache if the experiment result is cached" in {
@@ -113,40 +148,28 @@ class TestExperimentService extends BaseSpec {
     // no experiment defined for this input
     val userId = "user1"
     val deviceId = "device1"
-    val key = experimentService.keyGen(deviceId, userId, null, null)
-    val fields = experimentService.getFieldsMap(deviceId, userId, null, null)
+    val key = experimentService.keyGen(Some(deviceId), Some(userId), None, None)
+    val fields = experimentService.getFieldsMap(Some(deviceId), Some(userId), None, None)
 
-    when(redisUtilMock.getKey(key, redisIndex)).thenReturn(Constants.EXPERIMENT_DATA)
+    when(redisUtilMock.getKey(key)).thenReturn(Option(Constants.EXPERIMENT_DATA))
 
-    val result: Option[ExperimentData] = experimentService.getExperiment(deviceId, userId, null, null)
+    val result = experimentService.getExperiment(Some(deviceId), Some(userId), None, None)
 
-    // should not call elasticsearch when data is present in redis
-    verify(elasticsearchServiceMock, times(0)).searchExperiment(fields)
-    result match {
-      case Some(value) => {
-        value.userId should be("user1")
-        value.key should be("325324123413")
-        value.id should be("exp1")
-        value.name should be("first-exp")
+
+
+    result onComplete {
+      case Success(data) => data match {
+        case Some(value) => {
+          value.userId should be("user1")
+          value.key should be("325324123413")
+          value.id should be("exp1")
+          value.name should be("first-exp")
+
+          // should not call elasticsearch when data is present in redis
+          verify(elasticsearchServiceMock, times(0)).searchExperiment(fields)
+        }
       }
+      case Failure(exception) => exception.printStackTrace()
     }
-  }
-
-  it should "send None when ElasticsearchUtil fails" in {
-    reset(elasticsearchServiceMock)
-    reset(redisUtilMock)
-    // no experiment defined for this input
-    val userId = "user4"
-    val deviceId = "device4"
-    val key = experimentService.keyGen(deviceId, userId, null, null)
-    val fields = experimentService.getFieldsMap(deviceId, userId, null, null)
-    val elasticError: ElasticError = JSONUtils.deserialize[ElasticError](Constants.ELASTICSEARCH_ERROR)
-
-    when(elasticsearchServiceMock.searchExperiment(fields))
-      .thenReturn(Left(RequestFailure(404, Some(""), Map("ContentType" -> "application/json"), elasticError)))
-
-    val result: Option[ExperimentData] = experimentService.getExperiment(deviceId, userId, null, null)
-    verify(redisUtilMock, times(1)).addCache(key, "", redisIndex, emptyValueExpirySeconds)
-    result should be(None)
   }
 }

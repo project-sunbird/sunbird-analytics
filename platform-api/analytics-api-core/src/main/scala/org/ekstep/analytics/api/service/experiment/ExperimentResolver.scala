@@ -3,8 +3,8 @@ package org.ekstep.analytics.api.service.experiment
 import scala.collection.mutable
 
 trait ExperimentTypeResolver {
-  def getType: String
-  def resolve(data: ExperimentData): Boolean
+  def getType: String = "root"
+  def resolve(data: ExperimentData): Boolean = true
 }
 
 object ExperimentResolver {
@@ -15,7 +15,7 @@ object ExperimentResolver {
     resolverMap += (resolver.getType -> resolver)
   }
 
-  def getResolver(expType: String): Option[ExperimentTypeResolver] = {
-    if(resolverMap.contains(expType)) resolverMap.get(expType) else None
+  def getResolver(expType: String): ExperimentTypeResolver = {
+      resolverMap.getOrElse(expType, new ExperimentTypeResolver{})
   }
 }

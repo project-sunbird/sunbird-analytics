@@ -52,7 +52,7 @@ class DeviceController @Inject()(system: ActorSystem) extends BaseController {
     deviceRegisterServiceAPIActor.tell(RegisterDevice(deviceId, headerIP, ipAddr, fcmToken, producer, dspec, uaspec), ActorRef.noSender)
 
     if (isExperimentEnabled) {
-      sendExperimentData(deviceId, extMap.getOrElse(Map()).getOrElse("userId", null), extMap.getOrElse(Map()).getOrElse("url", null), producer.orNull)
+      sendExperimentData(Some(deviceId), extMap.getOrElse(Map()).get("userId"), extMap.getOrElse(Map()).get("url"), producer)
     } else {
       Future {
         Ok(JSONUtils.serialize(CommonUtil.OK("analytics.device-register",
@@ -62,13 +62,13 @@ class DeviceController @Inject()(system: ActorSystem) extends BaseController {
     }
   }
 
-  def sendExperimentData(deviceId: String, userId: String, url: String, producer: String): Future[Result] = {
+  def sendExperimentData(deviceId: Option[String], userId: Option[String], url: Option[String], producer: Option[String]): Future[Result] = {
     val experimentActor: ActorRef = AppConf.getActorRef("experimentService")
 
     val result = experimentActor ? ExperimentRequest(deviceId, userId, url, producer)
 
     result.map { expData => {
-      var log: Map[String, String] = Map("experimentAssigned" -> "false", "userId" -> userId, "deviceId" -> deviceId, "url" -> url, "producer" -> producer)
+      var log: Map[String, String] = Map("experimentAssigned" -> "false", "userId" -> userId.orNull, "deviceId" -> deviceId.orNull, "url" -> url.orNull, "producer" -> producer.orNull)
       val res = expData match {
         case Some(data: ExperimentData) => {
           val result = Map("title" -> "experiment", "experimentId" -> data.id, "experimentName" -> data.name, "key" -> data.key, "startDate" -> data.startDate, "endDate" -> data.endDate)

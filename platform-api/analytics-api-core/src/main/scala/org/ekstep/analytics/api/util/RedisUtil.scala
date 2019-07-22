@@ -36,27 +36,23 @@ class RedisUtil {
     conn
   }
 
-  def addCache(key: String, value: String, index: Int, ttl: Int = 0): Unit = {
+  def addCache(key: String, value: String, ttl: Int = 0)(implicit jedisConnection: Jedis): Unit = {
     try {
-      val conn = getConnection(index)
-      conn.set(key, value)
-      if (ttl > 0) conn.expire(key, ttl)
-      conn.close()
+      jedisConnection.set(key, value)
+      if (ttl > 0) jedisConnection.expire(key, ttl)
     } catch {
       case ex: Exception => APILogger.log("", Option(Map("comments" -> s"redis connection exception!  ${ex.getMessage}")), "RedisUtil")
     }
   }
 
-  def getKey(key: String, index: Int): String = {
+  def getKey(key: String)(implicit jedisConnection: Jedis): Option[String] = {
     try {
-      val conn = getConnection(index)
-      val value = conn.get(key)
-      conn.close()
-      value
-    } catch {
+      Option(jedisConnection.get(key))
+    }
+    catch {
       case ex: Exception => {
         APILogger.log("", Option(Map("comments" -> s"redis connection exception!  ${ex.getMessage}")), "RedisUtil")
-        null
+        None
       }
     }
   }
