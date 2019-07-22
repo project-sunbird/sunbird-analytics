@@ -3,6 +3,7 @@ package org.ekstep.analytics.api.service.experiment
 import akka.actor.Actor
 import com.typesafe.config.{Config, ConfigFactory}
 import org.ekstep.analytics.api.util.{APILogger, ElasticsearchService, JSONUtils, RedisUtil}
+import redis.clients.jedis.Jedis
 
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
@@ -12,12 +13,14 @@ case class ExperimentRequest(deviceId: Option[String], userId: Option[String], u
 case class ExperimentData(id: String, name: String, startDate: String, endDate: String, key: String, platform: String, expType: String, userId: String, deviceId: String, userIdMod: Long, deviceIdMod: Long)
 
 class ExperimentService(redisUtil: RedisUtil, elasticsearchService :ElasticsearchService) extends Actor {
+
   implicit val ec: ExecutionContext = context.system.dispatchers.lookup("experiment-actor")
-  implicit val className = "org.ekstep.analytics.api.service.experiment.ExperimentService"
+  implicit val className: String = "org.ekstep.analytics.api.service.experiment.ExperimentService"
   val config: Config = ConfigFactory.load()
   val databaseIndex: Int = config.getInt("redis.experimentIndex")
-  val emptyValueExpirySeconds = config.getInt("experimentService.redisEmptyValueExpirySeconds")
-  implicit val jedisConnection = redisUtil.getConnection(databaseIndex)
+  val emptyValueExpirySeconds: Int = config.getInt("experimentService.redisEmptyValueExpirySeconds")
+  implicit val jedisConnection: Jedis = redisUtil.getConnection(databaseIndex)
+  val NO_EXPERIMENT_ASSIGNED = "NO_EXPERIMENT_ASSIGNED"
 
   def receive: Receive = {
     case ExperimentRequest(deviceId, userId, url, producer) => {
@@ -25,42 +28,35 @@ class ExperimentService(redisUtil: RedisUtil, elasticsearchService :Elasticsearc
       val reply = sender()
       result.onComplete {
         case Success(value) => reply ! value
-        case Failure(e) => reply ! None
+        case Failure(error) => reply ! None
       }
     }
   }
 
   def getExperiment(deviceId: Option[String], userId: Option[String], url: Option[String], producer: Option[String]): Future[Option[ExperimentData]] = {
     val key = keyGen(deviceId, userId, url, producer)
-    val experimentStr = redisUtil.getKey(key)
+    val experimentCachedData = redisUtil.getKey(key)
 
-    experimentStr match {
-      case Some(value) => {
-        if(value.isEmpty) {
+    experimentCachedData.map {
+      expData =>
+        if (expData.isEmpty) {
           APILogger.log("", Option(Map("comments" -> s"No experiment assigned for key $key")), "ExperimentService")
           Future(None)
-        } else {
-          val data = JSONUtils.deserialize[ExperimentData](value)
-          Future(resolveExperiment(data))
-        }
-      }
-      case None => {
-        val data = searchExperiment(deviceId, userId, url, producer)
-
-        data map {
-          _ match {
-            case Some(value) => {
-              redisUtil.addCache(key, JSONUtils.serialize(value))
-              resolveExperiment(value)
-            }
-            case None => {
-              redisUtil.addCache(key, "", emptyValueExpirySeconds)
-              None
-            }
-          }
+        } else
+          Future(resolveExperiment(JSONUtils.deserialize[ExperimentData](expData)))
+    }.getOrElse {
+      val data = searchExperiment(deviceId, userId, url, producer)
+      data.map { result =>
+        result.map { res =>
+          redisUtil.addCache(key, JSONUtils.serialize(res))
+          resolveExperiment(res)
+        }.getOrElse {
+          redisUtil.addCache(key, NO_EXPERIMENT_ASSIGNED, emptyValueExpirySeconds)
+          None
         }
       }
     }
+
   }
 
   def resolveExperiment(data: ExperimentData): Option[ExperimentData] = {
@@ -76,7 +72,7 @@ class ExperimentService(redisUtil: RedisUtil, elasticsearchService :Elasticsearc
 
   def keyGen(deviceId: Option[String], userId: Option[String], url: Option[String], producer: Option[String]): String = {
     // key format "deviceId:userId:url:producer"
-    var value = new StringBuilder("")
+    val value = new StringBuilder()
     if (deviceId.isEmpty) value ++= "NA" else value ++= deviceId.get
     if (userId.isEmpty) value ++= ":NA" else value ++= s":${userId.get}"
     if (url.isEmpty) value ++= ":NA" else value ++= s":${url.get}"
@@ -93,7 +89,7 @@ class ExperimentService(redisUtil: RedisUtil, elasticsearchService :Elasticsearc
     value.toMap
   }
 
-  override def postStop() = {
+  override def postStop(): Unit = {
     jedisConnection.close()
   }
 

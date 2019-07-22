@@ -41,19 +41,17 @@ class RedisUtil {
       jedisConnection.set(key, value)
       if (ttl > 0) jedisConnection.expire(key, ttl)
     } catch {
-      case ex: Exception => APILogger.log("", Option(Map("comments" -> s"redis connection exception!  ${ex.getMessage}")), "RedisUtil")
+      case ex: Exception => APILogger.log("", Option(Map("comments" -> s"Redis connection exception!  ${ex.getMessage}")), "RedisUtil")
     }
   }
 
   def getKey(key: String)(implicit jedisConnection: Jedis): Option[String] = {
     try {
       Option(jedisConnection.get(key))
-    }
-    catch {
-      case ex: Exception => {
-        APILogger.log("", Option(Map("comments" -> s"redis connection exception!  ${ex.getMessage}")), "RedisUtil")
+    } catch {
+      case ex: Exception =>
+        APILogger.log("", Option(Map("comments" -> s"Redis connection exception!  ${ex.getMessage}")), "RedisUtil")
         None
-      }
     }
   }
 

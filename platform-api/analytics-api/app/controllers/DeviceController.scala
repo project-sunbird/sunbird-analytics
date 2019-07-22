@@ -65,37 +65,37 @@ class DeviceController @Inject()(system: ActorSystem) extends BaseController {
   def sendExperimentData(deviceId: Option[String], userId: Option[String], url: Option[String], producer: Option[String]): Future[Result] = {
     val experimentActor: ActorRef = AppConf.getActorRef("experimentService")
 
-    val result = experimentActor ? ExperimentRequest(deviceId, userId, url, producer)
+    val result = (experimentActor ? ExperimentRequest(deviceId, userId, url, producer)).mapTo[Option[ExperimentData]]
 
-    result.map { expData => {
-      var log: Map[String, String] = Map("experimentAssigned" -> "false", "userId" -> userId.orNull, "deviceId" -> deviceId.orNull, "url" -> url.orNull, "producer" -> producer.orNull)
+    result.map {
+      expData => {
+      var log: Map[String, String] = Map("experimentAssigned" -> "false", "userId" -> userId.orNull,
+        "deviceId" -> deviceId.orNull, "url" -> url.orNull, "producer" -> producer.orNull)
+        
       val res = expData match {
         case Some(data: ExperimentData) => {
-          val result = Map("title" -> "experiment", "experimentId" -> data.id, "experimentName" -> data.name, "key" -> data.key, "startDate" -> data.startDate, "endDate" -> data.endDate)
+          val result = Map("title" -> "experiment", "experimentId" -> data.id, "experimentName" -> data.name,
+            "key" -> data.key, "startDate" -> data.startDate, "endDate" -> data.endDate)
           log = log ++ result ++ Map("experimentAssigned" -> "true")
           List(Map("type" -> "experiment", "data" -> result))
         }
         case None => List()
       }
 
-      APILogger.log("", Option(Map("type" -> "api_access",
-        "params" -> List(log ++ Map("status" -> 200, "method" -> "POST",
-          "rid" -> "experimentService", "title" -> "experimentService")))),
-        "ExperimentService")
+      APILogger.log("", Option(Map("type" -> "api_access", "params" -> List(log ++ Map("status" -> 200, "method" -> "POST",
+          "rid" -> "experimentService", "title" -> "experimentService")))), "ExperimentService")
 
       Ok(JSONUtils.serialize(CommonUtil.OK("analytics.device-register",
-        Map("message" -> s"Device registered successfully", "actions" -> res))))
-        .withHeaders(CONTENT_TYPE -> "application/json")
+        Map("message" -> s"Device registered successfully", "actions" -> res)))).withHeaders(CONTENT_TYPE -> "application/json")
       }
+
     }.recover {
       case ex: Exception => {
-        APILogger.log("", Option(Map("type" -> "api_access",
-          "params" -> List(Map("status" -> 500, "method" -> "POST",
-            "rid" -> "experimentService", "title" -> "experimentService")), "data" -> ex.getMessage)),
-          "ExperimentService")
+        APILogger.log("", Option(Map("type" -> "api_access", "params" -> List(Map("status" -> 500, "method" -> "POST",
+            "rid" -> "experimentService", "title" -> "experimentService")), "data" -> ex.getMessage)), "ExperimentService")
+
         InternalServerError(
-          JSONUtils.serialize(CommonUtil.errorResponse("analytics.device-register",
-            ex.getMessage, "ERROR"))
+          JSONUtils.serialize(CommonUtil.errorResponse("analytics.device-register", ex.getMessage, "ERROR"))
         ).withHeaders(CONTENT_TYPE -> "application/json")
       }
     }

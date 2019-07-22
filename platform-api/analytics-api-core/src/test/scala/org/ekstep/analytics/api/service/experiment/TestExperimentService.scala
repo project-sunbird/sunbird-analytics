@@ -75,11 +75,9 @@ class TestExperimentService extends BaseSpec {
     val result = experimentService.getExperiment(Some(deviceId), Some(userId), None, None)
 
     result onComplete {
-      case Success(data) => {
+      case Success(data) =>
         data should be(None)
-
-        verify(redisUtilMock, times(1)).addCache(key, "", emptyValueExpirySeconds)(null)
-      }
+        verify(redisUtilMock, times(1)).addCache(key, "NO_EXPERIMENT_ASSIGNED", emptyValueExpirySeconds)(null)
       case Failure(exception) => exception.printStackTrace()
     }
 
