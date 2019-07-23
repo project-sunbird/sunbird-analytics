@@ -89,7 +89,7 @@ class DeviceRegisterService(saveMetricsActor: ActorRef) extends Actor {
                 producer
             )
 
-            updateDeviceFirstAccess(did)
+            // updateDeviceFirstAccess(did)
         }
 
         metricsActor.tell(IncrementDeviceDbSaveSuccessCount, ActorRef.noSender)
