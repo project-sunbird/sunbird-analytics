@@ -10,7 +10,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 case class ExperimentRequest(deviceId: Option[String], userId: Option[String], url: Option[String], producer: Option[String])
-case class ExperimentData(id: String, name: String, startDate: String, endDate: String, key: String, platform: String, expType: String, userId: String, deviceId: String, userIdMod: Long, deviceIdMod: Long)
+case class ExperimentData(id: String, name: String, startDate: String, endDate: String, key: String, expType: String, userId: String, deviceId: String, userIdMod: Long, deviceIdMod: Long)
 
 class ExperimentService(redisUtil: RedisUtil, elasticsearchService :ElasticsearchService) extends Actor {
 
@@ -85,7 +85,6 @@ class ExperimentService(redisUtil: RedisUtil, elasticsearchService :Elasticsearc
     if (deviceId.isDefined) value += ("deviceId" -> deviceId.get)
     if (userId.isDefined) value += ("userId" -> userId.get)
     if (url.isDefined) value += ("url" -> url.get)
-    if (producer.isDefined) value += ("platform" -> producer.get)
     value.toMap
   }
 
