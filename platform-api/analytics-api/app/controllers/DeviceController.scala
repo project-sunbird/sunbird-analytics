@@ -3,7 +3,7 @@ package controllers
 import akka.actor._
 import appconf.AppConf
 import com.google.inject.Inject
-import org.ekstep.analytics.api.service.{RegisterDevice}
+import org.ekstep.analytics.api.service.RegisterDevice
 import org.ekstep.analytics.api.util.{APILogger, CommonUtil, JSONUtils}
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, Result}
@@ -17,7 +17,7 @@ class DeviceController @Inject()(system: ActorSystem) extends BaseController {
 
   implicit val ec: ExecutionContext = system.dispatchers.lookup("device-register-controller")
   lazy val configuration: Config = ConfigFactory.load()
-  lazy val isExperimentEnabled = configuration.getBoolean("deviceRegisterAPI.experiment.enable")
+  lazy val isExperimentEnabled: Boolean = configuration.getBoolean("deviceRegisterAPI.experiment.enable")
 
   def registerDevice(deviceId: String) = Action.async(parse.json) { implicit request =>
     val deviceRegisterServiceAPIActor: ActorRef = AppConf.getActorRef("deviceRegisterService")

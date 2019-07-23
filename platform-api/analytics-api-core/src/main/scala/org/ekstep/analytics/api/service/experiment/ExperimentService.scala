@@ -20,7 +20,7 @@ class ExperimentService(redisUtil: RedisUtil, elasticsearchService :Elasticsearc
   val databaseIndex: Int = config.getInt("redis.experimentIndex")
   val emptyValueExpirySeconds: Int = config.getInt("experimentService.redisEmptyValueExpirySeconds")
   implicit val jedisConnection: Jedis = redisUtil.getConnection(databaseIndex)
-  val noExperimentAssigned = "NO_EXPERIMENT_ASSIGNED"
+  val NoExperiemntAssigned = "NO_EXPERIMENT_ASSIGNED"
 
   def receive: Receive = {
     case ExperimentRequest(deviceId, userId, url, producer) => {
@@ -39,7 +39,7 @@ class ExperimentService(redisUtil: RedisUtil, elasticsearchService :Elasticsearc
 
     experimentCachedData.map {
       expData =>
-        if (expData.isEmpty) {
+        if (NoExperiemntAssigned.equals(expData)) {
           APILogger.log("", Option(Map("comments" -> s"No experiment assigned for key $key")), "ExperimentService")
           Future(None)
         } else
@@ -51,7 +51,7 @@ class ExperimentService(redisUtil: RedisUtil, elasticsearchService :Elasticsearc
           redisUtil.addCache(key, JSONUtils.serialize(res))
           resolveExperiment(res)
         }.getOrElse {
-          redisUtil.addCache(key, noExperimentAssigned, emptyValueExpirySeconds)
+          redisUtil.addCache(key, NoExperiemntAssigned, emptyValueExpirySeconds)
           None
         }
       }
