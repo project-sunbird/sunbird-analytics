@@ -1,21 +1,19 @@
 package org.ekstep.analytics.job
 
+import java.io.File
+import java.nio.file.{Files, StandardCopyOption}
+
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.functions.{col, unix_timestamp, _}
 import org.apache.spark.sql.types.DataTypes
 import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.ekstep.analytics.framework.Level._
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, JobLogger}
-import org.sunbird.cloud.storage.conf.AppConf
-import java.nio.file.{Files, StandardCopyOption}
-import java.io.File
-
-import org.apache.http.client.methods.HttpRequestBase
-import org.ekstep.analytics.framework.Level._
-import org.ekstep.analytics.framework.util.RestUtil._call
 import org.ekstep.analytics.util.ESUtil
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
+import org.sunbird.cloud.storage.conf.AppConf
 import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
 
 import scala.collection.mutable.ListBuffer
@@ -98,9 +96,10 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
   }
 
   def prepareReport(spark: SparkSession, loadData: (SparkSession, Map[String, String]) => DataFrame): DataFrame = {
-    val sunbirdKeyspace = AppConf.getConfig("course.metrics.cassandra.keyspace")
-    val courseBatchDF = loadData(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdKeyspace))
-    val userCoursesDF = loadData(spark, Map("table" -> "user_courses", "keyspace" -> sunbirdKeyspace))
+    val sunbirdKeyspace = AppConf.getConfig("sunbird.cassandra.keyspace")
+    val sunbirdCoursesKeyspace = AppConf.getConfig("sunbird_courses.cassandra.keyspace")
+    val courseBatchDF = loadData(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace))
+    val userCoursesDF = loadData(spark, Map("table" -> "user_courses", "keyspace" -> sunbirdCoursesKeyspace))
     val userDF = loadData(spark, Map("table" -> "user", "keyspace" -> sunbirdKeyspace))
     val userOrgDF = loadData(spark, Map("table" -> "user_org", "keyspace" -> sunbirdKeyspace)).filter(lower(col("isdeleted")) === "false")
     val organisationDF = loadData(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace))
@@ -116,8 +115,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     val userCourseDenormDF = courseBatchDF.join(userCoursesDF, userCoursesDF.col("batchid") === courseBatchDF.col("id") && lower(userCoursesDF.col("active")).equalTo("true"), "inner")
       .select(col("batchid"),
         col("userid"),
-        col("leafnodescount"),
-        col("progress"),
+        col("completionpercentage"),
         col("enddate"),
         col("startdate"),
         col("enrolleddate"),
@@ -213,10 +211,9 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
       .join(resolvedSchoolNameDF, Seq("userid"), "left_outer")
       .join(resolvedOrgNameDF, Seq("userid"), "left_outer")
       .withColumn("course_completion",
-        when(expr("progress/leafnodescount * 100").isNull, 100)
-          .when(expr("progress/leafnodescount * 100") > 100, 100)
-          .otherwise(expr("progress/leafnodescount * 100"))
-        .cast("int"))
+        when(col("completionpercentage").isNull, 0)
+          .when(col("completionpercentage") > 100, 100)
+          .otherwise(col("completionpercentage")).cast("int"))
       .withColumn("generatedOn", date_format(from_utc_timestamp(current_timestamp.cast(DataTypes.TimestampType), "Asia/Kolkata"), "yyyy-MM-dd'T'HH:mm:ss'Z'"))
   }
 
