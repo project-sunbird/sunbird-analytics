@@ -96,8 +96,8 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
   }
 
   def prepareReport(spark: SparkSession, loadData: (SparkSession, Map[String, String]) => DataFrame): DataFrame = {
-    val sunbirdKeyspace = AppConf.getConfig("sunbird.cassandra.keyspace")
-    val sunbirdCoursesKeyspace = AppConf.getConfig("sunbird_courses.cassandra.keyspace")
+    val sunbirdKeyspace = AppConf.getConfig("course.metrics.cassandra.sunbirdKeyspace")
+    val sunbirdCoursesKeyspace = AppConf.getConfig("course.metrics.cassandra.sunbirdCoursesKeyspace")
     val courseBatchDF = loadData(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace))
     val userCoursesDF = loadData(spark, Map("table" -> "user_courses", "keyspace" -> sunbirdCoursesKeyspace))
     val userDF = loadData(spark, Map("table" -> "user", "keyspace" -> sunbirdKeyspace))
