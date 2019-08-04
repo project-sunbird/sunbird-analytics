@@ -1,13 +1,22 @@
 package org.ekstep.analytics.framework
 
 import org.ekstep.analytics.framework.exception.DataFetcherException
+import org.ekstep.analytics.framework.fetcher.DruidDataFetcher
 import org.ekstep.analytics.framework.util.JSONUtils
+import io.circe.generic.auto._
 
 /**
  * @author Santhosh
  */
+
+
+case class GroupByPid(context_pdata_id: String, count: Int)
+case class TopNData(data: List[GroupByPid])
+case class TimeSeriesData(time: String, count: Int)
+
 class TestDataFetcher extends SparkSpec {
-    
+
+//    implicit val decoder  = null
     "DataFetcher" should "fetch the batch events matching query" in {
         
         val queries = Option(Array(
@@ -90,5 +99,31 @@ class TestDataFetcher extends SparkSpec {
         println(rdd1.count)
 //        rdd1.count should be (0)
     }
-  
+
+    it should "fetch the data from druid" in {
+
+        val groupByQuery = DruidQueryModel("groupBy", "telemetry-events", "LastDay", Option("all"), Option(List(Aggregation("count", "count", None))), Option(List("context_pdata_id")))
+        val groupByRes = DruidDataFetcher.getDruidData[GroupByPid](groupByQuery)
+        groupByRes.foreach(f => println(JSONUtils.serialize(f)))
+////
+        val topNQuery = DruidQueryModel("topN", "telemetry-events", "LastWeek", Option("all"), Option(List(Aggregation("count", "count", None))), Option(List("context_pdata_id")))
+//        val topNRes = DruidDataFetcher.getDruidData[GroupByPid](topNQuery)
+//        topNRes.foreach(f => println(f))
+//
+        val tsQuery = DruidQueryModel("timeSeries", "telemetry-events", "LastWeek", Option("day"), Option(List(Aggregation("count", "count", None))))
+//        val tsRes = DruidDataFetcher.getDruidData[TimeSeriesData](tsQuery)
+//        tsRes.foreach(f => println(f))
+
+//        val rdd1 = DataFetcher.fetchBatchData[GroupByPid](Fetcher("druid", None, None, Option(groupByQuery)));
+//        println(rdd1.count())
+//        rdd1.foreach(f => println(f))
+//
+//        val rdd2 = DataFetcher.fetchBatchData[TimeSeriesData](Fetcher("druid", None, None, Option(tsQuery)));
+//        println(rdd2.count())
+//        rdd2.foreach(f => println(f))
+
+//        val rdd3 = DataFetcher.fetchBatchData[TopNData](Fetcher("druid", None, None, Option(topNQuery)));
+//        println(rdd3.count())
+//        rdd3.foreach(f => println(f))
+    }
 }

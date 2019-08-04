@@ -8,6 +8,7 @@ import java.security.MessageDigest
 import java.util.Date
 import java.util.zip.GZIPOutputStream
 
+import ing.wbaa.druid.definitions.{Granularity, GranularityType}
 import org.apache.spark.{SparkConf, SparkContext}
 import org.ekstep.analytics.framework.Level._
 import org.ekstep.analytics.framework.Period._
@@ -665,6 +666,40 @@ object CommonUtil {
     def avg(xs: List[Int]): Float = {
         val (sum, length) = xs.foldLeft((0, 0))({ case ((s, l), x) => (x + s, 1 + l) })
         sum / length
+    }
+
+    // parse druid query interval
+    def getIntervalRange(period: String): String = {
+        // LastDay, LastWeek, LastMonth, Last7Days, Last30Days
+        period match {
+            case "LastDay"      => getDayRange(1);
+            case "LastWeek"     => getWeekRange(1);
+            case "LastMonth"    => getMonthRange(1);
+            case "Last7Days"    => getDayRange(7);
+            case "Last30Days"   => getDayRange(30);
+        }
+    }
+
+    def getDayRange(count: Int): String = {
+        val endDate = DateTime.now(DateTimeZone.UTC);
+        val startDate = endDate.minusDays(count).toString("yyyy-MM-dd");
+        startDate+"/"+endDate.toString("yyyy-MM-dd")
+    }
+
+    def getMonthRange(count: Int): String = {
+        val endDate = DateTime.now(DateTimeZone.UTC);
+        val startDate = endDate.minusDays(count * 30).toString("yyyy-MM-dd");
+        startDate+"/"+endDate.toString("yyyy-MM-dd")
+    }
+
+    def getWeekRange(count: Int): String = {
+        val endDate = DateTime.now(DateTimeZone.UTC);
+        val startDate = endDate.minusDays(count * 7).toString("yyyy-MM-dd");
+        startDate+"/"+endDate.toString("yyyy-MM-dd")
+    }
+
+    def getGranularity(value: String): Granularity = {
+        GranularityType.decode(value).right.getOrElse(GranularityType.All)
     }
 
 }

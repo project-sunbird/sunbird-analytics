@@ -84,9 +84,19 @@ case class Sort(name: String, order: Option[String]);
 @scala.beans.BeanInfo
 case class Dispatcher(to: String, params: Map[String, AnyRef]);
 @scala.beans.BeanInfo
-case class Fetcher(`type`: String, query: Option[Query], queries: Option[Array[Query]]);
+case class Fetcher(`type`: String, query: Option[Query], queries: Option[Array[Query]], druidQuery: Option[DruidQueryModel] = None);
 @scala.beans.BeanInfo
 case class JobConfig(search: Fetcher, filters: Option[Array[Filter]], sort: Option[Sort], model: String, modelParams: Option[Map[String, AnyRef]], output: Option[Array[Dispatcher]], parallelization: Option[Int], appName: Option[String], deviceMapping: Option[Boolean] = Option(false), exhaustConfig: Option[Map[String, DataSet]] = None);
+
+//Druid Query Models
+@scala.beans.BeanInfo
+case class DruidQueryModel(queryType: String, dataSource: String, intervals: String, granularity: Option[String] = Option("all"), aggregations: Option[List[Aggregation]] = Option(List(Aggregation("count", "count", None))), dimensions: Option[List[String]] = None, filters: Option[List[DruidFilter]] = None, having: Option[DruidHavingFilter] = None, threshold: Option[Long] = None, metric: Option[String] = None, descending: Option[String] = Option("false"))
+@scala.beans.BeanInfo
+case class Aggregation(name: String, `type`: String, fieldName: Option[String])
+@scala.beans.BeanInfo
+case class DruidFilter(`type`: String, dimension: String, value: Option[String], values: Option[List[String]])
+@scala.beans.BeanInfo
+case class DruidHavingFilter(`type`: String, aggregation: String, value: String)
 
 // LP API Response Model
 case class Params(resmsgid: Option[String], msgid: Option[String], err: Option[String], status: Option[String], errmsg: Option[String])
