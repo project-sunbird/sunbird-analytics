@@ -94,7 +94,7 @@ case class DruidQueryModel(queryType: String, dataSource: String, intervals: Str
 @scala.beans.BeanInfo
 case class Aggregation(name: String, `type`: String, fieldName: Option[String])
 @scala.beans.BeanInfo
-case class DruidFilter(`type`: String, dimension: String, value: Option[String], values: Option[List[String]])
+case class DruidFilter(`type`: String, dimension: String, value: Option[String], values: Option[List[String]] = None)
 @scala.beans.BeanInfo
 case class DruidHavingFilter(`type`: String, aggregation: String, value: String)
 
