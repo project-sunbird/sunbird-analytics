@@ -210,6 +210,8 @@ object JobFactory {
                 EventsReplayJob
             case "content-rating-updater" =>
                 ContentRatingUpdater
+            case "daily-metrics-consumption-reports" =>
+                ContentRatingUpdater
             case _ =>
                 throw new JobNotFoundException("Unknown job type found")
         }
