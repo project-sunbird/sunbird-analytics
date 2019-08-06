@@ -4,7 +4,7 @@ import ing.wbaa.druid._
 import ing.wbaa.druid.definitions._
 import ing.wbaa.druid.dql.DSL._
 import ing.wbaa.druid.dql.Dim
-import ing.wbaa.druid.dql.expressions.{AggregationExpression, FilteringExpression}
+import ing.wbaa.druid.dql.expressions.{AggregationExpression, FilteringExpression, PostAggregationExpression}
 import org.ekstep.analytics.framework.{DruidFilter, DruidQueryModel}
 import org.ekstep.analytics.framework.exception.DataFetcherException
 import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils}
@@ -18,14 +18,18 @@ object DruidDataFetcher {
 
         // TO-DOs:
         // getHavingFilter, getPostAgg methods
+        // accept extraction function for dims
+        // add notNull, isNull filters
+        // use streams for larger data
         // change Await to some other way of getting future objects
 
         val request = getQuery(query)
         println("request: " + request)
         val response = request.execute()
-        val result = Await.result(response, scala.concurrent.duration.Duration.apply(5L, "minute"))
+        val result = Await.result(response, scala.concurrent.duration.Duration.apply(1L, "minute"))
 
         if(result.results.length > 0) {
+            println(result.results)
             if (query.queryType.equalsIgnoreCase("timeseries")) {
                 val series = result.results.map { f =>
                     val dataMap = f.result.asObject.get.toMap.map(f => (f._1 -> f._2.toString())).seq
@@ -51,33 +55,36 @@ object DruidDataFetcher {
 
         query.queryType.toLowerCase() match {
             case "groupby" => {
-                DQL
+                val DQLQuery = DQL
                   .from(query.dataSource)
                   .granularity(CommonUtil.getGranularity(query.granularity.getOrElse("all")))
                   .interval(CommonUtil.getIntervalRange(query.intervals))
                   .agg(getAggregation(query): _*)
                   .groupBy(query.dimensions.get.map(f => Dim(f)): _*)
-                  .where(getFilter(query).get)
-                  .build()
+                if(query.filters.nonEmpty) DQLQuery.where(getFilter(query).get)
+                if(query.postAggregation.nonEmpty) DQLQuery.postAgg(getPostAggregation(query).get)
+                DQLQuery.build()
             }
             case "topn" => {
-                DQL
+                val DQLQuery = DQL
                   .from(query.dataSource)
                   .granularity(CommonUtil.getGranularity(query.granularity.getOrElse("all")))
                   .interval(CommonUtil.getIntervalRange(query.intervals))
                   .topN(Dim(query.dimensions.get.head), query.metric.getOrElse("count"), query.threshold.getOrElse(5).asInstanceOf[Int])
                   .agg(getAggregation(query): _*)
-                  .where(getFilter(query).get)
-                  .build()
+                if(query.filters.nonEmpty) DQLQuery.where(getFilter(query).get)
+                if(query.postAggregation.nonEmpty) DQLQuery.postAgg(getPostAggregation(query).get)
+                DQLQuery.build()
             }
             case "timeseries" => {
-                DQL
+                val DQLQuery = DQL
                   .from(query.dataSource)
                   .granularity(CommonUtil.getGranularity(query.granularity.getOrElse("all")))
                   .interval(CommonUtil.getIntervalRange(query.intervals))
                   .agg(getAggregation(query): _*)
-                  .where(getFilter(query).get)
-                  .build()
+                if(query.filters.nonEmpty) DQLQuery.where(getFilter(query).get)
+                if(query.postAggregation.nonEmpty) DQLQuery.postAgg(getPostAggregation(query).get)
+                DQLQuery.build()
             }
             case _ =>
                 throw new DataFetcherException("Unknown druid query type found");
@@ -133,6 +140,22 @@ object DruidDataFetcher {
             case FilterType.Regex => Dim(dimension) regex values.get.head
             case FilterType.Like => Dim(dimension) like values.get.head
 
+        }
+    }
+
+    def getPostAggregation(query: DruidQueryModel): Option[PostAggregationExpression] = {
+        if (query.postAggregation.nonEmpty){
+            val postAggType = PostAggregationType.decode(query.postAggregation.get.`type`).right.get
+            Option(getPostAggregationByType(postAggType, query.postAggregation.get.name, query.postAggregation.get.fields, query.postAggregation.get.fn))
+        }
+        else None
+
+    }
+
+    def getPostAggregationByType(postAggType: PostAggregationType, name: String, fields: Option[List[String]], fn: Option[String]): PostAggregationExpression = {
+        postAggType match {
+            case PostAggregationType.Arithmetic => ('count / 2) as "halfCount" //(fields.get.mkString(fn.get)) as "name"
+            //case PostAggregationType.Javascript =>
         }
     }
 }
