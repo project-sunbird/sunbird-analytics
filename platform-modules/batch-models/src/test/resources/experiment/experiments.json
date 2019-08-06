@@ -1,0 +1,1 @@
+{"expid":"U1234","expname":"USER_ORG","criteria":"{\"type\":\"user\",\"filters\":{\"organisations.orgName\":[\"sunbird\"]}}","expdata":"{\"startDate\":\"2019-08-06\",\"endDate\":\"2019-08-09\",\"key\":\"/org/profile\",\"client\":\"portal\"}","status":"SUBMITTED"}

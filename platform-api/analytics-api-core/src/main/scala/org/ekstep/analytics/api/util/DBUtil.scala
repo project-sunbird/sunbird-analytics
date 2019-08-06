@@ -1,27 +1,14 @@
 package org.ekstep.analytics.api.util
 
-import java.lang.reflect.ParameterizedType
-import java.lang.reflect.Type
-import scala.collection.JavaConverters.iterableAsScalaIterableConverter
-import scala.reflect.runtime.universe.MethodSymbol
-import scala.reflect.runtime.universe.TypeTag
-import scala.reflect.runtime.universe.typeOf
-import scala.reflect.runtime.{ currentMirror => m, universe => ru }
-import org.ekstep.analytics.api.Constants
-import org.ekstep.analytics.api.JobRequest
-import org.ekstep.analytics.framework.conf.AppConf
-import org.joda.time.DateTime
-import com.datastax.driver.core.Cluster
-import com.datastax.driver.core.Row
-import com.datastax.driver.core.Session
-import com.datastax.driver.core.querybuilder.{ QueryBuilder => QB }
-import org.ekstep.analytics.framework.util.JobLogger
 import akka.actor.Actor
-import com.fasterxml.jackson.core.`type`.TypeReference
-import java.sql.Connection
-import java.sql.DriverManager
-import java.sql.SQLException
-import com.typesafe.config.Config
+import com.datastax.driver.core._
+import com.datastax.driver.core.querybuilder.{QueryBuilder => QB}
+import org.ekstep.analytics.api.{Constants, ExperimentCreateRequest, JobRequest}
+import org.ekstep.analytics.framework.conf.AppConf
+import org.ekstep.analytics.framework.util.JobLogger
+import org.joda.time.DateTime
+
+import scala.collection.JavaConverters.iterableAsScalaIterableConverter
 
 object DBUtil {
 
@@ -62,18 +49,58 @@ object DBUtil {
         }
     }
 
+    //Experiment
+    def getExperiementRequest(expId: String): ExperimentCreateRequest = {
+        val query = QB.select().from(Constants.EXPERIMENT_DB, Constants.EXPERIMENT_TABLE).allowFiltering()
+          .where(QB.eq("expId", expId))
+        val resultSet = session.execute(query)
+        val job = resultSet.asScala.map(row => expRowToCaseClass(row)).toArray
+        if (job.isEmpty) null; else job.last;
+    }
+
+    def saveExpRequest(expRequests: Array[ExperimentCreateRequest]) = {
+        expRequests.map { expRequest =>
+            val query = QB.insertInto(Constants.EXPERIMENT_DB, Constants.EXPERIMENT_TABLE).value("expId", expRequest.expId.get)
+              .value("expName", expRequest.expName.get).value("status", expRequest.status.get).value("expDescription", expRequest.expDescription.get)
+              .value("expData", expRequest.data.get).value("updatedOn", setDateColumn(expRequest.udpatedOn).getOrElse(null))
+              .value("createdBy", expRequest.createdBy.get).value("updatedBy", expRequest.updatedBy.get )
+              .value("createdOn", setDateColumn(expRequest.createdOn).getOrElse(null)).value("status_message", expRequest.status_msg.get)
+              .value("criteria", expRequest.criteria.get)
+
+            session.execute(query)
+        }
+    }
+
+    def expRowToCaseClass(row: Row): ExperimentCreateRequest = {
+        import scala.collection.JavaConversions._
+        var stats_map = row.getMap("stats",classOf[String],classOf[java.lang.Long])
+        val stats = Map() ++ 	mapAsScalaMap(stats_map)
+        ExperimentCreateRequest(Option(row.getString("expId")), Option(row.getString("expName")),
+                                Option(row.getString("expDescription")),
+            Option(row.getString("createdBy")), Option(row.getString("updatedBy")),
+            getExpDateColumn(row, "updatedOn"), getExpDateColumn(row, "createdOn"),
+            Option(row.getString("criteria")), Option(row.getString("expData")),
+            Option(row.getString("status")), Option(row.getString("status_message")), Option(stats.asInstanceOf[Map[String,Long]])
+        )
+    }
+
     def getDateColumn(row: Row, column: String): Option[DateTime] = if (null == row.getObject(column)) None else Option(new DateTime(row.getTimestamp("dt_job_submitted")))
+
+    def getExpDateColumn(row: Row, column: String): Option[DateTime] = if (null == row.getObject(column)) None else Option(new DateTime(row.getTimestamp(column)))
 
     def setDateColumn(date: Option[DateTime]): Option[Long] = {
         val timestamp = date.getOrElse(null)
         if (null == timestamp) None else Option(timestamp.getMillis())
     }
 
+
+
     def rowToCaseClass(row: Row): JobRequest = {
         JobRequest(Option(row.getString("client_key")), Option(row.getString("request_id")), Option(row.getString("job_id")), Option(row.getString("status")), Option(row.getString("request_data")), Option(row.getInt("iteration")), getDateColumn(row, "dt_job_submitted"), Option(row.getString("location")), getDateColumn(row, "dt_file_created"),
             getDateColumn(row, "dt_first_event"), getDateColumn(row, "dt_last_event"), getDateColumn(row, "dt_expiration"), getDateColumn(row, "dt_job_processing"), getDateColumn(row, "dt_job_completed"), Option(row.getInt("input_events")), Option(row.getInt("output_events")), Option(row.getLong("file_size")),
             Option(row.getInt("latency")), Option(row.getLong("execution_time")), Option(row.getString("err_message")), Option(row.getString("stage")), Option(row.getString("stage_status")))
     }
+
 
     sys.ShutdownHookThread {
         session.close()

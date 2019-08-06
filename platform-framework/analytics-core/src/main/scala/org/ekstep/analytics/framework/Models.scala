@@ -166,6 +166,11 @@ object JobStatus extends Enumeration {
   val SUBMITTED, PROCESSING, COMPLETED, RETRY, FAILED = Value
 }
 
+object ExperimentStatus extends Enumeration {
+  type ExperimentStatus = Value;
+  val SUBMITTED, PROCESSING, ACTIVE, FAILED = Value
+}
+
 trait Stage extends Enumeration {
   type Stage = Value
   val contentPlayed = Value
@@ -226,3 +231,7 @@ class V3Event(val eid: String, val ets: Long, val `@timestamp`: String, val ver:
 
 @scala.beans.BeanInfo
 case class V3DerivedEvent(val eid: String, val ets: Long, val `@timestamp`: String, val ver: String, val mid: String, val actor: Actor, val context: V3Context, val `object`: Option[V3Object], val edata: AnyRef, val tags: List[AnyRef] = null)
+
+// Experiment Models
+@scala.beans.BeanInfo
+case class DeviceProfileModel(device_id: Option[String], state: Option[String], city: Option[String], first_access: Option[Date])

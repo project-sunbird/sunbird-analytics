@@ -1,17 +1,14 @@
 package org.ekstep.analytics.framework.util
 
-import scala.io.Source
-import org.apache.http.client.methods.HttpGet
-import org.apache.http.client.methods.HttpPost
-import org.apache.http.client.methods.HttpPut
-import org.apache.http.client.methods.HttpDelete
+import org.apache.http.NameValuePair
+import org.apache.http.client.entity.UrlEncodedFormEntity
+import org.apache.http.client.methods._
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.HttpClients
-import org.ekstep.analytics.framework.Response
-import com.fasterxml.jackson.core.JsonParseException
-import org.apache.http.client.methods.HttpPatch
+import org.apache.http.message.BasicNameValuePair
 import org.ekstep.analytics.framework.Level._
-import org.apache.http.client.methods.HttpRequestBase
+
+import scala.io.Source
 
 
 trait HTTPClient {
@@ -43,7 +40,7 @@ object RestUtil extends HTTPClient{
             } else {
                 JSONUtils.deserialize[T](content);
             }
-        } finally {
+        }finally {
             httpClient.close()
         }
     }
@@ -70,6 +67,30 @@ object RestUtil extends HTTPClient{
             case (headerName, headerValue) => request.addHeader(headerName, headerValue)
         }
         request.setEntity(new StringEntity(body))
+        try {
+            _call(request.asInstanceOf[HttpRequestBase])
+        } catch {
+            case ex: Exception =>
+                JobLogger.log(ex.getMessage, Option(Map("url" -> apiURL, "body" -> body)), ERROR)
+                ex.printStackTrace()
+                null.asInstanceOf[T]
+        }
+    }
+
+    def postURLEncoded[T](apiURL: String, body: Map[String,String], requestHeaders: Option[Map[String, String]] = None)(implicit mf: Manifest[T]) = {
+
+        val request = new HttpPost(apiURL)
+        request.addHeader("user-id", "analytics")
+        request.addHeader("Content-Type", "application/x-www-form-urlencoded")
+        requestHeaders.getOrElse(Map()).foreach {
+            case (headerName, headerValue) => request.addHeader(headerName, headerValue)
+        }
+
+        val nameValuePairs = new java.util.ArrayList[NameValuePair]()
+        body.foreach { case (key, value) =>
+            nameValuePairs.add(new BasicNameValuePair(key, value))
+        }
+        request.setEntity(new UrlEncodedFormEntity(nameValuePairs))
         try {
             _call(request.asInstanceOf[HttpRequestBase])
         } catch {

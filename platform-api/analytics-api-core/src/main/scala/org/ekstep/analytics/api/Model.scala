@@ -16,6 +16,12 @@ case class Request(filter: Option[Filter], summaries: Option[Array[String]], tre
 case class RequestBody(id: String, ver: String, ts: String, request: Request, params: Option[Params]);
 case class MetricsRequest(period: String, filter: Option[Filter], channel: Option[String] = None, rawQuery: Option[Map[String, AnyRef]], dialcodes: Option[List[String]] = None);
 case class MetricsRequestBody(id: String, ver: String, ts: String, request: MetricsRequest, param: Option[Params]);
+case class ExperimentRequestBody(id: String, ver: String, ts: String, request: ExperimentRequest, params: Option[Params]);
+case class ExperimentRequest(expId : Option[String], name : Option[String], createdBy:Option[String], description : Option[String], criteria : Option[Map[String,AnyRef]],data : Option[Map[String,String]])
+
+case class ExperimentCreateRequest(expId : Option[String], expName : Option[String], expDescription:Option[String], createdBy : Option[String],
+																	 updatedBy:Option[String] , udpatedOn: Option[DateTime], createdOn : Option[DateTime],criteria : Option[String],
+																	 data : Option[String] ,status:Option[String], status_msg : Option[String], stats : Option[Map[String,Long]])
 
 case class ContentSummary(period: Option[Int], total_ts: Double, total_sessions: Long, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double)
 case class ItemMetrics(m_item_id: String, m_total_ts: Double, m_total_count: Integer, m_correct_res_count: Integer, m_inc_res_count: Integer, m_top5_incorrect_res: Array[String], m_avg_ts: Double)
@@ -73,6 +79,7 @@ object Constants {
 	val CONTENT_DB: String = env+"content_db"
 	val DEVICE_DB: String = env+"device_db"
 	val PLATFORML_DB: String = env+"platform_db"
+	val EXPERIMENT_DB: String = env+"experiment_db"
 	val JOB_REQUEST = "job_request"
 	val CONTENT_SUMMARY_FACT_TABLE = "content_usage_summary_fact"
 	val CONTENT_POPULARITY_SUMMARY_FACT = "content_popularity_summary_fact"
@@ -86,6 +93,7 @@ object Constants {
 	val REGISTERED_TAGS = "registered_tags"
 	val REQUEST_RECOS_TABLE = "request_recos"
 	val DEVICE_PROFILE_TABLE = "device_profile"
+	val EXPERIMENT_TABLE = "experiment_definition"
 }
 
 object OutputFormat {
@@ -109,8 +117,13 @@ object APIIds {
 	val WORKFLOW_USAGE = "ekstep.analytics.metrics.workflow-usage"
 	val DIALCODE_USAGE = "ekstep.analytics.metrics.dialcode-usage"
 	val CLIENT_LOG = "ekstep.analytics.client-log"
+	val EXPERIEMNT_CREATE_REQUEST = "ekstep.analytics.experiement.create";
+	val EXPERIEMNT_GET_REQUEST = "ekstep.analytics.experiement.get";
 }
 
 case class JobOutput(location: Option[String] = None, file_size: Option[Long] = None, dt_file_created: Option[String] = None, dt_first_event: Option[Long] = None, dt_last_event: Option[Long] = None, dt_expiration: Option[Long] = None);
 case class JobStats(dt_job_submitted: Long, dt_job_processing:  Option[Long] = None, dt_job_completed:  Option[Long] = None, input_events: Option[Int] = None, output_events: Option[Int] = None, latency: Option[Int] = None, execution_time: Option[Long] = None);
 case class JobResponse(request_id: String, status: String, last_updated: Long, request_data: Request, attempts: Int, output: Option[JobOutput] = None, job_stats: Option[JobStats] = None);
+
+case class ExperimentResponse(request: ExperimentRequest,stats : Map[String,Long] ,last_updated:Long, created_date:Long,status: String,status_msg : String)
+
