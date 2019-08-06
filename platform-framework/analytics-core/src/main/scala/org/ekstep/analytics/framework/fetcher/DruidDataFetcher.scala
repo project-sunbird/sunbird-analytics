@@ -19,9 +19,8 @@ object DruidDataFetcher {
         // TO-DOs:
         // getHavingFilter, getPostAgg methods
         // accept extraction function for dims
-        // add notNull, isNull filters
+        // add notNull, isNull, greaterThan, lessThan filters
         // use streams for larger data
-        // change Await to some other way of getting future objects
 
         val request = getQuery(query)
         println("request: " + request)
@@ -30,21 +29,20 @@ object DruidDataFetcher {
 
         if(result.results.length > 0) {
             println(result.results)
-            if (query.queryType.equalsIgnoreCase("timeseries")) {
-                val series = result.results.map { f =>
-                    val dataMap = f.result.asObject.get.toMap.map(f => (f._1 -> f._2.toString())).seq
-                    val timeMap = Map("time" -> f.timestamp.toString)
-                    timeMap ++ dataMap
-                }
-                series.map(f => JSONUtils.serialize(f))
-            }
-            else if (query.queryType.equalsIgnoreCase("topn")) {
-                val list = result.results.map(f => f).head.result.asArray.get.toList
-                list.map(f => f.toString())
-            }
-            else {
-                val list = result.results.map(f => f.result.mapString(f => f))
-                list.map(f => f.toString())
+            query.queryType.toLowerCase match {
+                case "timeseries" =>
+                    val series = result.results.map { f =>
+                        val dataMap = f.result.asObject.get.toMap.map(f => (f._1 -> f._2.toString())).seq
+                        val timeMap = Map("time" -> f.timestamp.toString)
+                        timeMap ++ dataMap
+                    }
+                    series.map(f => JSONUtils.serialize(f))
+                case "topn" =>
+                    val list = result.results.map(f => f).head.result.asArray.get.toList
+                    list.map(f => f.toString())
+                case "groupby" =>
+                    val list = result.results.map(f => f.result.mapString(f => f))
+                    list.map(f => f.toString())
             }
         }
         else
@@ -70,7 +68,7 @@ object DruidDataFetcher {
                   .from(query.dataSource)
                   .granularity(CommonUtil.getGranularity(query.granularity.getOrElse("all")))
                   .interval(CommonUtil.getIntervalRange(query.intervals))
-                  .topN(Dim(query.dimensions.get.head), query.metric.getOrElse("count"), query.threshold.getOrElse(5).asInstanceOf[Int])
+                  .topN(Dim(query.dimensions.get.head), query.metric.getOrElse("count"), query.threshold.getOrElse(100).asInstanceOf[Int])
                   .agg(getAggregation(query): _*)
                 if(query.filters.nonEmpty) DQLQuery.where(getFilter(query).get)
                 if(query.postAggregation.nonEmpty) DQLQuery.postAgg(getPostAggregation(query).get)
