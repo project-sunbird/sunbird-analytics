@@ -1,11 +1,8 @@
 package org.ekstep.analytics.framework.dispatcher
 
-import org.ekstep.analytics.framework.exception.DispatcherException
 import scala.io.Source
 import java.io.PrintWriter
 import org.ekstep.analytics.framework.exception.DispatcherException
-import org.ekstep.analytics.framework.util.JobLogger
-import org.ekstep.analytics.framework.Level._
 import sys.process._
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
@@ -55,6 +52,20 @@ object ScriptDispatcher extends IDispatcher {
     def dispatch(script: String): Int = {
         if (null == script) {
             throw new DispatcherException("script should not be empty")
+        }
+        script.!
+    }
+
+    def dispatch(script: ProcessBuilder, logger: ProcessLogger): Int = {
+        if (null == script) {
+            throw new DispatcherException("script cannot be null")
+        }
+        script.!(logger)
+    }
+
+    def dispatch(script: ProcessBuilder): Int = {
+        if (null == script) {
+            throw new DispatcherException("script cannot be null")
         }
         script.!
     }
