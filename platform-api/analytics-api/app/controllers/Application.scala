@@ -26,6 +26,8 @@ import org.ekstep.analytics.api.service.TagService.DeleteTag
 import org.ekstep.analytics.api.service.TagService.RegisterTag
 import org.ekstep.analytics.api.service.RecommendationAPIService.Consumption
 import org.ekstep.analytics.api.service.RecommendationAPIService.Creation
+import org.ekstep.analytics.api.service.DruidHealthCheckService
+import org.ekstep.analytics.framework.util.RestUtil
 
 /**
  * @author mahesh
@@ -39,8 +41,16 @@ class Application @Inject() (system: ActorSystem) extends BaseController {
 	val healthCheckAPIActor = system.actorOf(Props[HealthCheckAPIService].withRouter(FromConfig()), name = "healthCheckAPIActor")
 	val tagServiceAPIActor = system.actorOf(Props[TagService].withRouter(FromConfig()), name = "tagServiceAPIActor")
 	val clientLogAPIActor = system.actorOf(Props[ClientLogsAPIService].withRouter(FromConfig()), name = "clientLogAPIActor")
+	val druidHealthActor = system.actorOf(Props(new DruidHealthCheckService(RestUtil)), "druidHealthActor")
 	/*val deviceRegisterServiceAPIActor = system.actorOf(Props[DeviceRegisterService].withRouter(FromConfig()),
 		name = "deviceRegisterServiceAPIActor")*/
+
+	def getDruidHealthStatus() = Action.async { implicit request =>
+		val result = ask(druidHealthActor, None).mapTo[String]
+		result.map { x =>
+			Ok(x).withHeaders(CONTENT_TYPE -> "text/plain");
+		}
+	}
 
 	def checkAPIhealth() = Action.async { implicit request =>
     val result = ask(healthCheckAPIActor, GetHealthStatus).mapTo[String]
