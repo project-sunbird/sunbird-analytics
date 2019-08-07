@@ -211,7 +211,7 @@ object JobFactory {
             case "content-rating-updater" =>
                 ContentRatingUpdater
             case "daily-metrics-consumption-reports" =>
-                ContentRatingUpdater
+                ConsumptionReportsJob
             case _ =>
                 throw new JobNotFoundException("Unknown job type found")
         }
