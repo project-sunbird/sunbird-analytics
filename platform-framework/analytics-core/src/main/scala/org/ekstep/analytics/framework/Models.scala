@@ -90,7 +90,7 @@ case class JobConfig(search: Fetcher, filters: Option[Array[Filter]], sort: Opti
 
 //Druid Query Models
 @scala.beans.BeanInfo
-case class DruidQueryModel(queryType: String, dataSource: String, intervals: String, granularity: Option[String] = Option("all"), aggregations: Option[List[Aggregation]] = Option(List(Aggregation("count", "count", None))), dimensions: Option[List[String]] = None, filters: Option[List[DruidFilter]] = None, having: Option[DruidHavingFilter] = None, postAggregation: Option[PostAggregation] = None, threshold: Option[Long] = None, metric: Option[String] = None, descending: Option[String] = Option("false"))
+case class DruidQueryModel(queryType: String, dataSource: String, intervals: String, granularity: Option[String] = Option("all"), aggregations: Option[List[Aggregation]] = Option(List(Aggregation("count", "count", None))), dimensions: Option[List[String]] = None, filters: Option[List[DruidFilter]] = None, having: Option[DruidHavingFilter] = None, postAggregation: Option[List[PostAggregation]] = None, threshold: Option[Long] = None, metric: Option[String] = None, descending: Option[String] = Option("false"))
 @scala.beans.BeanInfo
 case class Aggregation(name: String, `type`: String, fieldName: Option[String])
 @scala.beans.BeanInfo

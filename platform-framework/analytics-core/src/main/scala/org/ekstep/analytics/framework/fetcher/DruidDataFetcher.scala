@@ -17,10 +17,10 @@ object DruidDataFetcher {
     def getDruidData(query: DruidQueryModel): List[String] = {
 
         // TO-DOs:
-        // getHavingFilter, getPostAgg methods
+        // add javascript type in getPostAgg methods
         // accept extraction function for dims
-        // add notNull, isNull, greaterThan, lessThan filters
         // use streams for larger data
+        // add logs for monitoring
 
         val request = getQuery(query)
         println("request: " + request)
@@ -60,7 +60,8 @@ object DruidDataFetcher {
                   .agg(getAggregation(query): _*)
                   .groupBy(query.dimensions.get.map(f => Dim(f)): _*)
                 if(query.filters.nonEmpty) DQLQuery.where(getFilter(query).get)
-                if(query.postAggregation.nonEmpty) DQLQuery.postAgg(getPostAggregation(query).get)
+                if(query.postAggregation.nonEmpty) DQLQuery.postAgg(getPostAggregation(query).get: _*)
+                if(query.having.nonEmpty) DQLQuery.having(getGroupByHaving(query).get)
                 DQLQuery.build()
             }
             case "topn" => {
@@ -71,7 +72,7 @@ object DruidDataFetcher {
                   .topN(Dim(query.dimensions.get.head), query.metric.getOrElse("count"), query.threshold.getOrElse(100).asInstanceOf[Int])
                   .agg(getAggregation(query): _*)
                 if(query.filters.nonEmpty) DQLQuery.where(getFilter(query).get)
-                if(query.postAggregation.nonEmpty) DQLQuery.postAgg(getPostAggregation(query).get)
+                if(query.postAggregation.nonEmpty) DQLQuery.postAgg(getPostAggregation(query).get: _*)
                 DQLQuery.build()
             }
             case "timeseries" => {
@@ -81,7 +82,7 @@ object DruidDataFetcher {
                   .interval(CommonUtil.getIntervalRange(query.intervals))
                   .agg(getAggregation(query): _*)
                 if(query.filters.nonEmpty) DQLQuery.where(getFilter(query).get)
-                if(query.postAggregation.nonEmpty) DQLQuery.postAgg(getPostAggregation(query).get)
+                if(query.postAggregation.nonEmpty) DQLQuery.postAgg(getPostAggregation(query).get: _*)
                 DQLQuery.build()
             }
             case _ =>
@@ -98,7 +99,8 @@ object DruidDataFetcher {
 
     def getAggregationByType(aggType: AggregationType, name: String, fieldName: Option[String]): AggregationExpression = {
         aggType match {
-            case AggregationType.Count => count as "count"
+            case AggregationType.Count => count as name
+            case AggregationType.HyperUnique => dim(fieldName.get).hyperUnique as name
             case AggregationType.LongSum => longSum(Dim(fieldName.get)) as name
             case AggregationType.DoubleSum => doubleSum(Dim(fieldName.get)) as name
             case AggregationType.DoubleMax => doubleMax(Dim(fieldName.get)) as name
@@ -116,35 +118,43 @@ object DruidDataFetcher {
         if (query.filters.nonEmpty) {
             if(query.filters.get.size > 1) {
                 val filters = query.filters.get.map { f =>
-                    val filterType = FilterType.decode(f.`type`).right.get
                     val values = if (f.values.isEmpty) Option(List(f.value.get)) else f.values
-                    getFilterByType(filterType, f.dimension, values)
+                    getFilterByType(f.`type`, f.dimension, values)
                 }
                 Option(conjunction(filters: _*))
             }
             else {
-                val filterType = FilterType.decode(query.filters.get.head.`type`).right.get
                 val values = if (query.filters.get.head.values.isEmpty) Option(List(query.filters.get.head.value.get)) else query.filters.get.head.values
-                Option(getFilterByType(filterType, query.filters.get.head.dimension, values))
+                Option(getFilterByType(query.filters.get.head.`type`, query.filters.get.head.dimension, values))
             }
         }
         else None
     }
 
-    def getFilterByType(filterType: FilterType, dimension: String, values: Option[List[String]]): FilteringExpression = {
-        filterType match {
-            case FilterType.Selector => Dim(dimension) === values.get.head
-            case FilterType.In => Dim(dimension) in values.get
-            case FilterType.Regex => Dim(dimension) regex values.get.head
-            case FilterType.Like => Dim(dimension) like values.get.head
+    def getFilterByType(filterType: String, dimension: String, values: Option[List[String]]): FilteringExpression = {
+        filterType.toLowerCase match {
+            case "isnull" => Dim(dimension).isNull
+            case "isnotnull" => Dim(dimension).isNotNull
+            case "equals" => Dim(dimension) === values.get.head
+            case "notequals" => Dim(dimension) =!= values.get.head
+            case "containsignorecase" => Dim(dimension).containsIgnoreCase(values.get.head)
+            case "contains" => Dim(dimension).contains(values.get.head, true)
+            case "in" => Dim(dimension) in values.get
+            case "notin" => Dim(dimension) notIn values.get
+            case "regex" => Dim(dimension) regex values.get.head
+            case "like" => Dim(dimension) like values.get.head
+            case "greaterthan" => Dim(dimension) > values.get.head
+            case "lessthan" => Dim(dimension) < values.get.head
 
         }
     }
 
-    def getPostAggregation(query: DruidQueryModel): Option[PostAggregationExpression] = {
+    def getPostAggregation(query: DruidQueryModel): Option[List[PostAggregationExpression]] = {
         if (query.postAggregation.nonEmpty){
-            val postAggType = PostAggregationType.decode(query.postAggregation.get.`type`).right.get
-            Option(getPostAggregationByType(postAggType, query.postAggregation.get.name, query.postAggregation.get.fields, query.postAggregation.get.fn))
+            Option(query.postAggregation.get.map{ f =>
+                val postAggType = PostAggregationType.decode(f.`type`).right.get
+                getPostAggregationByType(postAggType, f.name, f.fields, f.fn)
+            })
         }
         else None
 
@@ -152,8 +162,35 @@ object DruidDataFetcher {
 
     def getPostAggregationByType(postAggType: PostAggregationType, name: String, fields: Option[List[String]], fn: Option[String]): PostAggregationExpression = {
         postAggType match {
-            case PostAggregationType.Arithmetic => ('count / 2) as "halfCount" //(fields.get.mkString(fn.get)) as "name"
+            case PostAggregationType.Arithmetic =>
+                val leftField = fields.get.head
+                val rightField = fields.get.apply(1)
+                fn.get match {
+                    case "+" => Dim(leftField).+(Dim(rightField)) as name
+                    case "-" => Dim(leftField).-(Dim(rightField)) as name
+                    case "*" => Dim(leftField).*(Dim(rightField)) as name
+                    case "/" => Dim(leftField)./(Dim(rightField)) as name
+                }
             //case PostAggregationType.Javascript =>
+
+        }
+    }
+
+    def getGroupByHaving(query: DruidQueryModel): Option[FilteringExpression] = {
+        if (query.having.nonEmpty){
+            val havingType = HavingType.decode(query.having.get.`type`).right.get
+            Option(getGroupByHavingByType(havingType, query.having.get.aggregation, query.having.get.value))
+        }
+        else None
+
+    }
+
+    def getGroupByHavingByType(postAggType: HavingType, field: String, value: String): FilteringExpression = {
+        postAggType match {
+            case HavingType.EqualTo => Dim(field) === value
+            case HavingType.Not => Dim(field) =!= value
+            case HavingType.GreaterThan => Dim(field) > value
+            case HavingType.LessThan => Dim(field) < value
         }
     }
 }
