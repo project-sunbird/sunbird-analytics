@@ -21,6 +21,8 @@ POST /metrics/dial/usage @controllers.Metrics.dialcodeUsage
 
 POST /metrics/:datasetId/:summary @controllers.Metrics.getMetricsSummary(datasetId: String, summary: String)
 
+GET /metrics/druid @controllers.Application.getDruidHealthStatus
+
 # Data Exhaust
 POST /dataset/request/submit @controllers.JobController.dataRequest
 GET /dataset/request/read/:clientKey/:requestId @controllers.JobController.getJob(clientKey: String, requestId: String)
