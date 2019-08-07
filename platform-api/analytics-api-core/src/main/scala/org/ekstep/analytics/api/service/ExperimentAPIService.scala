@@ -55,7 +55,7 @@ import org.joda.time.DateTime
    private def _saveExpRequest(request: ExperimentRequest): ExperimentCreateRequest = {
      val status = ExperimentStatus.SUBMITTED.toString()
      val submittedDate = Option(DateTime.now())
-     val status_msg = "Experiment sucessfully submitted by" + request.createdBy.get
+     val status_msg = "Experiment sucessfully submitted by " + request.createdBy.get
      val expRequest = ExperimentCreateRequest(request.expId, request.name, request.description,
        request.createdBy, Some("Experiment_CREATE_API"),
        submittedDate, submittedDate, Some(JSONUtils.serialize(request.criteria)), Some(JSONUtils.serialize(request.data)), Some(status), Some(status_msg), None)
@@ -69,14 +69,15 @@ import org.joda.time.DateTime
    }
 
    private def _createJobResponse(expRequest: ExperimentCreateRequest): ExperimentResponse = {
-     val processed = List(ExperimentStatus.ACTIVE.toString(), ExperimentStatus.FAILED.toString).contains(expRequest.status)
-     val stats = if (processed) {
-       expRequest.stats.get
-     } else Map.empty[String, Long]
+     val stats = expRequest.stats.getOrElse(null)
+     val processed = List(ExperimentStatus.ACTIVE.toString(), ExperimentStatus.FAILED.toString).contains(expRequest.status.get)
+     val statsOutput = if (processed && null != stats) {
+       stats
+     } else Map.empty[String,Long]
 
      val experimentRequest = ExperimentRequest(expRequest.expId, expRequest.expName, expRequest.createdBy, expRequest.expDescription,
        Option(JSONUtils.deserialize[Map[String, AnyRef]](expRequest.criteria.get)), Option(JSONUtils.deserialize[Map[String, String]](expRequest.data.get)))
-     ExperimentResponse(experimentRequest, stats, expRequest.udpatedOn.get.getMillis, expRequest.createdOn.get.getMillis,
+     ExperimentResponse(experimentRequest, statsOutput, expRequest.udpatedOn.get.getMillis, expRequest.createdOn.get.getMillis,
        expRequest.status.get, expRequest.status_msg.get)
    }
 
