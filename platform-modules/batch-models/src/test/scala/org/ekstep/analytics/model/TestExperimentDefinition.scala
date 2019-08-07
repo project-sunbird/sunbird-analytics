@@ -11,7 +11,7 @@ import scala.io.Source
 
 class TestExperimentDefinition  extends SparkSpec(null) with MockFactory {
 
-  var schema: Buffer[ExperiementDefinitionOutput] = Buffer()
+  var schema: Buffer[ExperimentDefinitionOutput] = Buffer()
 
   implicit var util = mock[ExperimentDataUtils]
 
@@ -24,9 +24,9 @@ class TestExperimentDefinition  extends SparkSpec(null) with MockFactory {
 
     val criteria = JSONUtils.deserialize[CriteriaModel](experiments.collect().apply(0).criteria)
 
-    (util.getUserAPIToken _).expects().returns("12345")
-    (util.getUserDetails[UserResponse](_: String, _: String)(_: Manifest[UserResponse])).
-      expects("12345", JSONUtils.serialize(criteria.filters), *).returns(userdata)
+
+    (util.getUserDetails[UserResponse](_: String)(_: Manifest[UserResponse])).
+      expects(JSONUtils.serialize(criteria.filters), *).returns(userdata)
     (util.getDeviceProfile(_: String, _: String)(_: SparkContext)).expects("local_device_db", "device_profile", *).
       returns(loadFile[DeviceProfileModel]("src/test/resources/experiment/device_profile.txt"))
 
@@ -51,7 +51,6 @@ class TestExperimentDefinition  extends SparkSpec(null) with MockFactory {
     val userdata = JSONUtils.deserialize[UserResponse](Source.fromInputStream
     (getClass.getResourceAsStream("/experiment/userResponse.json")).getLines().mkString)
 
-    (util.getUserAPIToken _).expects().returns("12345")
     (util.getDeviceProfile(_: String, _: String)(_: SparkContext)).expects("local_device_db", "device_profile", *).
       returns(loadFile[DeviceProfileModel]("src/test/resources/experiment/device_profile.txt"))
 
@@ -66,7 +65,7 @@ class TestExperimentDefinition  extends SparkSpec(null) with MockFactory {
   }
 
 
-  ignore should "save es" in {
+  ignore should "save mapped deviceid and userid for experiment to es" in {
 
     val config = "{\"search\":{\"type\":\"none\"},\"model\":\"org.ekstep.analytics.model.ExperimentDefinitionModel\",\"modelParams\":{\"sparkCassandraConnectionHost\":\"localhost\",\"sparkElasticsearchConnectionHost\":\"localhost\"},\"output\":[{\"to\":\"es\",\"params\":{\"index\":\"experiment\"}}],\"parallelization\":8,\"appName\":\"Experiment-Definition\",\"deviceMapping\":false}"
     val jobconfig = JSONUtils.deserialize[JobConfig](config)

@@ -77,30 +77,6 @@ object RestUtil extends HTTPClient{
         }
     }
 
-    def postURLEncoded[T](apiURL: String, body: Map[String,String], requestHeaders: Option[Map[String, String]] = None)(implicit mf: Manifest[T]) = {
-
-        val request = new HttpPost(apiURL)
-        request.addHeader("user-id", "analytics")
-        request.addHeader("Content-Type", "application/x-www-form-urlencoded")
-        requestHeaders.getOrElse(Map()).foreach {
-            case (headerName, headerValue) => request.addHeader(headerName, headerValue)
-        }
-
-        val nameValuePairs = new java.util.ArrayList[NameValuePair]()
-        body.foreach { case (key, value) =>
-            nameValuePairs.add(new BasicNameValuePair(key, value))
-        }
-        request.setEntity(new UrlEncodedFormEntity(nameValuePairs))
-        try {
-            _call(request.asInstanceOf[HttpRequestBase])
-        } catch {
-            case ex: Exception =>
-                JobLogger.log(ex.getMessage, Option(Map("url" -> apiURL, "body" -> body)), ERROR)
-                ex.printStackTrace()
-                null.asInstanceOf[T]
-        }
-    }
-
     def patch[T](apiURL: String, body: String, headers: Option[Map[String,String]] = None)(implicit mf: Manifest[T]) = {
 
         val request = new HttpPatch(apiURL);

@@ -5,13 +5,13 @@ import java.util.Date
 
 import com.datastax.spark.connector._
 import com.datastax.spark.connector.types.TimestampFormatter
-import org.apache.http.HttpHeaders
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.framework.Level.ERROR
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger, RestUtil}
 import org.ekstep.analytics.framework.{IBatchModelTemplate, _}
+import org.ekstep.analytics.util.Constants
 
 import scala.collection.mutable.Buffer
 
@@ -26,12 +26,12 @@ case class UserResponse(id: String, ver: String, ts: String, params: Params, res
 
 case class CriteriaModel(`type`: String, filters: AnyRef, modulus: Option[Int])
 
-case class ExperimentDefinition(expid: String, expname: String, criteria: String, expdata: String, status: String) extends AlgoInput with Input
+case class ExperimentDefinition(exp_id: String, exp_name: String, criteria: String, exp_data: String, status: String) extends AlgoInput with Input
 
 case class ExperimentData(startDate: String, endDate: String, key: String, client: String, modulus: Option[Int])
 
 
-case class ExperiementDefinitionOutput(expid: String, status: String, status_message: String, updatedon: String, stats: Map[String, Long], updatedby: String)
+case class ExperimentDefinitionOutput(exp_id: String, status: String, status_message: String, updated_on: String, stats: Map[String, Long], updated_by: String)
 
 
 object ExperimentDefinitionModel extends IBatchModelTemplate[Empty, ExperimentDefinition, ExperimentMappingOutput, ExperimentMappingOutput] with Serializable {
@@ -42,8 +42,8 @@ object ExperimentDefinitionModel extends IBatchModelTemplate[Empty, ExperimentDe
 
     override def preProcess(data: RDD[Empty], config: Predef.Map[String, AnyRef])(implicit sc: SparkContext): RDD[ExperimentDefinition] = {
 
-        val experiments = sc.cassandraTable[ExperimentDefinition](AppConf.getConfig("experiment.definition.cassandra.keyspace")
-            , AppConf.getConfig("experiment.definition.cassandra.tableName"))
+        val experiments = sc.cassandraTable[ExperimentDefinition](Constants.PLATFORM_KEY_SPACE_NAME
+            , Constants.EXPERIMENT_DEFINITION_TABLE)
           .filter(metadata => metadata.status.equalsIgnoreCase("SUBMITTED"))
 
         experiments
@@ -51,11 +51,11 @@ object ExperimentDefinitionModel extends IBatchModelTemplate[Empty, ExperimentDe
 
     override def algorithm(experiments: RDD[ExperimentDefinition], config: Predef.Map[String, AnyRef])(implicit sc: SparkContext): RDD[ExperimentMappingOutput] = {
 
-        var metadata: Buffer[ExperiementDefinitionOutput] = Buffer()
+        var metadata: Buffer[ExperimentDefinitionOutput] = Buffer()
         implicit val utils: ExperimentDataUtils = new ExperimentDataUtils
         val result = algorithmProcess(experiments, metadata)
-        sc.makeRDD(metadata).saveToCassandra(AppConf.getConfig("experiment.definition.cassandra.keyspace"),
-            AppConf.getConfig("experiment.definition.cassandra.tableName"), SomeColumns("expid", "status", "status_message", "updatedon", "updatedby", "stats"));
+        sc.makeRDD(metadata).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME,
+            Constants.EXPERIMENT_DEFINITION_TABLE, SomeColumns("exp_id", "status", "status_message", "updated_on", "updated_by", "stats"));
         result.fold(sc.emptyRDD[ExperimentMappingOutput])(_ ++ _)
 
     }
@@ -66,14 +66,9 @@ object ExperimentDefinitionModel extends IBatchModelTemplate[Empty, ExperimentDe
         data.distinct()
     }
 
-    def algorithmProcess(experiments: RDD[ExperimentDefinition], metadata: Buffer[ExperiementDefinitionOutput])(implicit sc: SparkContext, util: ExperimentDataUtils): Array[RDD[ExperimentMappingOutput]] = {
-        val apiTokenURL = AppConf.getConfig("api.openidconnect.token.url")
-
-        val access_token = util.getUserAPIToken()
+    def algorithmProcess(experiments: RDD[ExperimentDefinition], metadata: Buffer[ExperimentDefinitionOutput])(implicit sc: SparkContext, util: ExperimentDataUtils): Array[RDD[ExperimentMappingOutput]] = {
         val experiment_list = experiments.collect()
-
-        val device_profile = util.getDeviceProfile(AppConf.getConfig("device.profile.cassandra.keyspace"),
-            AppConf.getConfig("device.profile.cassandra.tableName"))
+        val device_profile = util.getDeviceProfile(Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_PROFILE_TABLE)
 
         val result = experiment_list.map(exp => {
 
@@ -84,15 +79,18 @@ object ExperimentDefinitionModel extends IBatchModelTemplate[Empty, ExperimentDe
                 (filter_type) match {
                     case ("user") | ("user_mod") =>
 
-                        val userResponse = util.getUserDetails(access_token, JSONUtils.serialize(criteria.filters))
-                        if (null != userResponse && userResponse.responseCode.equalsIgnoreCase("OK")) {
+                        val userResponse = util.getUserDetails(JSONUtils.serialize(criteria.filters))
+                        if (null != userResponse && !userResponse.responseCode.isEmpty && userResponse.responseCode.equalsIgnoreCase("OK")) {
                             val userResult = userResponse.result.get("response").get
-                            metadata ++= Seq(populateExperimentMetadata(exp, userResult.content.size, filter_type, "ACTIVE", "Experiment Mapped Sucessfully"))
+                            metadata ++= Seq(populateExperimentMetadata(exp, userResult.content.size, filter_type,
+                                "ACTIVE", "Experiment Mapped Sucessfully"))
                             sc.parallelize(userResult.content.map(z =>
                                 populateExperimentMapping(Some(z.get("id").get.asInstanceOf[String]), exp, filter_type)))
 
                         }
                         else {
+                            metadata ++= Seq(populateExperimentMetadata(exp, 0, filter_type, "FAILED",
+                                "Experiment Failed, Please Check the criteria"))
                             sc.emptyRDD[ExperimentMappingOutput]
                         }
 
@@ -122,24 +120,24 @@ object ExperimentDefinitionModel extends IBatchModelTemplate[Empty, ExperimentDe
     }
 
     def populateExperimentMapping(mapping_id: Option[String], exp: ExperimentDefinition, expType: String): ExperimentMappingOutput = {
-        val expData = JSONUtils.deserialize[ExperimentData](exp.expdata)
+        val expData = JSONUtils.deserialize[ExperimentData](exp.exp_data)
         val modulus = expData.modulus.getOrElse(0)
         if (expType.contains("user"))
             ExperimentMappingOutput(userId = mapping_id,
-                id = exp.expid, name = exp.expname, platform = expData.client, key = expData.key, expType = expType,
+                id = exp.exp_id, name = exp.exp_name, platform = expData.client, key = expData.key, expType = expType,
                 startDate = getDateHourFormat(expData.startDate), endDate = getDateHourFormat(expData.endDate),
                 lastUpdatedOn = getDateHourFormat(TimestampFormatter.format(new Date)), userIdMod = modulus)
         else
             ExperimentMappingOutput(userId = mapping_id,
-                id = exp.expid, name = exp.expname, platform = expData.client, key = expData.key, expType = expType,
+                id = exp.exp_id, name = exp.exp_name, platform = expData.client, key = expData.key, expType = expType,
                 startDate = getDateHourFormat(expData.startDate), endDate = getDateHourFormat(expData.endDate),
                 lastUpdatedOn = getDateHourFormat(TimestampFormatter.format(new Date)), deviceIdMod = modulus)
     }
 
-    def populateExperimentMetadata(exp: ExperimentDefinition, mappedCount: Long, expType: String, status: String, status_msg: String): ExperiementDefinitionOutput = {
+    def populateExperimentMetadata(exp: ExperimentDefinition, mappedCount: Long, expType: String, status: String, status_msg: String): ExperimentDefinitionOutput = {
 
         val stats = Map(expType + "Matched" -> mappedCount)
-        ExperiementDefinitionOutput(exp.expid, status, status_msg, TimestampFormatter.format(new Date), stats, "ExperimentDataproduct")
+        ExperimentDefinitionOutput(exp.exp_id, status, status_msg, TimestampFormatter.format(new Date), stats, "ExperimentDataProduct")
 
     }
 
@@ -154,20 +152,8 @@ object ExperimentDefinitionModel extends IBatchModelTemplate[Empty, ExperimentDe
 
 class ExperimentDataUtils {
 
-    def getUserAPIToken(): String = {
-        val apiTokenURL = AppConf.getConfig("api.openidconnect.token.url")
-        val bodyMap = Predef.Map("client_id" -> "admin-cli", "password" -> AppConf.getConfig("api.openidconnect.token.password"),
-            "grant_type" -> "password", "username" -> AppConf.getConfig("api.openidconnect.token.username"))
-        val response = RestUtil.postURLEncoded[String](apiTokenURL, bodyMap)
-        val accessToken = JSONUtils.deserialize[Map[String, String]](response).get("access_token").get
-        accessToken
-    }
-
-    def getUserDetails[T](accessToken: String, request_filter: String)(implicit mf: Manifest[T]): UserResponse = {
-        val userapiURL = AppConf.getConfig("user.search.api.url")
-        var filter = request_filter
+    def getUserDetails[T](request_filter: String)(implicit mf: Manifest[T]): UserResponse = {
         val user_search_limit = AppConf.getConfig("user.search.limit")
-
         val request =
             s"""
                |{
@@ -180,8 +166,7 @@ class ExperimentDataUtils {
                |
                |}
             """.stripMargin
-        val requestHeaders = Predef.Map(HttpHeaders.AUTHORIZATION -> AppConf.getConfig("user.search.api.key"), "x-authenticated-user-token" -> accessToken)
-        val userResponse = RestUtil.post[UserResponse](userapiURL, request, Some(requestHeaders))
+        val userResponse = RestUtil.post[UserResponse](Constants.USER_SEARCH_URL, request)
 
         userResponse
     }

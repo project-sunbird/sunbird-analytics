@@ -78,8 +78,7 @@ object Constants {
   val env: String = AppConf.getConfig("cassandra.keyspace_prefix")
 	val CONTENT_DB: String = env+"content_db"
 	val DEVICE_DB: String = env+"device_db"
-	val PLATFORML_DB: String = env+"platform_db"
-	val EXPERIMENT_DB: String = env+"experiment_db"
+	val PLATFORM_DB: String = env+"platform_db"
 	val JOB_REQUEST = "job_request"
 	val CONTENT_SUMMARY_FACT_TABLE = "content_usage_summary_fact"
 	val CONTENT_POPULARITY_SUMMARY_FACT = "content_popularity_summary_fact"
