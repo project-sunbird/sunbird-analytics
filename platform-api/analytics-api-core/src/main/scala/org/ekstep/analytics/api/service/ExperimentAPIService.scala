@@ -4,6 +4,7 @@ import akka.actor.Actor
 import com.typesafe.config.Config
 import org.apache.commons.lang3.StringUtils
 import org.ekstep.analytics.api._
+import org.ekstep.analytics.api.service.ExperimentAPIService.saveExpRequest
 import org.ekstep.analytics.api.util.{CommonUtil, DBUtil}
 import org.ekstep.analytics.framework.ExperimentStatus
 import org.ekstep.analytics.framework.util.JSONUtils
@@ -17,110 +18,120 @@ import org.joda.time.DateTime
 
    case class GetExperimentRequest(requestId: String, config: Config)
 
-   def createRequest(request: String)(implicit config: Config): Response = {
+   def createRequest(request: String)(implicit config: Config): ExperimentBodyResponse = {
      val body = JSONUtils.deserialize[ExperimentRequestBody](request)
-     val isValid = _validateExpReq(body)
-     if ("true".equals(isValid.get("status").get)) {
-       val job = upsertRequest(body)
-       val response = CommonUtil.caseClassToMap(_createJobResponse(job))
-       CommonUtil.OK(APIIds.EXPERIEMNT_CREATE_REQUEST, response)
+     val isValid = validateExpReq(body)
+     if ("success".equals(isValid.get("status").get)) {
+       val  response = upsertRequest(body)
+       CommonUtil.experiemntOkResponse(APIIds.EXPERIEMNT_CREATE_REQUEST, response)
      } else {
-       CommonUtil.errorResponse(APIIds.EXPERIEMNT_CREATE_REQUEST, isValid.get("message").get, ResponseCode.CLIENT_ERROR.toString)
+       CommonUtil.experimentErrorResponse(APIIds.EXPERIEMNT_CREATE_REQUEST, isValid, ResponseCode.CLIENT_ERROR.toString)
      }
    }
 
-   private def upsertRequest(body: ExperimentRequestBody)(implicit config: Config): ExperimentCreateRequest = {
+   private def upsertRequest(body: ExperimentRequestBody)(implicit config: Config): Map[String,AnyRef] = {
      val expReq = body.request
      val experiment = DBUtil.getExperiementRequest(expReq.expId.get)
-
-     if (null == experiment) {
-       _saveExpRequest(expReq)
-     } else {
-       if (StringUtils.equalsIgnoreCase(ExperimentStatus.FAILED.toString(), experiment.status.getOrElse(""))) {
-         _saveExpRequest(expReq)
-       } else experiment
-     }
+     val result = experiment.map{exp=> {
+       if(ExperimentStatus.FAILED.toString.equalsIgnoreCase(exp.status.get)) {
+         val experimentRequest = saveExpRequest(expReq)
+         CommonUtil.caseClassToMap(createExperimentResponse(experimentRequest))
+       }else {
+         CommonUtil.caseClassToMap(ExperimentErrorResponse(createExperimentResponse(exp),"failed",Map("error" -> "Experiment already Submitted")))
+       }
+     }}.getOrElse({
+       val experimentRequest = saveExpRequest(expReq)
+       CommonUtil.caseClassToMap(createExperimentResponse(experimentRequest))
+     })
+     result
    }
 
    def getExperimentRequest(requestId: String)(implicit config: Config): Response = {
-     val job = DBUtil.getExperiementRequest(requestId)
-     if (null == job) {
-       CommonUtil.errorResponse(APIIds.EXPERIEMNT_GET_REQUEST, "no experiemnt available with the given experimentid", ResponseCode.OK.toString)
-     } else {
-       val jobStatusRes = _createJobResponse(job)
-       CommonUtil.OK(APIIds.EXPERIEMNT_GET_REQUEST, CommonUtil.caseClassToMap(jobStatusRes))
-     }
+     val experiment = DBUtil.getExperiementRequest(requestId)
+
+     val expStatus = experiment.map{
+         exp => {
+           createExperimentResponse(exp)
+           CommonUtil.OK(APIIds.EXPERIEMNT_GET_REQUEST, CommonUtil.caseClassToMap(createExperimentResponse(exp)))
+         }
+       }.getOrElse(CommonUtil.errorResponse(APIIds.EXPERIEMNT_GET_REQUEST, "no experiemnt available with the given experimentid", ResponseCode.OK.toString))
+
+     expStatus
    }
 
-   private def _saveExpRequest(request: ExperimentRequest): ExperimentCreateRequest = {
+   private def saveExpRequest(request: ExperimentCreateRequest): ExperimentRequest = {
      val status = ExperimentStatus.SUBMITTED.toString()
      val submittedDate = Option(DateTime.now())
-     val status_msg = "Experiment sucessfully submitted by " + request.createdBy.get
-     val expRequest = ExperimentCreateRequest(request.expId, request.name, request.description,
-       request.createdBy, Some("Experiment_CREATE_API"),
-       submittedDate, submittedDate, Some(JSONUtils.serialize(request.criteria)), Some(JSONUtils.serialize(request.data)), Some(status), Some(status_msg), None)
+     val status_msg = "Experiment successfully submitted"
+     val expRequest = ExperimentRequest(request.expId.get, request.name.get, request.description.get,
+       request.createdBy.get, "Experiment_CREATE_API",
+       submittedDate, submittedDate,JSONUtils.serialize(request.criteria), JSONUtils.serialize(request.data), Some(status), Some(status_msg), None)
 
      DBUtil.saveExpRequest(Array(expRequest))
      expRequest
    }
 
-   private def getDateInMillis(date: DateTime): Option[Long] = {
-     if (null != date) Option(date.getMillis) else None
-   }
-
-   private def _createJobResponse(expRequest: ExperimentCreateRequest): ExperimentResponse = {
+   private def createExperimentResponse(expRequest: ExperimentRequest): ExperimentResponse = {
      val stats = expRequest.stats.getOrElse(null)
      val processed = List(ExperimentStatus.ACTIVE.toString(), ExperimentStatus.FAILED.toString).contains(expRequest.status.get)
      val statsOutput = if (processed && null != stats) {
        stats
      } else Map.empty[String,Long]
 
-     val experimentRequest = ExperimentRequest(expRequest.expId, expRequest.expName, expRequest.createdBy, expRequest.expDescription,
-       Option(JSONUtils.deserialize[Map[String, AnyRef]](expRequest.criteria.get)), Option(JSONUtils.deserialize[Map[String, String]](expRequest.data.get)))
+     val experimentRequest = ExperimentCreateRequest(Some(expRequest.expId), Some(expRequest.expName), Some(expRequest.createdBy), Some(expRequest.expDescription),
+       Option(JSONUtils.deserialize[Map[String, AnyRef]](expRequest.criteria)), Option(JSONUtils.deserialize[Map[String, String]](expRequest.data)))
      ExperimentResponse(experimentRequest, statsOutput, expRequest.udpatedOn.get.getMillis, expRequest.createdOn.get.getMillis,
        expRequest.status.get, expRequest.status_msg.get)
    }
 
 
-   private def _validateExpReq(body: ExperimentRequestBody)(implicit config: Config): Map[String, String] = {
-
+   private def validateExpReq(body: ExperimentRequestBody)(implicit config: Config): Map[String, String] = {
      val request = body.request
+     val errMap = scala.collection.mutable.Map[String, String]()
      if (null == request) {
-       val message = "Request is empty"
-       Map("status" -> "false", "message" -> message)
+       errMap("request") = "Request should not be empty"
      } else {
        if (request.expId.isEmpty) {
-         Map("status" -> "false", "message" -> "Experiemnt Id is empty")
-       } else if (request.name.isEmpty) {
-         Map("status" -> "false", "message" -> "Experiemnt Name is empty")
-       } else if (request.createdBy.isEmpty) {
-         Map("status" -> "false", "message" -> "Created By is empty")
-       } else if (request.criteria.isEmpty) {
-         Map("status" -> "false", "message" -> "Criteria are empty")
-       } else if (request.criteria.get.get("filters").isEmpty) {
-         Map("status" -> "false", "message" -> "Criteria Filter is Empty")
+         errMap("request.expid") = "Experiment Id should not be  empty"
+       }
+       if (request.name.isEmpty) {
+         errMap("request.name") = "Experiment Name should not be  empty"
+       }
+       if (request.createdBy.isEmpty)
+         errMap("request.createdBy") = "Created By should not be empty"
+       if (request.criteria.isEmpty) {
+         errMap("request.createdBy") = "Criteria should not be empty"
+       }
+       else if (request.criteria.get.get("filters").isEmpty) {
+         errMap("request.filters") = "Criteria Filters should not be empty"
        }
        else if (request.criteria.get.get("type").isEmpty) {
-         Map("status" -> "false", "message" -> "Criteria Type is empty")
+         errMap("request.type") = "Criteria Type should not be empty"
        }
-       else if (request.data.isEmpty) {
-         Map("status" -> "false", "message" -> "Experiment Data is empty")
+       if (request.data.isEmpty) {
+         errMap("request.data") = "Experiment Data should not be empty"
        }
        else {
-         val endDate = request.data.get.get("endDate").get
-         val startDate = request.data.get.get("startDate").get
-         val days = CommonUtil.getDaysBetween(startDate, endDate)
-         if (CommonUtil.getPeriod(endDate) < CommonUtil.getPeriod(CommonUtil.getToday))
-           Map("status" -> "false", "message" -> "end_date should be greater than today's date..")
+         val endDate = request.data.get.getOrElse("endDate","")
+         val startDate = request.data.get.getOrElse("startDate","")
+         if (endDate.isEmpty) {
+           errMap("data.endDate") = "Experiment End_Date should not be empty"
+         }
+         else if (CommonUtil.getPeriod(endDate) < CommonUtil.getPeriod(CommonUtil.getToday))
+           errMap("data.startDate") = "End_Date should be greater than today's date."
+
+         if (startDate.isEmpty) {
+           errMap("data.endDate") = "Experiment Start_Date should not be empty"
+         }
          else if (CommonUtil.getPeriod(startDate) < CommonUtil.getPeriod(CommonUtil.getToday))
-           Map("status" -> "false", "message" -> "start_date should be greater than today's date..")
-         else if (0 > days)
-           Map("status" -> "false", "message" -> "Date range should not be -ve. Please check your start_date & end_date")
-         else Map("status" -> "true")
-
+           errMap("data.endDate") = "Start_Date should be greater than or equal to today's date.."
+         val days = CommonUtil.getDaysBetween(startDate, endDate)
+         if (!startDate.isEmpty && !endDate.isEmpty && 0 > days)
+         errMap("data.StartDate") = "Date range should not be -ve. Please check your start_date & end_date"
        }
-
      }
+     if(errMap.size >0) errMap += ("status" -> "failed")  else errMap += ("status" -> "success")
+     errMap.toMap
    }
  }
 

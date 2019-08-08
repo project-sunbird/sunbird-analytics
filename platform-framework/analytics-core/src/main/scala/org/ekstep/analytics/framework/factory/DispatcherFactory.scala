@@ -30,7 +30,7 @@ object DispatcherFactory {
                 SlackDispatcher;
             case "azure" =>
                 AzureDispatcher;
-            case "es" =>
+            case "elasticsearch" =>
                 ESDispatcher;
             case _ =>
                 throw new DispatcherException("Unknown output dispatcher destination found");

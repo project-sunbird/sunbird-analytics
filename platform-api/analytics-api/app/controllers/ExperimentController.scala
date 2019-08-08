@@ -21,7 +21,7 @@ class ExperimentController @Inject()(system: ActorSystem) extends BaseController
 
     def createExperiment() = Action.async { implicit request =>
         val body: String = Json.stringify(request.body.asJson.get)
-        val res = ask(expApiActor, CreateExperimentRequest(body, config)).mapTo[Response]
+        val res = ask(expApiActor, CreateExperimentRequest(body, config)).mapTo[ExperimentBodyResponse]
         res.map { x =>
             result(x.responseCode, JSONUtils.serialize(x))
         }

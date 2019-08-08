@@ -5,13 +5,13 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.{DeviceProfileModel, JobConfig, OutputDispatcher}
 import org.scalamock.scalatest.MockFactory
 
-import scala.collection.mutable.Buffer
+import scala.collection.mutable.{Buffer, ListBuffer}
 import scala.io.Source
 
 
 class TestExperimentDefinition  extends SparkSpec(null) with MockFactory {
 
-  var schema: Buffer[ExperimentDefinitionOutput] = Buffer()
+  var schema: ListBuffer[ExperimentDefinitionMetadata] = ListBuffer()
 
   implicit var util = mock[ExperimentDataUtils]
 
@@ -32,14 +32,13 @@ class TestExperimentDefinition  extends SparkSpec(null) with MockFactory {
 
 
     val out = ExperimentDefinitionModel.algorithmProcess(experiments, schema)
-    val result = out.fold(sc.emptyRDD[ExperimentMappingOutput])(_ ++ _)
+    val result = out.fold(sc.emptyRDD[ExperimentDefinitionOutput])(_ ++ _)
 
     result.count() should be(6)
 
     val userMappedCount = result.filter { x => x.id.equals("U1234") }
 
     userMappedCount.count() should be(6)
-
 
   }
 
@@ -55,7 +54,7 @@ class TestExperimentDefinition  extends SparkSpec(null) with MockFactory {
       returns(loadFile[DeviceProfileModel]("src/test/resources/experiment/device_profile.txt"))
 
     val out = ExperimentDefinitionModel.algorithmProcess(experiments, schema)
-    val result = out.fold(sc.emptyRDD[ExperimentMappingOutput])(_ ++ _)
+    val result = out.fold(sc.emptyRDD[ExperimentDefinitionOutput])(_ ++ _)
 
     result.count().shouldBe(41)
 
@@ -67,7 +66,7 @@ class TestExperimentDefinition  extends SparkSpec(null) with MockFactory {
 
   ignore should "save mapped deviceid and userid for experiment to es" in {
 
-    val config = "{\"search\":{\"type\":\"none\"},\"model\":\"org.ekstep.analytics.model.ExperimentDefinitionModel\",\"modelParams\":{\"sparkCassandraConnectionHost\":\"localhost\",\"sparkElasticsearchConnectionHost\":\"localhost\"},\"output\":[{\"to\":\"es\",\"params\":{\"index\":\"experiment\"}}],\"parallelization\":8,\"appName\":\"Experiment-Definition\",\"deviceMapping\":false}"
+    val config = "{\"search\":{\"type\":\"none\"},\"model\":\"org.ekstep.analytics.model.ExperimentDefinitionModel\",\"modelParams\":{\"sparkCassandraConnectionHost\":\"localhost\",\"sparkElasticsearchConnectionHost\":\"localhost\"},\"output\":[{\"to\":\"elasticsearch\",\"params\":{\"index\":\"experiment\"}}],\"parallelization\":8,\"appName\":\"Experiment-Definition\",\"deviceMapping\":false}"
     val jobconfig = JSONUtils.deserialize[JobConfig](config)
     val experiments = loadFile[ExperimentDefinition]("src/test/resources/experiment/experiments.json")
     val out = ExperimentDefinitionModel.execute(sc.emptyRDD, jobconfig.modelParams)

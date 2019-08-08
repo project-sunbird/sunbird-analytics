@@ -4,10 +4,7 @@ import java.util.UUID
 
 import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
-import org.ekstep.analytics.api.Params
-import org.ekstep.analytics.api.Range
-import org.ekstep.analytics.api.Response
-import org.ekstep.analytics.api.ResponseCode
+import org.ekstep.analytics.api.{ExperimentBodyResponse, ExperimentParams, Params, Range, Response, ResponseCode}
 import org.ekstep.analytics.framework.Period._
 import org.ekstep.analytics.framework.conf.AppConf
 import org.joda.time.DateTime
@@ -19,7 +16,6 @@ import org.joda.time.Weeks
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.format.DateTimeFormatter
 import org.apache.commons.lang3.StringUtils
-
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 
@@ -103,6 +99,16 @@ object CommonUtil {
         Response(apiId, "1.0", df.print(System.currentTimeMillis()),
             Params(UUID.randomUUID().toString, null, responseCode, "failed", err),
             responseCode, None)
+    }
+
+    def experimentErrorResponse(apiId:String, errResponse: Map[String,String], responseCode: String): ExperimentBodyResponse = {
+        ExperimentBodyResponse(apiId, "1.0", df.print(System.currentTimeMillis()),
+            ExperimentParams(UUID.randomUUID().toString, null, responseCode, "failed", errResponse),
+            responseCode, None)
+    }
+
+    def experiemntOkResponse(apiId: String, result: Map[String, AnyRef]): ExperimentBodyResponse = {
+        ExperimentBodyResponse(apiId, "1.0", df.print(DateTime.now(DateTimeZone.UTC).getMillis), ExperimentParams(UUID.randomUUID().toString(), null, null, "successful", null), ResponseCode.OK.toString(), Option(result));
     }
 
     def errorResponseSerialized(apiId: String, err: String, responseCode: String): String = {

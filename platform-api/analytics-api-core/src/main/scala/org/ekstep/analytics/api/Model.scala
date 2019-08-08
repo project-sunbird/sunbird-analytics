@@ -16,12 +16,6 @@ case class Request(filter: Option[Filter], summaries: Option[Array[String]], tre
 case class RequestBody(id: String, ver: String, ts: String, request: Request, params: Option[Params]);
 case class MetricsRequest(period: String, filter: Option[Filter], channel: Option[String] = None, rawQuery: Option[Map[String, AnyRef]], dialcodes: Option[List[String]] = None);
 case class MetricsRequestBody(id: String, ver: String, ts: String, request: MetricsRequest, param: Option[Params]);
-case class ExperimentRequestBody(id: String, ver: String, ts: String, request: ExperimentRequest, params: Option[Params]);
-case class ExperimentRequest(expId : Option[String], name : Option[String], createdBy:Option[String], description : Option[String], criteria : Option[Map[String,AnyRef]],data : Option[Map[String,String]])
-
-case class ExperimentCreateRequest(expId : Option[String], expName : Option[String], expDescription:Option[String], createdBy : Option[String],
-																	 updatedBy:Option[String] , udpatedOn: Option[DateTime], createdOn : Option[DateTime],criteria : Option[String],
-																	 data : Option[String] ,status:Option[String], status_msg : Option[String], stats : Option[Map[String,Long]])
 
 case class ContentSummary(period: Option[Int], total_ts: Double, total_sessions: Long, avg_ts_session: Double, total_interactions: Long, avg_interactions_min: Double)
 case class ItemMetrics(m_item_id: String, m_total_ts: Double, m_total_count: Integer, m_correct_res_count: Integer, m_inc_res_count: Integer, m_top5_incorrect_res: Array[String], m_avg_ts: Double)
@@ -124,5 +118,19 @@ case class JobOutput(location: Option[String] = None, file_size: Option[Long] = 
 case class JobStats(dt_job_submitted: Long, dt_job_processing:  Option[Long] = None, dt_job_completed:  Option[Long] = None, input_events: Option[Int] = None, output_events: Option[Int] = None, latency: Option[Int] = None, execution_time: Option[Long] = None);
 case class JobResponse(request_id: String, status: String, last_updated: Long, request_data: Request, attempts: Int, output: Option[JobOutput] = None, job_stats: Option[JobStats] = None);
 
-case class ExperimentResponse(request: ExperimentRequest,stats : Map[String,Long] ,last_updated:Long, created_date:Long,status: String,status_msg : String)
+
+//Experiment
+case class ExperimentRequestBody(id: String, ver: String, ts: String, request: ExperimentCreateRequest, params: Option[Params]);
+case class ExperimentCreateRequest(expId : Option[String], name : Option[String], createdBy:Option[String], description : Option[String], criteria : Option[Map[String,AnyRef]],data : Option[Map[String,String]])
+
+case class ExperimentRequest(expId : String, expName : String, expDescription: String, createdBy : String,
+														 updatedBy: String , udpatedOn: Option[DateTime], createdOn : Option[DateTime],criteria : String,
+														 data : String ,status:Option[String], status_msg : Option[String], stats : Option[Map[String,Long]])
+
+case class ExperimentParams(resmsgid: String, msgid: String, err: String, status: String, errorMsg: Map[String,String]);
+case class ExperimentBodyResponse(id: String, ver: String, ts: String, params: ExperimentParams, responseCode: String, result: Option[Map[String, AnyRef]]);
+
+case class ExperimentResponse(request: ExperimentCreateRequest,stats : Map[String,Long] ,last_updated:Long, created_date:Long,status: String,status_msg : String)
+case class ExperimentErrorResponse(expResponse : ExperimentResponse,err: String , errorMsg: Map[String,String])
+
 
