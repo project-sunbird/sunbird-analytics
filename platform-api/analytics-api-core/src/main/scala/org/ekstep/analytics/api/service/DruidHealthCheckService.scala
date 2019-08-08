@@ -11,7 +11,7 @@ class DruidHealthCheckService(restUtil: HTTPClient) extends Actor {
   val apiUrl = AppConf.getConfig("druid.coordinator.host")+AppConf.getConfig("druid.healthcheck.url")
 
   def receive = {
-    case _ => sender() ! getStatus
+    case "health" => sender() ! getStatus
   }
 
   def getStatus: String = {
