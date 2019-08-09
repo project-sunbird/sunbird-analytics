@@ -18,12 +18,12 @@ class TestExperimentAPIService extends BaseSpec {
 
     "ExperimentAPIService" should "return the experiment for experimentid" in {
         val request = """{"id":"ekstep.analytics.dataset.request.submit","ver":"1.0","ts":"2016-12-07T12:40:40+05:30","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341","client_key":"dev-portal"},"request":{"name":"USER_ORG","createdBy":"User1","description":"Experiment to get users to explore page ","criteria":{"type":"user","filters":{"organisations.orgName":["sunbird"]}},"data":{"startDate":"2022-08-01","endDate":"2022-08-02","key":"/org/profile","client":"portal"}}}"""
-        val response = ExperimentAPIService.getExperimentRequest("U1234")
+        val response = ExperimentAPIService.getExperimentDefinition("U1234")
         response.responseCode should be("OK")
     }
 
     "ExperimentAPIService" should "return the error for no experimentid" in {
-        val response = ExperimentAPIService.getExperimentRequest("H1234")
+        val response = ExperimentAPIService.getExperimentDefinition("H1234")
         response.params.errmsg  should be ("no experiemnt available with the given experimentid")
 
     }

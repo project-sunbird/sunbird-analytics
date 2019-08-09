@@ -22,7 +22,7 @@ case class ExperimentDefinitionOutput(userId: Option[String] = None, deviceId: O
 
 case class UserList(count: Int, content: List[Map[String, AnyRef]])
 
-case class UserResponse(id: String, ver: String, ts: String, params: Params, responseCode: String, result: Map[String, UserList]);
+case class UserResponse(id: String, ver: String, ts: String, params: Params, responseCode: String, result: Map[String, UserList])
 
 case class CriteriaModel(`type`: String, filters: AnyRef, modulus: Option[Int])
 
@@ -36,14 +36,13 @@ case class ExperimentDefinitionMetadata(exp_id: String, status: String, status_m
 
 object ExperimentDefinitionModel extends IBatchModelTemplate[Empty, ExperimentDefinition, ExperimentDefinitionOutput, ExperimentDefinitionOutput] with Serializable {
 
-    implicit val className = "org.ekstep.analytics.model.ExperimentDefinitionModel"
+    implicit val className: String = "org.ekstep.analytics.model.ExperimentDefinitionModel"
 
     override def name: String = "ExperimentDefinitionModel"
 
     override def preProcess(data: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ExperimentDefinition] = {
 
-        val experiments = sc.cassandraTable[ExperimentDefinition](Constants.PLATFORM_KEY_SPACE_NAME
-            , Constants.EXPERIMENT_DEFINITION_TABLE)
+        val experiments = sc.cassandraTable[ExperimentDefinition](Constants.PLATFORM_KEY_SPACE_NAME, Constants.EXPERIMENT_DEFINITION_TABLE)
           .filter(metadata => metadata.status.equalsIgnoreCase("SUBMITTED"))
 
         experiments
@@ -51,77 +50,80 @@ object ExperimentDefinitionModel extends IBatchModelTemplate[Empty, ExperimentDe
 
     override def algorithm(experiments: RDD[ExperimentDefinition], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ExperimentDefinitionOutput] = {
 
-        var metadata: ListBuffer[ExperimentDefinitionMetadata] = ListBuffer()
+        val metadata: ListBuffer[ExperimentDefinitionMetadata] = ListBuffer()
         implicit val utils: ExperimentDataUtils = new ExperimentDataUtils
         val result = algorithmProcess(experiments, metadata)
         sc.makeRDD(metadata).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME,
-            Constants.EXPERIMENT_DEFINITION_TABLE, SomeColumns("exp_id", "status", "status_message", "updated_on", "updated_by", "stats"));
+            Constants.EXPERIMENT_DEFINITION_TABLE, SomeColumns("exp_id", "status", "status_message", "updated_on", "updated_by", "stats"))
         result.fold(sc.emptyRDD[ExperimentDefinitionOutput])(_ ++ _)
 
     }
 
 
     override def postProcess(data: RDD[ExperimentDefinitionOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ExperimentDefinitionOutput] = {
-
         data
     }
 
-    def algorithmProcess(experiments: RDD[ExperimentDefinition], metadata: Buffer[ExperimentDefinitionMetadata])(implicit sc: SparkContext, util: ExperimentDataUtils): Array[RDD[ExperimentDefinitionOutput]] = {
+    def algorithmProcess(experiments: RDD[ExperimentDefinition], metadata: ListBuffer[ExperimentDefinitionMetadata])
+                        (implicit sc: SparkContext, util: ExperimentDataUtils): Array[RDD[ExperimentDefinitionOutput]] = {
         val experiment_list = experiments.collect()
         val device_profile = util.getDeviceProfile(Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_PROFILE_TABLE)
 
         val result = experiment_list.map(exp => {
             val criteria = JSONUtils.deserialize[CriteriaModel](exp.criteria)
-            val filter_type = JSONUtils.deserialize[CriteriaModel](exp.criteria).`type`
+            val filterType = JSONUtils.deserialize[CriteriaModel](exp.criteria).`type`
+
             try {
-                filter_type match {
+                filterType match {
                     case "user" | "user_mod" =>
                         val userResponse = util.getUserDetails(JSONUtils.serialize(criteria.filters))
+
                         if (null != userResponse && !userResponse.responseCode.isEmpty && userResponse.responseCode.equalsIgnoreCase("OK")) {
-                            val userResult = userResponse.result.get("response").get
-                            metadata ++= Seq(populateExperimentMetadata(exp, userResult.content.size, filter_type,
-                                "ACTIVE", "Experiment Mapped Sucessfully"))
-                            sc.parallelize(userResult.content.map(z =>
-                                populateExperimentMapping(Some(z.get("id").get.asInstanceOf[String]), exp, filter_type)))
+                            userResponse.result.get("response").map { userResult =>
+                                metadata ++= Seq(populateExperimentMetadata(exp, userResult.content.size, filterType,
+                                    "ACTIVE", "Experiment Mapped Sucessfully"))
+                                sc.parallelize(userResult.content.map(user =>
+                                    populateExperimentMapping(user.get("id").asInstanceOf[Option[String]], exp, filterType)))
+                            }.getOrElse(sc.emptyRDD[ExperimentDefinitionOutput])
                         } else {
-                            metadata ++= Seq(populateExperimentMetadata(exp, 0, filter_type, "FAILED",
+                            metadata ++= Seq(populateExperimentMetadata(exp, 0, filterType, "FAILED",
                                 "Experiment Failed, Please Check the criteria"))
                             sc.emptyRDD[ExperimentDefinitionOutput]
                         }
 
                     case "device" | "device_mod" =>
                         val filters = criteria.filters.asInstanceOf[List[Map[String, AnyRef]]].
-                          map(f => Filter(f.get("name").get.asInstanceOf[String], f.get("operator").get.asInstanceOf[String], f.get("value")))
+                          map(f => Filter(f("name").asInstanceOf[String], f("operator").asInstanceOf[String], f.get("value")))
                         val filteredProfile = DataFilter.filter(device_profile, filters.toArray)
-                        val deviceRDD = filteredProfile.map(z => populateExperimentMapping(z.device_id, exp, filter_type))
-                        metadata ++= Seq(populateExperimentMetadata(exp, deviceRDD.count(), filter_type, "ACTIVE", "Experiment Mapped Sucessfully"))
+                        val deviceRDD = filteredProfile.map(z => populateExperimentMapping(z.device_id, exp, filterType))
+                        metadata ++= Seq(populateExperimentMetadata(exp, deviceRDD.count(), filterType, "ACTIVE", "Experiment Mapped Sucessfully"))
                         deviceRDD
                 }
             } catch {
                 case ex: Exception =>
-                    JobLogger.log(ex.getMessage, None, ERROR);
-                    metadata ++= Seq(populateExperimentMetadata(exp, 0, filter_type, "FAILED", "Experiment Failed : " + ex.getMessage))
-                    ex.printStackTrace();
+                    JobLogger.log(ex.getMessage, None, ERROR)
+                    metadata ++= Seq(populateExperimentMetadata(exp, 0, filterType, "FAILED", "Experiment Failed : " + ex.getMessage))
+                    ex.printStackTrace()
                     sc.emptyRDD[ExperimentDefinitionOutput]
             }
         })
         result
     }
 
-    def populateExperimentMapping(mapping_id: Option[String], exp: ExperimentDefinition, expType: String): ExperimentDefinitionOutput = {
+    private def populateExperimentMapping(mappingId: Option[String], exp: ExperimentDefinition, expType: String): ExperimentDefinitionOutput = {
         val expData = JSONUtils.deserialize[ExperimentData](exp.exp_data)
         val modulus = expData.modulus.getOrElse(0)
         val outputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
         val inputFormat = new SimpleDateFormat("yyyy-MM-dd")
         if (expType.contains("user"))
-            ExperimentDefinitionOutput(userId = mapping_id,
+            ExperimentDefinitionOutput(userId = mappingId,
                 id = exp.exp_id, name = exp.exp_name, platform = expData.client, key = expData.key, expType = expType,
                 startDate = outputFormat.format(inputFormat.parse(expData.startDate)),
                 endDate = outputFormat.format(inputFormat.parse(expData.endDate)),
                 lastUpdatedOn = outputFormat.format(inputFormat.parse(TimestampFormatter.format(new Date))),
                 userIdMod = modulus)
         else
-            ExperimentDefinitionOutput(userId = mapping_id,
+            ExperimentDefinitionOutput(userId = mappingId,
                 id = exp.exp_id, name = exp.exp_name, platform = expData.client, key = expData.key, expType = expType,
                 startDate = outputFormat.format(inputFormat.parse(expData.startDate)),
                 endDate = outputFormat.format(inputFormat.parse(expData.endDate)),
@@ -129,7 +131,7 @@ object ExperimentDefinitionModel extends IBatchModelTemplate[Empty, ExperimentDe
                 deviceIdMod = modulus)
     }
 
-    def populateExperimentMetadata(exp: ExperimentDefinition, mappedCount: Long, expType: String, status: String, status_msg: String): ExperimentDefinitionMetadata = {
+    private def populateExperimentMetadata(exp: ExperimentDefinition, mappedCount: Long, expType: String, status: String, status_msg: String): ExperimentDefinitionMetadata = {
         val stats = Map(expType + "Matched" -> mappedCount)
         ExperimentDefinitionMetadata(exp.exp_id, status, status_msg, TimestampFormatter.format(new Date), stats, "ExperimentDataProduct")
 
@@ -142,7 +144,12 @@ class ExperimentDataUtils {
         val user_search_limit = AppConf.getConfig("user.search.limit")
         val request =
             s"""
-               |{"request": {"filters" : ${request_filter} ,"limit" : ${user_search_limit}}}
+               |{
+               |  "request": {
+               |    "filters": $request_filter,
+               |    "limit": $user_search_limit
+               |  }
+               |}
                |""".stripMargin
 
         val userResponse = RestUtil.post[UserResponse](Constants.USER_SEARCH_URL, request)

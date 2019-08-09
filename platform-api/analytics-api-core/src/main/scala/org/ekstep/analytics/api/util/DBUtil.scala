@@ -3,7 +3,7 @@ package org.ekstep.analytics.api.util
 import akka.actor.Actor
 import com.datastax.driver.core._
 import com.datastax.driver.core.querybuilder.{QueryBuilder => QB}
-import org.ekstep.analytics.api.{Constants, ExperimentCreateRequest, ExperimentRequest, JobRequest}
+import org.ekstep.analytics.api.{Constants, ExperimentCreateRequest, ExperimentDefinition, JobRequest}
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.util.JobLogger
 import org.joda.time.DateTime
@@ -12,8 +12,8 @@ import scala.collection.JavaConverters.iterableAsScalaIterableConverter
 
 object DBUtil {
 
-    case class GetJobRequest(requestId: String, clientId: String);
-    case class SaveJobRequest(jobRequest: Array[JobRequest]);
+    case class GetJobRequest(requestId: String, clientId: String)
+    case class SaveJobRequest(jobRequest: Array[JobRequest])
 
     implicit val className = "DBUtil"
     val embeddedCassandra = AppConf.getConfig("cassandra.service.embedded.enable").toBoolean
@@ -50,7 +50,7 @@ object DBUtil {
     }
 
     //Experiment
-    def getExperiementRequest(expId: String): Option[ExperimentRequest] = {
+    def getExperiementDefinition(expId: String): Option[ExperimentDefinition] = {
         val query = QB.select().from(Constants.PLATFORM_DB, Constants.EXPERIMENT_TABLE).allowFiltering()
           .where(QB.eq("exp_id", expId))
         val resultSet = session.execute(query)
@@ -58,24 +58,24 @@ object DBUtil {
         job.headOption
     }
 
-    def saveExpRequest(expRequests: Array[ExperimentRequest]) = {
+    def saveExperimentDefinition(expRequests: Array[ExperimentDefinition]) = {
         expRequests.map { expRequest =>
             val query = QB.insertInto(Constants.PLATFORM_DB, Constants.EXPERIMENT_TABLE).value("exp_id", expRequest.expId)
               .value("exp_name", expRequest.expName).value("status", expRequest.status.get).value("exp_description", expRequest.expDescription)
-              .value("exp_data", expRequest.data).value("updated_on", setDateColumn(expRequest.udpatedOn).getOrElse(null))
+              .value("exp_data", expRequest.data).value("updated_on", setDateColumn(expRequest.udpatedOn).orNull)
               .value("created_by", expRequest.createdBy).value("updated_by", expRequest.updatedBy)
-              .value("created_on", setDateColumn(expRequest.createdOn).getOrElse(null)).value("status_message", expRequest.status_msg.get)
+              .value("created_on", setDateColumn(expRequest.createdOn).orNull).value("status_message", expRequest.status_msg.get)
               .value("criteria", expRequest.criteria)
 
             session.execute(query)
         }
     }
 
-    def expRowToCaseClass(row: Row): ExperimentRequest = {
+    def expRowToCaseClass(row: Row): ExperimentDefinition = {
         import scala.collection.JavaConversions._
-        var stats_map = row.getMap("stats", classOf[String], classOf[java.lang.Long])
-        val stats = Map() ++ mapAsScalaMap(stats_map)
-        ExperimentRequest(row.getString("exp_id"), row.getString("exp_name"),
+        val statsMap = row.getMap("stats", classOf[String], classOf[java.lang.Long])
+        val stats = mapAsScalaMap(statsMap).toMap
+        ExperimentDefinition(row.getString("exp_id"), row.getString("exp_name"),
             row.getString("exp_description"), row.getString("created_by"), row.getString("updated_by"),
             getExpDateColumn(row, "updated_on"), getExpDateColumn(row, "created_on"),
             row.getString("criteria"), row.getString("exp_data"),
