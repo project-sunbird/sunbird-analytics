@@ -22,6 +22,7 @@ object Matcher {
             case "ISNOTEMPTY" => NotEmptyMatcher;
             case "EQ"         => EqualsMatcher;
             case "RANGE"      => RangeMatcher;
+            case  "LT"        => LessThanMatcher;
             case _ =>
                 throw new DataFilterException("Unknown filter operation found");
         }
