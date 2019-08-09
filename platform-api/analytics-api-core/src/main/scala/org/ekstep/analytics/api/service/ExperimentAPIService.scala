@@ -29,7 +29,7 @@ object ExperimentAPIService {
 
    private def upsertRequest(body: ExperimentRequestBody)(implicit config: Config): Map[String, AnyRef] = {
      val expReq = body.request
-     val experiment = DBUtil.getExperiementDefinition(expReq.expId.get)
+     val experiment = DBUtil.getExperiementDefinition(expReq.expId)
      val result = experiment.map { exp => {
        if (ExperimentStatus.FAILED.toString.equalsIgnoreCase(exp.status.get)) {
          val experimentRequest = saveExperimentDefinition(expReq)
@@ -54,7 +54,7 @@ object ExperimentAPIService {
          CommonUtil.OK(APIIds.EXPERIEMNT_GET_REQUEST, CommonUtil.caseClassToMap(createExperimentResponse(exp)))
        }
      }.getOrElse(CommonUtil.errorResponse(APIIds.EXPERIEMNT_GET_REQUEST,
-       "no experiemnt available with the given experimentid", ResponseCode.OK.toString))
+       "no experiment available with the given experimentid", ResponseCode.OK.toString))
 
      expStatus
    }
@@ -63,8 +63,8 @@ object ExperimentAPIService {
      val status = ExperimentStatus.SUBMITTED.toString
      val submittedDate = Option(DateTime.now())
      val statusMsg = "Experiment successfully submitted"
-     val expRequest = ExperimentDefinition(request.expId.get, request.name.get, request.description.get,
-       request.createdBy.get, "Experiment_CREATE_API", submittedDate, submittedDate, JSONUtils.serialize(request.criteria),
+     val expRequest = ExperimentDefinition(request.expId, request.name, request.description,
+       request.createdBy, "Experiment_CREATE_API", submittedDate, submittedDate, JSONUtils.serialize(request.criteria),
        JSONUtils.serialize(request.data), Some(status), Some(statusMsg), None)
 
      DBUtil.saveExperimentDefinition(Array(expRequest))
@@ -78,8 +78,8 @@ object ExperimentAPIService {
        stats
      } else Map[String, Long]()
 
-     val experimentRequest = ExperimentCreateRequest(Some(expRequest.expId), Some(expRequest.expName), Some(expRequest.createdBy), Some(expRequest.expDescription),
-       Option(JSONUtils.deserialize[Map[String, AnyRef]](expRequest.criteria)), Option(JSONUtils.deserialize[Map[String, String]](expRequest.data)))
+     val experimentRequest = ExperimentCreateRequest(expRequest.expId, expRequest.expName, expRequest.createdBy, expRequest.expDescription,
+       JSONUtils.deserialize[Map[String, AnyRef]](expRequest.criteria), JSONUtils.deserialize[Map[String, AnyRef]](expRequest.data))
      ExperimentResponse(experimentRequest, statsOutput, expRequest.udpatedOn.get.getMillis, expRequest.createdOn.get.getMillis,
        expRequest.status.get, expRequest.status_msg.get)
    }
@@ -91,29 +91,29 @@ object ExperimentAPIService {
      if (null == request) {
        errMap("request") = "Request should not be empty"
      } else {
-       if (request.expId.isEmpty) {
+       if (Option(request.expId).isEmpty) {
          errMap("request.expid") = "Experiment Id should not be  empty"
        }
-       if (request.name.isEmpty) {
+       if (Option(request.name).isEmpty) {
          errMap("request.name") = "Experiment Name should not be  empty"
        }
-       if (request.createdBy.isEmpty) {
+       if (Option(request.createdBy).isEmpty) {
          errMap("request.createdBy") = "Created By should not be empty"
        }
 
-       if (request.criteria.isEmpty) {
+       if (Option(request.criteria).isEmpty) {
          errMap("request.createdBy") = "Criteria should not be empty"
-       } else if (request.criteria.get.get("filters").isEmpty) {
+       } else if (request.criteria.get("filters").isEmpty) {
          errMap("request.filters") = "Criteria Filters should not be empty"
-       } else if (request.criteria.get.get("type").isEmpty) {
+       } else if (request.criteria.get("type").isEmpty) {
          errMap("request.type") = "Criteria Type should not be empty"
        }
 
-       if (request.data.isEmpty) {
+       if (Option(request.data).isEmpty) {
          errMap("request.data") = "Experiment Data should not be empty"
        } else {
-         val endDate = request.data.get.getOrElse("endDate", "")
-         val startDate = request.data.get.getOrElse("startDate", "")
+         val endDate = request.data.getOrElse("endDate", "").asInstanceOf[String]
+         val startDate = request.data.getOrElse("startDate", "").asInstanceOf[String]
          if (endDate.isEmpty) {
            errMap("data.endDate") = "Experiment End_Date should not be empty"
          }

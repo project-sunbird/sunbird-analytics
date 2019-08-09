@@ -122,12 +122,12 @@ case class JobResponse(request_id: String, status: String, last_updated: Long, r
 //Experiment
 case class ExperimentRequestBody(id: String, ver: String, ts: String, request: ExperimentCreateRequest, params: Option[Params])
 
-case class ExperimentCreateRequest(expId: Option[String], name: Option[String], createdBy: Option[String], description: Option[String],
-																	 criteria: Option[Map[String, AnyRef]], data: Option[Map[String, String]])
+case class ExperimentCreateRequest(expId: String, name: String, createdBy: String, description: String,
+								   criteria: Map[String, AnyRef], data: Map[String, AnyRef])
 
 case class ExperimentDefinition(expId: String, expName: String, expDescription: String, createdBy: String,
-																updatedBy: String, udpatedOn: Option[DateTime], createdOn: Option[DateTime], criteria: String,
-																data: String, status: Option[String], status_msg: Option[String], stats: Option[Map[String, Long]])
+								updatedBy: String, udpatedOn: Option[DateTime], createdOn: Option[DateTime], criteria: String,
+								data: String, status: Option[String], status_msg: Option[String], stats: Option[Map[String, Long]])
 
 case class ExperimentParams(resmsgid: String, msgid: String, err: String, status: String, errorMsg: Map[String, String])
 

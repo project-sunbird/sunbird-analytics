@@ -66,12 +66,12 @@ object ExperimentDefinitionModel extends IBatchModelTemplate[Empty, ExperimentDe
 
     def algorithmProcess(experiments: RDD[ExperimentDefinition], metadata: ListBuffer[ExperimentDefinitionMetadata])
                         (implicit sc: SparkContext, util: ExperimentDataUtils): Array[RDD[ExperimentDefinitionOutput]] = {
-        val experiment_list = experiments.collect()
-        val device_profile = util.getDeviceProfile(Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_PROFILE_TABLE)
+        val experimentList = experiments.collect()
+        val deviceProfile = util.getDeviceProfile(Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_PROFILE_TABLE)
 
-        val result = experiment_list.map(exp => {
+        val result = experimentList.map(exp => {
             val criteria = JSONUtils.deserialize[CriteriaModel](exp.criteria)
-            val filterType = JSONUtils.deserialize[CriteriaModel](exp.criteria).`type`
+            val filterType = criteria.`type`
 
             try {
                 filterType match {
@@ -94,7 +94,7 @@ object ExperimentDefinitionModel extends IBatchModelTemplate[Empty, ExperimentDe
                     case "device" | "device_mod" =>
                         val filters = criteria.filters.asInstanceOf[List[Map[String, AnyRef]]].
                           map(f => Filter(f("name").asInstanceOf[String], f("operator").asInstanceOf[String], f.get("value")))
-                        val filteredProfile = DataFilter.filter(device_profile, filters.toArray)
+                        val filteredProfile = DataFilter.filter(deviceProfile, filters.toArray)
                         val deviceRDD = filteredProfile.map(z => populateExperimentMapping(z.device_id, exp, filterType))
                         metadata ++= Seq(populateExperimentMetadata(exp, deviceRDD.count(), filterType, "ACTIVE", "Experiment Mapped Sucessfully"))
                         deviceRDD
