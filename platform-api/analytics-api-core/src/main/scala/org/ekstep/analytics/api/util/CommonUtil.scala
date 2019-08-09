@@ -101,13 +101,13 @@ object CommonUtil {
             responseCode, None)
     }
 
-    def experimentErrorResponse(apiId:String, errResponse: Map[String,String], responseCode: String): ExperimentBodyResponse = {
+    def experimentErrorResponse(apiId: String, errResponse: Map[String, String], responseCode: String): ExperimentBodyResponse = {
         ExperimentBodyResponse(apiId, "1.0", df.print(System.currentTimeMillis()),
             ExperimentParams(UUID.randomUUID().toString, null, responseCode, "failed", errResponse),
             responseCode, None)
     }
 
-    def experiemntOkResponse(apiId: String, result: Map[String, AnyRef]): ExperimentBodyResponse = {
+    def experimentOkResponse(apiId: String, result: Map[String, AnyRef]): ExperimentBodyResponse = {
         ExperimentBodyResponse(apiId, "1.0", df.print(DateTime.now(DateTimeZone.UTC).getMillis), ExperimentParams(UUID.randomUUID().toString(), null, null, "successful", null), ResponseCode.OK.toString(), Option(result));
     }
 

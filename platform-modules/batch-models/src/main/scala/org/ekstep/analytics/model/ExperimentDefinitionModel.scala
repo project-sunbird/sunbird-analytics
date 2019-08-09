@@ -142,13 +142,8 @@ class ExperimentDataUtils {
         val user_search_limit = AppConf.getConfig("user.search.limit")
         val request =
             s"""
-               |{
-               |  "request": {
-               |    "filters" : ${request_filter} ,
-               |    "limit" : ${user_search_limit}
-               |    }
-               |  }
-               """.stripMargin
+               |{"request": {"filters" : ${request_filter} ,"limit" : ${user_search_limit}}}
+               |""".stripMargin
 
         val userResponse = RestUtil.post[UserResponse](Constants.USER_SEARCH_URL, request)
         userResponse
@@ -157,6 +152,4 @@ class ExperimentDataUtils {
     def getDeviceProfile(keySpace: String, table: String)(implicit sc: SparkContext): RDD[DeviceProfileModel] = {
         sc.cassandraTable[DeviceProfileModel](keySpace, table)
     }
-
-
 }

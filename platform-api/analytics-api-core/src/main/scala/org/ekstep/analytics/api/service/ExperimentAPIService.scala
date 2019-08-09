@@ -2,9 +2,7 @@ package org.ekstep.analytics.api.service
 
 import akka.actor.Actor
 import com.typesafe.config.Config
-import org.apache.commons.lang3.StringUtils
 import org.ekstep.analytics.api._
-import org.ekstep.analytics.api.service.ExperimentAPIService.saveExpRequest
 import org.ekstep.analytics.api.util.{CommonUtil, DBUtil}
 import org.ekstep.analytics.framework.ExperimentStatus
 import org.ekstep.analytics.framework.util.JSONUtils
@@ -22,24 +20,25 @@ import org.joda.time.DateTime
      val body = JSONUtils.deserialize[ExperimentRequestBody](request)
      val isValid = validateExpReq(body)
      if ("success".equals(isValid.get("status").get)) {
-       val  response = upsertRequest(body)
-       CommonUtil.experiemntOkResponse(APIIds.EXPERIEMNT_CREATE_REQUEST, response)
+       val response = upsertRequest(body)
+       CommonUtil.experimentOkResponse(APIIds.EXPERIEMNT_CREATE_REQUEST, response)
      } else {
        CommonUtil.experimentErrorResponse(APIIds.EXPERIEMNT_CREATE_REQUEST, isValid, ResponseCode.CLIENT_ERROR.toString)
      }
    }
 
-   private def upsertRequest(body: ExperimentRequestBody)(implicit config: Config): Map[String,AnyRef] = {
+   private def upsertRequest(body: ExperimentRequestBody)(implicit config: Config): Map[String, AnyRef] = {
      val expReq = body.request
      val experiment = DBUtil.getExperiementRequest(expReq.expId.get)
-     val result = experiment.map{exp=> {
-       if(ExperimentStatus.FAILED.toString.equalsIgnoreCase(exp.status.get)) {
+     val result = experiment.map { exp => {
+       if (ExperimentStatus.FAILED.toString.equalsIgnoreCase(exp.status.get)) {
          val experimentRequest = saveExpRequest(expReq)
          CommonUtil.caseClassToMap(createExperimentResponse(experimentRequest))
-       }else {
-         CommonUtil.caseClassToMap(ExperimentErrorResponse(createExperimentResponse(exp),"failed",Map("error" -> "Experiment already Submitted")))
+       } else {
+         CommonUtil.caseClassToMap(ExperimentErrorResponse(createExperimentResponse(exp), "failed", Map("msg" -> "Experiment already Submitted")))
        }
-     }}.getOrElse({
+     }
+     }.getOrElse({
        val experimentRequest = saveExpRequest(expReq)
        CommonUtil.caseClassToMap(createExperimentResponse(experimentRequest))
      })
@@ -49,12 +48,12 @@ import org.joda.time.DateTime
    def getExperimentRequest(requestId: String)(implicit config: Config): Response = {
      val experiment = DBUtil.getExperiementRequest(requestId)
 
-     val expStatus = experiment.map{
-         exp => {
-           createExperimentResponse(exp)
-           CommonUtil.OK(APIIds.EXPERIEMNT_GET_REQUEST, CommonUtil.caseClassToMap(createExperimentResponse(exp)))
-         }
-       }.getOrElse(CommonUtil.errorResponse(APIIds.EXPERIEMNT_GET_REQUEST, "no experiemnt available with the given experimentid", ResponseCode.OK.toString))
+     val expStatus = experiment.map {
+       exp => {
+         createExperimentResponse(exp)
+         CommonUtil.OK(APIIds.EXPERIEMNT_GET_REQUEST, CommonUtil.caseClassToMap(createExperimentResponse(exp)))
+       }
+     }.getOrElse(CommonUtil.errorResponse(APIIds.EXPERIEMNT_GET_REQUEST, "no experiemnt available with the given experimentid", ResponseCode.OK.toString))
 
      expStatus
    }
@@ -65,7 +64,7 @@ import org.joda.time.DateTime
      val status_msg = "Experiment successfully submitted"
      val expRequest = ExperimentRequest(request.expId.get, request.name.get, request.description.get,
        request.createdBy.get, "Experiment_CREATE_API",
-       submittedDate, submittedDate,JSONUtils.serialize(request.criteria), JSONUtils.serialize(request.data), Some(status), Some(status_msg), None)
+       submittedDate, submittedDate, JSONUtils.serialize(request.criteria), JSONUtils.serialize(request.data), Some(status), Some(status_msg), None)
 
      DBUtil.saveExpRequest(Array(expRequest))
      expRequest
@@ -76,7 +75,7 @@ import org.joda.time.DateTime
      val processed = List(ExperimentStatus.ACTIVE.toString(), ExperimentStatus.FAILED.toString).contains(expRequest.status.get)
      val statsOutput = if (processed && null != stats) {
        stats
-     } else Map.empty[String,Long]
+     } else Map.empty[String, Long]
 
      val experimentRequest = ExperimentCreateRequest(Some(expRequest.expId), Some(expRequest.expName), Some(expRequest.createdBy), Some(expRequest.expDescription),
        Option(JSONUtils.deserialize[Map[String, AnyRef]](expRequest.criteria)), Option(JSONUtils.deserialize[Map[String, String]](expRequest.data)))
@@ -112,8 +111,8 @@ import org.joda.time.DateTime
          errMap("request.data") = "Experiment Data should not be empty"
        }
        else {
-         val endDate = request.data.get.getOrElse("endDate","")
-         val startDate = request.data.get.getOrElse("startDate","")
+         val endDate = request.data.get.getOrElse("endDate", "")
+         val startDate = request.data.get.getOrElse("startDate", "")
          if (endDate.isEmpty) {
            errMap("data.endDate") = "Experiment End_Date should not be empty"
          }
@@ -127,10 +126,10 @@ import org.joda.time.DateTime
            errMap("data.endDate") = "Start_Date should be greater than or equal to today's date.."
          val days = CommonUtil.getDaysBetween(startDate, endDate)
          if (!startDate.isEmpty && !endDate.isEmpty && 0 > days)
-         errMap("data.StartDate") = "Date range should not be -ve. Please check your start_date & end_date"
+           errMap("data.StartDate") = "Date range should not be -ve. Please check your start_date & end_date"
        }
      }
-     if(errMap.size >0) errMap += ("status" -> "failed")  else errMap += ("status" -> "success")
+     if (errMap.size > 0) errMap += ("status" -> "failed") else errMap += ("status" -> "success")
      errMap.toMap
    }
  }

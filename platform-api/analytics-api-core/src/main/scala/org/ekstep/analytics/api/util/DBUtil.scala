@@ -63,7 +63,7 @@ object DBUtil {
             val query = QB.insertInto(Constants.PLATFORM_DB, Constants.EXPERIMENT_TABLE).value("exp_id", expRequest.expId)
               .value("exp_name", expRequest.expName).value("status", expRequest.status.get).value("exp_description", expRequest.expDescription)
               .value("exp_data", expRequest.data).value("updated_on", setDateColumn(expRequest.udpatedOn).getOrElse(null))
-              .value("created_by", expRequest.createdBy).value("updated_by", expRequest.updatedBy )
+              .value("created_by", expRequest.createdBy).value("updated_by", expRequest.updatedBy)
               .value("created_on", setDateColumn(expRequest.createdOn).getOrElse(null)).value("status_message", expRequest.status_msg.get)
               .value("criteria", expRequest.criteria)
 
@@ -73,14 +73,13 @@ object DBUtil {
 
     def expRowToCaseClass(row: Row): ExperimentRequest = {
         import scala.collection.JavaConversions._
-        var stats_map = row.getMap("stats",classOf[String],classOf[java.lang.Long])
-        val stats = Map() ++ 	mapAsScalaMap(stats_map)
+        var stats_map = row.getMap("stats", classOf[String], classOf[java.lang.Long])
+        val stats = Map() ++ mapAsScalaMap(stats_map)
         ExperimentRequest(row.getString("exp_id"), row.getString("exp_name"),
-                                row.getString("exp_description"),
-            row.getString("created_by"), row.getString("updated_by"),
+            row.getString("exp_description"), row.getString("created_by"), row.getString("updated_by"),
             getExpDateColumn(row, "updated_on"), getExpDateColumn(row, "created_on"),
             row.getString("criteria"), row.getString("exp_data"),
-            Option(row.getString("status")), Option(row.getString("status_message")), Option(stats.asInstanceOf[Map[String,Long]])
+            Option(row.getString("status")), Option(row.getString("status_message")), Option(stats.asInstanceOf[Map[String, Long]])
         )
     }
 

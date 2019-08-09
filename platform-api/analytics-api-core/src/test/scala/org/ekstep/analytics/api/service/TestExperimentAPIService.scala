@@ -22,4 +22,10 @@ class TestExperimentAPIService extends BaseSpec {
         response.responseCode should be("OK")
     }
 
+    "ExperimentAPIService" should "return the error for no experimentid" in {
+        val response = ExperimentAPIService.getExperimentRequest("H1234")
+        response.params.errmsg  should be ("no experiemnt available with the given experimentid")
+
+    }
+
 }
