@@ -68,6 +68,8 @@ object CommonUtil {
         if (sparkElasticsearchConnectionHost.nonEmpty) {
             conf.set("es.nodes", sparkElasticsearchConnectionHost.get.asInstanceOf[String])
             conf.set("es.port", "9200")
+            conf.set("es.write.rest.error.handler.log.logger.name", "elasticsearch.hadoop")
+            conf.set("es.write.rest.error.handler.log.logger.level", "WARN")
         }
 
         // $COVERAGE-ON$
