@@ -235,3 +235,32 @@ case class V3DerivedEvent(val eid: String, val ets: Long, val `@timestamp`: Stri
 // Experiment Models
 @scala.beans.BeanInfo
 case class DeviceProfileModel(device_id: Option[String], state: Option[String], city: Option[String], first_access: Option[Date])
+
+@scala.beans.BeanInfo
+class PipelineMetric (
+   val `cache-hit-count`: Double,
+   val `db-hit-count`: Double,
+   val `success-message-count`: Double,
+   val `user-db-hit-count`: Double,
+   val `cache-empty-values-count`: Double,
+   val `user-db-error-count`: Double,
+   val `failed-message-count`: Double,
+   val `unprocessed-message-count`: Double,
+   val `expired-event-count`: Double,
+   val `duplicate-event-count`: Double,
+   val partition: Double,
+   val `processed-message-count`: Double,
+   val `cache-miss-count`: Double,
+   val `cache-expired-count`: Double,
+   val `device-db-error-count`: Double,
+   val `job-name`: String,
+   val `cache-error-count`: Double,
+   val `error-message-count`: Double,
+   val `user-cache-hit-count`: Double,
+   val `skipped-message-count`: Double,
+   val metricts: Double,
+   val `consumer-lag`: Double,
+   val `device-db-hit-count`: Double,
+   val `db-error-count`: Double,
+   val `device-cache-hit-count`: Double
+) extends Input
