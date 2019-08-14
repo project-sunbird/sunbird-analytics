@@ -1,17 +1,14 @@
 package org.ekstep.analytics.framework.util
 
-import scala.io.Source
-import org.apache.http.client.methods.HttpGet
-import org.apache.http.client.methods.HttpPost
-import org.apache.http.client.methods.HttpPut
-import org.apache.http.client.methods.HttpDelete
+import org.apache.http.NameValuePair
+import org.apache.http.client.entity.UrlEncodedFormEntity
+import org.apache.http.client.methods._
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.HttpClients
-import org.ekstep.analytics.framework.Response
-import com.fasterxml.jackson.core.JsonParseException
-import org.apache.http.client.methods.HttpPatch
+import org.apache.http.message.BasicNameValuePair
 import org.ekstep.analytics.framework.Level._
-import org.apache.http.client.methods.HttpRequestBase
+
+import scala.io.Source
 
 
 trait HTTPClient {
@@ -43,7 +40,7 @@ object RestUtil extends HTTPClient{
             } else {
                 JSONUtils.deserialize[T](content);
             }
-        } finally {
+        }finally {
             httpClient.close()
         }
     }

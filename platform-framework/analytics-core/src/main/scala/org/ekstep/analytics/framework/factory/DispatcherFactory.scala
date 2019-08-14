@@ -14,13 +14,13 @@ object DispatcherFactory {
     @throws(classOf[DispatcherException])
     def getDispatcher(disp: Dispatcher): IDispatcher = {
         disp.to.toLowerCase() match {
-            case "s3file"      =>
+            case "s3file" =>
                 S3FileDispatcher;
-            case "s3"      =>
+            case "s3" =>
                 S3Dispatcher;
-            case "kafka"   =>
+            case "kafka" =>
                 KafkaDispatcher;
-            case "script"  =>
+            case "script" =>
                 ScriptDispatcher;
             case "console" =>
                 ConsoleDispatcher;
@@ -30,7 +30,9 @@ object DispatcherFactory {
                 SlackDispatcher;
             case "azure" =>
                 AzureDispatcher;
-            case _         =>
+            case "elasticsearch" =>
+                ESDispatcher;
+            case _ =>
                 throw new DispatcherException("Unknown output dispatcher destination found");
         }
     }
