@@ -37,7 +37,7 @@
                 </Delete>
             </DefaultRolloverStrategy>
 		</RollingFile>
-		<RollingFile name="ElasticsearchHadoopFileAppender" fileName="${baseDir}/elasticsearch-hadoop.log" filePattern="${baseDir}/elasticsearch-hadoop-%d{MM-dd-yyyy}-%i.log">
+		<RollingFile name="ElasticsearchHadoopFileAppender" fileName="${baseDir}/es-dispatcher.log" filePattern="${baseDir}/es-dispatcher-%d{MM-dd-yyyy}-%i.log">
 			<PatternLayout>
 				<Pattern>%m%n</Pattern>
 			</PatternLayout>
@@ -46,7 +46,7 @@
 			</Policies>
 			<DefaultRolloverStrategy>
 				<Delete basePath="${baseDir}/" maxDepth="1" testMode="false">
-					<IfFileName glob="elasticsearch-hadoop*.log" />
+					<IfFileName glob="es-dispatcher*.log" />
 					<IfLastModified age="7d" />
 				</Delete>
 			</DefaultRolloverStrategy>
@@ -62,7 +62,7 @@
 		<Logger name="org.ekstep.analytics.model" level="debug" additivity="false">
 			<AppenderRef ref="RE-RollingFileAppender"/>
 		</Logger>
-		<Logger name="elasticsearch.hadoop" level="info" additivity="false">
+		<Logger name="org.ekstep.es.dispatcher" level="info" additivity="false">
 			<AppenderRef ref="ElasticsearchHadoopFileAppender" />
 		</Logger>
 		<Root level="error">
