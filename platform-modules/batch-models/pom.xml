@@ -265,6 +265,7 @@
 			<groupId>org.elasticsearch</groupId>
 			<artifactId>elasticsearch-hadoop</artifactId>
 			<version>6.7.0</version>
+			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 	<build>
