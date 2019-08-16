@@ -55,6 +55,8 @@ object BatchJobDriver {
                     JobLogger.log(ex.getMessage, None, ERROR);
                     JobLogger.end(model.name + " processing failed", "FAILED", Option(Map("model" -> model.name, "date" -> endDate, "inputEvents" -> count, "statusMsg" -> ex.getMessage)));
                     ex.printStackTrace();
+            } finally {
+                rdd.unpersist()
             }
         }
     }
