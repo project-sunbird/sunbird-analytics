@@ -46,14 +46,14 @@ object CommonUtil {
     def getSparkContext(parallelization: Int, appName: String, sparkCassandraConnectionHost: Option[AnyRef] = None, sparkElasticsearchConnectionHost: Option[AnyRef] = None): SparkContext = {
         JobLogger.log("Initializing Spark Context")
         val conf = new SparkConf().setAppName(appName).set("spark.default.parallelism", parallelization.toString)
+          .set("spark.driver.memory", AppConf.getConfig("spark.driver_memory"))
+          .set("spark.memory.fraction", AppConf.getConfig("spark.memory_fraction"))
+          .set("spark.memory.storageFraction", AppConf.getConfig("spark.storage_fraction"))
         val master = conf.getOption("spark.master");
         // $COVERAGE-OFF$ Disabling scoverage as the below code cannot be covered as they depend on environment variables
         if (master.isEmpty) {
             JobLogger.log("Master not found. Setting it to local[*]")
             conf.setMaster("local[*]");
-            conf.set("spark.driver.memory", AppConf.getConfig("spark.driver_memory"))
-            conf.set("spark.memory.fraction", AppConf.getConfig("spark.memory_fraction"))
-            conf .set("spark.memory.storageFraction", AppConf.getConfig("spark.storage_fraction"))
         }
 
         if (!conf.contains("spark.cassandra.connection.host"))
