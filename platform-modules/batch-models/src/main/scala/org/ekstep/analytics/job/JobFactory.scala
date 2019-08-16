@@ -210,6 +210,8 @@ object JobFactory {
                 EventsReplayJob
             case "content-rating-updater" =>
                 ContentRatingUpdater
+            case "experiment" =>
+                ExperimentDefinitionJob
             case "daily-metrics-consumption-reports" =>
                 ConsumptionReportsJob
             case _ =>

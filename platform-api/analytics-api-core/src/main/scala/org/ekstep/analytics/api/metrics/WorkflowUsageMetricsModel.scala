@@ -56,7 +56,7 @@ object WorkflowUsageMetricsModel extends IMetricsModel[WorkflowUsageMetrics, Wor
 
         val queries = tags.map { tag =>
             periods.map { p =>
-                QueryBuilder.select().all().from(Constants.PLATFORML_DB, Constants.WORKFLOW_USAGE_SUMMARY_FACT).allowFiltering().where(QueryBuilder.eq("d_period", p)).and(QueryBuilder.eq("d_tag", tag)).and(QueryBuilder.eq("d_content_id", contentId)).and(QueryBuilder.eq("d_user_id", userId)).and(QueryBuilder.eq("d_device_id", deviceId)).and(QueryBuilder.eq("d_type", metricsType)).and(QueryBuilder.eq("d_mode", mode)).and(QueryBuilder.eq("d_channel", channel)).toString();
+                QueryBuilder.select().all().from(Constants.PLATFORM_DB, Constants.WORKFLOW_USAGE_SUMMARY_FACT).allowFiltering().where(QueryBuilder.eq("d_period", p)).and(QueryBuilder.eq("d_tag", tag)).and(QueryBuilder.eq("d_content_id", contentId)).and(QueryBuilder.eq("d_user_id", userId)).and(QueryBuilder.eq("d_device_id", deviceId)).and(QueryBuilder.eq("d_type", metricsType)).and(QueryBuilder.eq("d_mode", mode)).and(QueryBuilder.eq("d_channel", channel)).toString();
             }
         }.flatMap(x => x)
 
