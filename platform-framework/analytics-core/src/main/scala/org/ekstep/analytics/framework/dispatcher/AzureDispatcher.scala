@@ -1,12 +1,16 @@
 package org.ekstep.analytics.framework.dispatcher
 
-import java.io.FileWriter
+import java.io.{File, FileWriter}
+import java.nio.file.{Files, StandardCopyOption}
+
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.framework.exception.DispatcherException
-import org.ekstep.analytics.framework.util.CommonUtil
+import org.ekstep.analytics.framework.util.{CommonUtil, JobLogger}
 import org.sunbird.cloud.storage.conf.AppConf
 import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
+import org.apache.spark.sql.{DataFrame, SQLContext}
+import org.apache.hadoop.fs.{FileSystem, LocatedFileStatus, Path}
 
 object AzureDispatcher extends IDispatcher {
 
@@ -51,4 +55,52 @@ object AzureDispatcher extends IDispatcher {
         events.saveAsTextFile("wasb://" + bucket + "@" + AppConf.getStorageKey(AppConf.getStorageType()) + ".blob.core.windows.net/" + key);
     }
 
+    def dispatch(config: Map[String, AnyRef], data: DataFrame)(implicit sc: SparkContext) = {
+        val filePath = config.getOrElse("filePath", AppConf.getConfig("spark_output_temp_dir")).asInstanceOf[String];
+        val bucket = config.getOrElse("bucket", null).asInstanceOf[String];
+        val key = config.getOrElse("key", null).asInstanceOf[String];
+        val isPublic = config.getOrElse("public", false).asInstanceOf[Boolean];
+        val reportId = config.getOrElse("report-id", "").asInstanceOf[String];
+        val filePattern = config.getOrElse("filePattern", "").asInstanceOf[String];
+        val dims = config.getOrElse("dims", List()).asInstanceOf[List[String]];
+
+        if (null == bucket || null == key) {
+            throw new DispatcherException("'bucket' & 'key' parameters are required to send output to azure")
+        }
+        val finalPath = filePath + key.split("/").last
+        if(dims.nonEmpty)
+            data.coalesce(1).write.format("com.databricks.spark.csv").option("header", "true").partitionBy(dims:_*).mode("overwrite").save(finalPath)
+        else
+            data.coalesce(1).write.format("com.databricks.spark.csv").option("header", "true").mode("overwrite").save(finalPath)
+        val renameDir = finalPath+"/renamed"
+        val renamedPath = renameHadoopFiles(finalPath, renameDir, filePattern, reportId, dims)
+        val finalKey = key + reportId + "/"
+        val mesg = StorageServiceFactory.getStorageService(StorageConfig("azure", AppConf.getStorageKey("azure"), AppConf.getStorageSecret("azure")))
+          .upload(bucket, renamedPath, finalKey, Option(isPublic), Option(true));
+        CommonUtil.deleteDirectory(finalPath);
+    }
+
+    def renameHadoopFiles(tempDir: String, outDir: String, filePattern: String, id: String, dims: List[String])(implicit sc: SparkContext): String = {
+        val fs = FileSystem.get(sc.hadoopConfiguration)
+        val fileList = fs.listFiles(new Path(s"$tempDir/"), true)
+        while(fileList.hasNext){
+            val filePath = fileList.next().getPath.toString
+            if(!(filePath.contains("_SUCCESS"))) {
+                val breakUps = filePath.split("/").filter(f => f.contains("="))
+                val dimsKeys = breakUps.filter { f =>
+                    val bool = dims.map(x => f.contains(x))
+                    if (bool.contains(true)) true
+                    else false
+                }
+                val finalKeys = dimsKeys.map { f =>
+                    f.split("=").last
+                }
+                val key = if (finalKeys.length > 1) finalKeys.mkString("/") else finalKeys.head
+                val crcKey = if (finalKeys.length > 1) finalKeys.mkString("/").replace("/", "/.") else "."+finalKeys.head
+                fs.rename(new Path(filePath), new Path(s"$outDir/$id/$key.csv"))
+                fs.delete(new Path(s"$outDir/$id/$crcKey.csv.crc"), false)
+            }
+        }
+        outDir + "/" + id
+    }
 }

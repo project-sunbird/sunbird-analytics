@@ -25,10 +25,10 @@ object DruidDataFetcher {
         val request = getQuery(query)
         println("request: " + request)
         val response = request.execute()
-        val result = Await.result(response, scala.concurrent.duration.Duration.apply(1L, "minute"))
+        val result = Await.result(response, scala.concurrent.duration.Duration.apply(5L, "minute"))
 
         if(result.results.length > 0) {
-            println(result.results)
+            //println(result.results)
             query.queryType.toLowerCase match {
                 case "timeseries" =>
                     val series = result.results.map { f =>
@@ -58,7 +58,7 @@ object DruidDataFetcher {
                   .granularity(CommonUtil.getGranularity(query.granularity.getOrElse("all")))
                   .interval(CommonUtil.getIntervalRange(query.intervals))
                   .agg(getAggregation(query): _*)
-                  .groupBy(query.dimensions.get.map(f => Dim(f)): _*)
+                  .groupBy(query.dimensions.get.map(f => Dim(f._1, Option(f._2))): _*)
                 if(query.filters.nonEmpty) DQLQuery.where(getFilter(query).get)
                 if(query.postAggregation.nonEmpty) DQLQuery.postAgg(getPostAggregation(query).get: _*)
                 if(query.having.nonEmpty) DQLQuery.having(getGroupByHaving(query).get)
@@ -69,7 +69,7 @@ object DruidDataFetcher {
                   .from(query.dataSource)
                   .granularity(CommonUtil.getGranularity(query.granularity.getOrElse("all")))
                   .interval(CommonUtil.getIntervalRange(query.intervals))
-                  .topN(Dim(query.dimensions.get.head), query.metric.getOrElse("count"), query.threshold.getOrElse(100).asInstanceOf[Int])
+                  .topN(Dim(query.dimensions.get.head._1, Option(query.dimensions.get.head._2)), query.metric.getOrElse("count"), query.threshold.getOrElse(100).asInstanceOf[Int])
                   .agg(getAggregation(query): _*)
                 if(query.filters.nonEmpty) DQLQuery.where(getFilter(query).get)
                 if(query.postAggregation.nonEmpty) DQLQuery.postAgg(getPostAggregation(query).get: _*)
@@ -131,20 +131,20 @@ object DruidDataFetcher {
         else None
     }
 
-    def getFilterByType(filterType: String, dimension: String, values: Option[List[String]]): FilteringExpression = {
+    def getFilterByType(filterType: String, dimension: String, values: Option[List[AnyRef]]): FilteringExpression = {
         filterType.toLowerCase match {
             case "isnull" => Dim(dimension).isNull
             case "isnotnull" => Dim(dimension).isNotNull
-            case "equals" => Dim(dimension) === values.get.head
-            case "notequals" => Dim(dimension) =!= values.get.head
-            case "containsignorecase" => Dim(dimension).containsIgnoreCase(values.get.head)
-            case "contains" => Dim(dimension).contains(values.get.head, true)
-            case "in" => Dim(dimension) in values.get
-            case "notin" => Dim(dimension) notIn values.get
-            case "regex" => Dim(dimension) regex values.get.head
-            case "like" => Dim(dimension) like values.get.head
-            case "greaterthan" => Dim(dimension) > values.get.head
-            case "lessthan" => Dim(dimension) < values.get.head
+            case "equals" => Dim(dimension) === values.get.head.asInstanceOf[String]
+            case "notequals" => Dim(dimension) =!= values.get.head.asInstanceOf[String]
+            case "containsignorecase" => Dim(dimension).containsIgnoreCase(values.get.head.asInstanceOf[String])
+            case "contains" => Dim(dimension).contains(values.get.head.asInstanceOf[String], true)
+            case "in" => Dim(dimension) in values.get.asInstanceOf[List[String]]
+            case "notin" => Dim(dimension) notIn values.get.asInstanceOf[List[String]]
+            case "regex" => Dim(dimension) regex values.get.head.asInstanceOf[String]
+            case "like" => Dim(dimension) like values.get.head.asInstanceOf[String]
+            case "greaterthan" => Dim(dimension) > values.get.head.asInstanceOf[Number].doubleValue()
+            case "lessthan" => Dim(dimension) < values.get.head.asInstanceOf[Number].doubleValue()
 
         }
     }
