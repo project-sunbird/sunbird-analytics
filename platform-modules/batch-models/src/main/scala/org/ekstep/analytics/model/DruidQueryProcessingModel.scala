@@ -1,17 +1,15 @@
 package org.ekstep.analytics.model
 
-import org.apache.hadoop.fs.FileSystem
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SQLContext
-import org.apache.spark.sql.Column
 import org.ekstep.analytics.framework.dispatcher.AzureDispatcher
 import org.ekstep.analytics.framework.fetcher.DruidDataFetcher
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework._
 
 
-case class DruidOutput(state: Option[String], producer_id: Option[String], total_scans: Option[Integer], total_sessions: Option[Integer], context_pdata_id: Option[String], context_pdata_pid: Option[String], total_duration: Option[Double],
+case class DruidOutput(time: Option[String], state: Option[String], producer_id: Option[String], total_scans: Option[Integer], total_sessions: Option[Integer], context_pdata_id: Option[String], context_pdata_pid: Option[String], total_duration: Option[Double],
                        count: Option[Int], dimensions_channel: Option[String], dimensions_sid: Option[String], dimensions_pdata_id: Option[String],
                        dimensions_type: Option[String], dimensions_mode: Option[String], dimensions_did: Option[String], object_id: Option[String],
                        content_board: Option[String], total_ts: Option[Double]) extends Input with AlgoInput with AlgoOutput with Output
@@ -40,7 +38,7 @@ object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, Druid
             val data = DruidDataFetcher.getDruidData(f.druidQuery)
             data.map{ x =>
                 val dataMap = JSONUtils.deserialize[Map[String, AnyRef]](x)
-                val key = dataMap.filter(m => dims.contains(m._1)).values.mkString(",")
+                val key = dataMap.filter(m => dims.contains(m._1)).values.map(f => f.toString).toList.sorted(Ordering.String.reverse).mkString(",")
                 (key, dataMap)
             }
         }.flatMap(f => f)
@@ -70,7 +68,6 @@ object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, Druid
             }
             else {
                 val strData = data.map(f => JSONUtils.serialize(f))
-                strData.foreach(f => println(f))
                 AzureDispatcher.dispatch(strData.collect(), config)
             }
         }

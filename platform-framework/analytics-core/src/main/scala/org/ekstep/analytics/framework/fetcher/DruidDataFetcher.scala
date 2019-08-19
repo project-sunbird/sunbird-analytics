@@ -5,6 +5,7 @@ import ing.wbaa.druid.definitions._
 import ing.wbaa.druid.dql.DSL._
 import ing.wbaa.druid.dql.Dim
 import ing.wbaa.druid.dql.expressions.{AggregationExpression, FilteringExpression, PostAggregationExpression}
+import io.circe.Json
 import org.ekstep.analytics.framework.{DruidFilter, DruidQueryModel}
 import org.ekstep.analytics.framework.exception.DataFetcherException
 import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils}
@@ -23,26 +24,39 @@ object DruidDataFetcher {
         // add logs for monitoring
 
         val request = getQuery(query)
-        println("request: " + request)
         val response = request.execute()
         val result = Await.result(response, scala.concurrent.duration.Duration.apply(5L, "minute"))
 
         if(result.results.length > 0) {
-            //println(result.results)
             query.queryType.toLowerCase match {
-                case "timeseries" =>
+                case "timeseries" | "groupby" =>
                     val series = result.results.map { f =>
-                        val dataMap = f.result.asObject.get.toMap.map(f => (f._1 -> f._2.toString())).seq
-                        val timeMap = Map("time" -> f.timestamp.toString)
-                        timeMap ++ dataMap
+                        f.result.asObject.get.+:(("time", Json.fromString(f.timestamp.toString))).toMap.map { f =>
+                            if(f._2.isNull)
+                                (f._1 -> "unknown")
+                            else if ("String".equalsIgnoreCase(f._2.name))
+                                (f._1 -> f._2.asString.get)
+                            else if("Number".equalsIgnoreCase(f._2.name))
+                                (f._1 -> f._2.asNumber.get.toBigDecimal.get)
+                            else (f._1 -> f._2)
+                        }
                     }
                     series.map(f => JSONUtils.serialize(f))
                 case "topn" =>
-                    val list = result.results.map(f => f).head.result.asArray.get.toList
-                    list.map(f => f.toString())
-                case "groupby" =>
-                    val list = result.results.map(f => f.result.mapString(f => f))
-                    list.map(f => f.toString())
+                    val timeMap = Map("time" -> result.results.head.timestamp.toString)
+                    val series = result.results.map(f => f).head.result.asArray.get.map{f =>
+                        val dataMap = f.asObject.get.toMap.map{f =>
+                            if(f._2.isNull)
+                                (f._1 -> "unknown")
+                            else if ("String".equalsIgnoreCase(f._2.name))
+                                (f._1 -> f._2.asString.get)
+                            else if("Number".equalsIgnoreCase(f._2.name))
+                                (f._1 -> f._2.asNumber.get.toBigDecimal.get)
+                            else (f._1 -> f._2)
+                        }
+                        timeMap ++ dataMap
+                    }.toList
+                    series.map(f => JSONUtils.serialize(f))
             }
         }
         else
