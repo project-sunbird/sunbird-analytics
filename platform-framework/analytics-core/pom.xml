@@ -194,6 +194,11 @@
 			<artifactId>commons-text</artifactId>
 			<version>1.6</version>
 		</dependency>
+		<dependency>
+			<groupId>org.elasticsearch</groupId>
+			<artifactId>elasticsearch-hadoop</artifactId>
+			<version>6.7.0</version>
+		</dependency>
 	</dependencies>
 
 	<build>
