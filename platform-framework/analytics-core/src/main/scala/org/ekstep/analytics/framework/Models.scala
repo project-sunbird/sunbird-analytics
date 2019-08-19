@@ -78,7 +78,7 @@ case class UserProfile(uid: String, gender: String, age: Int);
 // Analytics Framework Job Models
 case class Query(bucket: Option[String] = None, prefix: Option[String] = None, startDate: Option[String] = None, endDate: Option[String] = None, delta: Option[Int] = None, brokerList: Option[String] = None, topic: Option[String] = None, windowType: Option[String] = None, windowDuration: Option[Int] = None, file: Option[String] = None, excludePrefix: Option[String] = None, datePattern: Option[String] = None, folder: Option[String] = None, creationDate: Option[String] = None)
 @scala.beans.BeanInfo
-case class Filter(name: String, operator: String, value: Option[AnyRef] = None);
+case class Filter(name: String, operator: String, value: Option[AnyRef] = None)
 @scala.beans.BeanInfo
 case class Sort(name: String, order: Option[String]);
 @scala.beans.BeanInfo
@@ -178,6 +178,11 @@ object JobStatus extends Enumeration {
   val SUBMITTED, PROCESSING, COMPLETED, RETRY, FAILED = Value
 }
 
+object ExperimentStatus extends Enumeration {
+  type ExperimentStatus = Value;
+  val SUBMITTED, PROCESSING, ACTIVE, FAILED = Value
+}
+
 trait Stage extends Enumeration {
   type Stage = Value
   val contentPlayed = Value
@@ -238,3 +243,7 @@ class V3Event(val eid: String, val ets: Long, val `@timestamp`: String, val ver:
 
 @scala.beans.BeanInfo
 case class V3DerivedEvent(val eid: String, val ets: Long, val `@timestamp`: String, val ver: String, val mid: String, val actor: Actor, val context: V3Context, val `object`: Option[V3Object], val edata: AnyRef, val tags: List[AnyRef] = null)
+
+// Experiment Models
+@scala.beans.BeanInfo
+case class DeviceProfileModel(device_id: Option[String], state: Option[String], city: Option[String], first_access: Option[Date])

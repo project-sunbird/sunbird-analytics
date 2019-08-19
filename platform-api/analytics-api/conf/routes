@@ -21,6 +21,8 @@ POST /metrics/dial/usage @controllers.Metrics.dialcodeUsage
 
 POST /metrics/:datasetId/:summary @controllers.Metrics.getMetricsSummary(datasetId: String, summary: String)
 
+GET /metrics/druid @controllers.Application.getDruidHealthStatus
+
 # Data Exhaust
 POST /dataset/request/submit @controllers.JobController.dataRequest
 GET /dataset/request/read/:clientKey/:requestId @controllers.JobController.getJob(clientKey: String, requestId: String)
@@ -38,3 +40,8 @@ POST /v1/device/register/:deviceId @controllers.DeviceController.registerDevice(
 
 #client error API
 POST /data/v1/client/logs @controllers.Application.logClientErrors
+
+#Experiemnt API
+
+POST /experiment/create @controllers.ExperimentController.createExperiment
+GET /experiment/get/:experimentId @controllers.ExperimentController.getExperiment(experimentId:String)

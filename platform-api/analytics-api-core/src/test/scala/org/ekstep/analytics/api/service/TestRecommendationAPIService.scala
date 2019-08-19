@@ -38,7 +38,7 @@ class TestRecommendationAPIService extends BaseSpec {
         super.beforeAll()
         // Load test data
         val query = "DELETE FROM " + Constants.DEVICE_DB + "." + Constants.DEVICE_RECOS_TABLE + " where device_id='5edf49c4-313c-4f57-fd52-9bfe35e3b7d6'"
-        val query1 = "DELETE FROM " + Constants.PLATFORML_DB + "." + Constants.REQUEST_RECOS_TABLE + " where uid='5edf49c4-313c-4f57-fd52-9bfe35e3b7d6'"
+        val query1 = "DELETE FROM " + Constants.PLATFORM_DB + "." + Constants.REQUEST_RECOS_TABLE + " where uid='5edf49c4-313c-4f57-fd52-9bfe35e3b7d6'"
         DBUtil.session.execute(query);
         DBUtil.session.execute(query1)
         
@@ -54,7 +54,7 @@ class TestRecommendationAPIService extends BaseSpec {
         data1.map { entry =>
             var str = "["
             entry.requests.foreach { f => str = str + "{ grade_level:" + getStringFromList(f.grade_level) + ",concepts:" + getStringFromList(f.concepts) + ",content_type:'" + f.content_type +"',language:" + getStringFromMap(f.language) +  ",type:'" +  f.`type` + "'},"  }
-            val query = "INSERT INTO " + Constants.PLATFORML_DB +"."+ Constants.REQUEST_RECOS_TABLE + " (uid, requests, updated_date) VALUES('" + entry.uid +"',"+ str.dropRight(1) + "]," + entry.updated_date + ")"
+            val query = "INSERT INTO " + Constants.PLATFORM_DB +"."+ Constants.REQUEST_RECOS_TABLE + " (uid, requests, updated_date) VALUES('" + entry.uid +"',"+ str.dropRight(1) + "]," + entry.updated_date + ")"
             DBUtil.session.execute(query)
         }
     }
@@ -62,7 +62,7 @@ class TestRecommendationAPIService extends BaseSpec {
     override def afterAll() {
         // Cleanup test data
         val query = "DELETE FROM " + Constants.DEVICE_DB + "." + Constants.DEVICE_RECOS_TABLE + " where device_id='5edf49c4-313c-4f57-fd52-9bfe35e3b7d6'"
-        val query1 = "DELETE FROM " + Constants.PLATFORML_DB + "." + Constants.REQUEST_RECOS_TABLE + " where uid='5edf49c4-313c-4f57-fd52-9bfe35e3b7d6'"
+        val query1 = "DELETE FROM " + Constants.PLATFORM_DB + "." + Constants.REQUEST_RECOS_TABLE + " where uid='5edf49c4-313c-4f57-fd52-9bfe35e3b7d6'"
         DBUtil.session.execute(query);
         DBUtil.session.execute(query1)
         super.afterAll();
