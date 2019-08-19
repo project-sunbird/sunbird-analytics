@@ -682,6 +682,7 @@ object CommonUtil {
             case "LastMonth"    => getMonthRange(1);
             case "Last7Days"    => getDayRange(7);
             case "Last30Days"   => getDayRange(30);
+            case _ => period;
         }
     }
 

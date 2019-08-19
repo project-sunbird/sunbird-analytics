@@ -7,6 +7,7 @@ import org.ekstep.analytics.framework.dispatcher.AzureDispatcher
 import org.ekstep.analytics.framework.fetcher.DruidDataFetcher
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework._
+import org.ekstep.analytics.framework.exception.DruidConfigException
 
 
 case class DruidOutput(time: Option[String], state: Option[String], producer_id: Option[String], total_scans: Option[Integer], total_sessions: Option[Integer], context_pdata_id: Option[String], context_pdata_pid: Option[String], total_duration: Option[Double],
@@ -32,13 +33,35 @@ object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, Druid
     override def algorithm(data: RDD[DruidOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DruidOutput] = {
         val strtConfig = config.get("reportConfig").get.asInstanceOf[Map[String, AnyRef]]
         val reportConfig = JSONUtils.deserialize[ReportConfig](JSONUtils.serialize(strtConfig))
-        val dims = reportConfig.output.map(f => f.dims).flatMap(f => f)
+        val outputDims = reportConfig.output.map(f => f.dims).flatMap(f => f) ++ List("time")
+
+        val queryDims = reportConfig.metrics.map{f =>
+            f.druidQuery.dimensions.getOrElse(List()).map(f => f._2)
+        }.distinct
+
+        if(queryDims.length > 1) throw new DruidConfigException("Query dimensions are not matching")
+
+        val interval = strtConfig.get("dateRange").get.asInstanceOf[Map[String, AnyRef]]
+        val granularity = interval.get("granularity")
+        val queryInterval = if(interval.get("staticInterval").nonEmpty) {
+            interval.get("staticInterval").get.asInstanceOf[String]
+        }
+        else if(interval.get("interval").nonEmpty) {
+            val dateRange = interval.get("interval").get.asInstanceOf[Map[String, String]]
+            dateRange.get("startDate").get + "/" + dateRange.get("endDate").get
+        }
+        else throw new DruidConfigException("Both staticInterval and interval cannot be missing. Either of them should be specified")
 
         val metrics = reportConfig.metrics.map{f =>
-            val data = DruidDataFetcher.getDruidData(f.druidQuery)
+            val queryConfig = if(granularity.nonEmpty)
+                JSONUtils.deserialize[Map[String, AnyRef]](JSONUtils.serialize(f.druidQuery)) ++ Map("intervals" -> queryInterval, "granularity" -> granularity.get)
+            else
+                JSONUtils.deserialize[Map[String, AnyRef]](JSONUtils.serialize(f.druidQuery)) ++ Map("intervals" -> queryInterval)
+
+            val data = DruidDataFetcher.getDruidData(JSONUtils.deserialize[DruidQueryModel](JSONUtils.serialize(queryConfig)))
             data.map{ x =>
                 val dataMap = JSONUtils.deserialize[Map[String, AnyRef]](x)
-                val key = dataMap.filter(m => dims.contains(m._1)).values.map(f => f.toString).toList.sorted(Ordering.String.reverse).mkString(",")
+                val key = dataMap.filter(m => outputDims.contains(m._1)).values.map(f => f.toString).toList.sorted(Ordering.String.reverse).mkString(",")
                 (key, dataMap)
             }
         }.flatMap(f => f)
@@ -59,12 +82,12 @@ object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, Druid
         reportConfig.output.map{ f =>
             if("csv".equalsIgnoreCase(f.`type`)) {
                 val df = data.toDF()
-                val fieldsList = (dimFields ++ metricFields).distinct
+                val fieldsList = (dimFields ++ metricFields ++ List("time")).distinct
                 val dimsLabels = labelsLookup.filter(x => f.dims.contains(x._1)).values.toList
                 val filteredDf = df.select(fieldsList.head, fieldsList.tail:_*)
                 val renamedDf =  filteredDf.select(filteredDf.columns.map(c => filteredDf.col(c).as(labelsLookup.getOrElse(c, c))): _*)
                 //renamedDf.show(150)
-                AzureDispatcher.dispatch(config ++ Map("dims" -> dimsLabels, "report-id" -> reportConfig.id, "filePattern" -> f.filePattern), renamedDf)
+                AzureDispatcher.dispatch(config ++ Map("dims" -> dimsLabels, "reportId" -> reportConfig.id, "filePattern" -> f.filePattern), renamedDf)
             }
             else {
                 val strData = data.map(f => JSONUtils.serialize(f))

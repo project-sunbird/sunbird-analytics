@@ -9,7 +9,6 @@ import io.circe.Json
 import org.ekstep.analytics.framework.{DruidFilter, DruidQueryModel}
 import org.ekstep.analytics.framework.exception.DataFetcherException
 import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils}
-
 import scala.concurrent.Await
 
 object DruidDataFetcher {
@@ -17,7 +16,7 @@ object DruidDataFetcher {
     @throws(classOf[DataFetcherException])
     def getDruidData(query: DruidQueryModel): List[String] = {
 
-        // TO-DOs:
+        // TO-DOs for 2.4.0:
         // add javascript type in getPostAgg methods
         // accept extraction function for dims
         // use streams for larger data

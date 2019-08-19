@@ -1,8 +1,7 @@
 package org.ekstep.analytics.framework.dispatcher
 
 import java.io.{File, FileWriter}
-import java.nio.file.{Files, StandardCopyOption}
-
+import scala.concurrent.ExecutionContext.Implicits.global
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.framework.exception.DispatcherException
@@ -11,6 +10,10 @@ import org.sunbird.cloud.storage.conf.AppConf
 import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
 import org.apache.spark.sql.{DataFrame, SQLContext}
 import org.apache.hadoop.fs.{FileSystem, LocatedFileStatus, Path}
+import org.ekstep.analytics.framework.Level
+
+import scala.concurrent.Await
+import scala.util.{Failure, Success}
 
 object AzureDispatcher extends IDispatcher {
 
@@ -60,7 +63,7 @@ object AzureDispatcher extends IDispatcher {
         val bucket = config.getOrElse("bucket", null).asInstanceOf[String];
         val key = config.getOrElse("key", null).asInstanceOf[String];
         val isPublic = config.getOrElse("public", false).asInstanceOf[Boolean];
-        val reportId = config.getOrElse("report-id", "").asInstanceOf[String];
+        val reportId = config.getOrElse("reportId", "").asInstanceOf[String];
         val filePattern = config.getOrElse("filePattern", "").asInstanceOf[String];
         val dims = config.getOrElse("dims", List()).asInstanceOf[List[String]];
 
@@ -75,12 +78,19 @@ object AzureDispatcher extends IDispatcher {
         val renameDir = finalPath+"/renamed"
         val renamedPath = renameHadoopFiles(finalPath, renameDir, filePattern, reportId, dims)
         val finalKey = key + reportId + "/"
-        val mesg = StorageServiceFactory.getStorageService(StorageConfig("azure", AppConf.getStorageKey("azure"), AppConf.getStorageSecret("azure")))
-          .upload(bucket, renamedPath, finalKey, Option(isPublic), Option(true));
+        val uploadMsg = StorageServiceFactory.getStorageService(StorageConfig("azure", AppConf.getStorageKey("azure"), AppConf.getStorageSecret("azure")))
+          .uploadFolder(bucket, renamedPath, finalKey, Option(isPublic));
+        uploadMsg.onComplete {
+            case Success(files) => println("Successfully Uploaded files: " , files);//JobLogger.log("Successfully Uploaded files", None, Level.INFO)
+            case Failure(ex) => throw ex
+        }
         CommonUtil.deleteDirectory(finalPath);
     }
 
     def renameHadoopFiles(tempDir: String, outDir: String, filePattern: String, id: String, dims: List[String])(implicit sc: SparkContext): String = {
+
+        // TO-DO
+        // Use filePattern for renaming files
         val fs = FileSystem.get(sc.hadoopConfiguration)
         val fileList = fs.listFiles(new Path(s"$tempDir/"), true)
         while(fileList.hasNext){
