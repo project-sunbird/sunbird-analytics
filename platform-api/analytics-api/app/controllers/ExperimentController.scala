@@ -15,7 +15,6 @@ import play.api.mvc._
 
 @Singleton
 class ExperimentController @Inject()(system: ActorSystem) extends BaseController {
-
     val expApiActor = system.actorOf(Props[ExperimentAPIService].withRouter(FromConfig()), name = "expApiActor")
 
     def createExperiment() = Action.async { implicit request =>
