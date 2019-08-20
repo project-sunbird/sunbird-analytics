@@ -23,6 +23,11 @@
 			<name>In Project Repo</name>
 			<url>file://${project.basedir}/lib</url>
 		</repository>
+		<repository>
+			<id>ing-bank</id>
+			<name>Ing-bank Repo</name>
+			<url>https://dl.bintray.com/ing-bank/maven-releases/</url>
+		</repository>
 	</repositories>
 
 	<dependencies>
