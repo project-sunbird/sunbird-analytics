@@ -10,7 +10,7 @@ import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.exception.DruidConfigException
 
 
-case class DruidOutput(time: Option[String], state: Option[String], producer_id: Option[String], total_scans: Option[Integer], total_sessions: Option[Integer], context_pdata_id: Option[String], context_pdata_pid: Option[String], total_duration: Option[Double],
+case class DruidOutput(date: Option[String], state: Option[String], producer_id: Option[String], total_scans: Option[Integer], total_sessions: Option[Integer], context_pdata_id: Option[String], context_pdata_pid: Option[String], total_duration: Option[Double],
                        count: Option[Int], dimensions_channel: Option[String], dimensions_sid: Option[String], dimensions_pdata_id: Option[String],
                        dimensions_type: Option[String], dimensions_mode: Option[String], dimensions_did: Option[String], object_id: Option[String],
                        content_board: Option[String], total_ts: Option[Double]) extends Input with AlgoInput with AlgoOutput with Output
@@ -33,7 +33,7 @@ object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, Druid
     override def algorithm(data: RDD[DruidOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DruidOutput] = {
         val strtConfig = config.get("reportConfig").get.asInstanceOf[Map[String, AnyRef]]
         val reportConfig = JSONUtils.deserialize[ReportConfig](JSONUtils.serialize(strtConfig))
-        val outputDims = reportConfig.output.map(f => f.dims).flatMap(f => f) ++ List("time")
+        val outputDims = reportConfig.output.map(f => f.dims).flatMap(f => f) ++ List("date")
 
         val queryDims = reportConfig.metrics.map{f =>
             f.druidQuery.dimensions.getOrElse(List()).map(f => f._2)
@@ -73,7 +73,7 @@ object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, Druid
 
         val configMap = config.get("reportConfig").get.asInstanceOf[Map[String, AnyRef]]
         val reportConfig = JSONUtils.deserialize[ReportConfig](JSONUtils.serialize(configMap))
-        val labelsLookup = reportConfig.labels
+        val labelsLookup = reportConfig.labels ++ Map("date" -> "Date")
         val dimFields = reportConfig.metrics.map(m => m.druidQuery.dimensions.get.map(f => f._2)).flatMap(f => f)
         val metricFields = reportConfig.metrics.map(m => m.druidQuery.aggregations.get.map(f => f.name)).flatMap(f => f)
         implicit val sqlContext = new SQLContext(sc);
@@ -82,7 +82,7 @@ object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, Druid
         reportConfig.output.map{ f =>
             if("csv".equalsIgnoreCase(f.`type`)) {
                 val df = data.toDF()
-                val fieldsList = (dimFields ++ metricFields ++ List("time")).distinct
+                val fieldsList = (dimFields ++ metricFields ++ List("date")).distinct
                 val dimsLabels = labelsLookup.filter(x => f.dims.contains(x._1)).values.toList
                 val filteredDf = df.select(fieldsList.head, fieldsList.tail:_*)
                 val renamedDf =  filteredDf.select(filteredDf.columns.map(c => filteredDf.col(c).as(labelsLookup.getOrElse(c, c))): _*)

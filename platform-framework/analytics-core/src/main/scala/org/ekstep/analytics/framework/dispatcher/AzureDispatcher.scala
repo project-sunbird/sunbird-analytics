@@ -65,11 +65,12 @@ object AzureDispatcher extends IDispatcher {
         val isPublic = config.getOrElse("public", false).asInstanceOf[Boolean];
         val reportId = config.getOrElse("reportId", "").asInstanceOf[String];
         val filePattern = config.getOrElse("filePattern", "").asInstanceOf[String];
-        val dims = config.getOrElse("dims", List()).asInstanceOf[List[String]];
+        var dims = config.getOrElse("dims", List()).asInstanceOf[List[String]];
 
         if (null == bucket || null == key) {
             throw new DispatcherException("'bucket' & 'key' parameters are required to send output to azure")
         }
+        dims = if (filePattern.nonEmpty && filePattern.contains("date")) dims ++ List("Date") else dims
         val finalPath = filePath + key.split("/").last
         if(dims.nonEmpty)
             data.coalesce(1).write.format("com.databricks.spark.csv").option("header", "true").partitionBy(dims:_*).mode("overwrite").save(finalPath)
@@ -81,7 +82,7 @@ object AzureDispatcher extends IDispatcher {
         val uploadMsg = StorageServiceFactory.getStorageService(StorageConfig("azure", AppConf.getStorageKey("azure"), AppConf.getStorageSecret("azure")))
           .uploadFolder(bucket, renamedPath, finalKey, Option(isPublic));
         uploadMsg.onComplete {
-            case Success(files) => println("Successfully Uploaded files: " , files);//JobLogger.log("Successfully Uploaded files", None, Level.INFO)
+            case Success(files) => println("Successfully Uploaded files: " , files);JobLogger.log("Successfully Uploaded files", None, Level.INFO)
             case Failure(ex) => throw ex
         }
         CommonUtil.deleteDirectory(finalPath);
@@ -106,7 +107,16 @@ object AzureDispatcher extends IDispatcher {
                     f.split("=").last
                 }
                 val key = if (finalKeys.length > 1) finalKeys.mkString("/") else finalKeys.head
-                val crcKey = if (finalKeys.length > 1) finalKeys.mkString("/").replace("/", "/.") else "."+finalKeys.head
+                val crcKey = if (finalKeys.length > 1) {
+                    val builder = new StringBuilder
+                    val keyStr = finalKeys.mkString("/")
+                    val replaceStr = "/."
+                    builder.append(keyStr.substring(0, keyStr.lastIndexOf("/")))
+                    builder.append(replaceStr)
+                    builder.append(keyStr.substring(keyStr.lastIndexOf("/") + replaceStr.length - 1))
+                    builder
+                } else
+                    "."+finalKeys.head
                 fs.rename(new Path(filePath), new Path(s"$outDir/$id/$key.csv"))
                 fs.delete(new Path(s"$outDir/$id/$crcKey.csv.crc"), false)
             }

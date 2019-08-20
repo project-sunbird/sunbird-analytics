@@ -1,11 +1,13 @@
 package org.ekstep.analytics.framework.fetcher
 
+import java.time.format.DateTimeFormatter
 import ing.wbaa.druid._
 import ing.wbaa.druid.definitions._
 import ing.wbaa.druid.dql.DSL._
 import ing.wbaa.druid.dql.Dim
 import ing.wbaa.druid.dql.expressions.{AggregationExpression, FilteringExpression, PostAggregationExpression}
 import io.circe.Json
+import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.{DruidFilter, DruidQueryModel}
 import org.ekstep.analytics.framework.exception.DataFetcherException
 import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils}
@@ -24,13 +26,14 @@ object DruidDataFetcher {
 
         val request = getQuery(query)
         val response = request.execute()
-        val result = Await.result(response, scala.concurrent.duration.Duration.apply(5L, "minute"))
+        val queryWaitTimeInMins = AppConf.getConfig("druid.query.wait.time.mins").toLong
+        val result = Await.result(response, scala.concurrent.duration.Duration.apply(queryWaitTimeInMins, "minute"))
 
         if(result.results.length > 0) {
             query.queryType.toLowerCase match {
                 case "timeseries" | "groupby" =>
                     val series = result.results.map { f =>
-                        f.result.asObject.get.+:(("time", Json.fromString(f.timestamp.toString))).toMap.map { f =>
+                        f.result.asObject.get.+:("date", Json.fromString(f.timestamp.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))).toMap.map { f =>
                             if(f._2.isNull)
                                 (f._1 -> "unknown")
                             else if ("String".equalsIgnoreCase(f._2.name))
@@ -42,7 +45,7 @@ object DruidDataFetcher {
                     }
                     series.map(f => JSONUtils.serialize(f))
                 case "topn" =>
-                    val timeMap = Map("time" -> result.results.head.timestamp.toString)
+                    val timeMap = Map("date" -> result.results.head.timestamp.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
                     val series = result.results.map(f => f).head.result.asArray.get.map{f =>
                         val dataMap = f.asObject.get.toMap.map{f =>
                             if(f._2.isNull)
