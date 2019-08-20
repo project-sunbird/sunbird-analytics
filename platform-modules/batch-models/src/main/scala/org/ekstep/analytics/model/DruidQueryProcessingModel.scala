@@ -10,10 +10,8 @@ import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.exception.DruidConfigException
 
 
-case class DruidOutput(date: Option[String], state: Option[String], producer_id: Option[String], total_scans: Option[Integer], total_sessions: Option[Integer], context_pdata_id: Option[String], context_pdata_pid: Option[String], total_duration: Option[Double],
-                       count: Option[Int], dimensions_channel: Option[String], dimensions_sid: Option[String], dimensions_pdata_id: Option[String],
-                       dimensions_type: Option[String], dimensions_mode: Option[String], dimensions_did: Option[String], object_id: Option[String],
-                       content_board: Option[String], total_ts: Option[Double]) extends Input with AlgoInput with AlgoOutput with Output
+case class DruidOutput(date: Option[String], state: Option[String], producer_id: Option[String], total_scans: Option[Integer] = Option(0), total_sessions: Option[Integer] = Option(0),
+                       total_ts: Option[Double] = Option(0.0)) extends Input with AlgoInput with AlgoOutput with Output
 
 case class ReportConfig(id: String, queryType: String, dateRange: QueryDateRange, metrics: List[Metrics], labels: Map[String, String], output: List[OutputConfig])
 case class QueryDateRange(interval: Option[QueryInterval], staticInterval: Option[String], granularity: Option[String])
@@ -31,9 +29,8 @@ object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, Druid
     }
 
     override def algorithm(data: RDD[DruidOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DruidOutput] = {
-        val strtConfig = config.get("reportConfig").get.asInstanceOf[Map[String, AnyRef]]
-        val reportConfig = JSONUtils.deserialize[ReportConfig](JSONUtils.serialize(strtConfig))
-        val outputDims = reportConfig.output.map(f => f.dims).flatMap(f => f) ++ List("date")
+        val strConfig = config.get("reportConfig").get.asInstanceOf[Map[String, AnyRef]]
+        val reportConfig = JSONUtils.deserialize[ReportConfig](JSONUtils.serialize(strConfig))
 
         val queryDims = reportConfig.metrics.map{f =>
             f.druidQuery.dimensions.getOrElse(List()).map(f => f._2)
@@ -41,7 +38,7 @@ object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, Druid
 
         if(queryDims.length > 1) throw new DruidConfigException("Query dimensions are not matching")
 
-        val interval = strtConfig.get("dateRange").get.asInstanceOf[Map[String, AnyRef]]
+        val interval = strConfig.get("dateRange").get.asInstanceOf[Map[String, AnyRef]]
         val granularity = interval.get("granularity")
         val queryInterval = if(interval.get("staticInterval").nonEmpty) {
             interval.get("staticInterval").get.asInstanceOf[String]
@@ -61,7 +58,7 @@ object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, Druid
             val data = DruidDataFetcher.getDruidData(JSONUtils.deserialize[DruidQueryModel](JSONUtils.serialize(queryConfig)))
             data.map{ x =>
                 val dataMap = JSONUtils.deserialize[Map[String, AnyRef]](x)
-                val key = dataMap.filter(m => outputDims.contains(m._1)).values.map(f => f.toString).toList.sorted(Ordering.String.reverse).mkString(",")
+                val key = dataMap.filter(m => (queryDims.flatMap(f => f) ++ List("date")).contains(m._1)).values.map(f => f.toString).toList.sorted(Ordering.String.reverse).mkString(",")
                 (key, dataMap)
             }
         }.flatMap(f => f)

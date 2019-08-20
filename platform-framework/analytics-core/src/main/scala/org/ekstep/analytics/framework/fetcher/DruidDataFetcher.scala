@@ -39,7 +39,7 @@ object DruidDataFetcher {
                             else if ("String".equalsIgnoreCase(f._2.name))
                                 (f._1 -> f._2.asString.get)
                             else if("Number".equalsIgnoreCase(f._2.name))
-                                (f._1 -> f._2.asNumber.get.toBigDecimal.get)
+                                (f._1 -> CommonUtil.roundDouble(f._2.asNumber.get.toDouble, 2))
                             else (f._1 -> f._2)
                         }
                     }
