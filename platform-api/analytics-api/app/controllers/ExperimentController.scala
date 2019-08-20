@@ -5,8 +5,7 @@ import akka.pattern.ask
 import akka.routing.FromConfig
 import javax.inject.{Inject, Singleton}
 import org.ekstep.analytics.api._
-import org.ekstep.analytics.api.service.ExperimentAPIService
-import org.ekstep.analytics.api.service.ExperimentAPIService.{CreateExperimentRequest, _}
+import org.ekstep.analytics.api.service.{CreateExperimentRequest, ExperimentAPIService, GetExperimentRequest}
 import org.ekstep.analytics.api.util.JSONUtils
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json

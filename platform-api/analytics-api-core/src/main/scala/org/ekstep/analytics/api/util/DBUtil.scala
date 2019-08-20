@@ -10,10 +10,21 @@ import org.joda.time.DateTime
 
 import scala.collection.JavaConverters.iterableAsScalaIterableConverter
 
-object DBUtil {
+trait IDBUtil {
+    def getJobRequest(requestId: String, clientKey: String): JobRequest
+    def saveJobRequest(jobRequests: Array[JobRequest])
+    def getExperiementDefinition(expId: String): Option[ExperimentDefinition]
+    def saveExperimentDefinition(expRequests: Array[ExperimentDefinition])
+
+}
+
+object DBUtil extends IDBUtil {
 
     case class GetJobRequest(requestId: String, clientId: String)
     case class SaveJobRequest(jobRequest: Array[JobRequest])
+    case class GetExperiementRequest(expId: String);
+    case class SaveExpRequest(expRequests: Array[ExperimentCreateRequest]);
+
 
     implicit val className = "DBUtil"
     val embeddedCassandra = AppConf.getConfig("cassandra.service.embedded.enable").toBoolean
@@ -119,11 +130,11 @@ object DBUtil {
     }
 }
 
-class DBUtil extends Actor {
-    import DBUtil._;
-
-    def receive = {
-        case GetJobRequest(requestId: String, clientId: String) => getJobRequest(requestId, clientId);
-        case SaveJobRequest(jobRequest: Array[JobRequest])      => saveJobRequest(jobRequest);
-    }
-}
+//class DBUtil extends Actor {
+//    import DBUtil._;
+//
+//    def receive = {
+//        case GetJobRequest(requestId: String, clientId: String) => getJobRequest(requestId, clientId);
+//        case SaveJobRequest(jobRequest: Array[JobRequest])      => saveJobRequest(jobRequest);
+//    }
+//}

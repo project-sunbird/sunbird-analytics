@@ -3,18 +3,23 @@ package org.ekstep.analytics.api.service
 import akka.actor.Actor
 import com.typesafe.config.Config
 import org.ekstep.analytics.api._
-import org.ekstep.analytics.api.util.{CommonUtil, DBUtil}
+import org.ekstep.analytics.api.util.{CommonUtil, DBUtil, IDBUtil}
 import org.ekstep.analytics.framework.ExperimentStatus
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.joda.time.DateTime
 
-object ExperimentAPIService {
+case class CreateExperimentRequest(request: String, config: Config)
+case class GetExperimentRequest(requestId: String, config: Config)
+
+class ExperimentAPIService(dbUtil: IDBUtil) extends Actor {
 
    implicit val className: String = "org.ekstep.analytics.api.service.ExperimentAPIService"
 
-   case class CreateExperimentRequest(request: String, config: Config)
+  def receive = {
+        case CreateExperimentRequest(request: String, config: Config) => sender() ! createRequest(request)(config)
+        case GetExperimentRequest(requestId: String, config: Config) => sender() ! getExperimentDefinition(requestId)(config)
 
-   case class GetExperimentRequest(requestId: String, config: Config)
+      }
 
    def createRequest(request: String)(implicit config: Config): ExperimentBodyResponse = {
      val body = JSONUtils.deserialize[ExperimentRequestBody](request)
@@ -29,7 +34,7 @@ object ExperimentAPIService {
 
    private def upsertRequest(body: ExperimentRequestBody)(implicit config: Config): Map[String, AnyRef] = {
      val expReq = body.request
-     val experiment = DBUtil.getExperiementDefinition(expReq.expId)
+     val experiment = dbUtil.getExperiementDefinition(expReq.expId)
      val result = experiment.map { exp => {
        if (ExperimentStatus.FAILED.toString.equalsIgnoreCase(exp.status.get)) {
          val experimentRequest = saveExperimentDefinition(expReq)
@@ -46,7 +51,7 @@ object ExperimentAPIService {
    }
 
    def getExperimentDefinition(requestId: String)(implicit config: Config): Response = {
-     val experiment = DBUtil.getExperiementDefinition(requestId)
+     val experiment = dbUtil.getExperiementDefinition(requestId)
 
      val expStatus = experiment.map {
        exp => {
@@ -67,7 +72,7 @@ object ExperimentAPIService {
        request.createdBy, "Experiment_CREATE_API", submittedDate, submittedDate, JSONUtils.serialize(request.criteria),
        JSONUtils.serialize(request.data), Some(status), Some(statusMsg), None)
 
-     DBUtil.saveExperimentDefinition(Array(expRequest))
+     dbUtil.saveExperimentDefinition(Array(expRequest))
      expRequest
    }
 
@@ -136,14 +141,14 @@ object ExperimentAPIService {
  }
 
 
-class ExperimentAPIService extends Actor {
-
-  import ExperimentAPIService._
-
-  def receive = {
-    case CreateExperimentRequest(request: String, config: Config) => sender() ! createRequest(request)(config)
-    case GetExperimentRequest(requestId: String, config: Config) => sender() ! getExperimentDefinition(requestId)(config)
-
-  }
-}
+//class ExperimentAPIService extends Actor {
+//
+//  import ExperimentAPIService._
+//
+//  def receive = {
+//    case CreateExperimentRequest(request: String, config: Config) => sender() ! createRequest(request)(config)
+//    case GetExperimentRequest(requestId: String, config: Config) => sender() ! getExperimentDefinition(requestId)(config)
+//
+//  }
+//}
 
