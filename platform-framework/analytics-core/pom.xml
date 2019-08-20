@@ -20,6 +20,14 @@
 		<scoverage.plugin.version>1.1.1</scoverage.plugin.version>
 	</properties>
 
+	<repositories>
+		<repository>
+			<id>ing-bank</id>
+			<name>Ing-bank Repo</name>
+			<url>https://dl.bintray.com/ing-bank/maven-releases/</url>
+		</repository>
+	</repositories>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.scala-lang</groupId>
