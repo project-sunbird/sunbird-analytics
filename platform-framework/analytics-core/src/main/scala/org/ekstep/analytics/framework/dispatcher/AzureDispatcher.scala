@@ -1,6 +1,6 @@
 package org.ekstep.analytics.framework.dispatcher
 
-import java.io.{File, FileWriter}
+import java.io.FileWriter
 import scala.concurrent.ExecutionContext.Implicits.global
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
@@ -8,10 +8,9 @@ import org.ekstep.analytics.framework.exception.DispatcherException
 import org.ekstep.analytics.framework.util.{CommonUtil, JobLogger}
 import org.sunbird.cloud.storage.conf.AppConf
 import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
-import org.apache.spark.sql.{DataFrame, SQLContext}
-import org.apache.hadoop.fs.{FileSystem, LocatedFileStatus, Path}
+import org.apache.spark.sql.DataFrame
+import org.apache.hadoop.fs.{FileSystem, Path}
 import org.ekstep.analytics.framework.Level
-
 import scala.concurrent.Await
 import scala.util.{Failure, Success}
 
@@ -81,10 +80,12 @@ object AzureDispatcher extends IDispatcher {
         val finalKey = key + reportId + "/"
         val uploadMsg = StorageServiceFactory.getStorageService(StorageConfig("azure", AppConf.getStorageKey("azure"), AppConf.getStorageSecret("azure")))
           .uploadFolder(bucket, renamedPath, finalKey, Option(isPublic));
-        uploadMsg.onComplete {
-            case Success(files) => println("Successfully Uploaded files: " , files);JobLogger.log("Successfully Uploaded files", None, Level.INFO)
-            case Failure(ex) => throw ex
-        }
+        val result = Await.result(uploadMsg, scala.concurrent.duration.Duration.apply(1, "minute"))
+        JobLogger.log("Successfully Uploaded files", Option(Map("filesUploaded" -> result)), Level.INFO)
+//        uploadMsg.onComplete {
+//            case Success(files) => println("Successfully Uploaded files: " , files);JobLogger.log("Successfully Uploaded files", None, Level.INFO)
+//            case Failure(ex) => throw ex
+//        }
         CommonUtil.deleteDirectory(finalPath);
     }
 

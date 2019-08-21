@@ -17,7 +17,7 @@ case class ReportConfig(id: String, queryType: String, dateRange: QueryDateRange
 case class QueryDateRange(interval: Option[QueryInterval], staticInterval: Option[String], granularity: Option[String])
 case class QueryInterval(startDate: String, endDate: String)
 case class Metrics(metric: String, label: String, druidQuery: DruidQueryModel)
-case class OutputConfig(`type`: String, metrics: List[String], dims: List[String], filePattern: String)
+case class OutputConfig(`type`: String, label: String, metrics: List[String], dims: List[String], filePattern: String)
 
 object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, DruidOutput, DruidOutput, DruidOutput] with Serializable {
 
@@ -71,20 +71,22 @@ object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, Druid
         val configMap = config.get("reportConfig").get.asInstanceOf[Map[String, AnyRef]]
         val reportConfig = JSONUtils.deserialize[ReportConfig](JSONUtils.serialize(configMap))
         val labelsLookup = reportConfig.labels ++ Map("date" -> "Date")
-        val dimFields = reportConfig.metrics.map(m => m.druidQuery.dimensions.get.map(f => f._2)).flatMap(f => f)
-        val metricFields = reportConfig.metrics.map(m => m.druidQuery.aggregations.get.map(f => f.name)).flatMap(f => f)
         implicit val sqlContext = new SQLContext(sc);
         import sqlContext.implicits._
 
+        // Change map to foreach as parallel execution might conflict with local file path
         reportConfig.output.map{ f =>
             if("csv".equalsIgnoreCase(f.`type`)) {
-                val df = data.toDF()
+                val df = data.toDF().na.fill(0L)
+                val dimFields = f.dims
+                val metricFields = f.metrics
                 val fieldsList = (dimFields ++ metricFields ++ List("date")).distinct
                 val dimsLabels = labelsLookup.filter(x => f.dims.contains(x._1)).values.toList
                 val filteredDf = df.select(fieldsList.head, fieldsList.tail:_*)
                 val renamedDf =  filteredDf.select(filteredDf.columns.map(c => filteredDf.col(c).as(labelsLookup.getOrElse(c, c))): _*)
+                val reportFinalId = if(f.label.nonEmpty) reportConfig.id + "/" + f.label else reportConfig.id
                 //renamedDf.show(150)
-                AzureDispatcher.dispatch(config ++ Map("dims" -> dimsLabels, "reportId" -> reportConfig.id, "filePattern" -> f.filePattern), renamedDf)
+                AzureDispatcher.dispatch(config ++ Map("dims" -> dimsLabels, "reportId" -> reportFinalId, "filePattern" -> f.filePattern), renamedDf)
             }
             else {
                 val strData = data.map(f => JSONUtils.serialize(f))
