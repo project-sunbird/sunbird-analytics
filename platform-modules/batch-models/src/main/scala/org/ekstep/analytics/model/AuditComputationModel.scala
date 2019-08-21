@@ -25,7 +25,7 @@ object AuditComputationModel extends IBatchModelTemplate[Empty, Empty, AuditOutp
   override def algorithm(events: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[AuditOutput] = {
     val auditConfigString = config.getOrElse("auditRules", "[]").asInstanceOf[String]
     val auditConfigurations = JSONUtils.deserialize[List[AuditConfig]](auditConfigString)
-    val auditOutput = auditConfigurations.flatMap {
+    val auditOutput = auditConfigurations.map {
       auditConfig =>
         AuditTaskRunner.execute(auditConfig)
     }
