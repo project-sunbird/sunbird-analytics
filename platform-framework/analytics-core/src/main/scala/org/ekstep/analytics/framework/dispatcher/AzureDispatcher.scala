@@ -12,6 +12,7 @@ import org.apache.spark.sql.DataFrame
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.ekstep.analytics.framework.Level
 import scala.concurrent.Await
+import org.apache.spark.sql.functions.col
 import scala.util.{Failure, Success}
 
 object AzureDispatcher extends IDispatcher {
@@ -71,16 +72,23 @@ object AzureDispatcher extends IDispatcher {
         }
         dims = if (filePattern.nonEmpty && filePattern.contains("date")) dims ++ List("Date") else dims
         val finalPath = filePath + key.split("/").last
-        if(dims.nonEmpty)
-            data.coalesce(1).write.format("com.databricks.spark.csv").option("header", "true").partitionBy(dims:_*).mode("overwrite").save(finalPath)
-        else
+        if(dims.nonEmpty) {
+            val duplicateDims = dims.map(f => f.concat("Duplicate"))
+            var duplicateDimsDf = data
+            dims.foreach{f =>
+                duplicateDimsDf = duplicateDimsDf.withColumn(f.concat("Duplicate"), col(f))
+            }
+            duplicateDimsDf.coalesce(1).write.format("com.databricks.spark.csv").option("header", "true").partitionBy(duplicateDims: _*).mode("overwrite").save(finalPath)
+        }
+            else
             data.coalesce(1).write.format("com.databricks.spark.csv").option("header", "true").mode("overwrite").save(finalPath)
         val renameDir = finalPath+"/renamed"
         val renamedPath = renameHadoopFiles(finalPath, renameDir, filePattern, reportId, dims)
         val finalKey = key + reportId + "/"
         val uploadMsg = StorageServiceFactory.getStorageService(StorageConfig("azure", AppConf.getStorageKey("azure"), AppConf.getStorageSecret("azure")))
           .uploadFolder(bucket, renamedPath, finalKey, Option(isPublic));
-        val result = Await.result(uploadMsg, scala.concurrent.duration.Duration.apply(1, "minute"))
+        val uploadWaitTime = AppConf.getConfig("druid.report.upload.wait.time.mins").toLong
+        val result = Await.result(uploadMsg, scala.concurrent.duration.Duration.apply(uploadWaitTime, "minute"))
         JobLogger.log("Successfully Uploaded files", Option(Map("filesUploaded" -> result)), Level.INFO)
 //        uploadMsg.onComplete {
 //            case Success(files) => println("Successfully Uploaded files: " , files);JobLogger.log("Successfully Uploaded files", None, Level.INFO)

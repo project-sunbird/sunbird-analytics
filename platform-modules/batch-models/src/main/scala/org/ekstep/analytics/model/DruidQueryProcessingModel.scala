@@ -70,6 +70,7 @@ object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, Druid
 
         val configMap = config.get("reportConfig").get.asInstanceOf[Map[String, AnyRef]]
         val reportConfig = JSONUtils.deserialize[ReportConfig](JSONUtils.serialize(configMap))
+        val dimFields = reportConfig.metrics.map(m => m.druidQuery.dimensions.get.map(f => f._2)).flatMap(f => f)
         val labelsLookup = reportConfig.labels ++ Map("date" -> "Date")
         implicit val sqlContext = new SQLContext(sc);
         import sqlContext.implicits._
@@ -78,7 +79,6 @@ object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, Druid
         reportConfig.output.map{ f =>
             if("csv".equalsIgnoreCase(f.`type`)) {
                 val df = data.toDF().na.fill(0L)
-                val dimFields = f.dims
                 val metricFields = f.metrics
                 val fieldsList = (dimFields ++ metricFields ++ List("date")).distinct
                 val dimsLabels = labelsLookup.filter(x => f.dims.contains(x._1)).values.toList
