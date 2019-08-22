@@ -51,7 +51,7 @@ object PipelineDailyAudit extends IAuditTask {
     val endDate = formatter.parseDateTime(endDateStr)
 
     val pipelineMetricQuery = AppConf.getConfig("druid.pipeline_metrics.audit.query")
-      .format(s"'$jobName'", startDate.toString("yyyy-MM-dd HH:mm:ss"), endDate.toString("yyyy-MM-dd HH:mm:ss"))
+      .format(s"'$jobName'", startDate.toString("yyyy-MM-dd HH:mm:ss"), endDate.plusDays(1).toString("yyyy-MM-dd HH:mm:ss"))
 
     val response = RestUtil.post[List[PipelineMetric]](apiURL, pipelineMetricQuery)
     response.headOption.getOrElse(PipelineMetric(`job-name` = jobName))
