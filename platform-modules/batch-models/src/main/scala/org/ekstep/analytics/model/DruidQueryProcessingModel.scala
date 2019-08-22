@@ -1,13 +1,16 @@
 package org.ekstep.analytics.model
 
+import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.SQLContext
+import org.apache.spark.sql.functions.col
+import org.apache.spark.sql.{DataFrame, SQLContext}
 import org.ekstep.analytics.framework.dispatcher.AzureDispatcher
 import org.ekstep.analytics.framework.fetcher.DruidDataFetcher
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework._
-import org.ekstep.analytics.framework.exception.DruidConfigException
+import org.ekstep.analytics.framework.exception.{DispatcherException, DruidConfigException}
+import org.sunbird.cloud.storage.conf.AppConf
 
 
 case class DruidOutput(date: Option[String], state: Option[String], producer_id: Option[String], total_scans: Option[Integer] = Option(0), total_sessions: Option[Integer] = Option(0),
@@ -76,7 +79,8 @@ object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, Druid
         import sqlContext.implicits._
 
         // Change map to foreach as parallel execution might conflict with local file path
-        reportConfig.output.map{ f =>
+        val key = config.getOrElse("key", null).asInstanceOf[String];
+        reportConfig.output.foreach{ f =>
             if("csv".equalsIgnoreCase(f.`type`)) {
                 val df = data.toDF().na.fill(0L)
                 val metricFields = f.metrics
@@ -86,7 +90,8 @@ object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, Druid
                 val renamedDf =  filteredDf.select(filteredDf.columns.map(c => filteredDf.col(c).as(labelsLookup.getOrElse(c, c))): _*)
                 val reportFinalId = if(f.label.nonEmpty) reportConfig.id + "/" + f.label else reportConfig.id
                 //renamedDf.show(150)
-                AzureDispatcher.dispatch(config ++ Map("dims" -> dimsLabels, "reportId" -> reportFinalId, "filePattern" -> f.filePattern), renamedDf)
+                val dirPath = writeToCSVAndRename(renamedDf, config ++ Map("dims" -> dimsLabels, "reportId" -> reportFinalId, "filePattern" -> f.filePattern))
+                AzureDispatcher.dispatchDirectory(config ++ Map("dirPath" -> dirPath, "key" -> (key + reportFinalId + "/")))
             }
             else {
                 val strData = data.map(f => JSONUtils.serialize(f))
@@ -94,5 +99,64 @@ object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, Druid
             }
         }
         data
+    }
+
+    def writeToCSVAndRename(data: DataFrame, config: Map[String, AnyRef])(implicit sc: SparkContext): String = {
+        val filePath = config.getOrElse("filePath", AppConf.getConfig("spark_output_temp_dir")).asInstanceOf[String];
+        val key = config.getOrElse("key", null).asInstanceOf[String];
+        val reportId = config.getOrElse("reportId", "").asInstanceOf[String];
+        val filePattern = config.getOrElse("filePattern", "").asInstanceOf[String];
+        var dims = config.getOrElse("dims", List()).asInstanceOf[List[String]];
+
+        dims = if (filePattern.nonEmpty && filePattern.contains("date")) dims ++ List("Date") else dims
+        val finalPath = filePath + key.split("/").last
+        if(dims.nonEmpty) {
+            val duplicateDims = dims.map(f => f.concat("Duplicate"))
+            var duplicateDimsDf = data
+            dims.foreach{f =>
+                duplicateDimsDf = duplicateDimsDf.withColumn(f.concat("Duplicate"), col(f))
+            }
+            duplicateDimsDf.coalesce(1).write.format("com.databricks.spark.csv").option("header", "true").partitionBy(duplicateDims: _*).mode("overwrite").save(finalPath)
+        }
+        else
+            data.coalesce(1).write.format("com.databricks.spark.csv").option("header", "true").mode("overwrite").save(finalPath)
+        val renameDir = finalPath+"/renamed"
+        renameHadoopFiles(finalPath, renameDir, filePattern, reportId, dims)
+    }
+
+    def renameHadoopFiles(tempDir: String, outDir: String, filePattern: String, id: String, dims: List[String])(implicit sc: SparkContext): String = {
+
+        // TO-DO
+        // Use filePattern for renaming files
+        val fs = FileSystem.get(sc.hadoopConfiguration)
+        val fileList = fs.listFiles(new Path(s"$tempDir/"), true)
+        while(fileList.hasNext){
+            val filePath = fileList.next().getPath.toString
+            if(!(filePath.contains("_SUCCESS"))) {
+                val breakUps = filePath.split("/").filter(f => f.contains("="))
+                val dimsKeys = breakUps.filter { f =>
+                    val bool = dims.map(x => f.contains(x))
+                    if (bool.contains(true)) true
+                    else false
+                }
+                val finalKeys = dimsKeys.map { f =>
+                    f.split("=").last
+                }
+                val key = if (finalKeys.length > 1) finalKeys.mkString("/") else finalKeys.head
+                val crcKey = if (finalKeys.length > 1) {
+                    val builder = new StringBuilder
+                    val keyStr = finalKeys.mkString("/")
+                    val replaceStr = "/."
+                    builder.append(keyStr.substring(0, keyStr.lastIndexOf("/")))
+                    builder.append(replaceStr)
+                    builder.append(keyStr.substring(keyStr.lastIndexOf("/") + replaceStr.length - 1))
+                    builder
+                } else
+                    "."+finalKeys.head
+                fs.rename(new Path(filePath), new Path(s"$outDir/$id/$key.csv"))
+                fs.delete(new Path(s"$outDir/$id/$crcKey.csv.crc"), false)
+            }
+        }
+        outDir + "/" + id
     }
 }

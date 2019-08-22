@@ -58,35 +58,18 @@ object AzureDispatcher extends IDispatcher {
         events.saveAsTextFile("wasb://" + bucket + "@" + AppConf.getStorageKey(AppConf.getStorageType()) + ".blob.core.windows.net/" + key);
     }
 
-    def dispatch(config: Map[String, AnyRef], data: DataFrame)(implicit sc: SparkContext) = {
-        val filePath = config.getOrElse("filePath", AppConf.getConfig("spark_output_temp_dir")).asInstanceOf[String];
+    def dispatchDirectory(config: Map[String, AnyRef])(implicit sc: SparkContext) = {
+        val dirPath = config.getOrElse("dirPath", null).asInstanceOf[String];
         val bucket = config.getOrElse("bucket", null).asInstanceOf[String];
         val key = config.getOrElse("key", null).asInstanceOf[String];
         val isPublic = config.getOrElse("public", false).asInstanceOf[Boolean];
-        val reportId = config.getOrElse("reportId", "").asInstanceOf[String];
-        val filePattern = config.getOrElse("filePattern", "").asInstanceOf[String];
-        var dims = config.getOrElse("dims", List()).asInstanceOf[List[String]];
 
-        if (null == bucket || null == key) {
-            throw new DispatcherException("'bucket' & 'key' parameters are required to send output to azure")
+        if (null == bucket || null == key || dirPath == null) {
+            throw new DispatcherException("'local file path', 'bucket' & 'key' parameters are required to upload directory to azure")
         }
-        dims = if (filePattern.nonEmpty && filePattern.contains("date")) dims ++ List("Date") else dims
-        val finalPath = filePath + key.split("/").last
-        if(dims.nonEmpty) {
-            val duplicateDims = dims.map(f => f.concat("Duplicate"))
-            var duplicateDimsDf = data
-            dims.foreach{f =>
-                duplicateDimsDf = duplicateDimsDf.withColumn(f.concat("Duplicate"), col(f))
-            }
-            duplicateDimsDf.coalesce(1).write.format("com.databricks.spark.csv").option("header", "true").partitionBy(duplicateDims: _*).mode("overwrite").save(finalPath)
-        }
-            else
-            data.coalesce(1).write.format("com.databricks.spark.csv").option("header", "true").mode("overwrite").save(finalPath)
-        val renameDir = finalPath+"/renamed"
-        val renamedPath = renameHadoopFiles(finalPath, renameDir, filePattern, reportId, dims)
-        val finalKey = key + reportId + "/"
+
         val uploadMsg = StorageServiceFactory.getStorageService(StorageConfig("azure", AppConf.getStorageKey("azure"), AppConf.getStorageSecret("azure")))
-          .uploadFolder(bucket, renamedPath, finalKey, Option(isPublic));
+          .uploadFolder(bucket, dirPath, key, Option(isPublic));
         val uploadWaitTime = AppConf.getConfig("druid.report.upload.wait.time.mins").toLong
         val result = Await.result(uploadMsg, scala.concurrent.duration.Duration.apply(uploadWaitTime, "minute"))
         JobLogger.log("Successfully Uploaded files", Option(Map("filesUploaded" -> result)), Level.INFO)
@@ -94,42 +77,8 @@ object AzureDispatcher extends IDispatcher {
 //            case Success(files) => println("Successfully Uploaded files: " , files);JobLogger.log("Successfully Uploaded files", None, Level.INFO)
 //            case Failure(ex) => throw ex
 //        }
-        CommonUtil.deleteDirectory(finalPath);
+        CommonUtil.deleteDirectory(dirPath);
     }
 
-    def renameHadoopFiles(tempDir: String, outDir: String, filePattern: String, id: String, dims: List[String])(implicit sc: SparkContext): String = {
 
-        // TO-DO
-        // Use filePattern for renaming files
-        val fs = FileSystem.get(sc.hadoopConfiguration)
-        val fileList = fs.listFiles(new Path(s"$tempDir/"), true)
-        while(fileList.hasNext){
-            val filePath = fileList.next().getPath.toString
-            if(!(filePath.contains("_SUCCESS"))) {
-                val breakUps = filePath.split("/").filter(f => f.contains("="))
-                val dimsKeys = breakUps.filter { f =>
-                    val bool = dims.map(x => f.contains(x))
-                    if (bool.contains(true)) true
-                    else false
-                }
-                val finalKeys = dimsKeys.map { f =>
-                    f.split("=").last
-                }
-                val key = if (finalKeys.length > 1) finalKeys.mkString("/") else finalKeys.head
-                val crcKey = if (finalKeys.length > 1) {
-                    val builder = new StringBuilder
-                    val keyStr = finalKeys.mkString("/")
-                    val replaceStr = "/."
-                    builder.append(keyStr.substring(0, keyStr.lastIndexOf("/")))
-                    builder.append(replaceStr)
-                    builder.append(keyStr.substring(keyStr.lastIndexOf("/") + replaceStr.length - 1))
-                    builder
-                } else
-                    "."+finalKeys.head
-                fs.rename(new Path(filePath), new Path(s"$outDir/$id/$key.csv"))
-                fs.delete(new Path(s"$outDir/$id/$crcKey.csv.crc"), false)
-            }
-        }
-        outDir + "/" + id
-    }
 }
