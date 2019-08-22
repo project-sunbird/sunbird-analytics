@@ -1,31 +1,23 @@
 package controllers
 
-import org.ekstep.analytics.api.service._
-import org.ekstep.analytics.api.util._
-import play.api._
-import play.api.mvc._
-import play.api.libs.json._
-import play.api.libs.functional.syntax._
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
-
-import scala.concurrent.Future
-import javax.inject.Singleton
-import javax.inject.Inject
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.pattern._
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
-
-import scala.concurrent.duration._
-import org.ekstep.analytics.api.exception.ClientException
-import org.ekstep.analytics.api.{APIIds, ResponseCode}
-
-import scala.collection.JavaConverters._
 import akka.routing.FromConfig
+import javax.inject.{Inject, Singleton}
+import org.ekstep.analytics.api.exception.ClientException
 import org.ekstep.analytics.api.service.HealthCheckAPIService.GetHealthStatus
-import org.ekstep.analytics.api.service.TagService.DeleteTag
-import org.ekstep.analytics.api.service.TagService.RegisterTag
-import org.ekstep.analytics.api.service.RecommendationAPIService.Consumption
-import org.ekstep.analytics.api.service.RecommendationAPIService.Creation
+import org.ekstep.analytics.api.service.RecommendationAPIService.{Consumption, Creation}
+import org.ekstep.analytics.api.service.TagService.{DeleteTag, RegisterTag}
+import org.ekstep.analytics.api.service.{DruidHealthCheckService, _}
+import org.ekstep.analytics.api.util._
+import org.ekstep.analytics.api.{APIIds, ResponseCode}
+import org.ekstep.analytics.framework.util.RestUtil
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.libs.json._
+import play.api.mvc._
+
+import scala.concurrent.Future
+import scala.concurrent.duration._
 
 /**
  * @author mahesh
@@ -39,8 +31,16 @@ class Application @Inject() (system: ActorSystem) extends BaseController {
 	val healthCheckAPIActor = system.actorOf(Props[HealthCheckAPIService].withRouter(FromConfig()), name = "healthCheckAPIActor")
 	val tagServiceAPIActor = system.actorOf(Props[TagService].withRouter(FromConfig()), name = "tagServiceAPIActor")
 	val clientLogAPIActor = system.actorOf(Props[ClientLogsAPIService].withRouter(FromConfig()), name = "clientLogAPIActor")
+	val druidHealthActor = system.actorOf(Props(new DruidHealthCheckService(RestUtil)), "druidHealthActor")
 	/*val deviceRegisterServiceAPIActor = system.actorOf(Props[DeviceRegisterService].withRouter(FromConfig()),
 		name = "deviceRegisterServiceAPIActor")*/
+
+	def getDruidHealthStatus() = Action.async { implicit request =>
+		val result = ask(druidHealthActor, "health").mapTo[String]
+		result.map { x =>
+			Ok(x).withHeaders(CONTENT_TYPE -> "text/plain");
+		}
+	}
 
 	def checkAPIhealth() = Action.async { implicit request =>
     val result = ask(healthCheckAPIActor, GetHealthStatus).mapTo[String]

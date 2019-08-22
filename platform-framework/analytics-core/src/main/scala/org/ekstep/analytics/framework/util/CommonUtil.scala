@@ -45,7 +45,10 @@ object CommonUtil {
 
     def getSparkContext(parallelization: Int, appName: String, sparkCassandraConnectionHost: Option[AnyRef] = None, sparkElasticsearchConnectionHost: Option[AnyRef] = None): SparkContext = {
         JobLogger.log("Initializing Spark Context")
-        val conf = new SparkConf().setAppName(appName);
+        val conf = new SparkConf().setAppName(appName).set("spark.default.parallelism", parallelization.toString)
+          .set("spark.driver.memory", AppConf.getConfig("spark.driver_memory"))
+          .set("spark.memory.fraction", AppConf.getConfig("spark.memory_fraction"))
+          .set("spark.memory.storageFraction", AppConf.getConfig("spark.storage_fraction"))
         val master = conf.getOption("spark.master");
         // $COVERAGE-OFF$ Disabling scoverage as the below code cannot be covered as they depend on environment variables
         if (master.isEmpty) {
@@ -68,6 +71,8 @@ object CommonUtil {
         if (sparkElasticsearchConnectionHost.nonEmpty) {
             conf.set("es.nodes", sparkElasticsearchConnectionHost.get.asInstanceOf[String])
             conf.set("es.port", "9200")
+            conf.set("es.write.rest.error.handler.log.logger.name", "org.ekstep.es.dispatcher")
+            conf.set("es.write.rest.error.handler.log.logger.level", "INFO")
         }
 
         // $COVERAGE-ON$

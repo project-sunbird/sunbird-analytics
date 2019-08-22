@@ -166,6 +166,11 @@ object JobStatus extends Enumeration {
   val SUBMITTED, PROCESSING, COMPLETED, RETRY, FAILED = Value
 }
 
+object ExperimentStatus extends Enumeration {
+  type ExperimentStatus = Value;
+  val SUBMITTED, PROCESSING, ACTIVE, FAILED = Value
+}
+
 trait Stage extends Enumeration {
   type Stage = Value
   val contentPlayed = Value
@@ -238,3 +243,7 @@ case class PipelineMetric (`cache-hit-count`: Double = 0d, `db-hit-count`: Doubl
                            `device-db-hit-count`: Double = 0d, `db-error-count`: Double = 0d, `device-cache-hit-count`: Double = 0d,
                            `batch-success-count`: Double = 0d, `batch-error-count`: Double = 0d,
                            `primary-route-success-count`: Double = 0d, `secondary-route-success-count`: Double = 0d) extends CaseClassConversions
+
+// Experiment Models
+@scala.beans.BeanInfo
+case class DeviceProfileModel(device_id: Option[String], state: Option[String], city: Option[String], first_access: Option[Date])

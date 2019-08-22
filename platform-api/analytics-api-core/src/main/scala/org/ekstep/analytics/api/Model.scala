@@ -72,7 +72,7 @@ object Constants {
   val env: String = AppConf.getConfig("cassandra.keyspace_prefix")
 	val CONTENT_DB: String = env+"content_db"
 	val DEVICE_DB: String = env+"device_db"
-	val PLATFORML_DB: String = env+"platform_db"
+	val PLATFORM_DB: String = env+"platform_db"
 	val JOB_REQUEST = "job_request"
 	val CONTENT_SUMMARY_FACT_TABLE = "content_usage_summary_fact"
 	val CONTENT_POPULARITY_SUMMARY_FACT = "content_popularity_summary_fact"
@@ -86,6 +86,7 @@ object Constants {
 	val REGISTERED_TAGS = "registered_tags"
 	val REQUEST_RECOS_TABLE = "request_recos"
 	val DEVICE_PROFILE_TABLE = "device_profile"
+	val EXPERIMENT_TABLE = "experiment_definition"
 }
 
 object OutputFormat {
@@ -109,8 +110,31 @@ object APIIds {
 	val WORKFLOW_USAGE = "ekstep.analytics.metrics.workflow-usage"
 	val DIALCODE_USAGE = "ekstep.analytics.metrics.dialcode-usage"
 	val CLIENT_LOG = "ekstep.analytics.client-log"
+	val EXPERIEMNT_CREATE_REQUEST = "ekstep.analytics.experiement.create";
+	val EXPERIEMNT_GET_REQUEST = "ekstep.analytics.experiement.get";
 }
 
 case class JobOutput(location: Option[String] = None, file_size: Option[Long] = None, dt_file_created: Option[String] = None, dt_first_event: Option[Long] = None, dt_last_event: Option[Long] = None, dt_expiration: Option[Long] = None);
 case class JobStats(dt_job_submitted: Long, dt_job_processing:  Option[Long] = None, dt_job_completed:  Option[Long] = None, input_events: Option[Int] = None, output_events: Option[Int] = None, latency: Option[Int] = None, execution_time: Option[Long] = None);
 case class JobResponse(request_id: String, status: String, last_updated: Long, request_data: Request, attempts: Int, output: Option[JobOutput] = None, job_stats: Option[JobStats] = None);
+
+
+//Experiment
+case class ExperimentRequestBody(id: String, ver: String, ts: String, request: ExperimentCreateRequest, params: Option[Params])
+
+case class ExperimentCreateRequest(expId: String, name: String, createdBy: String, description: String,
+								   criteria: Map[String, AnyRef], data: Map[String, AnyRef])
+
+case class ExperimentDefinition(expId: String, expName: String, expDescription: String, createdBy: String,
+								updatedBy: String, udpatedOn: Option[DateTime], createdOn: Option[DateTime], criteria: String,
+								data: String, status: Option[String], status_msg: Option[String], stats: Option[Map[String, Long]])
+
+case class ExperimentParams(resmsgid: String, msgid: String, err: String, status: String, errorMsg: Map[String, String])
+
+case class ExperimentBodyResponse(id: String, ver: String, ts: String, params: ExperimentParams, responseCode: String, result: Option[Map[String, AnyRef]])
+
+case class ExperimentResponse(request: ExperimentCreateRequest, stats: Map[String, Long], last_updated: Long, created_date: Long, status: String, status_msg: String)
+
+case class ExperimentErrorResponse(expResponse: ExperimentResponse, err: String, errorMsg: Map[String, String])
+
+
