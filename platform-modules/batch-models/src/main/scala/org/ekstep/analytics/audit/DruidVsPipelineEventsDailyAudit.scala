@@ -1,10 +1,10 @@
 package org.ekstep.analytics.audit
 
 import org.apache.spark.SparkContext
+import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger, RestUtil}
-import org.ekstep.analytics.framework._
-import org.joda.time.DateTime
+import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 
 
 @scala.beans.BeanInfo
@@ -71,25 +71,29 @@ object DruidVsPipelineEventsDailyAudit  extends IAuditTask {
   def getDruidEventsCount(auditConfig: AuditConfig): Map[String, Double] = {
     val apiURL = AppConf.getConfig("druid.sql.host")
     val params = auditConfig.params.getOrElse(Map())
-    val endDate = params("endDate")
+    val endDate = params("endDate").asInstanceOf[String]
+    val startDate = params("startDate").asInstanceOf[String]
     val daysMinus = params("syncMinusDays").asInstanceOf[Int]
     val daysPlus = params("syncPlusDays").asInstanceOf[Int]
+    val formatter: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd")
+    val startDateTime = formatter.parseDateTime(startDate)
+    val endDateTime = formatter.parseDateTime(endDate)
 
     val countQuery = "{ \"query\": \"SELECT COUNT(*) AS \\\"total\\\" FROM \\\"druid\\\".\\\"%s\\\" WHERE TIME_FORMAT(MILLIS_TO_TIMESTAMP(\\\"syncts\\\"), 'yyyy-MM-dd HH:mm:ss.SSS', 'Asia/Kolkata') BETWEEN TIMESTAMP '%s' AND '%s' AND  \\\"__time\\\" BETWEEN TIMESTAMP '%s' AND TIMESTAMP '%s'\" }"
     val queryMap: Map[String, String] = Map(
       TelemetryEvents -> countQuery.format(
         TelemetryEvents,
-        s"$endDate 00:00:00",
+        s"$startDate 00:00:00",
         s"$endDate 23:59:00",
-        new DateTime().minusDays(daysMinus).withTimeAtStartOfDay().toString("yyyy-MM-dd HH:mm:ss"),
-        new DateTime().plusDays(daysPlus).withTimeAtStartOfDay().toString("yyyy-MM-dd HH:mm:ss")
+        startDateTime.minusDays(daysMinus).withTimeAtStartOfDay().toString("yyyy-MM-dd HH:mm:ss"),
+        endDateTime.plusDays(daysPlus).withTimeAtStartOfDay().toString("yyyy-MM-dd HH:mm:ss")
       ),
       SummaryEvents -> countQuery.format(
         SummaryEvents,
-        s"$endDate 00:00:00",
+        s"$startDate 00:00:00",
         s"$endDate 23:59:00",
-        new DateTime().minusDays(daysMinus).withTimeAtStartOfDay().toString("yyyy-MM-dd HH:mm:ss"),
-        new DateTime().plusDays(daysPlus).withTimeAtStartOfDay().toString("yyyy-MM-dd HH:mm:ss")
+        startDateTime.minusDays(daysMinus).withTimeAtStartOfDay().toString("yyyy-MM-dd HH:mm:ss"),
+        endDateTime.plusDays(daysPlus).withTimeAtStartOfDay().toString("yyyy-MM-dd HH:mm:ss")
       )
     )
 
