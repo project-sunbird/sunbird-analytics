@@ -1,8 +1,10 @@
 package org.ekstep.analytics.audit
 
 import org.apache.spark.SparkContext
-import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger}
-import org.ekstep.analytics.framework.{AuditConfig, AuditDetails, AuditOutput, AuditStatus, DataFetcher, Fetcher, IAuditTask, V3Event}
+import org.ekstep.analytics.framework.util.JobLogger
+import org.ekstep.analytics.framework._
+
+case class FailedEvents(pdataId: String, pid: String, failedCount: Long) extends CaseClassConversions
 
 object PipelineFailedEventsDailyAudit extends IAuditTask {
   implicit val className: String = "org.ekstep.analytics.audit.PipelineFailedEventsDailyAudit"
@@ -17,32 +19,66 @@ object PipelineFailedEventsDailyAudit extends IAuditTask {
 
   def computeFailedEventsCount(config: AuditConfig)(implicit sc: SparkContext): List[AuditDetails] = {
     JobLogger.log("Computing events count from failed backup...")
-    val params = config.params.getOrElse(Map())
-    val bucket = params("bucket").asInstanceOf[String]
-    val endDate = params("endDate").asInstanceOf[String]
-    val startDate = params("startDate").asInstanceOf[String]
 
-    val queryConfig = s"""{ "type": "azure", "queries": [{ "bucket": "$bucket", "prefix": "failed/", "endDate": "$endDate", "startDate": "$startDate" }] }"""
-    val events = DataFetcher.fetchBatchData[V3Event](JSONUtils.deserialize[Fetcher](queryConfig)).cache()
-    val totalEvent = events.count()
 
-    val result  = events
-      .map(event => event.context.pdata)
-      .map {
-        case Some(pdata) => ((pdata.id, pdata.pid.getOrElse("UNKNOWN")), 1)
+    val auditResults = config.search.map { fetcherList =>
+      fetcherList.flatMap {fetcher =>
+        val events = DataFetcher.fetchBatchData[V3Event](fetcher)
+        val totalEvent = events.count()
+
+        val result = events
+          .map(event => event.context.pdata)
+          .map {
+            case Some(pdata) => ((pdata.id, pdata.pid.getOrElse("UNKNOWN")), 1)
+          }
+          .reduceByKey(_ + _)
+          .sortBy(_._2)
+          .collect
+          .toList
+
+        val auditDetailsList = result.map {
+          value => {
+            val producerStat = FailedEvents(value._1._1, value._1._2, value._2)
+            val percentageDiff = if (totalEvent > 0) (producerStat.failedCount.toDouble * 100) / totalEvent.toDouble else 0d
+            AuditDetails(rule = config.name, stats = producerStat.toMap, difference = percentageDiff,
+              status = computeStatus(config.threshold, percentageDiff))
+          }
+        }
+        auditDetailsList
       }
-      .reduceByKey(_ + _)
-      .sortBy(_._2)
-      .collect
-      .toList
+    }.getOrElse(List[AuditDetails]())
 
-    val auditDetailsList = result map { value => {
-        val diff = if (totalEvent > 0) (value._2.toDouble * 100) / totalEvent.toDouble else 0
-        AuditDetails(rule = config.name, stats = Map(value._1.toString() -> value._2), difference = diff, status = computeStatus(config.threshold ,diff))
-      }
-    }
     JobLogger.log("Computing events count from failed backup job complete...")
-    auditDetailsList
+
+    auditResults
+
+    /*
+    config.search.map { fetcher =>
+      val events = DataFetcher.fetchBatchData[V3Event](fetcher)
+      val totalEvent = events.count()
+
+      val result = events
+        .map(event => event.context.pdata)
+        .map {
+          case Some(pdata) => ((pdata.id, pdata.pid.getOrElse("UNKNOWN")), 1)
+        }
+        .reduceByKey(_ + _)
+        .sortBy(_._2)
+        .collect
+        .toList
+
+      val auditDetailsList = result.map {
+        value => {
+          val producerStat = FailedEvents(value._1._1, value._1._2, value._2)
+          val percentageDiff = if (totalEvent > 0) (producerStat.failedCount.toDouble * 100) / totalEvent.toDouble else 0d
+          AuditDetails(rule = config.name, stats = producerStat.toMap, difference = percentageDiff,
+            status = computeStatus(config.threshold, percentageDiff))
+        }
+      }
+      JobLogger.log("Computing events count from failed backup job complete...")
+      auditDetailsList
+    }.getOrElse(List[AuditDetails]())
+    */
   }
 
   def computeStatus(threshold: Double, diff: Double): AuditStatus.Value = {

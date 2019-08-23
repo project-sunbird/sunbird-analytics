@@ -8,7 +8,7 @@ import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 
 
 @scala.beans.BeanInfo
-case class EventsCount(total: Long)
+case class DataSourceMetrics(datasource: String, blobStorageCount: Double = 0d, druidEventsCount: Double = 0d, percentageDiff: Double = 0d) extends CaseClassConversions
 
 object DruidVsPipelineEventsDailyAudit  extends IAuditTask {
   implicit val className: String = "org.ekstep.analytics.audit.DruidVsPipelineEventsDailyAudit"
@@ -33,74 +33,87 @@ object DruidVsPipelineEventsDailyAudit  extends IAuditTask {
 
   def computeTelemetryEventsCount(config: AuditConfig)(implicit sc: SparkContext): List[AuditDetails] = {
     JobLogger.log("Computing events count from Blob and Druid datasource...")
-    val params = config.params.getOrElse(Map())
-    val bucket = params("bucket").asInstanceOf[String]
-    val folderList = params.getOrElse("prefix", List()).asInstanceOf[List[String]]
-    val endDate = params("endDate").asInstanceOf[String]
-    val startDate = params("startDate").asInstanceOf[String]
 
+    val blobStorageMetrics = config.search.map { fetcherList =>
+      fetcherList.map { fetcher =>
+        val events = DataFetcher.fetchBatchData[V3Event](fetcher)
+        val blobPrefix = fetcher.queries.getOrElse(Array[Query]()).head.prefix.getOrElse("")
+        DataSourceMetrics(DruidToBlobMapper(blobPrefix), blobStorageCount = events.count)
+      }
+    }.getOrElse(List[DataSourceMetrics]())
+
+    println(blobStorageMetrics.mkString("\n"))
+
+    /*
     val eventsCount = Map(folderList map { folder =>
       val queryConfig = s"""{ "type": "azure", "queries": [{ "bucket": "$bucket", "prefix": "$folder", "endDate": "$endDate", "startDate": "$startDate" }] }"""
-      val events = DataFetcher.fetchBatchData[V3Event](JSONUtils.deserialize[Fetcher](queryConfig)).cache()
+      val events = DataFetcher.fetchBatchData[V3Event](JSONUtils.deserialize[Fetcher](queryConfig))
       (DruidToBlobMapper(folder), events.count)
     }: _*)
+    */
 
-    val druidCount = getDruidEventsCount(config)
+    val druidStorageMetrics = getDruidEventsCount(config)
 
-    val countDiff = eventsCount flatMap { case (source, count) => {
-        val druidEventCount = druidCount(source)
-        val diff = if (count > 0) (count.toDouble - druidEventCount) * 100 / count.toDouble else 0
-        Map(source -> diff)
+    println(druidStorageMetrics.mkString("\n"))
+
+    val auditMetrics = blobStorageMetrics.map { blobMetrics => {
+        val druidMetrics = druidStorageMetrics.find(_.datasource == blobMetrics.datasource).getOrElse(DataSourceMetrics(blobMetrics.datasource))
+        val blobCount = blobMetrics.blobStorageCount
+        val druidCount = druidMetrics.druidEventsCount
+        val diff = if (blobCount > 0) (blobCount - druidCount) * 100 / blobCount else 0
+        DataSourceMetrics(blobMetrics.datasource, blobStorageCount = blobCount, druidEventsCount = druidCount, percentageDiff = diff)
       }
     }
 
-    val result = countDiff map { case (source, percentage) => {
+    val result = auditMetrics.map { metrics => {
          AuditDetails(
            rule = config.name,
-           stats = Map(source -> percentage),
-           difference = percentage,
-           status = computeStatus(config.threshold, percentage)
+           stats = metrics.toMap,
+           difference = metrics.percentageDiff,
+           status = computeStatus(config.threshold, metrics.percentageDiff)
          )
       }
     }
 
     JobLogger.log("Computing events count from Blob and Druid datasource job completed...")
-    result.toList
+    result
   }
 
-  def getDruidEventsCount(auditConfig: AuditConfig): Map[String, Double] = {
+  def getDruidEventsCount(auditConfig: AuditConfig): List[DataSourceMetrics] = {
     val apiURL = AppConf.getConfig("druid.sql.host")
+    val countQuery = AppConf.getConfig("druid.datasource.count.query")
+
     val params = auditConfig.params.getOrElse(Map())
-    val endDate = params("endDate").asInstanceOf[String]
-    val startDate = params("startDate").asInstanceOf[String]
     val daysMinus = params("syncMinusDays").asInstanceOf[Int]
     val daysPlus = params("syncPlusDays").asInstanceOf[Int]
     val formatter: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd")
-    val startDateTime = formatter.parseDateTime(startDate)
-    val endDateTime = formatter.parseDateTime(endDate)
+    val startDateTime = formatter.parseDateTime(auditConfig.startDate)
+    val endDateTime = formatter.parseDateTime(auditConfig.endDate)
 
-    val countQuery = "{ \"query\": \"SELECT COUNT(*) AS \\\"total\\\" FROM \\\"druid\\\".\\\"%s\\\" WHERE TIME_FORMAT(MILLIS_TO_TIMESTAMP(\\\"syncts\\\"), 'yyyy-MM-dd HH:mm:ss.SSS', 'Asia/Kolkata') BETWEEN TIMESTAMP '%s' AND '%s' AND  \\\"__time\\\" BETWEEN TIMESTAMP '%s' AND TIMESTAMP '%s'\" }"
     val queryMap: Map[String, String] = Map(
       TelemetryEvents -> countQuery.format(
         TelemetryEvents,
-        s"$startDate 00:00:00",
-        s"$endDate 23:59:00",
+        s"${auditConfig.startDate} 00:00:00",
+        s"${auditConfig.endDate} 23:59:00",
         startDateTime.minusDays(daysMinus).withTimeAtStartOfDay().toString("yyyy-MM-dd HH:mm:ss"),
         endDateTime.plusDays(daysPlus).withTimeAtStartOfDay().toString("yyyy-MM-dd HH:mm:ss")
       ),
       SummaryEvents -> countQuery.format(
         SummaryEvents,
-        s"$startDate 00:00:00",
-        s"$endDate 23:59:00",
+        s"${auditConfig.startDate} 00:00:00",
+        s"${auditConfig.endDate} 23:59:00",
         startDateTime.minusDays(daysMinus).withTimeAtStartOfDay().toString("yyyy-MM-dd HH:mm:ss"),
         endDateTime.plusDays(daysPlus).withTimeAtStartOfDay().toString("yyyy-MM-dd HH:mm:ss")
       )
     )
 
-    queryMap flatMap { case (name, query) =>
-      val response = RestUtil.post[List[EventsCount]](apiURL, query)
-      if(response.nonEmpty) Map[String, Double](name -> response.head.total.toDouble) else Map[String, Double](name -> 0)
-    }
+    queryMap.flatMap { case (datasource, query) =>
+      val response = RestUtil.post[List[Long]](apiURL, query).headOption
+      response.map {
+        result => DataSourceMetrics(datasource, druidEventsCount = result.toDouble)
+      }
+    }.toList
+
   }
 
   def computeStatus(threshold: Double, diff: Double): AuditStatus.Value = {

@@ -4,7 +4,7 @@ import org.apache.spark.SparkContext
 
 import scala.reflect.runtime.{universe => ru}
 
-case class AuditConfig(name: String, description: String, threshold: Double, model: String, priority: Int, startDate: String, endDate: String, params: Option[Map[String, AnyRef]] = None)
+case class AuditConfig(name: String, description: String, threshold: Double, model: String, priority: Int, startDate: String, endDate: String, params: Option[Map[String, AnyRef]], search: Option[List[Fetcher]] = None)
 
 object AuditTaskRunner {
 
