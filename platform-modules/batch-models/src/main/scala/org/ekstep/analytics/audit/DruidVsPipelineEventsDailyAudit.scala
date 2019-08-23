@@ -42,8 +42,6 @@ object DruidVsPipelineEventsDailyAudit  extends IAuditTask {
       }
     }.getOrElse(List[DataSourceMetrics]())
 
-    println(blobStorageMetrics.mkString("\n"))
-
     /*
     val eventsCount = Map(folderList map { folder =>
       val queryConfig = s"""{ "type": "azure", "queries": [{ "bucket": "$bucket", "prefix": "$folder", "endDate": "$endDate", "startDate": "$startDate" }] }"""

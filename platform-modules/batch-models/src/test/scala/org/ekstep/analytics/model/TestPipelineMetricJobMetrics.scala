@@ -4,7 +4,7 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.{Dispatcher, Fetcher, JobConfig}
 import org.ekstep.analytics.job.AuditComputationJob
 
-class TestAuditComputationModel extends SparkSpec(null) {
+class TestPipelineMetricJobMetrics extends SparkSpec(null) {
 
   it should "Invoke Audit Check for PipelineAudit" in {
     val config = JobConfig(search = Fetcher(`type` = "none", query = None, queries = None),
