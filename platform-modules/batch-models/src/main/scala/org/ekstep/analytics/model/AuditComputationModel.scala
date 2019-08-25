@@ -2,8 +2,9 @@ package org.ekstep.analytics.model
 
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework._
+import org.ekstep.analytics.framework.conf.AppConf
+import org.ekstep.analytics.framework.util.JSONUtils
 
 object AuditComputationModel extends IBatchModelTemplate[Empty, Empty, AuditOutput, AuditOutput] {
 
@@ -40,7 +41,26 @@ object AuditComputationModel extends IBatchModelTemplate[Empty, Empty, AuditOutp
     * 3. Transform into a structure that can be input to another data product
     */
   override def postProcess(events: RDD[AuditOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[AuditOutput] = {
-    events.foreach(println(_))
+    //events.foreach(println(_))
+    val dispatcher = Dispatcher("slack", Map("channel" -> AppConf.getConfig("pipeline_audit.notification.channel"), "userName" -> AppConf.getConfig("pipeline_audit.notification.name"), "attachments" -> "true"))
+    val auditOutputList = events.collect().toList
+    val colorMap = Map[String, String]("GREEN" -> "good", "RED" -> "danger", "AMBER" -> "warning")
+    val messageList = auditOutputList.zipWithIndex.map{ case (audit, index) =>
+      s"""
+         |{
+         | "fallback": "",
+         | "pretext": "*Daily Audit Report*",
+         | "title": "${index+1}. Job:  ${audit.name}",
+         | "title_link": "",
+         | "text": "----------",
+         | "fields": ${audit.details.flatMap(details => details.toSlackFields).mkString("[", ",", "]")},
+         | "color": "${colorMap(audit.status.toString)}"
+         |}
+      """.stripMargin
+        .replaceAll("\\n", "")
+    }.toArray
+
+    OutputDispatcher.dispatch(dispatcher, messageList)
     events
   }
 

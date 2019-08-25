@@ -3,7 +3,7 @@ package org.ekstep.analytics.audit
 import org.apache.spark.SparkContext
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.conf.AppConf
-import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger, RestUtil}
+import org.ekstep.analytics.framework.util.{JobLogger, RestUtil}
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 
 
@@ -79,7 +79,8 @@ object DruidVsPipelineEventsDailyAudit  extends IAuditTask {
 
   def getDruidEventsCount(auditConfig: AuditConfig): List[DataSourceMetrics] = {
     val apiURL = AppConf.getConfig("druid.sql.host")
-    val countQuery = AppConf.getConfig("druid.datasource.count.query")
+    val telemetryCountQuery = AppConf.getConfig("druid.telemetryDatasource.count.query")
+    val summaryCountQuery = AppConf.getConfig("druid.summaryDatasource.count.query")
 
     val params = auditConfig.params.getOrElse(Map())
     val daysMinus = params("syncMinusDays").asInstanceOf[Int]
@@ -89,19 +90,15 @@ object DruidVsPipelineEventsDailyAudit  extends IAuditTask {
     val endDateTime = formatter.parseDateTime(auditConfig.endDate)
 
     val queryMap: Map[String, String] = Map(
-      TelemetryEvents -> countQuery.format(
-        TelemetryEvents,
+      TelemetryEvents -> telemetryCountQuery.format(
         s"${auditConfig.startDate} 00:00:00",
         s"${auditConfig.endDate} 23:59:00",
         startDateTime.minusDays(daysMinus).withTimeAtStartOfDay().toString("yyyy-MM-dd HH:mm:ss"),
         endDateTime.plusDays(daysPlus).withTimeAtStartOfDay().toString("yyyy-MM-dd HH:mm:ss")
       ),
-      SummaryEvents -> countQuery.format(
-        SummaryEvents,
+      SummaryEvents -> summaryCountQuery.format(
         s"${auditConfig.startDate} 00:00:00",
-        s"${auditConfig.endDate} 23:59:00",
-        startDateTime.minusDays(daysMinus).withTimeAtStartOfDay().toString("yyyy-MM-dd HH:mm:ss"),
-        endDateTime.plusDays(daysPlus).withTimeAtStartOfDay().toString("yyyy-MM-dd HH:mm:ss")
+        s"${auditConfig.endDate} 23:59:00"
       )
     )
 
