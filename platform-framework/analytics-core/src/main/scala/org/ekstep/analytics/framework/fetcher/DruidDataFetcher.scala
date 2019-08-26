@@ -21,8 +21,6 @@ object DruidDataFetcher {
         // TO-DOs for 2.4.0:
         // add javascript type in getPostAgg methods
         // accept extraction function for dims
-        // use streams for larger data
-        // add logs for monitoring
 
         val request = getQuery(query)
         val response = request.execute()
