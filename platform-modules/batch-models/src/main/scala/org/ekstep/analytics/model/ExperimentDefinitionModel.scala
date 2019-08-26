@@ -123,7 +123,7 @@ object ExperimentDefinitionModel extends IBatchModelTemplate[Empty, ExperimentDe
                 lastUpdatedOn = outputFormat.format(inputFormat.parse(TimestampFormatter.format(new Date))),
                 userIdMod = modulus)
         else
-            ExperimentDefinitionOutput(userId = mappingId,
+            ExperimentDefinitionOutput(deviceId = mappingId,
                 id = exp.exp_id, name = exp.exp_name, platform = expData.client, key = expData.key, expType = expType,
                 startDate = outputFormat.format(inputFormat.parse(expData.startDate)),
                 endDate = outputFormat.format(inputFormat.parse(expData.endDate)),
