@@ -5,7 +5,7 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.{DeviceProfileModel, JobConfig, OutputDispatcher}
 import org.scalamock.scalatest.MockFactory
 
-import scala.collection.mutable.{Buffer, ListBuffer}
+import scala.collection.mutable.ListBuffer
 import scala.io.Source
 
 

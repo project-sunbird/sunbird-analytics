@@ -31,8 +31,8 @@ object RestUtil extends HTTPClient{
         val httpClient = HttpClients.createDefault();
         try {
             val httpResponse = httpClient.execute(request);
-            val entity = httpResponse.getEntity()
-            val inputStream = entity.getContent()
+            val entity = httpResponse.getEntity
+            val inputStream = entity.getContent
             val content = Source.fromInputStream(inputStream, "UTF-8").getLines.mkString;
             inputStream.close
             if ("java.lang.String".equals(mf.toString())) {
