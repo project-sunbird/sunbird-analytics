@@ -1,16 +1,16 @@
 package org.ekstep.analytics.framework.dispatcher
 
-import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
-import org.ekstep.analytics.framework.util.RestUtil
-import org.ekstep.analytics.framework.exception.DispatcherException
-import org.ekstep.analytics.framework.util.JSONUtils
+import org.apache.spark.rdd.RDD
+import org.ekstep.analytics.framework.Output
 import org.ekstep.analytics.framework.conf.AppConf
+import org.ekstep.analytics.framework.exception.DispatcherException
+import org.ekstep.analytics.framework.util.{JSONUtils, RestUtil}
 
 
 case class SlackMessage(channel: String, username: String, text: Option[String] = None, attachments: Option[Array[Attachments]] = None, icon_emoji:String = ":ghost:")
 case class Fields(title: String, value: String, short: Boolean)
-case class Attachments(mrkdwn_in: String, fallback: String, pretext: String, title: String, title_link: String, text: String, color: String, fields: Array[Fields])
+case class Attachments(mrkdwn_in: String, fallback: String, pretext: String, title: String, title_link: String, text: String, color: String, fields: Array[Fields]) extends Output
 /**
  * @author Santhosh
  */
