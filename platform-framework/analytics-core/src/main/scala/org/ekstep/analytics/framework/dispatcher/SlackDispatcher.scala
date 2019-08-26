@@ -1,16 +1,16 @@
 package org.ekstep.analytics.framework.dispatcher
 
-import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
-import org.ekstep.analytics.framework.util.RestUtil
-import org.ekstep.analytics.framework.exception.DispatcherException
-import org.ekstep.analytics.framework.util.JSONUtils
+import org.apache.spark.rdd.RDD
+import org.ekstep.analytics.framework.Output
 import org.ekstep.analytics.framework.conf.AppConf
+import org.ekstep.analytics.framework.exception.DispatcherException
+import org.ekstep.analytics.framework.util.{JSONUtils, RestUtil}
 
 
 case class SlackMessage(channel: String, username: String, text: Option[String] = None, attachments: Option[Array[Attachments]] = None, icon_emoji:String = ":ghost:")
 case class Fields(title: String, value: String, short: Boolean)
-case class Attachments(mrkdwn_in: String, fallback: String, pretext: String, title: String, title_link: String, text: String, color: String, fields: Array[Fields])
+case class Attachments(mrkdwn_in: String, fallback: String, pretext: String, title: String, title_link: String, text: String, color: String, fields: Array[Fields]) extends Output
 /**
  * @author Santhosh
  */
@@ -27,10 +27,10 @@ object SlackDispatcher extends IDispatcher {
             throw new DispatcherException("'channel' & 'userName' parameters are required to send output to slack")
         }
 
-        val attachments: Array[Attachments] = if(hasAttachments.equalsIgnoreCase("true")) events.map(JSONUtils.deserialize[Attachments](_)) else Array()
-
         val webhookUrl = AppConf.getConfig("monitor.notification.webhook_url")
-        val message =  if (hasAttachments.equalsIgnoreCase("true")) SlackMessage(channel, userName, attachments = Some(attachments)) else SlackMessage(channel, userName, text = Some(events.mkString(",")))
+        val message =  if (hasAttachments.equalsIgnoreCase("true")) {
+            SlackMessage(channel, userName, attachments = Some(events.map(JSONUtils.deserialize[Attachments](_))))
+        } else SlackMessage(channel, userName, text = Some(events.mkString(",")))
         val resp = RestUtil.post[String](webhookUrl, JSONUtils.serialize(message))
         events
     }

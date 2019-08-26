@@ -3,10 +3,10 @@ package org.ekstep.analytics.model
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.framework._
-import org.ekstep.analytics.framework.conf.AppConf
+import org.ekstep.analytics.framework.dispatcher.Attachments
 import org.ekstep.analytics.framework.util.JSONUtils
 
-object AuditComputationModel extends IBatchModelTemplate[Empty, Empty, AuditOutput, AuditOutput] {
+object AuditComputationModel extends IBatchModelTemplate[Empty, Empty, AuditOutput, Attachments] {
 
   implicit val className: String = "org.ekstep.analytics.model.AuditComputationModel"
 
@@ -40,12 +40,11 @@ object AuditComputationModel extends IBatchModelTemplate[Empty, Empty, AuditOutp
     * 2. Converting to "MeasuredEvent" to be able to dispatch to Kafka or any output dispatcher
     * 3. Transform into a structure that can be input to another data product
     */
-  override def postProcess(events: RDD[AuditOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[AuditOutput] = {
+  override def postProcess(events: RDD[AuditOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[Attachments] = {
     //events.foreach(println(_))
-    val dispatcher = Dispatcher("slack", Map("channel" -> AppConf.getConfig("pipeline_audit.notification.channel"), "userName" -> AppConf.getConfig("pipeline_audit.notification.name"), "attachments" -> "true"))
     val auditOutputList = events.collect().toList
     val colorMap = Map[String, String]("GREEN" -> "good", "RED" -> "danger", "AMBER" -> "warning")
-    val messageList = auditOutputList.zipWithIndex.map{ case (audit, index) =>
+    val message = auditOutputList.zipWithIndex.map{ case (audit, index) =>
       s"""
          |{
          | "fallback": "",
@@ -58,10 +57,8 @@ object AuditComputationModel extends IBatchModelTemplate[Empty, Empty, AuditOutp
          |}
       """.stripMargin
         .replaceAll("\\n", "")
-    }.toArray
-
-    OutputDispatcher.dispatch(dispatcher, messageList)
-    events
+    }
+    sc.parallelize(message.map(JSONUtils.deserialize[Attachments](_)))
   }
 
 }
