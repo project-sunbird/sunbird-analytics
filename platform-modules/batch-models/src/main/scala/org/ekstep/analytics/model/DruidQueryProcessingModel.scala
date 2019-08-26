@@ -20,7 +20,7 @@ case class ReportConfig(id: String, queryType: String, dateRange: QueryDateRange
 case class QueryDateRange(interval: Option[QueryInterval], staticInterval: Option[String], granularity: Option[String])
 case class QueryInterval(startDate: String, endDate: String)
 case class Metrics(metric: String, label: String, druidQuery: DruidQueryModel)
-case class OutputConfig(`type`: String, label: String, metrics: List[String], dims: List[String], filePattern: String)
+case class OutputConfig(`type`: String, label: String, metrics: List[String], dims: List[String], fileParameters: List[String] = List("id", "dims"))
 
 object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, DruidOutput, DruidOutput, DruidOutput] with Serializable {
 
@@ -90,7 +90,7 @@ object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, Druid
                 val renamedDf =  filteredDf.select(filteredDf.columns.map(c => filteredDf.col(c).as(labelsLookup.getOrElse(c, c))): _*)
                 val reportFinalId = if(f.label.nonEmpty) reportConfig.id + "/" + f.label else reportConfig.id
                 //renamedDf.show(150)
-                val dirPath = writeToCSVAndRename(renamedDf, config ++ Map("dims" -> dimsLabels, "reportId" -> reportFinalId, "filePattern" -> f.filePattern))
+                val dirPath = writeToCSVAndRename(renamedDf, config ++ Map("dims" -> dimsLabels, "reportId" -> reportFinalId, "fileParameters" -> f.fileParameters))
                 AzureDispatcher.dispatchDirectory(config ++ Map("dirPath" -> dirPath, "key" -> (key + reportFinalId + "/")))
             }
             else {
@@ -105,10 +105,10 @@ object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, Druid
         val filePath = config.getOrElse("filePath", AppConf.getConfig("spark_output_temp_dir")).asInstanceOf[String];
         val key = config.getOrElse("key", null).asInstanceOf[String];
         val reportId = config.getOrElse("reportId", "").asInstanceOf[String];
-        val filePattern = config.getOrElse("filePattern", "").asInstanceOf[String];
+        val fileParameters = config.getOrElse("fileParameters", List("")).asInstanceOf[List[String]];
         var dims = config.getOrElse("dims", List()).asInstanceOf[List[String]];
 
-        dims = if (filePattern.nonEmpty && filePattern.contains("date")) dims ++ List("Date") else dims
+        dims = if (fileParameters.nonEmpty && fileParameters.contains("date")) dims ++ List("Date") else dims
         val finalPath = filePath + key.split("/").last
         if(dims.nonEmpty) {
             val duplicateDims = dims.map(f => f.concat("Duplicate"))
@@ -121,13 +121,11 @@ object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, Druid
         else
             data.coalesce(1).write.format("com.databricks.spark.csv").option("header", "true").mode("overwrite").save(finalPath)
         val renameDir = finalPath+"/renamed"
-        renameHadoopFiles(finalPath, renameDir, filePattern, reportId, dims)
+        renameHadoopFiles(finalPath, renameDir, reportId, dims)
     }
 
-    def renameHadoopFiles(tempDir: String, outDir: String, filePattern: String, id: String, dims: List[String])(implicit sc: SparkContext): String = {
+    def renameHadoopFiles(tempDir: String, outDir: String, id: String, dims: List[String])(implicit sc: SparkContext): String = {
 
-        // TO-DO
-        // Use filePattern for renaming files
         val fs = FileSystem.get(sc.hadoopConfiguration)
         val fileList = fs.listFiles(new Path(s"$tempDir/"), true)
         while(fileList.hasNext){
