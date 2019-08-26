@@ -19,8 +19,7 @@ object PipelineFailedEventsDailyAudit extends IAuditTask {
 
   def computeFailedEventsCount(config: AuditConfig)(implicit sc: SparkContext): List[AuditDetails] = {
     JobLogger.log("Computing events count from failed backup...")
-
-
+    
     val auditResults = config.search.map { fetcherList =>
       fetcherList.flatMap {fetcher =>
         val events = DataFetcher.fetchBatchData[V3Event](fetcher)
@@ -49,36 +48,7 @@ object PipelineFailedEventsDailyAudit extends IAuditTask {
     }.getOrElse(List[AuditDetails]())
 
     JobLogger.log("Computing events count from failed backup job complete...")
-
     auditResults
-
-    /*
-    config.search.map { fetcher =>
-      val events = DataFetcher.fetchBatchData[V3Event](fetcher)
-      val totalEvent = events.count()
-
-      val result = events
-        .map(event => event.context.pdata)
-        .map {
-          case Some(pdata) => ((pdata.id, pdata.pid.getOrElse("UNKNOWN")), 1)
-        }
-        .reduceByKey(_ + _)
-        .sortBy(_._2)
-        .collect
-        .toList
-
-      val auditDetailsList = result.map {
-        value => {
-          val producerStat = FailedEvents(value._1._1, value._1._2, value._2)
-          val percentageDiff = if (totalEvent > 0) (producerStat.failedCount.toDouble * 100) / totalEvent.toDouble else 0d
-          AuditDetails(rule = config.name, stats = producerStat.toMap, difference = percentageDiff,
-            status = computeStatus(config.threshold, percentageDiff))
-        }
-      }
-      JobLogger.log("Computing events count from failed backup job complete...")
-      auditDetailsList
-    }.getOrElse(List[AuditDetails]())
-    */
   }
 
   def computeStatus(threshold: Double, diff: Double): AuditStatus.Value = {

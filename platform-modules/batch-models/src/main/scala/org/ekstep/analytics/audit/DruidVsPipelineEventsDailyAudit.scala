@@ -42,17 +42,7 @@ object DruidVsPipelineEventsDailyAudit  extends IAuditTask {
       }
     }.getOrElse(List[DataSourceMetrics]())
 
-    /*
-    val eventsCount = Map(folderList map { folder =>
-      val queryConfig = s"""{ "type": "azure", "queries": [{ "bucket": "$bucket", "prefix": "$folder", "endDate": "$endDate", "startDate": "$startDate" }] }"""
-      val events = DataFetcher.fetchBatchData[V3Event](JSONUtils.deserialize[Fetcher](queryConfig))
-      (DruidToBlobMapper(folder), events.count)
-    }: _*)
-    */
-
     val druidStorageMetrics = getDruidEventsCount(config)
-
-    println(druidStorageMetrics.mkString("\n"))
 
     val auditMetrics = blobStorageMetrics.map { blobMetrics => {
         val druidMetrics = druidStorageMetrics.find(_.datasource == blobMetrics.datasource).getOrElse(DataSourceMetrics(blobMetrics.datasource))
