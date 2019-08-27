@@ -9,6 +9,8 @@ import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 
 @scala.beans.BeanInfo
 case class DataSourceMetrics(datasource: String, blobStorageCount: Double = 0d, druidEventsCount: Double = 0d, percentageDiff: Double = 0d) extends CaseClassConversions
+@scala.beans.BeanInfo
+case class EventsCount(total: Long)
 
 object DruidVsPipelineEventsDailyAudit  extends IAuditTask {
   implicit val className: String = "org.ekstep.analytics.audit.DruidVsPipelineEventsDailyAudit"
@@ -93,9 +95,9 @@ object DruidVsPipelineEventsDailyAudit  extends IAuditTask {
     )
 
     queryMap.flatMap { case (datasource, query) =>
-      val response = RestUtil.post[List[Long]](apiURL, query).headOption
+      val response = RestUtil.post[List[EventsCount]](apiURL, query).headOption
       response.map {
-        result => DataSourceMetrics(datasource, druidEventsCount = result.toDouble)
+        result => DataSourceMetrics(datasource, druidEventsCount = result.total.toDouble)
       }
     }.toList
 
