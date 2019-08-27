@@ -214,6 +214,12 @@ object JobFactory {
                 ExperimentDefinitionJob
             case "daily-metrics-consumption-reports" =>
                 ConsumptionReportsJob
+            case "pipeline-failed-events-audit" =>
+                AuditComputationJob
+            case "pipeline-druid-events-audit" =>
+                AuditComputationJob
+            case "pipeline-audit" =>
+                AuditComputationJob
             case _ =>
                 throw new JobNotFoundException("Unknown job type found")
         }
