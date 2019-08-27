@@ -29,6 +29,7 @@ object PipelineFailedEventsDailyAudit extends IAuditTask {
           .map(event => event.context.pdata)
           .map {
             case Some(pdata) => ((pdata.id, pdata.pid.getOrElse("UNKNOWN")), 1)
+            case None => (("EmptyID", "EmptyPID"), 1)
           }
           .reduceByKey(_ + _)
           .sortBy(_._2)
