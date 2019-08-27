@@ -27,6 +27,7 @@ object DailyConsumptionReportModel extends IBatchModelTemplate[Empty, Empty, Emp
     val scriptDirectory = config.getOrElse("adhoc_scripts_dir", "/home/analytics/telemetryreports/scripts")
     val scriptOutputDirectory = config.getOrElse("adhoc_scripts_output_dir", "/mount/data/store")
     val virtualEnvDirectory = config.getOrElse("adhoc_scripts_virtualenv_dir", "/mount/venv")
+    val druidBrokerUrl = config.getOrElse("druid_broker_url", "http://localhost:8082/")
     val formatter = DateTimeFormat.forPattern("yyyy-MM-dd")
     val executionDate = config.get("startDate").map {
       d => formatter.parseDateTime(d.asInstanceOf[String]).plusDays(1).toString("dd/MM/yyyy")
@@ -38,7 +39,7 @@ object DailyConsumptionReportModel extends IBatchModelTemplate[Empty, Empty, Emp
     val dailyConsumptionReportScript =
       Seq("bash", "-c",
         s"source $virtualEnvDirectory/bin/activate; " +
-        s"python $scriptDirectory/daily_metrics_refactored.py $scriptOutputDirectory ${ executionDate.map { dt => s"-execution_date $dt" }.getOrElse("") } ${ wfsDir.map(dir => s"-derived_summary_dir $dir").getOrElse("") }")
+        s"python $scriptDirectory/daily_metrics_refactored.py $scriptOutputDirectory ${ executionDate.map { dt => s"-execution_date $dt" }.getOrElse("") } ${ wfsDir.map(dir => s"-derived_summary_dir $dir").getOrElse("") } -Druid_hostname $druidBrokerUrl")
     val dailyReportsExitCode = ScriptDispatcher.dispatch(dailyConsumptionReportScript)
 
     if (dailyReportsExitCode == 0) {
