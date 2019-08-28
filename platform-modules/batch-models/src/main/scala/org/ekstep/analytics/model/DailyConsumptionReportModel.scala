@@ -26,7 +26,7 @@ object DailyConsumptionReportModel extends IBatchModelTemplate[Empty, Empty, Emp
   override def algorithm(events: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[Empty] = {
 
     val scriptDirectory = config.getOrElse("adhoc_scripts_dir", "/home/analytics/telemetryreports/scripts")
-    val scriptOutputDirectory = config.getOrElse("adhoc_scripts_output_dir", "/mount/data/store")
+    val scriptOutputDirectory = config.getOrElse("adhoc_scripts_output_dir", "/mount/portal_data")
     val virtualEnvDirectory = config.getOrElse("adhoc_scripts_virtualenv_dir", "/mount/venv")
     val druidBrokerUrl = config.getOrElse("druid_broker_url", "http://localhost:8082/")
     val formatter = DateTimeFormat.forPattern("yyyy-MM-dd")
