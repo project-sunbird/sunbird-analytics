@@ -39,7 +39,8 @@ object DailyConsumptionReportModel extends IBatchModelTemplate[Empty, Empty, Emp
     val dailyConsumptionReportScript =
       Seq("bash", "-c",
         s"source $virtualEnvDirectory/bin/activate; " +
-        s"python $scriptDirectory/daily_metrics_refactored.py $scriptOutputDirectory ${ executionDate.map { dt => s"-execution_date $dt" }.getOrElse("") } ${ wfsDir.map(dir => s"-derived_summary_dir $dir").getOrElse("") } -Druid_hostname $druidBrokerUrl")
+        s"python $scriptDirectory/daily_metrics_refactored.py $scriptOutputDirectory $druidBrokerUrl ${ executionDate.map { dt => s"-execution_date $dt" }.getOrElse("") } ${ wfsDir.map(dir => s"-derived_summary_dir $dir").getOrElse("") }")
+    println("Consumption reports command: " + dailyConsumptionReportScript)
     val dailyReportsExitCode = ScriptDispatcher.dispatch(dailyConsumptionReportScript)
 
     if (dailyReportsExitCode == 0) {
