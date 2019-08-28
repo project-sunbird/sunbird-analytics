@@ -11,6 +11,7 @@ import org.joda.time.format.DateTimeFormat
 object DailyConsumptionReportModel extends IBatchModelTemplate[Empty, Empty, Empty, Empty] {
 
   implicit val className: String = "org.ekstep.analytics.model.AdhocConsumptionReportModel"
+  override def name: String = "DailyConsumptionReportModel"
 
   /**
     * This data product does not have pre-processing required. The data products reads the raw telemetry and summary events
@@ -39,7 +40,8 @@ object DailyConsumptionReportModel extends IBatchModelTemplate[Empty, Empty, Emp
     val dailyConsumptionReportScript =
       Seq("bash", "-c",
         s"source $virtualEnvDirectory/bin/activate; " +
-        s"python $scriptDirectory/daily_metrics_refactored.py $scriptOutputDirectory ${ executionDate.map { dt => s"-execution_date $dt" }.getOrElse("") } ${ wfsDir.map(dir => s"-derived_summary_dir $dir").getOrElse("") } -Druid_hostname $druidBrokerUrl")
+        s"python $scriptDirectory/daily_metrics_refactored.py $scriptOutputDirectory $druidBrokerUrl ${ executionDate.map { dt => s"-execution_date $dt" }.getOrElse("") } ${ wfsDir.map(dir => s"-derived_summary_dir $dir").getOrElse("") }")
+    println("Consumption reports command: " + dailyConsumptionReportScript)
     val dailyReportsExitCode = ScriptDispatcher.dispatch(dailyConsumptionReportScript)
 
     if (dailyReportsExitCode == 0) {
