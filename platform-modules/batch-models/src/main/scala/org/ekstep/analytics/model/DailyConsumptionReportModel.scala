@@ -10,7 +10,7 @@ import org.joda.time.format.DateTimeFormat
 
 object DailyConsumptionReportModel extends IBatchModelTemplate[Empty, Empty, Empty, Empty] {
 
-  implicit val className: String = "org.ekstep.analytics.model.AdhocConsumptionReportModel"
+  implicit val className: String = "org.ekstep.analytics.model.DailyConsumptionReportModel"
   override def name: String = "DailyConsumptionReportModel"
 
   /**
