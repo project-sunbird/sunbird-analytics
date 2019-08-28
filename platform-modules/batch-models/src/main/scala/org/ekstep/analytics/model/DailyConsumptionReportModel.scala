@@ -11,6 +11,7 @@ import org.joda.time.format.DateTimeFormat
 object DailyConsumptionReportModel extends IBatchModelTemplate[Empty, Empty, Empty, Empty] {
 
   implicit val className: String = "org.ekstep.analytics.model.AdhocConsumptionReportModel"
+  override def name: String = "DailyConsumptionReportModel"
 
   /**
     * This data product does not have pre-processing required. The data products reads the raw telemetry and summary events
