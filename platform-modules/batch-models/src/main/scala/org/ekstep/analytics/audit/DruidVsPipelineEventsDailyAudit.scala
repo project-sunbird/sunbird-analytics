@@ -61,7 +61,12 @@ object DruidVsPipelineEventsDailyAudit  extends IAuditTask {
     val result = auditMetrics.map { metrics => {
          AuditDetails(
            rule = config.name,
-           stats = metrics.toMap,
+           stats = metrics.toMap.map {
+             case (k, v) => v match {
+               case d: Double => k -> s"%.2f".format(d)
+               case _ => k -> v
+             }
+           },
            difference = metrics.percentageDiff,
            status = computeStatus(config.threshold, metrics.percentageDiff)
          )
