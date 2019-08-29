@@ -59,25 +59,21 @@ object AzureDispatcher extends IDispatcher {
     }
 
     def dispatchDirectory(config: Map[String, AnyRef])(implicit sc: SparkContext) = {
-        val dirPath = config.getOrElse("dirPath", null).asInstanceOf[String];
-        val bucket = config.getOrElse("bucket", null).asInstanceOf[String];
-        val key = config.getOrElse("key", null).asInstanceOf[String];
-        val isPublic = config.getOrElse("public", false).asInstanceOf[Boolean];
+        val dirPath = config.getOrElse("dirPath", null).asInstanceOf[String]
+        val bucket = config.getOrElse("bucket", null).asInstanceOf[String]
+        val key = config.getOrElse("key", null).asInstanceOf[String]
+        val isPublic = config.getOrElse("public", false).asInstanceOf[Boolean]
 
         if (null == bucket || null == key || dirPath == null) {
             throw new DispatcherException("'local file path', 'bucket' & 'key' parameters are required to upload directory to azure")
         }
 
         val uploadMsg = StorageServiceFactory.getStorageService(StorageConfig("azure", AppConf.getStorageKey("azure"), AppConf.getStorageSecret("azure")))
-          .uploadFolder(bucket, dirPath, key, Option(isPublic));
+          .uploadFolder(bucket, dirPath, key, Option(isPublic))
         val uploadWaitTime = AppConf.getConfig("druid.report.upload.wait.time.mins").toLong
         val result = Await.result(uploadMsg, scala.concurrent.duration.Duration.apply(uploadWaitTime, "minute"))
         JobLogger.log("Successfully Uploaded files", Option(Map("filesUploaded" -> result)), Level.INFO)
-//        uploadMsg.onComplete {
-//            case Success(files) => println("Successfully Uploaded files: " , files);JobLogger.log("Successfully Uploaded files", None, Level.INFO)
-//            case Failure(ex) => throw ex
-//        }
-        CommonUtil.deleteDirectory(dirPath);
+        CommonUtil.deleteDirectory(dirPath)
     }
 
 
