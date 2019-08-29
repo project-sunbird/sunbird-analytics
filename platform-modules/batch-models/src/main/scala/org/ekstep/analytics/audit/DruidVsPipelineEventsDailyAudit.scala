@@ -8,7 +8,10 @@ import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 
 
 @scala.beans.BeanInfo
-case class DataSourceMetrics(datasource: String, blobStorageCount: Double = 0d, druidEventsCount: Double = 0d, percentageDiff: Double = 0d) extends CaseClassConversions
+case class DataSourceMetrics(datasource: String, blobStorageCount: Double = 0d, druidEventsCount: Double = 0d, percentageDiff: Double = 0d) extends CaseClassConversions {
+  override def toString() = s"""{"datasource": "$datasource", "blobStorageCount": ${blobStorageCount.toLong}, "druidEventsCount": ${druidEventsCount.toLong}, "percentageDiff": %.2f }""".format(percentageDiff)
+}
+
 @scala.beans.BeanInfo
 case class EventsCount(total: Long)
 
@@ -104,8 +107,8 @@ object DruidVsPipelineEventsDailyAudit  extends IAuditTask {
   }
 
   def computeStatus(threshold: Double, diff: Double): AuditStatus.Value = {
-    if(diff < threshold) AuditStatus.GREEN
-    else if((diff - threshold).abs < 0.5) AuditStatus.AMBER
+    if (diff.abs < threshold) AuditStatus.GREEN
+    else if ((diff.abs - threshold).abs < 0.5) AuditStatus.AMBER
     else AuditStatus.RED
   }
 }

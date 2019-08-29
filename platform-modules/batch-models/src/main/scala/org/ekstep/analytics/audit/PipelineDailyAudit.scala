@@ -58,8 +58,8 @@ object PipelineDailyAudit extends IAuditTask {
   }
 
   def computeStatus(threshold: Double, percentageDifference: Double, precision: Double = 0.5): AuditStatus = {
-    if(percentageDifference < threshold) AuditStatus.GREEN
-    else if((percentageDifference - threshold).abs < 0.5) AuditStatus.AMBER
+    if (percentageDifference.abs < threshold) AuditStatus.GREEN
+    else if ((percentageDifference.abs - threshold).abs < 0.5) AuditStatus.AMBER
     else AuditStatus.RED
   }
 
