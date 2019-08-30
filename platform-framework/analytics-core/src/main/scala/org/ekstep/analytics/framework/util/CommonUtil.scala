@@ -9,6 +9,7 @@ import java.util.Date
 import java.util.zip.GZIPOutputStream
 
 import ing.wbaa.druid.definitions.{Granularity, GranularityType}
+import org.apache.spark.sql.SparkSession
 import org.apache.spark.{SparkConf, SparkContext}
 import org.ekstep.analytics.framework.Level._
 import org.ekstep.analytics.framework.Period._
@@ -50,11 +51,11 @@ object CommonUtil {
           .set("spark.driver.memory", AppConf.getConfig("spark.driver_memory"))
           .set("spark.memory.fraction", AppConf.getConfig("spark.memory_fraction"))
           .set("spark.memory.storageFraction", AppConf.getConfig("spark.storage_fraction"))
-        val master = conf.getOption("spark.master");
+        val master = conf.getOption("spark.master")
         // $COVERAGE-OFF$ Disabling scoverage as the below code cannot be covered as they depend on environment variables
         if (master.isEmpty) {
             JobLogger.log("Master not found. Setting it to local[*]")
-            conf.setMaster("local[*]");
+            conf.setMaster("local[*]")
         }
 
         if (!conf.contains("spark.cassandra.connection.host"))
@@ -62,7 +63,7 @@ object CommonUtil {
         if (embeddedCassandraMode)
             conf.set("spark.cassandra.connection.port", AppConf.getConfig("cassandra.service.embedded.connection.port"))
         if (!conf.contains("reactiveinflux.url")) {
-            conf.set("reactiveinflux.url", AppConf.getConfig("reactiveinflux.url"));
+            conf.set("reactiveinflux.url", AppConf.getConfig("reactiveinflux.url"))
         }
         if (sparkCassandraConnectionHost.nonEmpty) {
             conf.set("spark.cassandra.connection.host", sparkCassandraConnectionHost.get.asInstanceOf[String])
@@ -77,11 +78,52 @@ object CommonUtil {
         }
 
         // $COVERAGE-ON$
-        val sc = new SparkContext(conf);
-        setS3Conf(sc);
-        setAzureConf(sc);
-        JobLogger.log("Spark Context initialized");
-        sc;
+        val sc = new SparkContext(conf)
+        setS3Conf(sc)
+        setAzureConf(sc)
+        JobLogger.log("Spark Context initialized")
+        sc
+    }
+
+    def getSparkSession(parallelization: Int, appName: String, sparkCassandraConnectionHost: Option[AnyRef] = None,
+                        sparkElasticsearchConnectionHost: Option[AnyRef] = None): SparkSession = {
+        JobLogger.log("Initializing SparkSession")
+        val conf = new SparkConf().setAppName(appName).set("spark.default.parallelism", parallelization.toString)
+          .set("spark.driver.memory", AppConf.getConfig("spark.driver_memory"))
+          .set("spark.memory.fraction", AppConf.getConfig("spark.memory_fraction"))
+          .set("spark.memory.storageFraction", AppConf.getConfig("spark.storage_fraction"))
+        val master = conf.getOption("spark.master")
+        // $COVERAGE-OFF$ Disabling scoverage as the below code cannot be covered as they depend on environment variables
+        if (master.isEmpty) {
+            JobLogger.log("Master not found. Setting it to local[*]")
+            conf.setMaster("local[*]")
+        }
+
+        if (!conf.contains("spark.cassandra.connection.host"))
+            conf.set("spark.cassandra.connection.host", AppConf.getConfig("spark.cassandra.connection.host"))
+        if (embeddedCassandraMode)
+            conf.set("spark.cassandra.connection.port", AppConf.getConfig("cassandra.service.embedded.connection.port"))
+        if (!conf.contains("reactiveinflux.url")) {
+            conf.set("reactiveinflux.url", AppConf.getConfig("reactiveinflux.url"))
+        }
+        if (sparkCassandraConnectionHost.nonEmpty) {
+            conf.set("spark.cassandra.connection.host", sparkCassandraConnectionHost.get.asInstanceOf[String])
+            println("setting spark.cassandra.connection.host to lp-cassandra", conf.get("spark.cassandra.connection.host"))
+        }
+
+        if (sparkElasticsearchConnectionHost.nonEmpty) {
+            conf.set("es.nodes", sparkElasticsearchConnectionHost.get.asInstanceOf[String])
+            conf.set("es.port", "9200")
+            conf.set("es.write.rest.error.handler.log.logger.name", "org.ekstep.es.dispatcher")
+            conf.set("es.write.rest.error.handler.log.logger.level", "INFO")
+        }
+
+        // $COVERAGE-ON$
+        val sparkSession = SparkSession.builder().appName("sunbird-analytics").config(conf).getOrCreate()
+        setS3Conf(sparkSession.sparkContext)
+        setAzureConf(sparkSession.sparkContext)
+        JobLogger.log("SparkSession initialized")
+        sparkSession
     }
 
     private def embeddedCassandraMode(): Boolean = {
