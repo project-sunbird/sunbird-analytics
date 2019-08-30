@@ -11,7 +11,8 @@ import io.circe.Json
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.{DruidFilter, DruidQueryModel, PostAggregationFields}
 import org.ekstep.analytics.framework.exception.DataFetcherException
-import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils}
+import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, JobLogger}
+import org.ekstep.analytics.framework.Level._
 
 import scala.concurrent.Await
 
@@ -155,21 +156,22 @@ object DruidDataFetcher {
             case "notin" => Dim(dimension) notIn values.asInstanceOf[List[String]]
             case "regex" => Dim(dimension) regex values.head.asInstanceOf[String]
             case "like" => Dim(dimension) like values.head.asInstanceOf[String]
-            case "greaterthan" => Dim(dimension) > values.head.asInstanceOf[Number].doubleValue()
-            case "lessthan" => Dim(dimension) < values.head.asInstanceOf[Number].doubleValue()
+            case "greaterthan" => Dim(dimension).between(values.head.asInstanceOf[Number].doubleValue(), Integer.MAX_VALUE, true, false)
+            case "lessthan" => Dim(dimension).between(0, values.head.asInstanceOf[Number].doubleValue(), false, true)
 
         }
     }
 
     def getPostAggregation(query: DruidQueryModel): Option[List[PostAggregationExpression]] = {
-        if (query.postAggregation.nonEmpty){
-            Option(query.postAggregation.get.map{ f =>
-                val postAggType = PostAggregationType.decode(f.`type`).right.get
-                getPostAggregationByType(postAggType, f.name, f.fields, f.fn)
-            })
-        }
-        else None
-
+            if (query.postAggregation.nonEmpty) {
+                Option(query.postAggregation.get.map { f =>
+                    PostAggregationType.decode(f.`type`) match {
+                        case Right(x) => getPostAggregationByType(x, f.name, f.fields, f.fn)
+                        case Left(x) => throw x
+                    }
+                })
+            }
+            else None
     }
 
     def getPostAggregationByType(postAggType: PostAggregationType, name: String, fields: PostAggregationFields, fn: Option[String]): PostAggregationExpression = {
@@ -187,12 +189,14 @@ object DruidDataFetcher {
     }
 
     def getGroupByHaving(query: DruidQueryModel): Option[FilteringExpression] = {
-        if (query.having.nonEmpty){
-            val havingType = HavingType.decode(query.having.get.`type`).right.get
-            Option(getGroupByHavingByType(havingType, query.having.get.aggregation, query.having.get.value))
+
+        if (query.having.nonEmpty) {
+            HavingType.decode(query.having.get.`type`) match {
+                case Right(x) => Option(getGroupByHavingByType(x, query.having.get.aggregation, query.having.get.value))
+                case Left(x) => throw x
+            }
         }
         else None
-
     }
 
     def getGroupByHavingByType(postAggType: HavingType, field: String, value: AnyRef): FilteringExpression = {
