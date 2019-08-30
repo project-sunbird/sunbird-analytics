@@ -69,14 +69,10 @@ object AzureDispatcher extends IDispatcher {
         }
 
         val uploadMsg = StorageServiceFactory.getStorageService(StorageConfig("azure", AppConf.getStorageKey("azure"), AppConf.getStorageSecret("azure")))
-          .uploadFolder(bucket, dirPath, key, Option(isPublic));
+          .uploadFolder(bucket, dirPath, key, Option(isPublic), None, Option(3));
         val uploadWaitTime = AppConf.getConfig("druid.report.upload.wait.time.mins").toLong
         val result = Await.result(uploadMsg, scala.concurrent.duration.Duration.apply(uploadWaitTime, "minute"))
         JobLogger.log("Successfully Uploaded files", Option(Map("filesUploaded" -> result)), Level.INFO)
-//        uploadMsg.onComplete {
-//            case Success(files) => println("Successfully Uploaded files: " , files);JobLogger.log("Successfully Uploaded files", None, Level.INFO)
-//            case Failure(ex) => throw ex
-//        }
         CommonUtil.deleteDirectory(dirPath);
     }
 

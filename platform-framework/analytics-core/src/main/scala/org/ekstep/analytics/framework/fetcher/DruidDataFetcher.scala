@@ -105,60 +105,56 @@ object DruidDataFetcher {
     }
 
     def getAggregation(query: DruidQueryModel): List[AggregationExpression] = {
-        query.aggregations.getOrElse(List(org.ekstep.analytics.framework.Aggregation("count", "count", None))).map{f =>
+        query.aggregations.getOrElse(List(org.ekstep.analytics.framework.Aggregation(None, "count", "count"))).map{f =>
             val aggType = AggregationType.decode(f.`type`).right.getOrElse(AggregationType.Count)
             getAggregationByType(aggType, f.name, f.fieldName)
         }
     }
 
-    def getAggregationByType(aggType: AggregationType, name: String, fieldName: Option[String]): AggregationExpression = {
+    def getAggregationByType(aggType: AggregationType, name: Option[String], fieldName: String): AggregationExpression = {
         aggType match {
-            case AggregationType.Count => count as name
-            case AggregationType.HyperUnique => dim(fieldName.get).hyperUnique as name
-            case AggregationType.LongSum => longSum(Dim(fieldName.get)) as name
-            case AggregationType.DoubleSum => doubleSum(Dim(fieldName.get)) as name
-            case AggregationType.DoubleMax => doubleMax(Dim(fieldName.get)) as name
-            case AggregationType.DoubleMin => doubleMin(Dim(fieldName.get)) as name
-            case AggregationType.LongMax => longMax(Dim(fieldName.get)) as name
-            case AggregationType.LongMin => longMin(Dim(fieldName.get)) as name
-            case AggregationType.DoubleFirst => doubleFirst(Dim(fieldName.get)) as name
-            case AggregationType.DoubleLast => doubleLast(Dim(fieldName.get)) as name
-            case AggregationType.LongLast => longLast(Dim(fieldName.get)) as name
-            case AggregationType.LongFirst =>longFirst(Dim(fieldName.get)) as name
+            case AggregationType.Count => count as name.getOrElse(s"${AggregationType.Count.toString.toLowerCase()}_${fieldName.toLowerCase()}")
+            case AggregationType.HyperUnique => dim(fieldName).hyperUnique as name.getOrElse(s"${AggregationType.HyperUnique.toString.toLowerCase()}_${fieldName.toLowerCase()}")
+            case AggregationType.LongSum => longSum(Dim(fieldName)) as name.getOrElse(s"${AggregationType.LongSum.toString.toLowerCase()}_${fieldName.toLowerCase()}")
+            case AggregationType.DoubleSum => doubleSum(Dim(fieldName)) as name.getOrElse(s"${AggregationType.DoubleSum.toString.toLowerCase()}_${fieldName.toLowerCase()}")
+            case AggregationType.DoubleMax => doubleMax(Dim(fieldName)) as name.getOrElse(s"${AggregationType.DoubleMax.toString.toLowerCase()}_${fieldName.toLowerCase()}")
+            case AggregationType.DoubleMin => doubleMin(Dim(fieldName)) as name.getOrElse(s"${AggregationType.DoubleMin.toString.toLowerCase()}_${fieldName.toLowerCase()}")
+            case AggregationType.LongMax => longMax(Dim(fieldName)) as name.getOrElse(s"${AggregationType.LongMax.toString.toLowerCase()}_${fieldName.toLowerCase()}")
+            case AggregationType.LongMin => longMin(Dim(fieldName)) as name.getOrElse(s"${AggregationType.LongMin.toString.toLowerCase()}_${fieldName.toLowerCase()}")
+            case AggregationType.DoubleFirst => doubleFirst(Dim(fieldName)) as name.getOrElse(s"${AggregationType.DoubleFirst.toString.toLowerCase()}_${fieldName.toLowerCase()}")
+            case AggregationType.DoubleLast => doubleLast(Dim(fieldName)) as name.getOrElse(s"${AggregationType.DoubleLast.toString.toLowerCase()}_${fieldName.toLowerCase()}")
+            case AggregationType.LongLast => longLast(Dim(fieldName)) as name.getOrElse(s"${AggregationType.LongLast.toString.toLowerCase()}_${fieldName.toLowerCase()}")
+            case AggregationType.LongFirst =>longFirst(Dim(fieldName)) as name.getOrElse(s"${AggregationType.LongFirst.toString.toLowerCase()}_${fieldName.toLowerCase()}")
         }
     }
 
     def getFilter(query: DruidQueryModel): Option[FilteringExpression] ={
+
         if (query.filters.nonEmpty) {
-            if(query.filters.get.size > 1) {
-                val filters = query.filters.get.map { f =>
-                    val values = if (f.values.isEmpty) Option(List(f.value.get)) else f.values
-                    getFilterByType(f.`type`, f.dimension, values)
-                }
-                Option(conjunction(filters: _*))
+            val filters = query.filters.get.map { f =>
+                val values = if (f.values.isEmpty && f.value.isEmpty) List() else if (f.values.isEmpty) List(f.value.get) else f.values.get
+                getFilterByType(f.`type`, f.dimension, values)
             }
-            else {
-                val values = if (query.filters.get.head.values.isEmpty) Option(List(query.filters.get.head.value.get)) else query.filters.get.head.values
-                Option(getFilterByType(query.filters.get.head.`type`, query.filters.get.head.dimension, values))
-            }
+            Option(conjunction(filters: _*))
         }
         else None
+
     }
 
-    def getFilterByType(filterType: String, dimension: String, values: Option[List[AnyRef]]): FilteringExpression = {
+    def getFilterByType(filterType: String, dimension: String, values: List[AnyRef]): FilteringExpression = {
         filterType.toLowerCase match {
             case "isnull" => Dim(dimension).isNull
             case "isnotnull" => Dim(dimension).isNotNull
-            case "equals" => Dim(dimension) === values.get.head.asInstanceOf[String]
-            case "notequals" => Dim(dimension) =!= values.get.head.asInstanceOf[String]
-            case "containsignorecase" => Dim(dimension).containsIgnoreCase(values.get.head.asInstanceOf[String])
-            case "contains" => Dim(dimension).contains(values.get.head.asInstanceOf[String], true)
-            case "in" => Dim(dimension) in values.get.asInstanceOf[List[String]]
-            case "notin" => Dim(dimension) notIn values.get.asInstanceOf[List[String]]
-            case "regex" => Dim(dimension) regex values.get.head.asInstanceOf[String]
-            case "like" => Dim(dimension) like values.get.head.asInstanceOf[String]
-            case "greaterthan" => Dim(dimension) > values.get.head.asInstanceOf[Number].doubleValue()
-            case "lessthan" => Dim(dimension) < values.get.head.asInstanceOf[Number].doubleValue()
+            case "equals" => Dim(dimension) === values.head.asInstanceOf[String]
+            case "notequals" => Dim(dimension) =!= values.head.asInstanceOf[String]
+            case "containsignorecase" => Dim(dimension).containsIgnoreCase(values.head.asInstanceOf[String])
+            case "contains" => Dim(dimension).contains(values.head.asInstanceOf[String], true)
+            case "in" => Dim(dimension) in values.asInstanceOf[List[String]]
+            case "notin" => Dim(dimension) notIn values.asInstanceOf[List[String]]
+            case "regex" => Dim(dimension) regex values.head.asInstanceOf[String]
+            case "like" => Dim(dimension) like values.head.asInstanceOf[String]
+            case "greaterthan" => Dim(dimension) > values.head.asInstanceOf[Number].doubleValue()
+            case "lessthan" => Dim(dimension) < values.head.asInstanceOf[Number].doubleValue()
 
         }
     }

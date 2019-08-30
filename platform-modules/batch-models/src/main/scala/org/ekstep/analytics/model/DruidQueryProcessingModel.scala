@@ -20,7 +20,7 @@ case class ReportConfig(id: String, queryType: String, dateRange: QueryDateRange
 case class QueryDateRange(interval: Option[QueryInterval], staticInterval: Option[String], granularity: Option[String])
 case class QueryInterval(startDate: String, endDate: String)
 case class Metrics(metric: String, label: String, druidQuery: DruidQueryModel)
-case class OutputConfig(`type`: String, label: String, metrics: List[String], dims: List[String], fileParameters: List[String] = List("id", "dims"))
+case class OutputConfig(`type`: String, label: Option[String], metrics: List[String], dims: List[String] = List(), fileParameters: List[String] = List("id", "dims"))
 
 object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, DruidOutput, DruidOutput, DruidOutput] with Serializable {
 
@@ -73,7 +73,10 @@ object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, Druid
 
         val configMap = config.get("reportConfig").get.asInstanceOf[Map[String, AnyRef]]
         val reportConfig = JSONUtils.deserialize[ReportConfig](JSONUtils.serialize(configMap))
-        val dimFields = reportConfig.metrics.map(m => m.druidQuery.dimensions.get.map(f => f._2)).flatMap(f => f)
+        val dimFields = reportConfig.metrics.map{m =>
+            if(m.druidQuery.dimensions.nonEmpty) m.druidQuery.dimensions.get.map(f => f._2)
+            else List()
+        }.flatMap(f => f)
         val labelsLookup = reportConfig.labels ++ Map("date" -> "Date")
         implicit val sqlContext = new SQLContext(sc);
         import sqlContext.implicits._
@@ -88,8 +91,8 @@ object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, Druid
                 val dimsLabels = labelsLookup.filter(x => f.dims.contains(x._1)).values.toList
                 val filteredDf = df.select(fieldsList.head, fieldsList.tail:_*)
                 val renamedDf =  filteredDf.select(filteredDf.columns.map(c => filteredDf.col(c).as(labelsLookup.getOrElse(c, c))): _*)
-                val reportFinalId = if(f.label.nonEmpty) reportConfig.id + "/" + f.label else reportConfig.id
-                //renamedDf.show(150)
+                val reportFinalId = if(f.label.nonEmpty && f.label.get.nonEmpty) reportConfig.id + "/" + f.label.get else reportConfig.id
+//                renamedDf.show(150)
                 val dirPath = writeToCSVAndRename(renamedDf, config ++ Map("dims" -> dimsLabels, "reportId" -> reportFinalId, "fileParameters" -> f.fileParameters))
                 AzureDispatcher.dispatchDirectory(config ++ Map("dirPath" -> dirPath, "key" -> (key + reportFinalId + "/")))
             }
@@ -140,21 +143,32 @@ object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, Druid
                 val finalKeys = dimsKeys.map { f =>
                     f.split("=").last
                 }
-                val key = if (finalKeys.length > 1) finalKeys.mkString("/") else finalKeys.head
-                val crcKey = if (finalKeys.length > 1) {
+                val key = if (finalKeys.isEmpty) {
+                    id
+                } else if (finalKeys.length > 1) id + "/" + finalKeys.mkString("/")
+                else id + "/" + finalKeys.head
+                val crcKey = if (finalKeys.isEmpty) {
+                    if(id.contains("/")) {
+                        val ids = id.split("/")
+                        ids.head + "/." + ids.last
+                    } else "." + id
+                } else if (finalKeys.length > 1) {
                     val builder = new StringBuilder
                     val keyStr = finalKeys.mkString("/")
                     val replaceStr = "/."
+                    builder.append(id + "/")
                     builder.append(keyStr.substring(0, keyStr.lastIndexOf("/")))
                     builder.append(replaceStr)
                     builder.append(keyStr.substring(keyStr.lastIndexOf("/") + replaceStr.length - 1))
-                    builder
+                    builder.mkString
                 } else
-                    "."+finalKeys.head
-                fs.rename(new Path(filePath), new Path(s"$outDir/$id/$key.csv"))
-                fs.delete(new Path(s"$outDir/$id/$crcKey.csv.crc"), false)
+                    id + "/."+finalKeys.head
+                val finalCSVPath = s"$outDir/$key.csv"
+                val finalCRCPath = s"$outDir/$crcKey.csv.crc"
+                fs.rename(new Path(filePath), new Path(finalCSVPath))
+                fs.delete(new Path(finalCRCPath), false)
             }
         }
-        outDir + "/" + id
+        outDir
     }
 }

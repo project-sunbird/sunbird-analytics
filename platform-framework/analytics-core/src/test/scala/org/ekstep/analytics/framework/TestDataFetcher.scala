@@ -101,17 +101,17 @@ class TestDataFetcher extends SparkSpec {
 
     it should "fetch the data from druid" in {
 
-        val groupByQuery = DruidQueryModel("groupBy", "telemetry-events", "LastWeek", Option("all"), Option(List(Aggregation("count", "count", None),Aggregation("total_duration", "doubleSum", Option("edata_duration")))), Option(List(("context_pdata_id", "producer_id"), ("context_pdata_pid", "producer_pid"))), Option(List(DruidFilter("equals", "context_pdata_id", Option("staging.diksha.app")),DruidFilter("in", "context_pdata_pid", None, Option(List("sunbird.app.contentplayer", "sunbird.app"))))))
+        val groupByQuery = DruidQueryModel("groupBy", "telemetry-events", "LastWeek", Option("all"), Option(List(Aggregation(Option("count"), "count", ""),Aggregation(Option("total_duration"), "doubleSum", "edata_duration"))), Option(List(("context_pdata_id", "producer_id"), ("context_pdata_pid", "producer_pid"))), Option(List(DruidFilter("equals", "context_pdata_id", Option("staging.diksha.app")),DruidFilter("in", "context_pdata_pid", None, Option(List("sunbird.app.contentplayer", "sunbird.app"))))))
         val rdd1 = DataFetcher.fetchBatchData[GroupByPid](Fetcher("druid", None, None, Option(groupByQuery)));
         println(rdd1.count())
         rdd1.foreach(f => println(JSONUtils.serialize(f)))
 
-        val topNQuery = DruidQueryModel("topN", "telemetry-events", "LastWeek", Option("day"), Option(List(Aggregation("count", "count", None))), Option(List(("context_pdata_id", "producer_id"))))
+        val topNQuery = DruidQueryModel("topN", "telemetry-events", "LastWeek", Option("day"), Option(List(Aggregation(Option("count"), "count", ""))), Option(List(("context_pdata_id", "producer_id"))))
         val rdd2 = DataFetcher.fetchBatchData[GroupByPid](Fetcher("druid", None, None, Option(topNQuery)));
         println(rdd2.count())
         rdd2.foreach(f => println(JSONUtils.serialize(f)))
 
-        val tsQuery = DruidQueryModel("timeSeries", "telemetry-events", "LastWeek", Option("day"), Option(List(Aggregation("count", "count", None))))
+        val tsQuery = DruidQueryModel("timeSeries", "telemetry-events", "LastWeek", Option("day"), Option(List(Aggregation(Option("count"), "count", ""))))
         val rdd3 = DataFetcher.fetchBatchData[TimeSeriesData](Fetcher("druid", None, None, Option(tsQuery)));
         println(rdd3.count())
         rdd3.foreach(f => println(JSONUtils.serialize(f)))
