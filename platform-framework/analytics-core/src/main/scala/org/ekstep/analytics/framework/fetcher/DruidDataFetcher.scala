@@ -1,6 +1,7 @@
 package org.ekstep.analytics.framework.fetcher
 
 import java.time.format.DateTimeFormatter
+
 import ing.wbaa.druid._
 import ing.wbaa.druid.definitions._
 import ing.wbaa.druid.dql.DSL._
@@ -8,9 +9,10 @@ import ing.wbaa.druid.dql.Dim
 import ing.wbaa.druid.dql.expressions.{AggregationExpression, FilteringExpression, PostAggregationExpression}
 import io.circe.Json
 import org.ekstep.analytics.framework.conf.AppConf
-import org.ekstep.analytics.framework.{DruidFilter, DruidQueryModel}
+import org.ekstep.analytics.framework.{DruidFilter, DruidQueryModel, PostAggregationFields}
 import org.ekstep.analytics.framework.exception.DataFetcherException
 import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils}
+
 import scala.concurrent.Await
 
 object DruidDataFetcher {
@@ -72,7 +74,7 @@ object DruidDataFetcher {
                   .granularity(CommonUtil.getGranularity(query.granularity.getOrElse("all")))
                   .interval(CommonUtil.getIntervalRange(query.intervals))
                   .agg(getAggregation(query): _*)
-                  .groupBy(query.dimensions.get.map(f => Dim(f._1, Option(f._2))): _*)
+                  .groupBy(query.dimensions.get.map(f => Dim(f.fieldName, f.aliasName)): _*)
                 if(query.filters.nonEmpty) DQLQuery.where(getFilter(query).get)
                 if(query.postAggregation.nonEmpty) DQLQuery.postAgg(getPostAggregation(query).get: _*)
                 if(query.having.nonEmpty) DQLQuery.having(getGroupByHaving(query).get)
@@ -83,7 +85,7 @@ object DruidDataFetcher {
                   .from(query.dataSource)
                   .granularity(CommonUtil.getGranularity(query.granularity.getOrElse("all")))
                   .interval(CommonUtil.getIntervalRange(query.intervals))
-                  .topN(Dim(query.dimensions.get.head._1, Option(query.dimensions.get.head._2)), query.metric.getOrElse("count"), query.threshold.getOrElse(100).asInstanceOf[Int])
+                  .topN(Dim(query.dimensions.get.head.fieldName, query.dimensions.get.head.aliasName), query.metric.getOrElse("count"), query.threshold.getOrElse(100).asInstanceOf[Int])
                   .agg(getAggregation(query): _*)
                 if(query.filters.nonEmpty) DQLQuery.where(getFilter(query).get)
                 if(query.postAggregation.nonEmpty) DQLQuery.postAgg(getPostAggregation(query).get: _*)
@@ -170,16 +172,14 @@ object DruidDataFetcher {
 
     }
 
-    def getPostAggregationByType(postAggType: PostAggregationType, name: String, fields: Option[List[String]], fn: Option[String]): PostAggregationExpression = {
+    def getPostAggregationByType(postAggType: PostAggregationType, name: String, fields: PostAggregationFields, fn: Option[String]): PostAggregationExpression = {
         postAggType match {
             case PostAggregationType.Arithmetic =>
-                val leftField = fields.get.head
-                val rightField = fields.get.apply(1)
                 fn.get match {
-                    case "+" => Dim(leftField).+(Dim(rightField)) as name
-                    case "-" => Dim(leftField).-(Dim(rightField)) as name
-                    case "*" => Dim(leftField).*(Dim(rightField)) as name
-                    case "/" => Dim(leftField)./(Dim(rightField)) as name
+                    case "+" => Dim(fields.leftField).+(Dim(fields.rightField)) as name
+                    case "-" => Dim(fields.leftField).-(Dim(fields.rightField)) as name
+                    case "*" => Dim(fields.leftField).*(Dim(fields.rightField)) as name
+                    case "/" => Dim(fields.leftField)./(Dim(fields.rightField)) as name
                 }
             //case PostAggregationType.Javascript =>
 
@@ -195,12 +195,12 @@ object DruidDataFetcher {
 
     }
 
-    def getGroupByHavingByType(postAggType: HavingType, field: String, value: String): FilteringExpression = {
+    def getGroupByHavingByType(postAggType: HavingType, field: String, value: AnyRef): FilteringExpression = {
         postAggType match {
-            case HavingType.EqualTo => Dim(field) === value
-            case HavingType.Not => Dim(field) =!= value
-            case HavingType.GreaterThan => Dim(field) > value
-            case HavingType.LessThan => Dim(field) < value
+            case HavingType.EqualTo => Dim(field) === value.asInstanceOf[String]
+            case HavingType.Not => Dim(field) =!= value.asInstanceOf[String]
+            case HavingType.GreaterThan => Dim(field) > value.asInstanceOf[Number].doubleValue()
+            case HavingType.LessThan => Dim(field) < value.asInstanceOf[Number].doubleValue()
         }
     }
 }

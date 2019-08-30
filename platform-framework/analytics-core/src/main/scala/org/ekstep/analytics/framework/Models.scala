@@ -90,15 +90,19 @@ case class JobConfig(search: Fetcher, filters: Option[Array[Filter]], sort: Opti
 
 //Druid Query Models
 @scala.beans.BeanInfo
-case class DruidQueryModel(queryType: String, dataSource: String, intervals: String, granularity: Option[String] = Option("all"), aggregations: Option[List[Aggregation]] = Option(List(Aggregation(Option("count"), "count", "count"))), dimensions: Option[List[(String, String)]] = None, filters: Option[List[DruidFilter]] = None, having: Option[DruidHavingFilter] = None, postAggregation: Option[List[PostAggregation]] = None, threshold: Option[Long] = None, metric: Option[String] = None, descending: Option[String] = Option("false"))
+case class DruidQueryModel(queryType: String, dataSource: String, intervals: String, granularity: Option[String] = Option("all"), aggregations: Option[List[Aggregation]] = Option(List(Aggregation(Option("count"), "count", "count"))), dimensions: Option[List[DruidDimension]] = None, filters: Option[List[DruidFilter]] = None, having: Option[DruidHavingFilter] = None, postAggregation: Option[List[PostAggregation]] = None, threshold: Option[Long] = None, metric: Option[String] = None, descending: Option[String] = Option("false"))
+@scala.beans.BeanInfo
+case class DruidDimension(fieldName: String, aliasName: Option[String])
 @scala.beans.BeanInfo
 case class Aggregation(name: Option[String], `type`: String, fieldName: String)
 @scala.beans.BeanInfo
-case class PostAggregation(`type`: String, name: String, fields: Option[List[String]], fn: Option[String] = None, ordering: Option[String] = None)
+case class PostAggregation(`type`: String, name: String, fields: PostAggregationFields, fn: Option[String] = None, ordering: Option[String] = None)
+@scala.beans.BeanInfo
+case class PostAggregationFields(leftField: String, rightField: String)
 @scala.beans.BeanInfo
 case class DruidFilter(`type`: String, dimension: String, value: Option[AnyRef], values: Option[List[AnyRef]] = None)
 @scala.beans.BeanInfo
-case class DruidHavingFilter(`type`: String, aggregation: String, value: String)
+case class DruidHavingFilter(`type`: String, aggregation: String, value: AnyRef)
 
 // LP API Response Model
 case class Params(resmsgid: Option[String], msgid: Option[String], err: Option[String], status: Option[String], errmsg: Option[String])

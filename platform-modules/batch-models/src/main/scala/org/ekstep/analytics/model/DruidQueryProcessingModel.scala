@@ -36,7 +36,7 @@ object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, Druid
         val reportConfig = JSONUtils.deserialize[ReportConfig](JSONUtils.serialize(strConfig))
 
         val queryDims = reportConfig.metrics.map{f =>
-            f.druidQuery.dimensions.getOrElse(List()).map(f => f._2)
+            f.druidQuery.dimensions.getOrElse(List()).map(f => f.aliasName.getOrElse(f.fieldName))
         }.distinct
 
         if(queryDims.length > 1) throw new DruidConfigException("Query dimensions are not matching")
@@ -74,7 +74,7 @@ object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, Druid
         val configMap = config.get("reportConfig").get.asInstanceOf[Map[String, AnyRef]]
         val reportConfig = JSONUtils.deserialize[ReportConfig](JSONUtils.serialize(configMap))
         val dimFields = reportConfig.metrics.map{m =>
-            if(m.druidQuery.dimensions.nonEmpty) m.druidQuery.dimensions.get.map(f => f._2)
+            if(m.druidQuery.dimensions.nonEmpty) m.druidQuery.dimensions.get.map(f => f.aliasName.getOrElse(f.fieldName))
             else List()
         }.flatMap(f => f)
         val labelsLookup = reportConfig.labels ++ Map("date" -> "Date")
