@@ -12,6 +12,7 @@ import com.datastax.driver.core.ResultSet
 import com.datastax.driver.core.exceptions.DriverException
 import com.google.common.primitives.UnsignedInts
 import is.tagomor.woothee.Classifier
+import org.apache.logging.log4j.LogManager
 import org.postgresql.util.PSQLException
 
 import scala.concurrent.ExecutionContext
@@ -26,6 +27,7 @@ class DeviceRegisterService(saveMetricsActor: ActorRef) extends Actor {
     val geoLocationCityTableName: String = config.getString("postgres.table.geo_location_city.name")
     val geoLocationCityIpv4TableName: String = config.getString("postgres.table.geo_location_city_ipv4.name")
     val metricsActor: ActorRef = saveMetricsActor //context.system.actorOf(Props[SaveMetricsActor])
+    private val logger = LogManager.getLogger("device-logger")
 
 
     def receive = {
@@ -73,7 +75,7 @@ class DeviceRegisterService(saveMetricsActor: ActorRef) extends Actor {
                 case None => Map()
             }
 
-            updateDeviceProfile(
+            updateDeviceProfileLog(
                 did,
                 Option(location.countryCode).map(_.trim).filterNot(_.isEmpty),
                 Option(location.countryName).map(_.trim).filterNot(_.isEmpty),
@@ -138,13 +140,13 @@ class DeviceRegisterService(saveMetricsActor: ActorRef) extends Actor {
         }
     }
 
-    def updateDeviceProfile(did: String, countryCode: Option[String], country: Option[String],
+    def updateDeviceProfileLog(did: String, countryCode: Option[String], country: Option[String],
                             stateCode: Option[String], state: Option[String], city: Option[String],
                             stateCustom: Option[String], stateCodeCustom: Option[String], districtCustom: Option[String],
-                            deviceSpec: Option[Map[String, AnyRef]], uaspec: Option[String], fcmToken: Option[String], producer: Option[String]): ResultSet = {
+                            deviceSpec: Option[Map[String, AnyRef]], uaspec: Option[String], fcmToken: Option[String], producer: Option[String]) {
 
         val uaspecStr = parseUserAgent(uaspec)
-        val queryMap: Map[String, Any] = Map("device_id" -> s"'$did'",
+        val device_profile: Map[String, Any] = Map("device_id" -> s"'$did'",
             "country_code" -> s"'${countryCode.getOrElse("")}'", "country" -> s"'${country.getOrElse("")}'",
             "state_code" -> s"'${stateCode.getOrElse("")}'", "state" -> s"'${state.getOrElse("")}'", "city" -> s"'${city.getOrElse("")}'",
             "state_custom" -> s"'${stateCustom.getOrElse("")}'","state_code_custom" -> s"'${stateCodeCustom.getOrElse("")}'",
@@ -153,21 +155,7 @@ class DeviceRegisterService(saveMetricsActor: ActorRef) extends Actor {
               .replaceAll("\"", "'")).getOrElse(Map()),
             "uaspec" -> uaspecStr.getOrElse(""), "fcm_token" -> s"'${fcmToken.getOrElse("")}'", "producer_id" -> s"'${producer.getOrElse("")}'", "updated_date" -> DateTime.now(DateTimeZone.UTC).getMillis)
 
-        val finalQueryValues = queryMap.filter {
-            m =>
-                m._2 match {
-                    case s: String => Option(s).exists(_.trim.nonEmpty)
-                    case x: Long => Option(x).isDefined
-                    case other => other.asInstanceOf[Map[String, String]].nonEmpty
-                }
-        }
-        val query =
-            s"""
-               |INSERT INTO ${Constants.DEVICE_DB}.${Constants.DEVICE_PROFILE_TABLE}
-               | (${finalQueryValues.keys.mkString(",")})
-               | VALUES(${finalQueryValues.values.mkString(",")})
-           """.stripMargin
-        DBUtil.session.execute(query)
+        logger.info(JSONUtils.serialize(device_profile))
     }
 
     def updateDeviceFirstAccess(did: String): Unit = {

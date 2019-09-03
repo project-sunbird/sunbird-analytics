@@ -22,6 +22,20 @@
                 </Delete>
             </DefaultRolloverStrategy>
 		</RollingFile>
+		<RollingFile name="Device-Log-RollingFileAppender" fileName="${baseDir}/device-profile.log" filePattern="${baseDir}/device-profile-%d{MM-dd-yyyy}-%i.log">
+			<PatternLayout>
+				<Pattern>%m%n</Pattern>
+			</PatternLayout>
+			<Policies>
+				<TimeBasedTriggeringPolicy />
+			</Policies>
+			<DefaultRolloverStrategy>
+				<Delete basePath="${baseDir}/" maxDepth="1" testMode="false">
+					<IfFileName glob="device-profile-*.log" />
+					<IfLastModified age="7d" />
+				</Delete>
+			</DefaultRolloverStrategy>
+		</RollingFile>
 		<RollingFile name="Metrics-RollingFileAppender" fileName="${baseDir}/api-metrics.log" filePattern="${baseDir}/api-metrics-%d{MM-dd-yyyy}-%i.log">
 			<PatternLayout>
 				<Pattern>%m%n</Pattern>
@@ -63,6 +77,9 @@
 		</Logger>
 		<Logger name="crash-logger" level="info" additivity="false">
 			<AppenderRef ref="Crash-Log-RollingFileAppender"/>
+		</Logger>
+		<Logger name="device-logger" level="info" additivity="false">
+			<AppenderRef ref="Device-Log-RollingFileAppender"/>
 		</Logger>
 		<Root level="error">
 			<AppenderRef ref="Console" />
