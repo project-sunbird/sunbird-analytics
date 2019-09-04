@@ -24,7 +24,7 @@ case class OutputConfig(`type`: String, label: Option[String], metrics: List[Str
 
 object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, DruidOutput, DruidOutput, DruidOutput] with Serializable {
 
-    implicit val className = "org.ekstep.analytics.model.DruidQueryProcessingModel"
+    implicit val className: String = "org.ekstep.analytics.model.DruidQueryProcessingModel"
     override def name: String = "DruidQueryProcessingModel"
 
     override def preProcess(data: RDD[DruidOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DruidOutput] = {
@@ -32,27 +32,25 @@ object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, Druid
     }
 
     override def algorithm(data: RDD[DruidOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DruidOutput] = {
-        val strConfig = config.get("reportConfig").get.asInstanceOf[Map[String, AnyRef]]
+        val strConfig = config("reportConfig").asInstanceOf[Map[String, AnyRef]]
         val reportConfig = JSONUtils.deserialize[ReportConfig](JSONUtils.serialize(strConfig))
 
-        val queryDims = reportConfig.metrics.map{f =>
+        val queryDims = reportConfig.metrics.map{ f =>
             f.druidQuery.dimensions.getOrElse(List()).map(f => f.aliasName.getOrElse(f.fieldName))
         }.distinct
 
         if(queryDims.length > 1) throw new DruidConfigException("Query dimensions are not matching")
 
-        val interval = strConfig.get("dateRange").get.asInstanceOf[Map[String, AnyRef]]
+        val interval = strConfig("dateRange").asInstanceOf[Map[String, AnyRef]]
         val granularity = interval.get("granularity")
         val queryInterval = if(interval.get("staticInterval").nonEmpty) {
-            interval.get("staticInterval").get.asInstanceOf[String]
-        }
-        else if(interval.get("interval").nonEmpty) {
-            val dateRange = interval.get("interval").get.asInstanceOf[Map[String, String]]
-            dateRange.get("startDate").get + "/" + dateRange.get("endDate").get
-        }
-        else throw new DruidConfigException("Both staticInterval and interval cannot be missing. Either of them should be specified")
+            interval("staticInterval").asInstanceOf[String]
+        } else if(interval.get("interval").nonEmpty) {
+            val dateRange = interval("interval").asInstanceOf[Map[String, String]]
+            dateRange("startDate") + "/" + dateRange("endDate")
+        } else throw new DruidConfigException("Both staticInterval and interval cannot be missing. Either of them should be specified")
 
-        val metrics = reportConfig.metrics.map{f =>
+        val metrics = reportConfig.metrics.flatMap{ f =>
             val queryConfig = if(granularity.nonEmpty)
                 JSONUtils.deserialize[Map[String, AnyRef]](JSONUtils.serialize(f.druidQuery)) ++ Map("intervals" -> queryInterval, "granularity" -> granularity.get)
             else
@@ -61,28 +59,30 @@ object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, Druid
             val data = DruidDataFetcher.getDruidData(JSONUtils.deserialize[DruidQueryModel](JSONUtils.serialize(queryConfig)))
             data.map{ x =>
                 val dataMap = JSONUtils.deserialize[Map[String, AnyRef]](x)
-                val key = dataMap.filter(m => (queryDims.flatMap(f => f) ++ List("date")).contains(m._1)).values.map(f => f.toString).toList.sorted(Ordering.String.reverse).mkString(",")
+                val key = dataMap.filter(m => (queryDims.flatten ++ List("date")).contains(m._1)).values.map(f => f.toString).toList.sorted(Ordering.String.reverse).mkString(",")
                 (key, dataMap)
             }
-        }.flatMap(f => f)
+        }
+
         val finalResult = sc.parallelize(metrics).foldByKey(Map())(_ ++ _)
         finalResult.map{f => JSONUtils.deserialize[DruidOutput](JSONUtils.serialize(f._2))}
     }
 
     override def postProcess(data: RDD[DruidOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DruidOutput] = {
 
-        val configMap = config.get("reportConfig").get.asInstanceOf[Map[String, AnyRef]]
+        val configMap = config("reportConfig").asInstanceOf[Map[String, AnyRef]]
         val reportConfig = JSONUtils.deserialize[ReportConfig](JSONUtils.serialize(configMap))
-        val dimFields = reportConfig.metrics.map{m =>
+        val dimFields = reportConfig.metrics.flatMap { m =>
             if(m.druidQuery.dimensions.nonEmpty) m.druidQuery.dimensions.get.map(f => f.aliasName.getOrElse(f.fieldName))
             else List()
-        }.flatMap(f => f)
+        }
+
         val labelsLookup = reportConfig.labels ++ Map("date" -> "Date")
-        implicit val sqlContext = new SQLContext(sc);
+        implicit val sqlContext = new SQLContext(sc)
         import sqlContext.implicits._
 
         // Using foreach as parallel execution might conflict with local file path
-        val key = config.getOrElse("key", null).asInstanceOf[String];
+        val key = config.getOrElse("key", null).asInstanceOf[String]
         reportConfig.output.foreach{ f =>
             if("csv".equalsIgnoreCase(f.`type`)) {
                 val df = data.toDF().na.fill(0L)
@@ -105,18 +105,18 @@ object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, Druid
     }
 
     def writeToCSVAndRename(data: DataFrame, config: Map[String, AnyRef])(implicit sc: SparkContext): String = {
-        val filePath = config.getOrElse("filePath", AppConf.getConfig("spark_output_temp_dir")).asInstanceOf[String];
-        val key = config.getOrElse("key", null).asInstanceOf[String];
-        val reportId = config.getOrElse("reportId", "").asInstanceOf[String];
-        val fileParameters = config.getOrElse("fileParameters", List("")).asInstanceOf[List[String]];
-        var dims = config.getOrElse("dims", List()).asInstanceOf[List[String]];
+        val filePath = config.getOrElse("filePath", AppConf.getConfig("spark_output_temp_dir")).asInstanceOf[String]
+        val key = config.getOrElse("key", null).asInstanceOf[String]
+        val reportId = config.getOrElse("reportId", "").asInstanceOf[String]
+        val fileParameters = config.getOrElse("fileParameters", List("")).asInstanceOf[List[String]]
+        var dims = config.getOrElse("dims", List()).asInstanceOf[List[String]]
 
         dims = if (fileParameters.nonEmpty && fileParameters.contains("date")) dims ++ List("Date") else dims
         val finalPath = filePath + key.split("/").last
         if(dims.nonEmpty) {
             val duplicateDims = dims.map(f => f.concat("Duplicate"))
             var duplicateDimsDf = data
-            dims.foreach{f =>
+            dims.foreach{ f =>
                 duplicateDimsDf = duplicateDimsDf.withColumn(f.concat("Duplicate"), col(f))
             }
             duplicateDimsDf.coalesce(1).write.format("com.databricks.spark.csv").option("header", "true").partitionBy(duplicateDims: _*).mode("overwrite").save(finalPath)
@@ -133,7 +133,7 @@ object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, Druid
         val fileList = fs.listFiles(new Path(s"$tempDir/"), true)
         while(fileList.hasNext){
             val filePath = fileList.next().getPath.toString
-            if(!(filePath.contains("_SUCCESS"))) {
+            if(!filePath.contains("_SUCCESS")) {
                 val breakUps = filePath.split("/").filter(f => f.contains("="))
                 val dimsKeys = breakUps.filter { f =>
                     val bool = dims.map(x => f.contains(x))

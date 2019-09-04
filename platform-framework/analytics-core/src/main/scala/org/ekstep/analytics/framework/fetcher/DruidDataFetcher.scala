@@ -131,7 +131,7 @@ object DruidDataFetcher {
         }
     }
 
-    def getFilter(query: DruidQueryModel): Option[FilteringExpression] ={
+    def getFilter(query: DruidQueryModel): Option[FilteringExpression] = {
 
         if (query.filters.nonEmpty) {
             val filters = query.filters.get.map { f =>
