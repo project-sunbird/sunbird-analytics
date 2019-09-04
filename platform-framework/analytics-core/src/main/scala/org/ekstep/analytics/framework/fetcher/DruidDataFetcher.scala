@@ -118,6 +118,7 @@ object DruidDataFetcher {
         aggType match {
             case AggregationType.Count => count as name.getOrElse(s"${AggregationType.Count.toString.toLowerCase()}_${fieldName.toLowerCase()}")
             case AggregationType.HyperUnique => dim(fieldName).hyperUnique as name.getOrElse(s"${AggregationType.HyperUnique.toString.toLowerCase()}_${fieldName.toLowerCase()}")
+            case AggregationType.ThetaSketch => thetaSketch(Dim(fieldName)) as name.getOrElse(s"${AggregationType.ThetaSketch.toString.toLowerCase()}_${fieldName.toLowerCase()}")
             case AggregationType.LongSum => longSum(Dim(fieldName)) as name.getOrElse(s"${AggregationType.LongSum.toString.toLowerCase()}_${fieldName.toLowerCase()}")
             case AggregationType.DoubleSum => doubleSum(Dim(fieldName)) as name.getOrElse(s"${AggregationType.DoubleSum.toString.toLowerCase()}_${fieldName.toLowerCase()}")
             case AggregationType.DoubleMax => doubleMax(Dim(fieldName)) as name.getOrElse(s"${AggregationType.DoubleMax.toString.toLowerCase()}_${fieldName.toLowerCase()}")
@@ -174,16 +175,17 @@ object DruidDataFetcher {
             else None
     }
 
-    def getPostAggregationByType(postAggType: PostAggregationType, name: String, fields: PostAggregationFields, fn: Option[String]): PostAggregationExpression = {
+    def getPostAggregationByType(postAggType: PostAggregationType, name: String, fields: PostAggregationFields, fn: String): PostAggregationExpression = {
         postAggType match {
             case PostAggregationType.Arithmetic =>
-                fn.get match {
-                    case "+" => Dim(fields.leftField).+(Dim(fields.rightField)) as name
-                    case "-" => Dim(fields.leftField).-(Dim(fields.rightField)) as name
-                    case "*" => Dim(fields.leftField).*(Dim(fields.rightField)) as name
-                    case "/" => Dim(fields.leftField)./(Dim(fields.rightField)) as name
+                fn match {
+                    // only right field can have type as Constant or FieldAccess
+                    case "+" => if("constant".equalsIgnoreCase(fields.rightFieldType)) Dim(fields.leftField).+(fields.rightField.asInstanceOf[Number].doubleValue()) as name else Dim(fields.leftField).+(Dim(fields.rightField.asInstanceOf[String])) as name
+                    case "-" => if("constant".equalsIgnoreCase(fields.rightFieldType)) Dim(fields.leftField).-(fields.rightField.asInstanceOf[Number].doubleValue()) as name else Dim(fields.leftField).-(Dim(fields.rightField.asInstanceOf[String])) as name
+                    case "*" => if("constant".equalsIgnoreCase(fields.rightFieldType)) Dim(fields.leftField).*(fields.rightField.asInstanceOf[Number].doubleValue()) as name else Dim(fields.leftField).*(Dim(fields.rightField.asInstanceOf[String])) as name
+                    case "/" => if("constant".equalsIgnoreCase(fields.rightFieldType)) Dim(fields.leftField)./(fields.rightField.asInstanceOf[Number].doubleValue()) as name else Dim(fields.leftField)./(Dim(fields.rightField.asInstanceOf[String])) as name
                 }
-            //case PostAggregationType.Javascript =>
+            //case PostAggregationType.Javascript => Dim(fields.leftField)
 
         }
     }

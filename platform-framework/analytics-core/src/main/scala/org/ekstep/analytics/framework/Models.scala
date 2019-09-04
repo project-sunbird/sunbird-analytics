@@ -96,9 +96,10 @@ case class DruidDimension(fieldName: String, aliasName: Option[String])
 @scala.beans.BeanInfo
 case class Aggregation(name: Option[String], `type`: String, fieldName: String)
 @scala.beans.BeanInfo
-case class PostAggregation(`type`: String, name: String, fields: PostAggregationFields, fn: Option[String] = None, ordering: Option[String] = None)
+case class PostAggregation(`type`: String, name: String, fields: PostAggregationFields, fn: String, ordering: Option[String] = None)
+// only right field can have type as FieldAccess or Constant. Only if it Constant, need to specify "rightFieldType"
 @scala.beans.BeanInfo
-case class PostAggregationFields(leftField: String, rightField: String)
+case class PostAggregationFields(leftField: String, rightField: AnyRef, rightFieldType: String = "FieldAccess")
 @scala.beans.BeanInfo
 case class DruidFilter(`type`: String, dimension: String, value: Option[AnyRef], values: Option[List[AnyRef]] = None)
 @scala.beans.BeanInfo
