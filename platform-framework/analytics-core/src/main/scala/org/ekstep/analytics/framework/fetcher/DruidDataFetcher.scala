@@ -25,7 +25,7 @@ object DruidDataFetcher {
         // add javascript type in getPostAgg methods
         // accept extraction function for dims
 
-        val request = getQuery(query)
+        val request = parseQuery(query)
         val response = request.execute()
         val queryWaitTimeInMins = AppConf.getConfig("druid.query.wait.time.mins").toLong
         val result = Await.result(response, scala.concurrent.duration.Duration.apply(queryWaitTimeInMins, "minute"))
@@ -66,7 +66,7 @@ object DruidDataFetcher {
             List();
     }
 
-    def getQuery(query: DruidQueryModel): DruidQuery = {
+    def parseQuery(query: DruidQueryModel): DruidQuery = {
 
         query.queryType.toLowerCase() match {
             case "groupby" => {
@@ -159,7 +159,6 @@ object DruidDataFetcher {
             case "like" => Dim(dimension) like values.head.asInstanceOf[String]
             case "greaterthan" => Dim(dimension).between(values.head.asInstanceOf[Number].doubleValue(), Integer.MAX_VALUE, true, false)
             case "lessthan" => Dim(dimension).between(0, values.head.asInstanceOf[Number].doubleValue(), false, true)
-
         }
     }
 
