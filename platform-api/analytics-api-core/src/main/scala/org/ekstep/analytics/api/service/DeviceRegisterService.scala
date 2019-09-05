@@ -146,7 +146,7 @@ class DeviceRegisterService(saveMetricsActor: ActorRef) extends Actor {
                             deviceSpec: Option[Map[String, AnyRef]], uaspec: Option[String], fcmToken: Option[String], producer: Option[String]) {
 
         val uaspecStr = parseUserAgent(uaspec)
-        val device_profile: Map[String, Any] = Map("device_id" -> s"'$did'",
+        val deviceProfile: Map[String, Any] = Map("device_id" -> s"'$did'",
             "country_code" -> s"'${countryCode.getOrElse("")}'", "country" -> s"'${country.getOrElse("")}'",
             "state_code" -> s"'${stateCode.getOrElse("")}'", "state" -> s"'${state.getOrElse("")}'", "city" -> s"'${city.getOrElse("")}'",
             "state_custom" -> s"'${stateCustom.getOrElse("")}'","state_code_custom" -> s"'${stateCodeCustom.getOrElse("")}'",
@@ -155,7 +155,7 @@ class DeviceRegisterService(saveMetricsActor: ActorRef) extends Actor {
               .replaceAll("\"", "'")).getOrElse(Map()),
             "uaspec" -> uaspecStr.getOrElse(""), "fcm_token" -> s"'${fcmToken.getOrElse("")}'", "producer_id" -> s"'${producer.getOrElse("")}'", "updated_date" -> DateTime.now(DateTimeZone.UTC).getMillis)
 
-        logger.info(JSONUtils.serialize(device_profile))
+        logger.info(JSONUtils.serialize(deviceProfile))
     }
 
     def updateDeviceFirstAccess(did: String): Unit = {
