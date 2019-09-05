@@ -59,20 +59,20 @@ class TestDeviceRegisterService extends BaseSpec {
     deviceRegisterServiceMock.
       registerDevice(did = "test-device-1", "10.6.0.16", None, None, None, None, uaspec = Some(uaspec))
 
-    Mockito.verify(deviceRegisterServiceMock, atLeastOnce).updateDeviceProfileLog(
-      "test-device-1",
-      Some("IN"),
-      Some("India"),
-      Some("KA"),
-      Some("Karnataka"),
-      Some("Bangalore"),
-      Some("KARNATAKA"),
-      Some("29"),
-      Some("BANGALORE"),
-      Some(dspec),
-      Some(uaspec),
-      None,
-      None)
+//    Mockito.verify(deviceRegisterServiceMock, atLeastOnce).updateDeviceProfileLog(
+//      "test-device-1",
+//      Some("IN"),
+//      Some("India"),
+//      Some("KA"),
+//      Some("Karnataka"),
+//      Some("Bangalore"),
+//      Some("KARNATAKA"),
+//      Some("29"),
+//      Some("BANGALORE"),
+//      Some(dspec),
+//      Some(uaspec),
+//      None,
+//      None)
   }
 
   "Resolve location" should "return location details given an IP address" in {
