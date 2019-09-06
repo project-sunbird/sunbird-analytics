@@ -100,6 +100,9 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
 
   override def saveReportES(reportDF: DataFrame): Unit = ???
 
+  /**
+    * Loading the specific tables from the cassandra db.
+    */
   def prepareReport(spark: SparkSession, loadData: (SparkSession, Map[String, String]) => DataFrame): DataFrame = {
     val sunbirdKeyspace = AppConf.getConfig("course.metrics.cassandra.sunbirdKeyspace")
     val sunbirdCoursesKeyspace = AppConf.getConfig("course.metrics.cassandra.sunbirdCoursesKeyspace")
@@ -162,6 +165,9 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
 
     val userOrgDenormDF = rootOnlyOrgDF.union(userSubOrgDF)
 
+    /**
+      * Get the District name for particular user based on the location identifiers
+      */
     val locationDenormDF = userOrgDenormDF
       .withColumn("exploded_location", explode(col("locationids")))
       .join(locationDF, col("exploded_location") === locationDF.col("id") && locationDF.col("type") === "district")
@@ -171,10 +177,19 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     val userLocationResolvedDF = userOrgDenormDF
       .join(locationDenormDF, Seq("userid"), "left_outer")
 
+
     val groupdedDF = Window.partitionBy("user_id", "batch_id", "course_id", "content_id").orderBy(desc("updated_on"))
     val latestAssessmentDF = assessmentProfileDF.withColumn("rownum", row_number.over(groupdedDF)).where(col("rownum") === 1).drop("rownum")
+
+    /**
+      * Compute the sum of all the worksheet contents score.
+      */
     val assessmentAggDf = Window.partitionBy("user_id","batch_id","course_id","attempt_id")
     val aggregatedDF = latestAssessmentDF.withColumn("total_sum_score", sum("total_score") over assessmentAggDf)
+
+    /**
+      * Filter only valid enrolled userid for the specific courseid
+      */
     val userAssessmentResolvedDF = userLocationResolvedDF.join(aggregatedDF, userLocationResolvedDF.col("userid") === aggregatedDF.col("user_id") && userLocationResolvedDF.col("batchid") === aggregatedDF.col("batch_id") && userLocationResolvedDF.col("courseid") === aggregatedDF.col("course_id"), "left_outer")
     val resolvedExternalIdDF = userAssessmentResolvedDF.join(externalIdMapDF, Seq("userid"), "left_outer")
 
@@ -206,8 +221,11 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
       .withColumn("generatedOn", date_format(from_utc_timestamp(current_timestamp.cast(DataTypes.TimestampType), "Asia/Kolkata"), "yyyy-MM-dd'T'HH:mm:ss'Z'"))
   }
 
+  /**
+    *  De-norming the assessment report - Adding content name column to the content id
+    * @return - Assessment denormalised dataframe
+    */
   def denormAssessment(spark:SparkSession, report: DataFrame):DataFrame = {
-    println(report.show(false))
     val contentIds = report.select(col("content_id")).rdd.map(r => r.getString(0)).collect.toList.distinct.filter(_!=null)
     val contentNameDF = getContentNames(spark, contentIds)
      report.join(contentNameDF, report.col("content_id") === contentNameDF.col("identifier"), "right_outer")
@@ -218,9 +236,13 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
       )
   }
 
+  /**
+    * This method is used to upload the report the azure cloud service.
+    */
   def saveReport(reportDF: DataFrame, url: String): Unit = {
     val courseids = reportDF.select(col("courseid")).distinct().collect()
     val batchids = reportDF.select(col("batchid")).distinct().collect()
+    JobLogger.log(s"Number of courses are ${courseids.length} and number of batchs are ${batchids.length}")
     val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
     val renamedDir = s"$tempDir/renamed"
     val courseList = courseids.map(x => x(0).toString)
@@ -263,7 +285,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     val storageService = StorageServiceFactory
       .getStorageService(StorageConfig(provider, AppConf.getStorageKey(provider), AppConf.getStorageSecret(provider)))
     storageService.upload(container, sourcePath, objectKey, isDirectory = Option(true))
-    println("Assessment upload Job is done")
+
   }
 
   private def recursiveListFiles(file: File, ext: String): Array[File]
@@ -283,7 +305,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
   }
 
   def renameReport(tempDir: String, outDir: String) = {
-    println("Rename report")
+
     val regex = """\=.*/""".r // to get batchid from the path "somepath/batchid=12313144/part-0000.csv"
     val temp = new File(tempDir)
     val out = new File(outDir)
@@ -303,17 +325,16 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
 
     fileList.foreach(file => {
       val value = regex.findFirstIn(file.getPath).getOrElse("")
-      println("File:" + value)
       if (value.length > 1) {
         val report_name = value.split("/")
         val batchValue = report_name.toList.head
         val batchId = batchValue.substring(1, batchValue.length)
         val courseId = report_name.toList(1).split("=").toList(1)
-        println("courseId " + courseId)
-        println("batchId " + batchId)
+        JobLogger.log(s"Creating a Report: report-$courseId-$batchId.csv")
         Files.copy(file.toPath, new File(s"${out.getPath}/report-$courseId-$batchId.csv").toPath, StandardCopyOption.REPLACE_EXISTING)
       }
     })
+
   }
 
   /**
@@ -322,10 +343,10 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     * @param contentIds
     * @return
     */
-  def getContentNames(spark: SparkSession, contentIds: List[String]): DataFrame = {
-    case class contentId(ids: List[String])
-    val contentList = JSONUtils.serialize(contentId(contentIds).ids)
-    println(contentList)
+  def getContentNames(spark: SparkSession, content: List[String]): DataFrame = {
+    case class content_identifiers(identifiers: List[String])
+    val contentList = JSONUtils.serialize(content_identifiers(content).identifiers)
+    JobLogger.log(s"Total number of unique content identifiers are ${contentList.length}")
     val request =
       s"""
          {
@@ -350,10 +371,8 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     spark.read.format("org.elasticsearch.spark.sql")
       .option("query", request)
       .option("pushdown", "true")
-      .load("compositesearch")
+      .load(AppConf.getConfig("assessment.metrics.content.index"))
       .select("name", "identifier")
   }
-
-  println("Assessment rename Job is done")
 }
 
