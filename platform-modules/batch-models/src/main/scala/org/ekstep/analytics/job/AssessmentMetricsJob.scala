@@ -177,15 +177,17 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     val userLocationResolvedDF = userOrgDenormDF
       .join(locationDenormDF, Seq("userid"), "left_outer")
 
+    // Enable this below code to get only last attempted question
+    //val groupdedDF = Window.partitionBy("user_id", "batch_id", "course_id", "content_id").orderBy(desc("last_attempted_on"))
+    //val latestAssessmentDF = assessmentProfileDF.withColumn("rownum", row_number.over(groupdedDF)).where(col("rownum") === 1).drop("rownum")
 
-    val groupdedDF = Window.partitionBy("user_id", "batch_id", "course_id", "content_id").orderBy(desc("updated_on"))
-    val latestAssessmentDF = assessmentProfileDF.withColumn("rownum", row_number.over(groupdedDF)).where(col("rownum") === 1).drop("rownum")
+    //println(latestAssessmentDF.show(false))
 
-    /**
+    /** attempt_id
       * Compute the sum of all the worksheet contents score.
       */
-    val assessmentAggDf = Window.partitionBy("user_id","batch_id","course_id","attempt_id")
-    val aggregatedDF = latestAssessmentDF.withColumn("total_sum_score", sum("total_score") over assessmentAggDf)
+    val assessmentAggDf = Window.partitionBy("user_id", "batch_id", "course_id")
+    val aggregatedDF = assessmentProfileDF.withColumn("total_sum_score", sum("total_score") over assessmentAggDf)
 
     /**
       * Filter only valid enrolled userid for the specific courseid
@@ -222,17 +224,18 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
   }
 
   /**
-    *  De-norming the assessment report - Adding content name column to the content id
+    * De-norming the assessment report - Adding content name column to the content id
+    *
     * @return - Assessment denormalised dataframe
     */
-  def denormAssessment(spark:SparkSession, report: DataFrame):DataFrame = {
-    val contentIds = report.select(col("content_id")).rdd.map(r => r.getString(0)).collect.toList.distinct.filter(_!=null)
+  def denormAssessment(spark: SparkSession, report: DataFrame): DataFrame = {
+    val contentIds = report.select(col("content_id")).rdd.map(r => r.getString(0)).collect.toList.distinct.filter(_ != null)
     val contentNameDF = getContentNames(spark, contentIds)
-     report.join(contentNameDF, report.col("content_id") === contentNameDF.col("identifier"), "right_outer")
+    report.join(contentNameDF, report.col("content_id") === contentNameDF.col("identifier"), "right_outer")
       .select(col("name"),
-        col("attempt_id"), col("max_score"),col("total_sum_score"), report.col("userid"), report.col("courseid"), report.col("batchid"),
-        col("total_score"), report.col("maskedemail"),report.col("district_name"),report.col("maskedphone"),
-        report.col("orgname_resolved"),report.col("externalid"),report.col("schoolname_resolved"),report.col("username")
+        col("max_score"), col("total_sum_score"), report.col("userid"), report.col("courseid"), report.col("batchid"),
+        col("total_score"), report.col("maskedemail"), report.col("district_name"), report.col("maskedphone"),
+        report.col("orgname_resolved"), report.col("externalid"), report.col("schoolname_resolved"), report.col("username")
       )
   }
 
@@ -240,6 +243,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     * This method is used to upload the report the azure cloud service.
     */
   def saveReport(reportDF: DataFrame, url: String): Unit = {
+    //println(reportDF.show(false))
     val courseids = reportDF.select(col("courseid")).distinct().collect()
     val batchids = reportDF.select(col("batchid")).distinct().collect()
     JobLogger.log(s"Number of courses are ${courseids.length} and number of batchs are ${batchids.length}")
@@ -249,20 +253,28 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     val batchList = batchids.map(x => x(0).toString)
     for (courseId <- courseList) {
       for (batchId <- batchList) {
-        val resultDF = reportDF.filter(col("courseid") === courseId && col("batchid") === batchId).groupBy("courseid", "batchid", "userid", "maskedemail", "max_score", "district_name", "maskedphone", "orgname_resolved", "externalid", "schoolname_resolved", "username", "total_sum_score").pivot("name").agg(first("total_score"))
+        //        val resultDF = reportDF.filter(col("courseid") === courseId && col("batchid") === batchId).
+        //          groupBy("courseid", "batchid", "userid", "maskedemail", "max_score", "district_name", "maskedphone", "orgname_resolved", "externalid", "schoolname_resolved", "username", "total_sum_score").pivot("name").agg(first("total_score"))
+        //
+        val reshapedDF = reportDF.filter(col("courseid") === courseId && col("batchid") === batchId).
+          groupBy("courseid", "batchid", "userid").pivot("name").agg(first("total_score"))
+
+        val resultDF = reshapedDF.join(reportDF, reshapedDF.col("courseid") === reportDF.col("courseid") && reshapedDF.col("batchid") === reportDF.col("batchid") && reshapedDF.col("userid") === reportDF.col("userid"), "left_outer")
+          .select(
+            reportDF.col("externalid").as("External ID"),
+            reportDF.col("userid").as("User ID"),
+            reportDF.col("username").as("User Name"),
+            reportDF.col("maskedemail").as("Email ID"),
+            reportDF.col("maskedphone").as("Mobile Number"),
+            reportDF.col("orgname_resolved").as("Organisation Name"),
+            reportDF.col("district_name").as("District Name"),
+            reportDF.col("schoolname_resolved").as("School Name"),
+            reshapedDF.col("*"),
+            reportDF.col("total_sum_score").as("Total Score")
+          ).dropDuplicates("userid","courseid","batchid").drop("userid")
         if (resultDF.count() > 0) {
-          resultDF.select(
-            col("externalid").as("External ID"),
-            col("userid").as("User ID"),
-            col("username").as("User Name"),
-            col("maskedemail").as("Email ID"),
-            col("maskedphone").as("Mobile Number"),
-            col("orgname_resolved").as("Organisation Name"),
-            col("district_name").as("District Name"),
-            col("schoolname_resolved").as("School Name"),
-            col("*"),
-            col("total_sum_score").as("Total Score")).drop("userid", "externalid", "username", "maskedemail", "maskedphone", "orgname_resolved", "district_name", "schoolname_resolved", "max_score","total_sum_score")
-            .coalesce(1).write.partitionBy("batchid", "courseid")
+          println(resultDF.show(false))
+          resultDF.coalesce(1).write.partitionBy("batchid", "courseid")
             .mode("overwrite")
             .format("com.databricks.spark.csv")
             .option("header", "true")
@@ -270,6 +282,29 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
           renameReport(tempDir, renamedDir)
           uploadReport(renamedDir)
         }
+
+
+        //        if (resultDF.count() > 0) {
+        //          println(resultDF.show(false))
+        //          resultDF.select(
+        //            col("externalid").as("External ID"),
+        //            col("userid").as("User ID"),
+        //            col("username").as("User Name"),
+        //            col("maskedemail").as("Email ID"),
+        //            col("maskedphone").as("Mobile Number"),
+        //            col("orgname_resolved").as("Organisation Name"),
+        //            col("district_name").as("District Name"),
+        //            col("schoolname_resolved").as("School Name"),
+        //            col("*"),
+        //            col("total_sum_score").as("Total Score")).drop("userid", "externalid", "username", "maskedemail", "maskedphone", "orgname_resolved", "district_name", "schoolname_resolved", "max_score","total_sum_score")
+        //            .coalesce(1).write.partitionBy("batchid", "courseid")
+        //            .mode("overwrite")
+        //            .format("com.databricks.spark.csv")
+        //            .option("header", "true")
+        //            .save(url)
+        //          renameReport(tempDir, renamedDir)
+        //          uploadReport(renamedDir)
+        //        }
       }
     }
   }
@@ -285,7 +320,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     val storageService = StorageServiceFactory
       .getStorageService(StorageConfig(provider, AppConf.getStorageKey(provider), AppConf.getStorageSecret(provider)))
     storageService.upload(container, sourcePath, objectKey, isDirectory = Option(true))
-
+    println("report is uploaded..." + sourcePath)
   }
 
   private def recursiveListFiles(file: File, ext: String): Array[File]
@@ -339,6 +374,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
 
   /**
     * This method is used to get the content names from the elastic search
+    *
     * @param spark
     * @param contentIds
     * @return
