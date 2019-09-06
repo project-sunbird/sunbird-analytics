@@ -253,12 +253,8 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     val batchList = batchids.map(x => x(0).toString)
     for (courseId <- courseList) {
       for (batchId <- batchList) {
-        //        val resultDF = reportDF.filter(col("courseid") === courseId && col("batchid") === batchId).
-        //          groupBy("courseid", "batchid", "userid", "maskedemail", "max_score", "district_name", "maskedphone", "orgname_resolved", "externalid", "schoolname_resolved", "username", "total_sum_score").pivot("name").agg(first("total_score"))
-        //
         val reshapedDF = reportDF.filter(col("courseid") === courseId && col("batchid") === batchId).
           groupBy("courseid", "batchid", "userid").pivot("name").agg(first("total_score"))
-
         val resultDF = reshapedDF.join(reportDF, reshapedDF.col("courseid") === reportDF.col("courseid") && reshapedDF.col("batchid") === reportDF.col("batchid") && reshapedDF.col("userid") === reportDF.col("userid"), "left_outer")
           .select(
             reportDF.col("externalid").as("External ID"),
@@ -271,9 +267,8 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
             reportDF.col("schoolname_resolved").as("School Name"),
             reshapedDF.col("*"),
             reportDF.col("total_sum_score").as("Total Score")
-          ).dropDuplicates("userid","courseid","batchid").drop("userid")
+          ).dropDuplicates("userid", "courseid", "batchid").drop("userid")
         if (resultDF.count() > 0) {
-          println(resultDF.show(false))
           resultDF.coalesce(1).write.partitionBy("batchid", "courseid")
             .mode("overwrite")
             .format("com.databricks.spark.csv")
@@ -282,29 +277,6 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
           renameReport(tempDir, renamedDir)
           uploadReport(renamedDir)
         }
-
-
-        //        if (resultDF.count() > 0) {
-        //          println(resultDF.show(false))
-        //          resultDF.select(
-        //            col("externalid").as("External ID"),
-        //            col("userid").as("User ID"),
-        //            col("username").as("User Name"),
-        //            col("maskedemail").as("Email ID"),
-        //            col("maskedphone").as("Mobile Number"),
-        //            col("orgname_resolved").as("Organisation Name"),
-        //            col("district_name").as("District Name"),
-        //            col("schoolname_resolved").as("School Name"),
-        //            col("*"),
-        //            col("total_sum_score").as("Total Score")).drop("userid", "externalid", "username", "maskedemail", "maskedphone", "orgname_resolved", "district_name", "schoolname_resolved", "max_score","total_sum_score")
-        //            .coalesce(1).write.partitionBy("batchid", "courseid")
-        //            .mode("overwrite")
-        //            .format("com.databricks.spark.csv")
-        //            .option("header", "true")
-        //            .save(url)
-        //          renameReport(tempDir, renamedDir)
-        //          uploadReport(renamedDir)
-        //        }
       }
     }
   }
