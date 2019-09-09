@@ -221,15 +221,14 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     * This method is used to upload the report the azure cloud service.
     */
   def saveReport(reportDF: DataFrame, url: String): Unit = {
-    val courseids = reportDF.select(col("courseid")).distinct().collect()
-    val batchids = reportDF.select(col("batchid")).distinct().collect()
-    JobLogger.log(s"Number of courses are ${courseids.length} and number of batchs are ${batchids.length}")
+    val course_batch_df = reportDF.select("courseid", "batchid").collect()
+    JobLogger.log(s"Number of courses are ${course_batch_df.length} and number of batchs are ${course_batch_df.length}")
     val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
     val renamedDir = s"$tempDir/renamed"
-    val courseList = courseids.map(x => x(0).toString)
-    val batchList = batchids.map(x => x(0).toString)
-    for (courseId <- courseList) {
-      for (batchId <- batchList) {
+    val courseList = course_batch_df.map(x => x(0).toString).distinct
+    val batchList = course_batch_df.map(x => x(1).toString).distinct
+    courseList.foreach(courseId => {
+      batchList.foreach(batchId => {
         val reshapedDF = reportDF.filter(col("courseid") === courseId && col("batchid") === batchId).
           groupBy("courseid", "batchid", "userid").pivot("name").agg(first("total_score"))
         val resultDF = reshapedDF.join(reportDF, reshapedDF.col("courseid") === reportDF.col("courseid") && reshapedDF.col("batchid") === reportDF.col("batchid") && reshapedDF.col("userid") === reportDF.col("userid"), "left_outer")
@@ -254,8 +253,8 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
           renameReport(tempDir, renamedDir)
           uploadReport(renamedDir)
         }
-      }
-    }
+      })
+    })
   }
 
   /**
@@ -269,7 +268,6 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     val storageService = StorageServiceFactory
       .getStorageService(StorageConfig(provider, AppConf.getStorageKey(provider), AppConf.getStorageSecret(provider)))
     storageService.upload(container, sourcePath, objectKey, isDirectory = Option(true))
-    println("report is uploaded..." + sourcePath)
   }
 
   private def recursiveListFiles(file: File, ext: String): Array[File]
