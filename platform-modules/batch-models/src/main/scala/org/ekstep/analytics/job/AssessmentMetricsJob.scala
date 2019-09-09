@@ -221,7 +221,6 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     * This method is used to upload the report the azure cloud service.
     */
   def saveReport(reportDF: DataFrame, url: String): Unit = {
-    //println(reportDF.show(false))
     val courseids = reportDF.select(col("courseid")).distinct().collect()
     val batchids = reportDF.select(col("batchid")).distinct().collect()
     JobLogger.log(s"Number of courses are ${courseids.length} and number of batchs are ${batchids.length}")
@@ -246,7 +245,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
             reshapedDF.col("*"),
             reportDF.col("total_sum_score").as("Total Score")
           ).dropDuplicates("userid", "courseid", "batchid").drop("userid")
-        if (resultDF.count() > 0) {
+        if (!resultDF.take(1).isEmpty) {
           resultDF.coalesce(1).write.partitionBy("batchid", "courseid")
             .mode("overwrite")
             .format("com.databricks.spark.csv")
