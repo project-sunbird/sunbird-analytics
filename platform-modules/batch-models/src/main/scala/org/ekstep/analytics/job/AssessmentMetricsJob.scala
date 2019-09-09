@@ -2,37 +2,16 @@ package org.ekstep.analytics.job
 
 import java.io.File
 import java.nio.file.{Files, StandardCopyOption}
-import org.apache.spark.sql.SQLContext
 
-import org.elasticsearch.spark.sql._
 import org.apache.spark.SparkContext
-import org.apache.spark.sql.functions.{col, unix_timestamp, _}
-import org.apache.spark.sql.types.DataTypes
-import org.apache.spark.sql.SQLContext
-import org.elasticsearch.spark.sql._
 import org.apache.spark.sql.{DataFrame, SparkSession}
-import org.ekstep.analytics.framework.Level._
+import org.apache.spark.sql.expressions.Window
+import org.apache.spark.sql.functions.{col, _}
+import org.apache.spark.sql.types.DataTypes
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, JobLogger}
-import org.ekstep.analytics.util.ESUtil
-import org.joda.time.DateTime
-import org.joda.time.format.DateTimeFormat
 import org.sunbird.cloud.storage.conf.AppConf
 import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
-import org.apache.spark.sql.expressions.Window
-import org.apache.spark.sql.functions.rank
-import org.apache.spark.sql.functions.row_number
-import org.apache.spark.sql.expressions.Window
-import org.apache.spark.sql.functions._
-import org.apache.spark.sql.DataFrame
-import org.apache.spark.sql.functions._
-import org.apache.spark.sql.types._
-import org.apache.spark.sql.DataFrame
-import org.apache.spark.sql.functions._
-import org.apache.spark.sql.types._
-import org.apache.spark.sql.functions._
-import org.apache.spark.sql.Row
-
 
 import scala.collection.{Map, _}
 
@@ -181,7 +160,6 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     //val groupdedDF = Window.partitionBy("user_id", "batch_id", "course_id", "content_id").orderBy(desc("last_attempted_on"))
     //val latestAssessmentDF = assessmentProfileDF.withColumn("rownum", row_number.over(groupdedDF)).where(col("rownum") === 1).drop("rownum")
 
-    //println(latestAssessmentDF.show(false))
 
     /** attempt_id
       * Compute the sum of all the worksheet contents score.
@@ -311,6 +289,11 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     }
   }
 
+  /**
+    * Method used to rename the reports.
+    * file formate : report-courseId-batch_id.csv
+    *
+    */
   def renameReport(tempDir: String, outDir: String) = {
 
     val regex = """\=.*/""".r // to get batchid from the path "somepath/batchid=12313144/part-0000.csv"
