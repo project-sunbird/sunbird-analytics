@@ -5,7 +5,6 @@ import org.apache.spark.SparkContext
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions.{col, _}
-import org.apache.spark.sql.types.DataTypes
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, JobLogger}
 import org.ekstep.analytics.util.AssessmentReportUtil
@@ -25,7 +24,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     JobLogger.init("Assessment Metrics")
     JobLogger.start("Assessment Job Started executing", Option(Map("config" -> config, "model" -> name)))
     val jobConfig = JSONUtils.deserialize[JobConfig](config)
-    JobContext.parallelization = 10
+    JobContext.parallelization = jobConfig.parallelization.getOrElse(10) // Default to 10
 
     def runJob(sc: SparkContext): Unit = {
       try {
@@ -67,6 +66,13 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     JobLogger.end("AssessmentReport Generation Job completed successfully!", "SUCCESS", Option(Map("config" -> config, "model" -> name)))
   }
 
+  /**
+    * Method used to load the cassnadra table data by passing configurations
+    *
+    * @param spark    - Spark Sessions
+    * @param settings - Cassnadra configs
+    * @return
+    */
   def loadData(spark: SparkSession, settings: Map[String, String]): DataFrame = {
     spark
       .read
@@ -196,7 +202,6 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     resolvedExternalIdDF
       .join(resolvedSchoolNameDF, Seq("userid"), "left_outer")
       .join(resolvedOrgNameDF, Seq("userid"), "left_outer")
-      .withColumn("generatedOn", date_format(from_utc_timestamp(current_timestamp.cast(DataTypes.TimestampType), "Asia/Kolkata"), "yyyy-MM-dd'T'HH:mm:ss'Z'"))
   }
 
   /**
@@ -215,8 +220,15 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
       )
   }
 
+
+
+
   /**
     * This method is used to upload the report the azure cloud service.
+    * TODO: Need to optimize this method.
+    * 1.reduce for-loop
+    * 2.reduce join
+    * 3.Avoid collect
     */
   def saveReport(reportDF: DataFrame, url: String): Unit = {
     val course_batch_df = reportDF.select("courseid", "batchid").collect()

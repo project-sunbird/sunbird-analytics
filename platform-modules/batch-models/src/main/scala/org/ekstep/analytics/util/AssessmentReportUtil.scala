@@ -98,6 +98,6 @@ object AssessmentReportUtil {
       .option("query", request)
       .option("pushdown", "true")
       .load(AppConf.getConfig("assessment.metrics.content.index"))
-      .select("name", "identifier")
+      .select("name", "identifier") // Fields need to capture from the elastic search
   }
 }
