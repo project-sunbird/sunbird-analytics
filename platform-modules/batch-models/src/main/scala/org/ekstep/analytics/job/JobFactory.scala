@@ -214,6 +214,8 @@ object JobFactory {
                 ExperimentDefinitionJob
             case "daily-metrics-consumption-reports" =>
                 ConsumptionReportsJob
+            case "assessment-dashboard-metric" =>
+                AssessmentMetricsJob
             case _ =>
                 throw new JobNotFoundException("Unknown job type found")
         }

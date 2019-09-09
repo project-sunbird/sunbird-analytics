@@ -58,6 +58,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     val renamedDir = s"$tempDir/renamed"
     val sparkConf = sc.getConf
       .set("spark.cassandra.input.consistency.level", readConsistencyLevel)
+      .set("es.scroll.size", AppConf.getConfig("es.scroll.size"))
 
     val spark = SparkSession.builder.config(sparkConf).getOrCreate()
     val reportDF = prepareReport(spark, loadData)
