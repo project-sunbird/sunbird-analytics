@@ -3,6 +3,7 @@ package org.ekstep.analytics.job
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.ekstep.analytics.job.AssessmentMetricsJob.saveReport
 import org.ekstep.analytics.model.SparkSpec
+import org.ekstep.analytics.util.AssessmentReportUtil
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.cloud.storage.conf.AppConf
 
@@ -210,7 +211,7 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
     val contentESIndex = AppConf.getConfig("assessment.metrics.content.index")
     assert(contentESIndex.isEmpty === false)
     val contentList = List("do_112835336280596480151", "do_112835336960000000152")
-    val contentDF = AssessmentMetricsJob.getContentNames(spark, contentList)
+    val contentDF = AssessmentReportUtil.getContentNames(spark, contentList)
     assert(contentDF.count() === 2)
   }
 
@@ -309,7 +310,7 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
     val denormedDF = AssessmentMetricsJob.denormAssessment(spark, reportDF)
     val denormedDFCount = denormedDF.groupBy("courseid", "batchid")
     denormedDF.createOrReplaceTempView("course_batch")
-    val df = spark.sql("select * from course_batch where batchid =1005 and courseid='do_112695422838472704115' and name ='name'")
+    val df = spark.sql("select * from course_batch where batchid ='1005' and courseid='do_112695422838472704115' and name ='TEST'")
     println(df.show(false))
     assert(df.count() === 1)
     df.select("max_score").take(0).foreach(value => {
@@ -371,6 +372,5 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
     assert(denormedDF.columns.contains("schoolname_resolved") === true)
     assert(denormedDF.columns.contains("username") === true)
   }
-
 
 }
