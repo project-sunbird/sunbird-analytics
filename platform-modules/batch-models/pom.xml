@@ -23,6 +23,11 @@
 			<name>In Project Repo</name>
 			<url>file://${project.basedir}/lib</url>
 		</repository>
+		<repository>
+			<id>ing-bank</id>
+			<name>Ing-bank Repo</name>
+			<url>https://dl.bintray.com/ing-bank/maven-releases/</url>
+		</repository>
 	</repositories>
 
 	<dependencies>
@@ -258,13 +263,19 @@
 		<dependency>
 		    <groupId>org.sunbird</groupId>
 		    <artifactId>cloud-store-sdk</artifactId>
-		    <version>1.0</version>
+		    <version>1.2.5</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.elasticsearch/elasticsearch-hadoop -->
 		<dependency>
 			<groupId>org.elasticsearch</groupId>
 			<artifactId>elasticsearch-hadoop</artifactId>
 			<version>6.7.0</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>ing.wbaa.druid</groupId>
+			<artifactId>scruid_2.11</artifactId>
+			<version>2.1.0</version>
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>

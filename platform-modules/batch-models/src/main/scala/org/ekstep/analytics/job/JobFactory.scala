@@ -214,6 +214,8 @@ object JobFactory {
                 ExperimentDefinitionJob
             case "daily-metrics-consumption-reports" =>
                 ConsumptionReportsJob
+            case "druid-query-processor" =>
+                DruidQueryProcessor
             case _ =>
                 throw new JobNotFoundException("Unknown job type found")
         }
