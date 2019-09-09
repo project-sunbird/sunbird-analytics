@@ -216,6 +216,8 @@ object JobFactory {
                 ConsumptionReportsJob
             case "assessment-dashboard-metric" =>
                 AssessmentMetricsJob
+            case "druid-query-processor" =>
+                DruidQueryProcessor
             case _ =>
                 throw new JobNotFoundException("Unknown job type found")
         }
