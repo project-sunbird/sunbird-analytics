@@ -1,18 +1,12 @@
 package org.ekstep.analytics.job
 
-import java.util.Date
-
-import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.{DataFrame, SparkSession}
-import org.ekstep.analytics.job.AssessmentMetricsJob.{renameReport, saveReport, uploadReport}
+import org.ekstep.analytics.job.AssessmentMetricsJob.saveReport
 import org.ekstep.analytics.model.SparkSpec
-import org.mockito.Mock
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.cloud.storage.conf.AppConf
 
 import scala.collection.Map
-
-
 
 
 class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
@@ -23,15 +17,15 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
   var locationDF: DataFrame = _
   var orgDF: DataFrame = _
   var userOrgDF: DataFrame = _
-  var externalIdentityDF:DataFrame = _
-  var assessmentProfileDF:DataFrame=_
+  var externalIdentityDF: DataFrame = _
+  var assessmentProfileDF: DataFrame = _
   var reporterMock: ReportGenerator = mock[ReportGenerator]
   val sunbirdCoursesKeyspace = "sunbird_courses"
   val sunbirdKeyspace = "sunbird"
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    spark = SparkSession.builder.config(sc.getConf.set("es.nodes","11.2.3.58").set("es.read.field.as.array.include", "nested.bar:5").set("es.scroll.size","1")).getOrCreate()
+    spark = SparkSession.builder.config(sc.getConf.set("es.nodes", AppConf.getConfig("es.host"))).getOrCreate()
     //spark = SparkSession.builder.config(sc.getConf.set("es.nodes","11.2.3.58")).getOrCreate()
 
     /*
@@ -111,7 +105,7 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
       .cache()
   }
 
-  "TestAssessmentMetricsJob" should "define all the configurations" in{
+  "TestAssessmentMetricsJob" should "define all the configurations" in {
     assert(AppConf.getConfig("assessment.metrics.content.index").isEmpty === false)
     assert(AppConf.getConfig("assessment.metrics.cassandra.input.consistency").isEmpty === false)
     assert(AppConf.getConfig("assessment.metrics.cloud.objectKey").isEmpty === false)
@@ -121,7 +115,6 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
   }
 
   "TestUpdateAssessmentMetricsJob" should "generate reports" in {
-    println("start" +new Date().getTime)
     (reporterMock.loadData _)
       .expects(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace))
       .returning(courseBatchDF)
@@ -160,58 +153,224 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
 
     val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
     val renamedDir = s"$tempDir/renamed"
-    println(reportDF.show(false))
+    //println(reportDF.show(false))
     val denormedDF = AssessmentMetricsJob.denormAssessment(spark, reportDF)
-    saveReport(denormedDF,  tempDir)
-    assert(denormedDF.count == 4)
-    val denormedDFCount = denormedDF.groupBy("courseid","batchid")
-    println(denormedDFCount.count())
-    println("end"+new Date().getTime)
-
-//    val reportData = denormedDF
-//      .groupBy(col("batchid, courseid"))
-//      .count()
-//      .collect()
-
-//    assert(reportData.filter(row => row.getString(0) == "1001").head.getLong(1) == 2)
-//    assert(reportData.filter(row => row.getString(0) == "1002").head.getLong(1) == 3)
-//    assert(reportData.filter(row => row.getString(0) == "1003").head.getLong(1) == 4)
-//    assert(reportData.filter(row => row.getString(0) == "1004").head.getLong(1) == 4)
-//    assert(reportData.filter(row => row.getString(0) == "1005").head.getLong(1) == 4)
-//    assert(reportData.filter(row => row.getString(0) == "1006").head.getLong(1) == 4)
-//    assert(reportData.filter(row => row.getString(0) == "1007").head.getLong(1) == 4)
-//    assert(reportData.filter(row => row.getString(0) == "1008").head.getLong(1) == 3)
-//    assert(reportData.filter(row => row.getString(0) == "1009").head.getLong(1) == 3)
-//    assert(reportData.filter(row => row.getString(0) == "1010").head.getLong(1) == 3)
+    saveReport(denormedDF, tempDir)
+    assert(denormedDF.count == 7)
   }
+
+  "TestAssessmentMetricsJob" should "presnet 1001 batchid and do_2123101488779837441168 courseid " in {
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace))
+      .returning(courseBatchDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user_courses", "keyspace" -> sunbirdCoursesKeyspace))
+      .returning(userCoursesDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user", "keyspace" -> sunbirdKeyspace))
+      .returning(userDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user_org", "keyspace" -> sunbirdKeyspace))
+      .returning(userOrgDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace))
+      .returning(orgDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "location", "keyspace" -> sunbirdKeyspace))
+      .returning(locationDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "usr_external_identity", "keyspace" -> sunbirdKeyspace))
+      .returning(externalIdentityDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "assessment_aggregator", "keyspace" -> sunbirdCoursesKeyspace))
+      .returning(assessmentProfileDF)
+
+    val reportDF = AssessmentMetricsJob
+      .prepareReport(spark, reporterMock.loadData)
+      .cache()
+
+    val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
+    val renamedDir = s"$tempDir/renamed"
+    val denormedDF = AssessmentMetricsJob.denormAssessment(spark, reportDF)
+    val denormedDFCount = denormedDF.groupBy("courseid", "batchid")
+    denormedDF.createOrReplaceTempView("course_batch")
+    val df = spark.sql("select * from course_batch where batchid ='1001' and courseid='do_2123101488779837441168' and name='Whole Numbers' and userid='user021' ")
+    println(df.show(false))
+    assert(df.count() === 1)
+  }
+
   "TestAssessmentMetricsJob" should "fetch the content names from the elastic search" in {
     val contentESIndex = AppConf.getConfig("assessment.metrics.content.index")
     assert(contentESIndex.isEmpty === false)
-   val contentList = List("do_112835336280596480151","do_112835336960000000152")
+    val contentList = List("do_112835336280596480151", "do_112835336960000000152")
     val contentDF = AssessmentMetricsJob.getContentNames(spark, contentList)
     assert(contentDF.count() === 2)
   }
 
-  "TestAssessmentMetricsJob" should "denorm the assessment" in {
+
+  "TestAssessmentMetricsJob" should "have computed total score for the specific userid, batch, course" in {
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace))
+      .returning(courseBatchDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user_courses", "keyspace" -> sunbirdCoursesKeyspace))
+      .returning(userCoursesDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user", "keyspace" -> sunbirdKeyspace))
+      .returning(userDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user_org", "keyspace" -> sunbirdKeyspace))
+      .returning(userOrgDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace))
+      .returning(orgDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "location", "keyspace" -> sunbirdKeyspace))
+      .returning(locationDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "usr_external_identity", "keyspace" -> sunbirdKeyspace))
+      .returning(externalIdentityDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "assessment_aggregator", "keyspace" -> sunbirdCoursesKeyspace))
+      .returning(assessmentProfileDF)
+
+    val reportDF = AssessmentMetricsJob
+      .prepareReport(spark, reporterMock.loadData)
+      .cache()
+
+    val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
+    val renamedDir = s"$tempDir/renamed"
+    val denormedDF = AssessmentMetricsJob.denormAssessment(spark, reportDF)
+    val denormedDFCount = denormedDF.groupBy("courseid", "batchid")
+    denormedDF.createOrReplaceTempView("course_batch")
+    val df = spark.sql("select * from course_batch where batchid =1006 and courseid='do_1126458775024025601296' and  userid='user026' ")
+    println(df.show(false))
+    assert(df.count() === 1)
+    df.select("total_sum_score").take(0).foreach(value => {
+      println("e is" + value)
+      assert(value === "10.0")
+    })
 
   }
 
-  "TestAssessmentMetricsJob" should "have computed total score" in{
+  "TestAssessmentMetricsJob" should "valid score in the assessment content for the specific course" in {
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace))
+      .returning(courseBatchDF)
 
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user_courses", "keyspace" -> sunbirdCoursesKeyspace))
+      .returning(userCoursesDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user", "keyspace" -> sunbirdKeyspace))
+      .returning(userDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user_org", "keyspace" -> sunbirdKeyspace))
+      .returning(userOrgDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace))
+      .returning(orgDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "location", "keyspace" -> sunbirdKeyspace))
+      .returning(locationDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "usr_external_identity", "keyspace" -> sunbirdKeyspace))
+      .returning(externalIdentityDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "assessment_aggregator", "keyspace" -> sunbirdCoursesKeyspace))
+      .returning(assessmentProfileDF)
+
+    val reportDF = AssessmentMetricsJob
+      .prepareReport(spark, reporterMock.loadData)
+      .cache()
+
+    val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
+    val renamedDir = s"$tempDir/renamed"
+    val denormedDF = AssessmentMetricsJob.denormAssessment(spark, reportDF)
+    val denormedDFCount = denormedDF.groupBy("courseid", "batchid")
+    denormedDF.createOrReplaceTempView("course_batch")
+    val df = spark.sql("select * from course_batch where batchid =1005 and courseid='do_112695422838472704115' and name ='name'")
+    println(df.show(false))
+    assert(df.count() === 1)
+    df.select("max_score").take(0).foreach(value => {
+      assert(value === "30")
+    })
   }
 
-  "TestAssessmentMetricsJob" should "valid score in the assessment content for the specific course" in{
+  "TestAssessmentMetricsJob" should "confirm all required column names are present or not" in {
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace))
+      .returning(courseBatchDF)
 
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user_courses", "keyspace" -> sunbirdCoursesKeyspace))
+      .returning(userCoursesDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user", "keyspace" -> sunbirdKeyspace))
+      .returning(userDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user_org", "keyspace" -> sunbirdKeyspace))
+      .returning(userOrgDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace))
+      .returning(orgDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "location", "keyspace" -> sunbirdKeyspace))
+      .returning(locationDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "usr_external_identity", "keyspace" -> sunbirdKeyspace))
+      .returning(externalIdentityDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "assessment_aggregator", "keyspace" -> sunbirdCoursesKeyspace))
+      .returning(assessmentProfileDF)
+
+    val reportDF = AssessmentMetricsJob
+      .prepareReport(spark, reporterMock.loadData)
+      .cache()
+
+    val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
+    val renamedDir = s"$tempDir/renamed"
+    val denormedDF = AssessmentMetricsJob.denormAssessment(spark, reportDF)
+    assert(denormedDF.columns.contains("name") === true)
+    assert(denormedDF.columns.contains("max_score") === true)
+    assert(denormedDF.columns.contains("courseid") === true)
+    assert(denormedDF.columns.contains("userid") === true)
+    assert(denormedDF.columns.contains("batchid") === true)
+    assert(denormedDF.columns.contains("maskedemail") === true)
+    assert(denormedDF.columns.contains("district_name") === true)
+    assert(denormedDF.columns.contains("maskedphone") === true)
+    assert(denormedDF.columns.contains("orgname_resolved") === true)
+    assert(denormedDF.columns.contains("district_name") === true)
+    assert(denormedDF.columns.contains("externalid") === true)
+    assert(denormedDF.columns.contains("schoolname_resolved") === true)
+    assert(denormedDF.columns.contains("username") === true)
   }
-
-  "TestAssessmentMetricsJob" should "generate report with the latest info" in{
-
-  }
-
-  "TestAssessmentMetricsJob" should "have valid filed and values" in{
-
-  }
-
 
 
 }
