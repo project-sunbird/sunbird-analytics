@@ -313,7 +313,7 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
     val df = spark.sql("select * from course_batch where batchid ='1005' and courseid='do_112695422838472704115' and name ='TEST'")
     println(df.show(false))
     assert(df.count() === 1)
-    df.select("max_score").take(0).foreach(value => {
+    df.select("total_score").take(0).foreach(value => {
       assert(value === "30")
     })
   }
@@ -359,7 +359,7 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
     val renamedDir = s"$tempDir/renamed"
     val denormedDF = AssessmentMetricsJob.denormAssessment(spark, reportDF)
     assert(denormedDF.columns.contains("name") === true)
-    assert(denormedDF.columns.contains("max_score") === true)
+    assert(denormedDF.columns.contains("total_score") === true)
     assert(denormedDF.columns.contains("courseid") === true)
     assert(denormedDF.columns.contains("userid") === true)
     assert(denormedDF.columns.contains("batchid") === true)
