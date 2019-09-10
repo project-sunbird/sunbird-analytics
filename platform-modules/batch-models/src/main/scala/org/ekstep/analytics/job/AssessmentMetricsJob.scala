@@ -215,7 +215,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     report.join(contentNameDF, report.col("content_id") === contentNameDF.col("identifier"), "right_outer")
       .select(col("name"),
         col("total_sum_score"), report.col("userid"), report.col("courseid"), report.col("batchid"),
-        col("total_score"), report.col("maskedemail"),report.col("attempt_id"), report.col("district_name"), report.col("maskedphone"),
+        col("total_score"), report.col("maskedemail"),report.col("district_name"), report.col("maskedphone"),
         report.col("orgname_resolved"), report.col("externalid"), report.col("schoolname_resolved"), report.col("username")
       )
   }
