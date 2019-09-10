@@ -215,13 +215,11 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     val contentNameDF = AssessmentReportUtil.getContentNames(spark, contentIds)
     report.join(contentNameDF, report.col("content_id") === contentNameDF.col("identifier"), "right_outer")
       .select(col("name"),
-        col("max_score"), col("total_sum_score"), report.col("userid"), report.col("courseid"), report.col("batchid"),
+        col("total_sum_score"), report.col("userid"), report.col("courseid"), report.col("batchid"),
         col("total_score"), report.col("maskedemail"), report.col("district_name"), report.col("maskedphone"),
         report.col("orgname_resolved"), report.col("externalid"), report.col("schoolname_resolved"), report.col("username")
       )
   }
-
-
 
 
   /**
@@ -240,21 +238,23 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     val batchList = course_batch_df.map(x => x(1).toString).distinct
     courseList.foreach(courseId => {
       batchList.foreach(batchId => {
+        // Re-shape the dataframe (Convert the content name from the row to column)
         val reshapedDF = reportDF.filter(col("courseid") === courseId && col("batchid") === batchId).
           groupBy("courseid", "batchid", "userid").pivot("name").agg(first("total_score"))
-        val resultDF = reshapedDF.join(reportDF, reshapedDF.col("courseid") === reportDF.col("courseid") && reshapedDF.col("batchid") === reportDF.col("batchid") && reshapedDF.col("userid") === reportDF.col("userid"), "left_outer")
-          .select(
-            reportDF.col("externalid").as("External ID"),
-            reportDF.col("userid").as("User ID"),
-            reportDF.col("username").as("User Name"),
-            reportDF.col("maskedemail").as("Email ID"),
-            reportDF.col("maskedphone").as("Mobile Number"),
-            reportDF.col("orgname_resolved").as("Organisation Name"),
-            reportDF.col("district_name").as("District Name"),
-            reportDF.col("schoolname_resolved").as("School Name"),
-            reshapedDF.col("*"),
-            reportDF.col("total_sum_score").as("Total Score")
-          ).dropDuplicates("userid", "courseid", "batchid").drop("userid")
+        val resultDF = reshapedDF
+          .join(reportDF, Seq("courseid", "batchid", "userid"),
+            "inner").select(
+          reportDF.col("externalid").as("External ID"),
+          reportDF.col("userid").as("User ID"),
+          reportDF.col("username").as("User Name"),
+          reportDF.col("maskedemail").as("Email ID"),
+          reportDF.col("maskedphone").as("Mobile Number"),
+          reportDF.col("orgname_resolved").as("Organisation Name"),
+          reportDF.col("district_name").as("District Name"),
+          reportDF.col("schoolname_resolved").as("School Name"),
+          reshapedDF.col("*"), // Since we don't know the content name column so we are using col("*")
+          reportDF.col("total_sum_score").as("Total Score")
+        ).drop("userid")
         if (!resultDF.take(1).isEmpty) {
           resultDF.coalesce(1).write.partitionBy("batchid", "courseid")
             .mode("overwrite")
