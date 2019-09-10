@@ -162,15 +162,14 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
       .join(locationDenormDF, Seq("userid"), "left_outer")
 
     // Enable this below code to get only last attempted question
-    //val groupdedDF = Window.partitionBy("user_id", "batch_id", "course_id", "content_id").orderBy(desc("last_attempted_on"))
-    //val latestAssessmentDF = assessmentProfileDF.withColumn("rownum", row_number.over(groupdedDF)).where(col("rownum") === 1).drop("rownum")
-
+    val groupdedDF = Window.partitionBy("user_id", "batch_id", "course_id", "content_id").orderBy(desc("last_attempted_on"))
+    val latestAssessmentDF = assessmentProfileDF.withColumn("rownum", row_number.over(groupdedDF)).where(col("rownum") === 1).drop("rownum")
 
     /** attempt_id
       * Compute the sum of all the worksheet contents score.
       */
     val assessmentAggDf = Window.partitionBy("user_id", "batch_id", "course_id")
-    val aggregatedDF = assessmentProfileDF.withColumn("total_sum_score", sum("total_score") over assessmentAggDf)
+    val aggregatedDF = latestAssessmentDF.withColumn("total_sum_score", sum("total_score") over assessmentAggDf)
 
     /**
       * Filter only valid enrolled userid for the specific courseid
@@ -216,7 +215,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     report.join(contentNameDF, report.col("content_id") === contentNameDF.col("identifier"), "right_outer")
       .select(col("name"),
         col("total_sum_score"), report.col("userid"), report.col("courseid"), report.col("batchid"),
-        col("total_score"), report.col("maskedemail"), report.col("district_name"), report.col("maskedphone"),
+        col("total_score"), report.col("maskedemail"),report.col("attempt_id"), report.col("district_name"), report.col("maskedphone"),
         report.col("orgname_resolved"), report.col("externalid"), report.col("schoolname_resolved"), report.col("username")
       )
   }
@@ -254,7 +253,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
           reportDF.col("schoolname_resolved").as("School Name"),
           reshapedDF.col("*"), // Since we don't know the content name column so we are using col("*")
           reportDF.col("total_sum_score").as("Total Score")
-        ).drop("userid")
+        ).dropDuplicates("userid","courseid","batchid").drop("userid")
         if (!resultDF.take(1).isEmpty) {
           resultDF.coalesce(1).write.partitionBy("batchid", "courseid")
             .mode("overwrite")
