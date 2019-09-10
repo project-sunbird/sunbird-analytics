@@ -10,6 +10,7 @@ import org.sunbird.cloud.storage.conf.AppConf
 import scala.collection.Map
 
 
+
 class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
   var spark: SparkSession = _
   var courseBatchDF: DataFrame = _
@@ -27,7 +28,6 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
   override def beforeAll(): Unit = {
     super.beforeAll()
     spark = SparkSession.builder.config(sc.getConf.set("es.nodes", AppConf.getConfig("es.host"))).getOrCreate()
-    //spark = SparkSession.builder.config(sc.getConf.set("es.nodes","11.2.3.58")).getOrCreate()
 
     /*
      * Data created with 31 active batch from batchid = 1000 - 1031
@@ -154,7 +154,6 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
 
     val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
     val renamedDir = s"$tempDir/renamed"
-    //println(reportDF.show(false))
     val denormedDF = AssessmentMetricsJob.denormAssessment(spark, reportDF)
     saveReport(denormedDF, tempDir)
     assert(denormedDF.count == 7)
@@ -203,7 +202,6 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
     val denormedDFCount = denormedDF.groupBy("courseid", "batchid")
     denormedDF.createOrReplaceTempView("course_batch")
     val df = spark.sql("select * from course_batch where batchid ='1001' and courseid='do_2123101488779837441168' and name='Whole Numbers' and userid='user021' ")
-    println(df.show(false))
     assert(df.count() === 1)
   }
 
@@ -259,12 +257,9 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
     val denormedDFCount = denormedDF.groupBy("courseid", "batchid")
     denormedDF.createOrReplaceTempView("course_batch")
     val df = spark.sql("select * from course_batch where batchid =1006 and courseid='do_1126458775024025601296' and  userid='user026' ")
-    println(df.show(false))
     assert(df.count() === 1)
-    df.select("total_sum_score").take(0).foreach(value => {
-      println("e is" + value)
-      assert(value === "10.0")
-    })
+    val total_sum_scoreList = df.select("total_sum_score").collect().map(_(0)).toList
+    assert(total_sum_scoreList(0) === 10.0)
 
   }
 
@@ -311,11 +306,10 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
     val denormedDFCount = denormedDF.groupBy("courseid", "batchid")
     denormedDF.createOrReplaceTempView("course_batch")
     val df = spark.sql("select * from course_batch where batchid ='1005' and courseid='do_112695422838472704115' and name ='TEST'")
-    println(df.show(false))
     assert(df.count() === 1)
-    df.select("total_score").take(0).foreach(value => {
-      assert(value === "30")
-    })
+    val total_scoreList = df.select("total_score").collect().map(_(0)).toList
+    assert(total_scoreList(0) === "5")
+
   }
 
   "TestAssessmentMetricsJob" should "confirm all required column names are present or not" in {
