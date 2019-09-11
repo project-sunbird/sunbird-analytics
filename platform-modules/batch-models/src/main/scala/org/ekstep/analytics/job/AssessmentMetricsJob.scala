@@ -224,9 +224,6 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
   /**
     * This method is used to upload the report the azure cloud service.
     * TODO: Need to optimize this method.
-    * 1.reduce for-loop
-    * 2.reduce join
-    * 3.Avoid collect
     */
   def saveReport(reportDF: DataFrame, url: String): Unit = {
     val result = reportDF
@@ -235,43 +232,33 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     val course_batch_list = result.collect.map(r => Map(result.columns.zip(r.toSeq): _*))
     course_batch_list.foreach(item => {
       val batchList = item.getOrElse("batchid", null).asInstanceOf[Seq[String]].distinct
+      val courseId = item.getOrElse("courseid", null).toString
       batchList.foreach(batchId => {
-        save(reportDF, url, item.getOrElse("courseid", null).toString, batchId)
+        if (courseId != null && batchId != null) {
+          val reportData = getReportData(reportDF, courseId, batchId)
+          AssessmentReportUtil.save(reportData, url)
+        }
       })
     })
-
-    def save(reportDF: DataFrame, url: String, courseId: String, batchId: String): Unit = {
-      val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
-      val renamedDir = s"$tempDir/renamed"
-      // Re-shape the dataframe (Convert the content name from the row to column)
-      if (courseId != null && batchId != null) {
-        JobLogger.log(s"Generating report for ${courseId} course and ${batchId} batch")
-        val reshapedDF = reportDF.filter(col("courseid") === courseId && col("batchid") === batchId).
-          groupBy("courseid", "batchid", "userid").pivot("name").agg(first("total_score"))
-        val resultDF = reshapedDF
-          .join(reportDF, Seq("courseid", "batchid", "userid"),
-            "inner").select(
-          reportDF.col("externalid").as("External ID"),
-          reportDF.col("userid").as("User ID"),
-          reportDF.col("username").as("User Name"),
-          reportDF.col("maskedemail").as("Email ID"),
-          reportDF.col("maskedphone").as("Mobile Number"),
-          reportDF.col("orgname_resolved").as("Organisation Name"),
-          reportDF.col("district_name").as("District Name"),
-          reportDF.col("schoolname_resolved").as("School Name"),
-          reshapedDF.col("*"), // Since we don't know the content name column so we are using col("*")
-          reportDF.col("total_sum_score").as("Total Score")
-        ).dropDuplicates("userid", "courseid", "batchid").drop("userid")
-        if (!resultDF.take(1).isEmpty) {
-          resultDF.coalesce(1).write.partitionBy("batchid", "courseid")
-            .mode("overwrite")
-            .format("com.databricks.spark.csv")
-            .option("header", "true")
-            .save(url)
-          AssessmentReportUtil.renameReport(tempDir, renamedDir)
-          AssessmentReportUtil.uploadReport(renamedDir)
-        }
-      }
-    }
+  }
+  def getReportData(reportDF: DataFrame, courseId: String, batchId: String): DataFrame = {
+    // Re-shape the dataframe (Convert the content name from the row to column)
+    JobLogger.log(s"Generating report for ${courseId} course and ${batchId} batch")
+    val reshapedDF = reportDF.filter(col("courseid") === courseId && col("batchid") === batchId).
+      groupBy("courseid", "batchid", "userid").pivot("name").agg(first("total_score"))
+    reshapedDF
+      .join(reportDF, Seq("courseid", "batchid", "userid"),
+        "inner").select(
+      reportDF.col("externalid").as("External ID"),
+      reportDF.col("userid").as("User ID"),
+      reportDF.col("username").as("User Name"),
+      reportDF.col("maskedemail").as("Email ID"),
+      reportDF.col("maskedphone").as("Mobile Number"),
+      reportDF.col("orgname_resolved").as("Organisation Name"),
+      reportDF.col("district_name").as("District Name"),
+      reportDF.col("schoolname_resolved").as("School Name"),
+      reshapedDF.col("*"), // Since we don't know the content name column so we are using col("*")
+      reportDF.col("total_sum_score").as("Total Score")
+    ).dropDuplicates("userid", "courseid", "batchid").drop("userid")
   }
 }

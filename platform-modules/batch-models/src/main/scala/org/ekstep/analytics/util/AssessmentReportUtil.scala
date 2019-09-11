@@ -10,6 +10,22 @@ import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
 
 object AssessmentReportUtil {
   implicit val className = "org.ekstep.analytics.job.AssessmentMetricsJob"
+
+  def save(reportDF: DataFrame, url: String): Unit = {
+    val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
+    val renamedDir = s"$tempDir/renamed"
+
+    if (!reportDF.take(1).isEmpty) {
+      reportDF.coalesce(1).write.partitionBy("batchid", "courseid")
+        .mode("overwrite")
+        .format("com.databricks.spark.csv")
+        .option("header", "true")
+        .save(url)
+      AssessmentReportUtil.renameReport(tempDir, renamedDir)
+      AssessmentReportUtil.uploadReport(renamedDir)
+    }
+  }
+
   def renameReport(tempDir: String, outDir: String) = {
 
     val regex = """\=.*/""".r // to get batchid from the path "somepath/batchid=12313144/part-0000.csv"
@@ -67,6 +83,7 @@ object AssessmentReportUtil {
     val storageService = StorageServiceFactory
       .getStorageService(StorageConfig(provider, AppConf.getStorageKey(provider), AppConf.getStorageSecret(provider)))
     storageService.upload(container, sourcePath, objectKey, isDirectory = Option(true))
+    println("report is uploaded to azure cloud storage from this path: " + sourcePath)
   }
 
   def getContentNames(spark: SparkSession, content: List[String]): DataFrame = {

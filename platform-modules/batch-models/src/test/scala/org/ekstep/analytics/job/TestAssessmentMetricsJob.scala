@@ -115,6 +115,85 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
     assert(AppConf.getConfig("assessment.metrics.temp.dir").isEmpty === false)
   }
 
+  "TestAssessmentMetricsJob" should "Ensure CSV Report Should have all proper columns names and required columns values" in {
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace))
+      .returning(courseBatchDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user_courses", "keyspace" -> sunbirdCoursesKeyspace))
+      .returning(userCoursesDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user", "keyspace" -> sunbirdKeyspace))
+      .returning(userDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user_org", "keyspace" -> sunbirdKeyspace))
+      .returning(userOrgDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace))
+      .returning(orgDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "location", "keyspace" -> sunbirdKeyspace))
+      .returning(locationDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "usr_external_identity", "keyspace" -> sunbirdKeyspace))
+      .returning(externalIdentityDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "assessment_aggregator", "keyspace" -> sunbirdCoursesKeyspace))
+      .returning(assessmentProfileDF)
+
+    val reportDF = AssessmentMetricsJob
+      .prepareReport(spark, reporterMock.loadData)
+      .cache()
+    val denormedDF = AssessmentMetricsJob.denormAssessment(spark, reportDF)
+    val finalReport = AssessmentMetricsJob.getReportData(denormedDF,"do_2123101488779837441168","1001")
+    println(finalReport.show(false))
+    val column_names =  finalReport.columns
+    // Validate the column names are proper or not.
+    assert( column_names.contains("External ID") === true)
+    assert( column_names.contains("User ID") === true)
+    assert( column_names.contains("User Name") === true)
+    assert( column_names.contains("Email ID") === true)
+    assert( column_names.contains("Mobile Number") === true)
+    assert( column_names.contains("Organisation Name") === true)
+    assert( column_names.contains("District Name") === true)
+    assert( column_names.contains("School Name") === true)
+    assert( column_names.contains("Playingwithnumbers") === true)
+    assert( column_names.contains("Whole Numbers") === true)
+    assert( column_names.contains("Total Score") === true)
+
+    // Check the proper total score is persent or not.
+    val total_scoreList = finalReport.select("Total Score").collect().map(_(0)).toList
+    assert(total_scoreList(0) === 14.0)
+
+    // check the proper score is present or not for the each worksheet.
+    val worksheet_score = finalReport.select("Playingwithnumbers").collect().map(_(0)).toList
+    assert(worksheet_score(0) === "10")
+    // check the proper school name or not
+
+    val school_name = finalReport.select("School Name").collect().map(_(0)).toList
+    assert(school_name(0) === "SACRED HEART(B)PS,TIRUVARANGAM")
+
+    // check the proper district name ro not
+    val district_name = finalReport.select("District Name").collect().map(_(0)).toList
+    assert(district_name(0) === "GULBARGA")
+
+    // check the proper User Name or not.
+    val user_name = finalReport.select("User Name").collect().map(_(0)).toList
+    assert(user_name(0) === "Gourav Verma")
+
+    // check the proper userid or not.
+    val user_id = finalReport.select("User ID").collect().map(_(0)).toList
+    assert(user_id(0) === "user021")
+
+  }
+
   "TestUpdateAssessmentMetricsJob" should "generate reports" in {
     (reporterMock.loadData _)
       .expects(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace))
@@ -309,7 +388,6 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
     assert(df.count() === 1)
     val total_scoreList = df.select("total_score").collect().map(_(0)).toList
     assert(total_scoreList(0) === "5")
-
   }
 
   "TestAssessmentMetricsJob" should "confirm all required column names are present or not" in {
