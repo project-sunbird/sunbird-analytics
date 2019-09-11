@@ -215,7 +215,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     report.join(contentNameDF, report.col("content_id") === contentNameDF.col("identifier"), "right_outer")
       .select(col("name"),
         col("total_sum_score"), report.col("userid"), report.col("courseid"), report.col("batchid"),
-        col("total_score"), report.col("maskedemail"),report.col("district_name"), report.col("maskedphone"),
+        col("total_score"), report.col("maskedemail"), report.col("district_name"), report.col("maskedphone"),
         report.col("orgname_resolved"), report.col("externalid"), report.col("schoolname_resolved"), report.col("username")
       )
   }
@@ -229,15 +229,23 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     * 3.Avoid collect
     */
   def saveReport(reportDF: DataFrame, url: String): Unit = {
-    val course_batch_df = reportDF.select("courseid", "batchid").collect()
-    JobLogger.log(s"Number of courses are ${course_batch_df.length} and number of batchs are ${course_batch_df.length}")
-    val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
-    val renamedDir = s"$tempDir/renamed"
-    val courseList = course_batch_df.map(x => x(0).toString).distinct
-    val batchList = course_batch_df.map(x => x(1).toString).distinct
-    courseList.foreach(courseId => {
+    val result = reportDF
+      .groupBy("courseid")
+      .agg(collect_list("batchid").as("batchid"))
+    val course_batch_list = result.collect.map(r => Map(result.columns.zip(r.toSeq): _*))
+    course_batch_list.foreach(item => {
+      val batchList = item.getOrElse("batchid", null).asInstanceOf[Seq[String]].distinct
       batchList.foreach(batchId => {
-        // Re-shape the dataframe (Convert the content name from the row to column)
+        save(reportDF, url, item.getOrElse("courseid", null).toString, batchId)
+      })
+    })
+
+    def save(reportDF: DataFrame, url: String, courseId: String, batchId: String): Unit = {
+      val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
+      val renamedDir = s"$tempDir/renamed"
+      // Re-shape the dataframe (Convert the content name from the row to column)
+      if (courseId != null && batchId != null) {
+        JobLogger.log(s"Generating report for ${courseId} course and ${batchId} batch")
         val reshapedDF = reportDF.filter(col("courseid") === courseId && col("batchid") === batchId).
           groupBy("courseid", "batchid", "userid").pivot("name").agg(first("total_score"))
         val resultDF = reshapedDF
@@ -253,7 +261,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
           reportDF.col("schoolname_resolved").as("School Name"),
           reshapedDF.col("*"), // Since we don't know the content name column so we are using col("*")
           reportDF.col("total_sum_score").as("Total Score")
-        ).dropDuplicates("userid","courseid","batchid").drop("userid")
+        ).dropDuplicates("userid", "courseid", "batchid").drop("userid")
         if (!resultDF.take(1).isEmpty) {
           resultDF.coalesce(1).write.partitionBy("batchid", "courseid")
             .mode("overwrite")
@@ -263,7 +271,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
           AssessmentReportUtil.renameReport(tempDir, renamedDir)
           AssessmentReportUtil.uploadReport(renamedDir)
         }
-      })
-    })
+      }
+    }
   }
 }
