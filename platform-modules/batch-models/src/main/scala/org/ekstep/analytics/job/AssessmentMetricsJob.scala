@@ -226,9 +226,16 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     * TODO: Need to optimize this method.
     */
   def saveReport(reportDF: DataFrame, url: String): Unit = {
+    // Save assessment report to ealstic search
+    val alias_name = AppConf.getConfig("assessment.metrics.es.alias")
+    val index_prefix = AppConf.getConfig("assessment.metrics.es.index.prefix")
+    val index_name = AssessmentReportUtil.suffixDate(index_prefix)
+    AssessmentReportUtil.saveToElastic(index_name, alias_name, reportDF)
+
     val result = reportDF
       .groupBy("courseid")
       .agg(collect_list("batchid").as("batchid"))
+
     val course_batch_list = result.collect.map(r => Map(result.columns.zip(r.toSeq): _*))
     course_batch_list.foreach(item => {
       val batchList = item.getOrElse("batchid", null).asInstanceOf[Seq[String]].distinct
@@ -236,11 +243,13 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
       batchList.foreach(batchId => {
         if (courseId != null && batchId != null) {
           val reportData = getReportData(reportDF, courseId, batchId)
+          // Save report to azure cloud storage
           AssessmentReportUtil.save(reportData, url)
         }
       })
     })
   }
+
   def getReportData(reportDF: DataFrame, courseId: String, batchId: String): DataFrame = {
     // Re-shape the dataframe (Convert the content name from the row to column)
     JobLogger.log(s"Generating report for ${courseId} course and ${batchId} batch")
@@ -261,4 +270,6 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
       reportDF.col("total_sum_score").as("Total Score")
     ).dropDuplicates("userid", "courseid", "batchid").drop("userid")
   }
+
+
 }

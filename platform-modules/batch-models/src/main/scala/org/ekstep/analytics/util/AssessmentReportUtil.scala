@@ -3,8 +3,13 @@ package org.ekstep.analytics.util
 import java.io.File
 import java.nio.file.{Files, StandardCopyOption}
 
+import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.ekstep.analytics.framework.Level.{ERROR, INFO}
 import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger}
+import org.elasticsearch.spark.sql._
+import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormat
 import org.sunbird.cloud.storage.conf.AppConf
 import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
 
@@ -24,6 +29,40 @@ object AssessmentReportUtil {
       AssessmentReportUtil.renameReport(tempDir, renamedDir)
       AssessmentReportUtil.uploadReport(renamedDir)
     }
+  }
+
+  def saveToElastic(index: String, alias: String, reportDF: DataFrame): Unit = {
+    val assessmentReportDF = reportDF.select(
+      col("userid").as("userId"),
+      col("username").as("userName"),
+      col("courseid").as("courseId"),
+      col("batchid").as("batchId"),
+      col("total_score").as("score"),
+      col("maskedemail").as("maskedEmail"),
+      col("maskedphone").as("maskedPhone"),
+      col("district_name").as("districtName"),
+      col("orgname_resolved").as("rootOrgName"),
+      col("externalid").as("externalId"),
+      col("schoolname_resolved").as("subOrgName"),
+      col("total_sum_score").as("totalScore"),
+      col("name").as("contentName")
+    )
+    try {
+      val indexList = ESUtil.getIndexName(alias)
+      val oldIndex = indexList.mkString("")
+      assessmentReportDF.saveToEs(s"$index/_doc")
+      JobLogger.log("Indexing of assessment report data is success: " + index, None, INFO)
+      if (!oldIndex.equals(index)) ESUtil.rolloverIndex(index, alias)
+    } catch {
+      case ex: Exception => {
+        JobLogger.log(ex.getMessage, None, ERROR)
+        ex.printStackTrace()
+      }
+    }
+  }
+
+  def suffixDate(index: String): String = {
+    index + DateTimeFormat.forPattern("dd-MM-yyyy-HH-mm").print(DateTime.now())
   }
 
   def renameReport(tempDir: String, outDir: String) = {
