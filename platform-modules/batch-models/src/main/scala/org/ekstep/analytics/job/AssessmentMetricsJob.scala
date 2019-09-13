@@ -222,8 +222,9 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
 
 
   /**
-    * This method is used to upload the report the azure cloud service.
-    * TODO: Need to optimize this method.
+    * This method is used to upload the report the azure cloud service and
+    * Index report data into elastic search.
+    *
     */
   def saveReport(reportDF: DataFrame, url: String): Unit = {
     // Save assessment report to ealstic search
@@ -250,6 +251,26 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     })
   }
 
+  /**
+    * Converting rows into  column (Reshaping the dataframe.)
+    * This method converts the name column into header row formate
+    * Example:
+    * Input DF
+    * +------------------+-------+--------------------+-------+-----------+
+    * |              name| userid|            courseid|batchid|total_score|
+    * +------------------+-------+--------------------+-------+-----------+
+    * |Playingwithnumbers|user021|do_21231014887798...|   1001|         10|
+    * |     Whole Numbers|user021|do_21231014887798...|   1001|          4|
+    * +------------------+---------------+-------+--------------------+----
+    *
+    * Output DF: After re-shaping the data frame.
+    * +--------------------+-------+-------+------------------+-------------+
+    * |            courseid|batchid| userid|Playingwithnumbers|Whole Numbers|
+    * +--------------------+-------+-------+------------------+-------------+
+    * |do_21231014887798...|   1001|user021|                10|            4|
+    * +--------------------+-------+-------+------------------+-------------+
+    * Example:
+    */
   def transposeDF(reportDF: DataFrame, courseId: String, batchId: String): DataFrame = {
     // Re-shape the dataframe (Convert the content name from the row to column)
     JobLogger.log(s"Generating report for ${courseId} course and ${batchId} batch")
@@ -270,6 +291,5 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
       reportDF.col("total_sum_score").as("Total Score")
     ).dropDuplicates("userid", "courseid", "batchid").drop("userid")
   }
-
 
 }
