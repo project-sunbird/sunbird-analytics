@@ -152,7 +152,7 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
       .prepareReport(spark, reporterMock.loadData)
       .cache()
     val denormedDF = AssessmentMetricsJob.denormAssessment(spark, reportDF)
-    val finalReport = AssessmentMetricsJob.getReportData(denormedDF,"do_2123101488779837441168","1001")
+    val finalReport = AssessmentMetricsJob.transposeDF(denormedDF,"do_2123101488779837441168","1001")
     val column_names =  finalReport.columns
     // Validate the column names are proper or not.
     assert( column_names.contains("External ID") === true)

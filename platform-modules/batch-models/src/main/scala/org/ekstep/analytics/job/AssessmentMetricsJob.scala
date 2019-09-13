@@ -242,7 +242,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
       val courseId = item.getOrElse("courseid", null).toString
       batchList.foreach(batchId => {
         if (courseId != null && batchId != null) {
-          val reportData = getReportData(reportDF, courseId, batchId)
+          val reportData = transposeDF(reportDF, courseId, batchId)
           // Save report to azure cloud storage
           AssessmentReportUtil.save(reportData, url)
         }
@@ -250,7 +250,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     })
   }
 
-  def getReportData(reportDF: DataFrame, courseId: String, batchId: String): DataFrame = {
+  def transposeDF(reportDF: DataFrame, courseId: String, batchId: String): DataFrame = {
     // Re-shape the dataframe (Convert the content name from the row to column)
     JobLogger.log(s"Generating report for ${courseId} course and ${batchId} batch")
     val reshapedDF = reportDF.filter(col("courseid") === courseId && col("batchid") === batchId).
