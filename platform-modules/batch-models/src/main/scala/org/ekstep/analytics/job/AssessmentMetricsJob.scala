@@ -161,11 +161,11 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     val userLocationResolvedDF = userOrgDenormDF
       .join(locationDenormDF, Seq("userid"), "left_outer")
 
-    // Enable this below code to get only last attempted question
+    // Get only last attempted questions for the specific user and content from specific batch and course from the assessment_aggregator table based on.
     val groupdedDF = Window.partitionBy("user_id", "batch_id", "course_id", "content_id").orderBy(desc("last_attempted_on"))
     val latestAssessmentDF = assessmentProfileDF.withColumn("rownum", row_number.over(groupdedDF)).where(col("rownum") === 1).drop("rownum")
 
-    /** attempt_id
+    /**
       * Compute the sum of all the worksheet contents score.
       */
     val assessmentAggDf = Window.partitionBy("user_id", "batch_id", "course_id")
@@ -224,7 +224,8 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
   /**
     * This method is used to upload the report the azure cloud service and
     * Index report data into elastic search.
-    *
+    * Alias name: cbatch-assessment
+    * Index name: cbatch-assessment-24-08-1993-09-30 (dd-mm-yyyy-hh-mm)
     */
   def saveReport(reportDF: DataFrame, url: String): Unit = {
     // Save assessment report to ealstic search
