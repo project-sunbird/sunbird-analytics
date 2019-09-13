@@ -35,6 +35,7 @@ class DeviceController @Inject()(system: ActorSystem) extends BaseController {
     val ipAddr = (body \ "request" \ "ip_addr").asOpt[String]
     val fcmToken = (body \ "request" \ "fcmToken").asOpt[String]
     val producer = (body \ "request" \ "producer").asOpt[String]
+    val firstAccess = (body \ "request" \ "first_access").asOpt[Long]
     val dspec: Option[String] = (body \ "request" \ "dspec").toOption.map {
       value => Json.stringify(value)
     }
@@ -49,7 +50,7 @@ class DeviceController @Inject()(system: ActorSystem) extends BaseController {
       }
     }
 
-    deviceRegisterServiceAPIActor.tell(RegisterDevice(deviceId, headerIP, ipAddr, fcmToken, producer, dspec, uaspec), ActorRef.noSender)
+    deviceRegisterServiceAPIActor.tell(RegisterDevice(deviceId, headerIP, ipAddr, fcmToken, producer, dspec, uaspec, firstAccess), ActorRef.noSender)
 
     if (isExperimentEnabled) {
       sendExperimentData(Some(deviceId), extMap.getOrElse(Map()).get("userId"), extMap.getOrElse(Map()).get("url"), producer)
