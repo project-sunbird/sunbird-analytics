@@ -116,7 +116,7 @@ object AssessmentReportUtil {
 
   def uploadReport(sourcePath: String) = {
     val provider = AppConf.getConfig("assessment.metrics.cloud.provider")
-    val container = AppConf.getConfig("assessment.metrics.cloud.container")
+    val container = AppConf.getConfig("course.metrics.cloud.container")
     val objectKey = AppConf.getConfig("assessment.metrics.cloud.objectKey")
 
     val storageService = StorageServiceFactory

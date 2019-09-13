@@ -111,7 +111,7 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
     assert(AppConf.getConfig("assessment.metrics.cassandra.input.consistency").isEmpty === false)
     assert(AppConf.getConfig("assessment.metrics.cloud.objectKey").isEmpty === false)
     assert(AppConf.getConfig("assessment.metrics.cloud.provider").isEmpty === false)
-    assert(AppConf.getConfig("assessment.metrics.cloud.container").isEmpty === false)
+    assert(AppConf.getConfig("course.metrics.cloud.container").isEmpty === false)
     assert(AppConf.getConfig("assessment.metrics.temp.dir").isEmpty === false)
   }
 
