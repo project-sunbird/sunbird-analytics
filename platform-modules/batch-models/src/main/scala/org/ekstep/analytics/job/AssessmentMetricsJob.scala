@@ -1,13 +1,15 @@
 package org.ekstep.analytics.job
 
 
+import org.apache.commons.lang3.StringUtils
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions.{col, _}
+import org.ekstep.analytics.framework.Level.INFO
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, JobLogger}
-import org.ekstep.analytics.util.AssessmentReportUtil
+import org.ekstep.analytics.util.{AssessmentReportUtil, ESUtil}
 import org.sunbird.cloud.storage.conf.AppConf
 
 import scala.collection.{Map, _}
@@ -91,7 +93,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     val sunbirdKeyspace = AppConf.getConfig("course.metrics.cassandra.sunbirdKeyspace")
     val sunbirdCoursesKeyspace = AppConf.getConfig("course.metrics.cassandra.sunbirdCoursesKeyspace")
     val courseBatchDF = loadData(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace))
-    val userCoursesDF = loadData(spark, Map("table" -> "user_courses", "keyspace" -> sunbirdCoursesKeyspace))
+    val userCoursesDF = loadData(spark, Map("table" -> "user_courses", "keyspace" -> sunbirdCoursesKeyspace)).filter(lower(col("active")).equalTo("true"))
     val userDF = loadData(spark, Map("table" -> "user", "keyspace" -> sunbirdKeyspace))
     val userOrgDF = loadData(spark, Map("table" -> "user_org", "keyspace" -> sunbirdKeyspace)).filter(lower(col("isdeleted")) === "false")
     val organisationDF = loadData(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace))
@@ -99,12 +101,13 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     val externalIdentityDF = loadData(spark, Map("table" -> "usr_external_identity", "keyspace" -> sunbirdKeyspace))
     val assessmentProfileDF = loadData(spark, Map("table" -> "assessment_aggregator", "keyspace" -> sunbirdCoursesKeyspace))
 
+    println("userCoursesDF" + userCoursesDF.show())
     /*
     * courseBatchDF has details about the course and batch details for which we have to prepare the report
     * courseBatchDF is the primary source for the report
     * userCourseDF has details about the user details enrolled for a particular course/batch
     * */
-    val userCourseDenormDF = courseBatchDF.join(userCoursesDF, userCoursesDF.col("batchid") === courseBatchDF.col("batchid") && lower(userCoursesDF.col("active")).equalTo("true"), "inner")
+    val userCourseDenormDF = courseBatchDF.join(userCoursesDF, userCoursesDF.col("batchid") === courseBatchDF.col("batchid"), "inner")
       .select(userCoursesDF.col("batchid"),
         col("userid"),
         col("active"),
@@ -211,7 +214,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     */
   def denormAssessment(spark: SparkSession, report: DataFrame): DataFrame = {
     val contentIds = report.select(col("content_id")).rdd.map(r => r.getString(0)).collect.toList.distinct.filter(_ != null)
-    val contentNameDF = AssessmentReportUtil.getContentNames(spark, contentIds)
+    val contentNameDF = ESUtil.getContentNames(spark, contentIds, AppConf.getConfig("assessment.metrics.content.index"))
     report.join(contentNameDF, report.col("content_id") === contentNameDF.col("identifier"), "right_outer")
       .select(col("name"),
         col("total_sum_score"), report.col("userid"), report.col("courseid"), report.col("batchid"),
@@ -232,24 +235,33 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     val alias_name = AppConf.getConfig("assessment.metrics.es.alias")
     val index_prefix = AppConf.getConfig("assessment.metrics.es.index.prefix")
     val index_name = AssessmentReportUtil.suffixDate(index_prefix)
-    AssessmentReportUtil.saveToElastic(index_name, alias_name, reportDF)
+    val indexToES = AppConf.getConfig("course.es.index.enabled")
+    if (StringUtils.isNotBlank(indexToES) && StringUtils.equalsIgnoreCase("true", indexToES)) {
+      AssessmentReportUtil.saveToElastic(index_name, alias_name, reportDF)
+    } else {
+      JobLogger.log("Skipping Indexing assessment report into ES", None, INFO)
+    }
 
     val result = reportDF
       .groupBy("courseid")
       .agg(collect_list("batchid").as("batchid"))
-
-    val course_batch_list = result.collect.map(r => Map(result.columns.zip(r.toSeq): _*))
-    course_batch_list.foreach(item => {
-      val batchList = item.getOrElse("batchid", null).asInstanceOf[Seq[String]].distinct
-      val courseId = item.getOrElse("courseid", null).toString
-      batchList.foreach(batchId => {
-        if (courseId != null && batchId != null) {
-          val reportData = transposeDF(reportDF, courseId, batchId)
-          // Save report to azure cloud storage
-          AssessmentReportUtil.save(reportData, url)
-        }
+    val uploadToAzure = AppConf.getConfig("course.upload.reports.enabled")
+    if (StringUtils.isNotBlank(uploadToAzure) && StringUtils.equalsIgnoreCase("true", uploadToAzure)) {
+      val course_batch_list = result.collect.map(r => Map(result.columns.zip(r.toSeq): _*))
+      course_batch_list.foreach(item => {
+        val batchList = item.getOrElse("batchid", null).asInstanceOf[Seq[String]].distinct
+        val courseId = item.getOrElse("courseid", null).toString
+        batchList.foreach(batchId => {
+          if (courseId != null && batchId != null) {
+            val reportData = transposeDF(reportDF, courseId, batchId)
+            // Save report to azure cloud storage
+            AssessmentReportUtil.save(reportData, url)
+          }
+        })
       })
-    })
+    } else {
+      JobLogger.log("Skipping uploading reports into to azure", None, INFO)
+    }
   }
 
   /**

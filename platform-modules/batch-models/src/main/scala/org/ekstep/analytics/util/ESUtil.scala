@@ -1,7 +1,8 @@
 package org.ekstep.analytics.util
 
+import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.ekstep.analytics.framework.Level.{ERROR, INFO}
-import org.ekstep.analytics.framework.util.{JobLogger, RestUtil}
+import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger, RestUtil}
 import org.ekstep.analytics.job.ESIndexResponse
 import org.sunbird.cloud.storage.conf.AppConf
 
@@ -112,5 +113,36 @@ object ESUtil extends ESService {
     }
   }
 
+  def getContentNames(spark: SparkSession, content: List[String], esIndex:String): DataFrame = {
+    case class content_identifiers(identifiers: List[String])
+    val contentList = JSONUtils.serialize(content_identifiers(content).identifiers)
+    JobLogger.log(s"Total number of unique content identifiers are ${contentList.length}")
+    val request =
+      s"""
+         {
+         |  "_source": {
+         |    "includes": [
+         |      "name"
+         |    ]
+         |  },
+         |  "query": {
+         |    "bool": {
+         |      "must": [
+         |        {
+         |          "terms": {
+         |            "identifier": $contentList
+         |          }
+         |        }
+         |      ]
+         |    }
+         |  }
+         |}
+       """.stripMargin
+    spark.read.format("org.elasticsearch.spark.sql")
+      .option("query", request)
+      .option("pushdown", "true")
+      .load(esIndex)
+      .select("name", "identifier") // Fields need to capture from the elastic search
+  }
 
 }
