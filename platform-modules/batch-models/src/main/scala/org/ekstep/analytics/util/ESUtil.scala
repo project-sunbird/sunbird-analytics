@@ -4,6 +4,7 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.ekstep.analytics.framework.Level.{ERROR, INFO}
 import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger, RestUtil}
 import org.ekstep.analytics.job.ESIndexResponse
+import org.elasticsearch.spark.sql._
 import org.sunbird.cloud.storage.conf.AppConf
 
 import scala.collection.mutable.ListBuffer
@@ -113,7 +114,7 @@ object ESUtil extends ESService {
     }
   }
 
-  def getContentNames(spark: SparkSession, content: List[String], esIndex:String): DataFrame = {
+  def getContentNames(spark: SparkSession, content: List[String], esIndex: String): DataFrame = {
     case class content_identifiers(identifiers: List[String])
     val contentList = JSONUtils.serialize(content_identifiers(content).identifiers)
     JobLogger.log(s"Total number of unique content identifiers are ${contentList.length}")
@@ -145,4 +146,7 @@ object ESUtil extends ESService {
       .select("name", "identifier") // Fields need to capture from the elastic search
   }
 
+  def saveToIndex(data: DataFrame, index: String): Unit = {
+    data.saveToEs(s"$index/_doc")
+  }
 }

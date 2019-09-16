@@ -49,7 +49,7 @@ object AssessmentReportUtil {
     try {
       val indexList = ESUtil.getIndexName(alias)
       val oldIndex = indexList.mkString("")
-      assessmentReportDF.saveToEs(s"$index/_doc")
+      ESUtil.saveToIndex(assessmentReportDF, index)
       JobLogger.log("Indexing of assessment report data is success: " + index, None, INFO)
       if (!oldIndex.equals(index)) ESUtil.rolloverIndex(index, alias)
     } catch {

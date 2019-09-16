@@ -101,7 +101,6 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     val externalIdentityDF = loadData(spark, Map("table" -> "usr_external_identity", "keyspace" -> sunbirdKeyspace))
     val assessmentProfileDF = loadData(spark, Map("table" -> "assessment_aggregator", "keyspace" -> sunbirdCoursesKeyspace))
 
-    println("userCoursesDF" + userCoursesDF.show())
     /*
     * courseBatchDF has details about the course and batch details for which we have to prepare the report
     * courseBatchDF is the primary source for the report
