@@ -90,9 +90,8 @@ object AssessmentReportUtil {
         val report_name = value.split("/")
         val batchValue = report_name.toList.head
         val batchId = batchValue.substring(1, batchValue.length)
-        val courseId = report_name.toList(1).split("=").toList(1)
-        JobLogger.log(s"Creating a Report: report-$courseId-$batchId.csv")
-        Files.copy(file.toPath, new File(s"${out.getPath}/report-$courseId-$batchId.csv").toPath, StandardCopyOption.REPLACE_EXISTING)
+        JobLogger.log(s"Creating a Report: report-$batchId.csv")
+        Files.copy(file.toPath, new File(s"${out.getPath}/report-$batchId.csv").toPath, StandardCopyOption.REPLACE_EXISTING)
       }
     })
 
