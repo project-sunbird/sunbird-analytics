@@ -231,12 +231,12 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     */
   def saveReport(reportDF: DataFrame, url: String): Unit = {
     // Save assessment report to ealstic search
-    val alias_name = AppConf.getConfig("assessment.metrics.es.alias")
-    val index_prefix = AppConf.getConfig("assessment.metrics.es.index.prefix")
-    val index_name = AssessmentReportUtil.suffixDate(index_prefix)
-    val indexToES = AppConf.getConfig("course.es.index.enabled")
-    if (StringUtils.isNotBlank(indexToES) && StringUtils.equalsIgnoreCase("true", indexToES)) {
-      AssessmentReportUtil.saveToElastic(index_name, alias_name, reportDF)
+    val aliasName = AppConf.getConfig("assessment.metrics.es.alias")
+    val indexPrefix = AppConf.getConfig("assessment.metrics.es.index.prefix")
+    val indexName = AssessmentReportUtil.suffixDate(indexPrefix)
+    val indexToEs = AppConf.getConfig("course.es.index.enabled")
+    if (StringUtils.isNotBlank(indexToEs) && StringUtils.equalsIgnoreCase("true", indexToEs)) {
+      AssessmentReportUtil.saveToElastic(indexName, aliasName, reportDF)
     } else {
       JobLogger.log("Skipping Indexing assessment report into ES", None, INFO)
     }
@@ -246,8 +246,8 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
       .agg(collect_list("batchid").as("batchid"))
     val uploadToAzure = AppConf.getConfig("course.upload.reports.enabled")
     if (StringUtils.isNotBlank(uploadToAzure) && StringUtils.equalsIgnoreCase("true", uploadToAzure)) {
-      val course_batch_list = result.collect.map(r => Map(result.columns.zip(r.toSeq): _*))
-      course_batch_list.foreach(item => {
+      val courseBatchList = result.collect.map(r => Map(result.columns.zip(r.toSeq): _*))
+      courseBatchList.foreach(item => {
         val batchList = item.getOrElse("batchid", null).asInstanceOf[Seq[String]].distinct
         val courseId = item.getOrElse("courseid", null).toString
         batchList.foreach(batchId => {
