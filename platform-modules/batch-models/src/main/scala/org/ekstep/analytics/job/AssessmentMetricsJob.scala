@@ -176,7 +176,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     /**
       * Filter only valid enrolled userid for the specific courseid
       */
-    val userAssessmentResolvedDF = userLocationResolvedDF.join(aggregatedDF, userLocationResolvedDF.col("userid") === aggregatedDF.col("user_id") && userLocationResolvedDF.col("batchid") === aggregatedDF.col("batch_id") && userLocationResolvedDF.col("courseid") === aggregatedDF.col("course_id"), "left_outer")
+    val userAssessmentResolvedDF = userLocationResolvedDF.join(aggregatedDF, userLocationResolvedDF.col("userid") === aggregatedDF.col("user_id") && userLocationResolvedDF.col("batchid") === aggregatedDF.col("batch_id") && userLocationResolvedDF.col("courseid") === aggregatedDF.col("course_id"), "right_outer")
     val resolvedExternalIdDF = userAssessmentResolvedDF.join(externalIdMapDF, Seq("userid"), "left_outer")
 
     /*
