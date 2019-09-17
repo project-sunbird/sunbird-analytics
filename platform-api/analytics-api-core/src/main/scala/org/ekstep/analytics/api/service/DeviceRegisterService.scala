@@ -13,8 +13,8 @@ import org.postgresql.util.PSQLException
 
 import scala.concurrent.ExecutionContext
 
-case class RegisterDevice(did: String, headerIP: String, ip_addr: Option[String] = None, fcmToken: Option[String] = None, producer: Option[String] = None, dspec: Option[String] = None, uaspec: Option[String] = None, firstAccess: Option[Long]= None)
-case class DeviceProfileLog(device_id: String, location: DeviceLocation, device_spec: Option[Map[String, AnyRef]] = None, uaspec: Option[String] = None, fcm_token: Option[String] = None, producer_id: Option[String] = None, firstAccess: Option[Long] = None)
+case class RegisterDevice(did: String, headerIP: String, ip_addr: Option[String] = None, fcmToken: Option[String] = None, producer: Option[String] = None, dspec: Option[String] = None, uaspec: Option[String] = None, first_access: Option[Long]= None)
+case class DeviceProfileLog(device_id: String, location: DeviceLocation, device_spec: Option[Map[String, AnyRef]] = None, uaspec: Option[String] = None, fcm_token: Option[String] = None, producer_id: Option[String] = None, first_access: Option[Long] = None)
 
 class DeviceRegisterService(saveMetricsActor: ActorRef, config: Config) extends Actor {
 
@@ -65,7 +65,7 @@ class DeviceRegisterService(saveMetricsActor: ActorRef, config: Config) extends 
             }
 
             val deviceProfileLog = DeviceProfileLog(registrationDetails.did, location, Option(deviceSpec),
-              registrationDetails.uaspec, registrationDetails.fcmToken, registrationDetails.producer, registrationDetails.firstAccess)
+              registrationDetails.uaspec, registrationDetails.fcmToken, registrationDetails.producer, registrationDetails.first_access)
 
             val deviceRegisterLogEvent = generateDeviceRegistrationLogEvent(deviceProfileLog)
             logger.info(deviceRegisterLogEvent)
@@ -120,6 +120,8 @@ class DeviceRegisterService(saveMetricsActor: ActorRef, config: Config) extends 
     def generateDeviceRegistrationLogEvent(result: DeviceProfileLog): String = {
 
         val uaspecStr = parseUserAgent(result.uaspec)
+        val currentTime = DateTime.now(DateTimeZone.UTC).getMillis
+
         val deviceProfile: Map[String, Any] =
           Map("device_id" -> s"${result.device_id}",
             "country_code" -> s"${result.location.countryCode}",
@@ -134,8 +136,8 @@ class DeviceRegisterService(saveMetricsActor: ActorRef, config: Config) extends 
             "uaspec" -> uaspecStr.orNull,
             "fcm_token" -> result.fcm_token.orNull,
             "producer_id" -> result.producer_id.orNull,
-            "api_last_updated_on" -> DateTime.now(DateTimeZone.UTC).getMillis,
-            "first_access" -> result.firstAccess.orNull
+            "api_last_updated_on" -> currentTime,
+            "first_access" -> currentTime
           )
         JSONUtils.serialize(deviceProfile)
     }
