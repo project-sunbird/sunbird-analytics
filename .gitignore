@@ -16,6 +16,7 @@ platform-modules/batch-models/logs
 *.pyc
 **/content_corpus/*
 **/log/*
+**/logs/*
 **/tmp/*
 platform-framework/analytics-core/files
 .DS_Store
