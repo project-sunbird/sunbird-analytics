@@ -215,7 +215,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     val contentIds = report.select(col("content_id")).rdd.map(r => r.getString(0)).collect.toList.distinct.filter(_ != null)
     val contentNameDF = ESUtil.getContentNames(spark, contentIds, AppConf.getConfig("assessment.metrics.content.index"))
     report.join(contentNameDF, report.col("content_id") === contentNameDF.col("identifier"), "left_outer")
-      .select(col("name"),
+      .select(col("name").as("content_name"),
         col("total_sum_score"), report.col("userid"), report.col("courseid"), report.col("batchid"),
         col("total_score"), report.col("maskedemail"), report.col("district_name"), report.col("maskedphone"),
         report.col("orgname_resolved"), report.col("externalid"), report.col("schoolname_resolved"), report.col("username")
@@ -254,7 +254,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
           if (courseId != null && batchId != null) {
             val reportData = transposeDF(reportDF, courseId, batchId)
             // Save report to azure cloud storage
-            AssessmentReportUtil.save(reportData, url)
+            AssessmentReportUtil.save(reportData, url, batchId)
           }
         })
       })
@@ -287,7 +287,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     // Re-shape the dataframe (Convert the content name from the row to column)
     JobLogger.log(s"Generating report for ${courseId} course and ${batchId} batch")
     val reshapedDF = reportDF.filter(col("courseid") === courseId && col("batchid") === batchId).
-      groupBy("courseid", "batchid", "userid").pivot("name").agg(first("total_score"))
+      groupBy("courseid", "batchid", "userid").pivot("content_name").agg(first("total_score"))
     reshapedDF
       .join(reportDF, Seq("courseid", "batchid", "userid"),
         "inner").select(
@@ -301,7 +301,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
       reportDF.col("schoolname_resolved").as("School Name"),
       reshapedDF.col("*"), // Since we don't know the content name column so we are using col("*")
       reportDF.col("total_sum_score").as("Total Score")
-    ).dropDuplicates("userid", "courseid", "batchid").drop("userid")
+    ).dropDuplicates("userid", "courseid", "batchid").drop("userid", "courseid", "batchid")
   }
 
 }

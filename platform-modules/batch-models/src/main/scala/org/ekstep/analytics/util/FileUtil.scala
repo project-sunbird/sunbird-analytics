@@ -11,7 +11,7 @@ import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
 object FileUtil {
   implicit val className = "org.ekstep.analytics.util.FileUtil"
 
-  def renameReport(tempDir: String, outDir: String) = {
+  def renameReport(tempDir: String, outDir: String, batchId: String) = {
 
     val regex = """\=.*/""".r // to get batchid from the path "somepath/batchid=12313144/part-0000.csv"
     val temp = new File(tempDir)
@@ -27,14 +27,8 @@ object FileUtil {
     }
     val fileList = recursiveListFiles(temp, ".csv")
     fileList.foreach(file => {
-      val value = regex.findFirstIn(file.getPath).getOrElse("")
-      if (value.length > 1) {
-        val report_name = value.split("/")
-        val batchValue = report_name.toList.head
-        val batchId = batchValue.substring(1, batchValue.length)
-        JobLogger.log("creating a report for " + batchId, None, INFO)
-        Files.copy(file.toPath, new File(s"${out.getPath}/report-$batchId.csv").toPath, StandardCopyOption.REPLACE_EXISTING)
-      }
+      JobLogger.log("creating a report for " + batchId, None, INFO)
+      Files.copy(file.toPath, new File(s"${out.getPath}/report-$batchId.csv").toPath, StandardCopyOption.REPLACE_EXISTING)
     })
 
   }
