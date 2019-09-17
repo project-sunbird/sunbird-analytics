@@ -56,7 +56,6 @@ class TestDeviceRegisterService extends BaseSpec {
     val deviceId = "test-device-1"
     val deviceSpec = JSONUtils.deserialize[Map[String, AnyRef]]("{\"cpu\":\"abi:  armeabi-v7a  ARMv7 Processor rev 4 (v7l)\",\"make\":\"Micromax Micromax A065\",\"os\":\"Android 4.4.2\"}")
     val producerId = Some("prod.diksha.app")
-    val firstAccess = Option(1568120586000L)
     val fcmToken = Some("test-token")
 
     when(configMock.getInt("metrics.time.interval.min")).thenReturn(300)
@@ -64,7 +63,7 @@ class TestDeviceRegisterService extends BaseSpec {
     when(configMock.getString("postgres.table.geo_location_city_ipv4.name")).thenReturn("geo_location_city_ipv4.name")
 
     val deviceProfileLog = DeviceProfileLog(device_id = deviceId, location = deviceLocation, producer_id = producerId,
-      device_spec = Some(deviceSpec), uaspec = Some(uaspec), firstAccess = firstAccess, fcm_token = fcmToken)
+      device_spec = Some(deviceSpec), uaspec = Some(uaspec), fcm_token = fcmToken)
     val log = deviceRegisterService.generateDeviceRegistrationLogEvent(deviceProfileLog)
     val outputMap = JSONUtils.deserialize[Map[String, AnyRef]](log)
 
