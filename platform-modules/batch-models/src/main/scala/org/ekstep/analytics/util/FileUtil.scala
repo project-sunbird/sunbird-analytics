@@ -53,7 +53,6 @@ object FileUtil {
     val storageService = StorageServiceFactory
       .getStorageService(StorageConfig(provider, AppConf.getStorageKey(provider), AppConf.getStorageSecret(provider)))
     storageService.upload(container, sourcePath, objectKey.orNull, isDirectory = Option(true))
-    println("report is uploaded to azure cloud storage from this path: " + sourcePath)
   }
 }
 
