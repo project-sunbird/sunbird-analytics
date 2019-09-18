@@ -2,7 +2,7 @@ package org.ekstep.analytics.model
 
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.exception.DruidConfigException
-import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils}
+import org.ekstep.analytics.framework.util.JSONUtils
 
 class TestDruidQueryProcessingModel extends SparkSpec(null) {
 
@@ -80,14 +80,36 @@ class TestDruidQueryProcessingModel extends SparkSpec(null) {
         val totalQRscansQuery = DruidQueryModel("timeSeries", "telemetry-events", "LastDay", None, Option(List(Aggregation(Option("total_scans"), "count", ""))), None, Option(List(DruidFilter("isnotnull", "edata_filters_dialcodes", None),DruidFilter("equals", "eid", Option("SEARCH")))))
         val totalSuccessfulQRScansQuery = DruidQueryModel("timeSeries", "telemetry-events", "LastDay", None, Option(List(Aggregation(Option("total_successful_scans"), "count", ""))), None, Option(List(DruidFilter("isnotnull", "edata_filters_dialcodes", None),DruidFilter("equals", "eid", Option("SEARCH")), DruidFilter("greaterthan", "edata_size", Option(0.asInstanceOf[AnyRef])))))
         val totalFailedQRScansQuery = DruidQueryModel("timeSeries", "telemetry-events", "LastDay", None, Option(List(Aggregation(Option("total_failed_scans"), "count", ""))), None, Option(List(DruidFilter("isnotnull", "edata_filters_dialcodes", None),DruidFilter("equals", "eid", Option("SEARCH")), DruidFilter("equals", "edata_size", Option("0".asInstanceOf[AnyRef])))))
-        val reportConfig2 = ReportConfig("consumption_report", "timeseries",
-            QueryDateRange(None, Option("LastWeek"), Option("day")),
+        //        val totalPercentFailedQRScansQuery = DruidQueryModel("timeSeries", "telemetry-events", "LastDay", None, Option(List(Aggregation(Option("total_failed_scans"), "count", ""), Aggregation(Option("total_scans"), "count", ""))), None, Option(List(DruidFilter("isnotnull", "edata_filters_dialcodes", None),DruidFilter("equals", "eid", Option("SEARCH")), DruidFilter("equals", "edata_size", Option("0".asInstanceOf[AnyRef])))), None, Option(List(PostAggregation("javascript", "total_percent_failed_scans", PostAggregationFields("total_failed_scans", "total_scans"), "function(total_failed_scans, total_scans) { return (total_failed_scans/total_Scans) * 100}"))))
+        val totalcontentDownloadQuery = DruidQueryModel("timeSeries", "telemetry-events", "LastDay", None, Option(List(Aggregation(Option("total_content_download"), "count", ""))), None, Option(List(DruidFilter("equals", "edata_subtype", Option("ContentDownload-Success")),DruidFilter("equals", "eid", Option("INTERACT")), DruidFilter("equals", "context_pdata_id", Option("prod.diksha.app")))))
+        val contentPlayedQuery = DruidQueryModel("timeseries", "summary-events", "LastDay", None, Option(List(Aggregation(Option("total_content_plays"), "count", ""))), None, Option(List(DruidFilter("equals", "eid", Option("ME_WORKFLOW_SUMMARY")), DruidFilter("in", "dimensions_pdata_id", None, Option(List("prod.diksha.app", "prod.diksha.portal"))),DruidFilter("equals", "dimensions_type", Option("content")), DruidFilter("equals", "dimensions_mode", Option("play")))))
+        val uniqueDevicesQuery = DruidQueryModel("timeseries", "summary-events", "LastDay", None, Option(List(Aggregation(Option("total_unique_devices"), "cardinality", "dimensions_did"))), None, Option(List(DruidFilter("equals", "dimensions_pdata_id", Option("prod.diksha.app")),DruidFilter("equals", "dimensions_type", Option("app")))))
+        val contentPlayedInHoursQuery = DruidQueryModel("timeseries", "summary-events", "LastDay", None, Option(List(Aggregation(Option("sum__edata_time_spent"), "doubleSum", "edata_time_spent"))), None, Option(List(DruidFilter("equals", "eid", Option("ME_WORKFLOW_SUMMARY")), DruidFilter("in", "dimensions_pdata_id", None, Option(List("prod.diksha.app", "prod.diksha.portal"))),DruidFilter("equals", "dimensions_type", Option("content")), DruidFilter("equals", "dimensions_mode", Option("play")))), None, Option(List(PostAggregation("arithmetic", "total_time_spent_in_hours", PostAggregationFields("sum__edata_time_spent", 3600.asInstanceOf[AnyRef], "constant"), "/" ))))
+        val reportConfig2 = ReportConfig("data_metrics", "timeseries",
+            QueryDateRange(None, Option("LastDay"), Option("day")),
             List(Metrics("totalQRScans", "Total Scans", totalQRscansQuery),
                 Metrics("totalSuccessfulScans", "Total Successful QR Scans", totalSuccessfulQRScansQuery),
-                Metrics("totalFailedScans", "Total Failed QR Scans", totalFailedQRScansQuery)),
-            Map("total_scans" -> "Number of QR Scans", "total_successful_scans" -> "Number of successful QR Scans", "total_failed_scans" -> "Number of failed QR Scans"),
-            List(OutputConfig("csv", None, List("total_scans", "total_successful_scans", "total_failed_scans"), List("date"))))
+                Metrics("totalFailedScans", "Total Failed QR Scans", totalFailedQRScansQuery),
+                //                Metrics("totalPercentFailedScans", "Total Percent Failed QR Scans", totalPercentFailedQRScansQuery),
+                Metrics("totalContentDownload", "Total Content Download", totalcontentDownloadQuery),
+                Metrics("totalContentPlayed","Total Content Played", contentPlayedQuery),
+                Metrics("totalUniqueDevices","Total Unique Devices", uniqueDevicesQuery),
+                Metrics("totalContentPlayedInHour","Total Content Played In Hour", contentPlayedInHoursQuery)),
+            Map("total_scans" -> "Number of QR Scans", "total_successful_scans" -> "Number of successful QR Scans",
+                "total_failed_scans" -> "Number of failed QR Scans", "total_content_download" -> "Total Content Downloads",
+                //                "total_percent_failed_scans" -> "Total Percent Failed Scans",
+                "total_content_plays" -> "Total Content Played",
+                "total_unique_devices" -> "Total Unique Devices",
+                "total_time_spent_in_hours" -> "Total time spent in hours"),
+            List(OutputConfig("csv", Option("scans"),
+                List("total_scans", "total_successful_scans", "total_failed_scans",
+                    //                    "total_percent_failed_scans",
+                    "total_content_download", "total_content_plays",
+                    "total_unique_devices",
+                    "total_time_spent_in_hours"
+                ))))
         val strConfig2 = JSONUtils.serialize(reportConfig2)
+        //        val reportConfig = """{"id":"data_metrics","queryType":"groupBy","dateRange":{"staticInterval":"LastDay","granularity":"day"},"metrics":[{"metric":"totalQrScans","label":"Total QR Scans","druidQuery":{"queryType":"groupBy","dataSource":"telemetry-events","intervals":"LastDay","aggregations":[{"name":"total_scans","type":"count"}],"dimensions":[["device_loc_state","state"],["context_pdata_id","producer_id"]],"filters":[{"type":"isnotnull","dimension":"edata_filters_dialcodes"},{"type":"equals","dimension":"eid","value":"SEARCH"}],"descending":"false"}},{"metric":"totalSuccessfulScans","label":"Total Successful QR Scans","druidQuery":{"queryType":"groupBy","dataSource":"telemetry-events","intervals":"LastDay","aggregations":[{"name":"total_successful_scans","type":"count"}],"dimensions":[["device_loc_state","state"],["context_pdata_id","producer_id"]],"filters":[{"type":"isnotnull","dimension":"edata_filters_dialcodes"},{"type":"greaterThan","dimension":"edata_size","value":0},{"type":"equals","dimension":"eid","value":"SEARCH"}],"descending":"false"}},{"metric":"totalfailedQRScans","label":"Total Failed QR Scans","druidQuery":{"queryType":"groupBy","dataSource":"telemetry-events","intervals":"LastDay","aggregations":[{"name":"total_failed_scans","type":"count"}],"dimensions":[["device_loc_state","state"],["context_pdata_id","producer_id"]],"filters":[{"type":"isnotnull","dimension":"edata_filters_dialcodes"},{"type":"equals","dimension":"edata_size","value":0},{"type":"equals","dimension":"eid","value":"SEARCH"}],"descending":"false"}}],"labels":{"state":"State","total_sessions":"Number of Content Plays","producer_id":"Producer","total_scans":"Total Number of QR Scans","total_successful_scans":"Total Number Of Successful QR Scans","total_failed_scans":"Total Number Of Failed QR Scans"},"output":[{"type":"csv","label":"QR Scans","metrics":["total_scans","total_successful_scans","total_failed_scans"],"dims":[],"fileParameters":["id","date"]}]}"""
         val modelParams = Map("reportConfig" -> JSONUtils.deserialize[Map[String, AnyRef]](strConfig2), "bucket" -> "test-container", "key" -> "druid-reports/", "filePath" -> "src/test/resources/")
         DruidQueryProcessingModel.execute(sc.emptyRDD, Option(modelParams));
     }

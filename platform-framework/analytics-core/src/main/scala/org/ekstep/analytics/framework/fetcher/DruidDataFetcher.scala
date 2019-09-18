@@ -9,10 +9,9 @@ import ing.wbaa.druid.dql.Dim
 import ing.wbaa.druid.dql.expressions.{AggregationExpression, FilteringExpression, PostAggregationExpression}
 import io.circe.Json
 import org.ekstep.analytics.framework.conf.AppConf
-import org.ekstep.analytics.framework.{DruidFilter, DruidQueryModel, PostAggregationFields}
 import org.ekstep.analytics.framework.exception.DataFetcherException
-import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, JobLogger}
-import org.ekstep.analytics.framework.Level._
+import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils}
+import org.ekstep.analytics.framework.{DruidQueryModel, PostAggregationFields}
 
 import scala.concurrent.Await
 
@@ -119,6 +118,7 @@ object DruidDataFetcher {
             case AggregationType.Count => count as name.getOrElse(s"${AggregationType.Count.toString.toLowerCase()}_${fieldName.toLowerCase()}")
             case AggregationType.HyperUnique => dim(fieldName).hyperUnique as name.getOrElse(s"${AggregationType.HyperUnique.toString.toLowerCase()}_${fieldName.toLowerCase()}")
             case AggregationType.ThetaSketch => thetaSketch(Dim(fieldName)) as name.getOrElse(s"${AggregationType.ThetaSketch.toString.toLowerCase()}_${fieldName.toLowerCase()}")
+            case AggregationType.Cardinality => cardinality(Dim(fieldName)) as name.getOrElse(s"${AggregationType.Cardinality.toString.toLowerCase}_${fieldName.toLowerCase()}")
             case AggregationType.LongSum => longSum(Dim(fieldName)) as name.getOrElse(s"${AggregationType.LongSum.toString.toLowerCase()}_${fieldName.toLowerCase()}")
             case AggregationType.DoubleSum => doubleSum(Dim(fieldName)) as name.getOrElse(s"${AggregationType.DoubleSum.toString.toLowerCase()}_${fieldName.toLowerCase()}")
             case AggregationType.DoubleMax => doubleMax(Dim(fieldName)) as name.getOrElse(s"${AggregationType.DoubleMax.toString.toLowerCase()}_${fieldName.toLowerCase()}")
@@ -184,7 +184,7 @@ object DruidDataFetcher {
                     case "*" => if("constant".equalsIgnoreCase(fields.rightFieldType)) Dim(fields.leftField).*(fields.rightField.asInstanceOf[Number].doubleValue()) as name else Dim(fields.leftField).*(Dim(fields.rightField.asInstanceOf[String])) as name
                     case "/" => if("constant".equalsIgnoreCase(fields.rightFieldType)) Dim(fields.leftField)./(fields.rightField.asInstanceOf[Number].doubleValue()) as name else Dim(fields.leftField)./(Dim(fields.rightField.asInstanceOf[String])) as name
                 }
-            //case PostAggregationType.Javascript => Dim(fields.leftField)
+            //        case PostAggregationType.Javascript => javascript(name, Seq(Dim(fields.leftField),Dim(fields.rightField.asInstanceOf[String])), fn)
 
         }
     }
