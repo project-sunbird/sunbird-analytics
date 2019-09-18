@@ -18,7 +18,6 @@ case class DruidOutput(date: Option[String], state: Option[String], producer_id:
                        total_successful_scans: Option[Integer] = Option(0), total_failed_scans: Option[Integer] = Option(0),
                        total_content_download: Option[Integer] = Option(0), total_content_plays: Option[Integer] = Option(0),
                        total_unique_devices: Option[Integer] = Option(0), total_time_spent_in_hours: Option[Integer] = Option(0),
-                       total_unmapped_scans: Option[Integer] = Option(0),
                        total_percent_failed_scans: Option[Integer] = Option(0)) extends Input with AlgoInput with AlgoOutput with Output
 
 case class ReportConfig(id: String, queryType: String, dateRange: QueryDateRange, metrics: List[Metrics], labels: Map[String, String], output: List[OutputConfig])
