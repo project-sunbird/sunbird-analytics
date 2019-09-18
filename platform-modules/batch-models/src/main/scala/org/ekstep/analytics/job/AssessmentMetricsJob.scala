@@ -248,8 +248,9 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     if (StringUtils.isNotBlank(uploadToAzure) && StringUtils.equalsIgnoreCase("true", uploadToAzure)) {
       val courseBatchList = result.collect.map(r => Map(result.columns.zip(r.toSeq): _*))
       courseBatchList.foreach(item => {
+        JobLogger.log("Course batch mappings: " + item, None, INFO)
         val batchList = item.getOrElse("batchid", "").asInstanceOf[Seq[String]].distinct
-        val courseId = item.getOrElse("courseid", "").toString
+        val courseId = item.getOrElse("courseid", "").asInstanceOf[String]
         batchList.foreach(batchId => {
           if (!courseId.isEmpty && !batchId.isEmpty) {
             val reportData = transposeDF(reportDF, courseId, batchId)
