@@ -298,7 +298,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
   }
 
   def suffixDate(index: String): String = {
-    index + DateTimeFormat.forPattern("dd-MM-yyyy").print(DateTime.now())
+    index + DateTimeFormat.forPattern("dd-MM-yyyy-HH-mm").print(DateTime.now())
   }
 
   def saveReport(reportDF: DataFrame, url: String): Unit = {
