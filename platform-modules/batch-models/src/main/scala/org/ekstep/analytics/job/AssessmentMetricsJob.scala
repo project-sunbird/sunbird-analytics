@@ -248,10 +248,10 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     if (StringUtils.isNotBlank(uploadToAzure) && StringUtils.equalsIgnoreCase("true", uploadToAzure)) {
       val courseBatchList = result.collect.map(r => Map(result.columns.zip(r.toSeq): _*))
       courseBatchList.foreach(item => {
-        val batchList = item.getOrElse("batchid", null).asInstanceOf[Seq[String]].distinct
-        val courseId = item.getOrElse("courseid", null).toString
+        val batchList = item.getOrElse("batchid", "").asInstanceOf[Seq[String]].distinct
+        val courseId = item.getOrElse("courseid", "").toString
         batchList.foreach(batchId => {
-          if (courseId != null && batchId != null) {
+          if (!courseId.isEmpty && !batchId.isEmpty) {
             val reportData = transposeDF(reportDF, courseId, batchId)
             // Save report to azure cloud storage
             AssessmentReportUtil.save(reportData, url, batchId)
