@@ -131,7 +131,7 @@ object ESUtil extends ESService {
          |      "must": [
          |        {
          |          "terms": {
-         |            "identifier": $contentList
+         |            "identifier.raw": $contentList
          |          }
          |        }
          |      ]
@@ -142,7 +142,7 @@ object ESUtil extends ESService {
     spark.read.format("org.elasticsearch.spark.sql")
       .option("query", request)
       .option("pushdown", "true")
-      .load(esIndex)
+      .load(esIndex+"/cs")
       .select("name", "identifier") // Fields need to capture from the elastic search
   }
 

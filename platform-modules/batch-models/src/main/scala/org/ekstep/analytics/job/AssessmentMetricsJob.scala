@@ -60,11 +60,16 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     val renamedDir = s"$tempDir/renamed"
     val sparkConf = sc.getConf
       .set("spark.cassandra.input.consistency.level", readConsistencyLevel)
-      .set("es.scroll.size", AppConf.getConfig("es.scroll.size"))
-
     val spark = SparkSession.builder.config(sparkConf).getOrCreate()
     val reportDF = prepareReport(spark, loadData)
-    val denormedDF = denormAssessment(spark, reportDF)
+
+
+    val compositeESConf = sc.getConf
+      .set("es.scroll.size", AppConf.getConfig("es.scroll.size"))
+      .set("es.node", AppConf.getConfig("es.composite.host"))
+    val sparkCompositeES = SparkSession.builder.config(compositeESConf).getOrCreate()
+    // Get the content name details from the compositeelastic search
+    val denormedDF = denormAssessment(sparkCompositeES, reportDF)
     saveReport(denormedDF, tempDir)
     JobLogger.end("AssessmentReport Generation Job completed successfully!", "SUCCESS", Option(Map("config" -> config, "model" -> name)))
   }
@@ -256,6 +261,8 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
             val reportData = transposeDF(reportDF, courseId, batchId)
             // Save report to azure cloud storage
             AssessmentReportUtil.save(reportData, url, batchId)
+          }else{
+            JobLogger.log("Report failed to create since course_id is " +courseId + "and batch_id is " + batchId , None, INFO)
           }
         })
       })
@@ -286,7 +293,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     */
   def transposeDF(reportDF: DataFrame, courseId: String, batchId: String): DataFrame = {
     // Re-shape the dataframe (Convert the content name from the row to column)
-    JobLogger.log(s"Generating report for ${courseId} course and ${batchId} batch")
+    JobLogger.log(s"Generating report for ${courseId} course and ${batchId} batch", None, INFO)
     val reshapedDF = reportDF.filter(col("courseid") === courseId && col("batchid") === batchId).
       groupBy("courseid", "batchid", "userid").pivot("content_name").agg(first("total_score"))
     reshapedDF
