@@ -8,12 +8,8 @@ import org.ekstep.analytics.framework.exception.DispatcherException
 import org.ekstep.analytics.framework.util.{CommonUtil, JobLogger}
 import org.sunbird.cloud.storage.conf.AppConf
 import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
-import org.apache.spark.sql.DataFrame
-import org.apache.hadoop.fs.{FileSystem, Path}
 import org.ekstep.analytics.framework.Level
 import scala.concurrent.Await
-import org.apache.spark.sql.functions.col
-import scala.util.{Failure, Success}
 
 object AzureDispatcher extends IDispatcher {
 

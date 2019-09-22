@@ -13,7 +13,7 @@ class TestDeviceRegisterService extends BaseSpec {
   val deviceRegisterServiceMock: DeviceRegisterService = mock[DeviceRegisterService]
   private implicit val system: ActorSystem = ActorSystem("device-register-test-actor-system", config)
   private val configMock = mock[Config]
-  val saveMetricsActor = TestActorRef(new SaveMetricsActor(configMock))
+  val saveMetricsActor = TestActorRef(new SaveMetricsActor)
   private val deviceRegisterService = TestActorRef(new DeviceRegisterService(saveMetricsActor, configMock)).underlyingActor
 
   val request: String =

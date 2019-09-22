@@ -1,28 +1,32 @@
 package controllers
 
 import akka.actor._
-import appconf.AppConf
 import com.google.inject.Inject
+import javax.inject.Named
 import org.ekstep.analytics.api.service.RegisterDevice
+import org.ekstep.analytics.api.service.experiment.{ExperimentData, ExperimentRequest}
 import org.ekstep.analytics.api.util.{APILogger, CommonUtil, JSONUtils}
 import play.api.libs.json.{JsValue, Json}
-import play.api.mvc.{Action, Result}
+import play.api.mvc.{AnyContent, ControllerComponents, Request, Result}
+import play.api.{Configuration, Environment}
 import akka.pattern.ask
-import com.typesafe.config.{Config, ConfigFactory}
-import org.ekstep.analytics.api.service.experiment.{ExperimentData, ExperimentRequest}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class DeviceController @Inject()(system: ActorSystem) extends BaseController {
+class DeviceController @Inject()(
+  @Named("device-register-actor") deviceRegisterActor: ActorRef,
+  @Named("experiment-actor") experimentActor: ActorRef,
+  system: ActorSystem,
+  configuration: Configuration,
+  cc: ControllerComponents,
+  env: Environment
+) extends BaseController(cc, configuration) {
 
   implicit val ec: ExecutionContext = system.dispatchers.lookup("device-register-controller")
-  lazy val configuration: Config = ConfigFactory.load()
-  lazy val isExperimentEnabled: Boolean = configuration.getBoolean("deviceRegisterAPI.experiment.enable")
+  lazy val isExperimentEnabled: Boolean = configuration.getBoolean("deviceRegisterAPI.experiment.enable").getOrElse(false)
 
-  def registerDevice(deviceId: String) = Action.async(parse.json) { implicit request =>
-    val deviceRegisterServiceAPIActor: ActorRef = AppConf.getActorRef("deviceRegisterService")
-
-    val body: JsValue = request.body
+  def registerDevice(deviceId: String) = Action.async { request: Request[AnyContent] =>
+    val body: JsValue = request.body.asJson.get
     // The X-Forwarded-For header from Azure is in the format '61.12.65.222:33740, 61.12.65.222'
     val ip = request.headers.get("X-Forwarded-For").map {
       x =>
@@ -50,7 +54,7 @@ class DeviceController @Inject()(system: ActorSystem) extends BaseController {
       }
     }
 
-    deviceRegisterServiceAPIActor.tell(RegisterDevice(deviceId, headerIP, ipAddr, fcmToken, producer, dspec, uaspec, firstAccess), ActorRef.noSender)
+    deviceRegisterActor.tell(RegisterDevice(deviceId, headerIP, ipAddr, fcmToken, producer, dspec, uaspec, firstAccess), ActorRef.noSender)
 
     if (isExperimentEnabled) {
       sendExperimentData(Some(deviceId), extMap.getOrElse(Map()).get("userId"), extMap.getOrElse(Map()).get("url"), producer)
@@ -64,15 +68,13 @@ class DeviceController @Inject()(system: ActorSystem) extends BaseController {
   }
 
   def sendExperimentData(deviceId: Option[String], userId: Option[String], url: Option[String], producer: Option[String]): Future[Result] = {
-    val experimentActor: ActorRef = AppConf.getActorRef("experimentService")
-
     val result = (experimentActor ? ExperimentRequest(deviceId, userId, url, producer)).mapTo[Option[ExperimentData]]
 
     result.map {
       expData => {
       var log: Map[String, String] = Map("experimentAssigned" -> "false", "userId" -> userId.orNull,
         "deviceId" -> deviceId.orNull, "url" -> url.orNull, "producer" -> producer.orNull)
-        
+
       val res = expData match {
         case Some(data: ExperimentData) => {
           val result = Map("title" -> "experiment", "experimentId" -> data.id, "experimentName" -> data.name,

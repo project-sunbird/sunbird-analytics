@@ -1,14 +1,14 @@
 package org.ekstep.analytics.api.service
 
-import org.ekstep.analytics.api.util._
-import org.joda.time.DateTime
-import org.joda.time.DateTimeZone
 import akka.actor.{Actor, ActorRef}
 import com.google.common.net.InetAddresses
-import com.typesafe.config.Config
 import com.google.common.primitives.UnsignedInts
+import com.typesafe.config.Config
 import is.tagomor.woothee.Classifier
+import javax.inject.{Inject, Named}
 import org.apache.logging.log4j.LogManager
+import org.ekstep.analytics.api.util._
+import org.joda.time.{DateTime, DateTimeZone}
 import org.postgresql.util.PSQLException
 
 import scala.concurrent.ExecutionContext
@@ -16,7 +16,7 @@ import scala.concurrent.ExecutionContext
 case class RegisterDevice(did: String, headerIP: String, ip_addr: Option[String] = None, fcmToken: Option[String] = None, producer: Option[String] = None, dspec: Option[String] = None, uaspec: Option[String] = None, first_access: Option[Long]= None)
 case class DeviceProfileLog(device_id: String, location: DeviceLocation, device_spec: Option[Map[String, AnyRef]] = None, uaspec: Option[String] = None, fcm_token: Option[String] = None, producer_id: Option[String] = None, first_access: Option[Long] = None)
 
-class DeviceRegisterService(saveMetricsActor: ActorRef, config: Config) extends Actor {
+class DeviceRegisterService @Inject()(@Named("save-metrics-actor") saveMetricsActor: ActorRef, config: Config) extends Actor {
 
     implicit val ec: ExecutionContext = context.system.dispatchers.lookup("device-register-actor")
     implicit val className: String ="DeviceRegisterService"

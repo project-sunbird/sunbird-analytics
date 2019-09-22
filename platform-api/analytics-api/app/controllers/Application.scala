@@ -3,7 +3,7 @@ package controllers
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.pattern._
 import akka.routing.FromConfig
-import javax.inject.{Inject, Singleton}
+import javax.inject.Inject
 import org.ekstep.analytics.api.exception.ClientException
 import org.ekstep.analytics.api.service.HealthCheckAPIService.GetHealthStatus
 import org.ekstep.analytics.api.service.RecommendationAPIService.{Consumption, Creation}
@@ -12,19 +12,19 @@ import org.ekstep.analytics.api.service.{DruidHealthCheckService, _}
 import org.ekstep.analytics.api.util._
 import org.ekstep.analytics.api.{APIIds, ResponseCode}
 import org.ekstep.analytics.framework.util.RestUtil
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.libs.concurrent.Futures
 import play.api.libs.json._
 import play.api.mvc._
+import play.api.{Configuration, Logger}
 
-import scala.concurrent.Future
 import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
  * @author mahesh
  */
 
-@Singleton
-class Application @Inject() (system: ActorSystem) extends BaseController {
+class Application @Inject() (cc: ControllerComponents, futures: Futures, system: ActorSystem, configuration: Configuration)(implicit ec: ExecutionContext) extends BaseController(cc, configuration) {
 
 	implicit override val className = "controllers.Application"
 	val recommendAPIActor = system.actorOf(Props[RecommendationAPIService].withRouter(FromConfig()), name = "recommendAPIActor")
@@ -32,44 +32,45 @@ class Application @Inject() (system: ActorSystem) extends BaseController {
 	val tagServiceAPIActor = system.actorOf(Props[TagService].withRouter(FromConfig()), name = "tagServiceAPIActor")
 	val clientLogAPIActor = system.actorOf(Props[ClientLogsAPIService].withRouter(FromConfig()), name = "clientLogAPIActor")
 	val druidHealthActor = system.actorOf(Props(new DruidHealthCheckService(RestUtil)), "druidHealthActor")
+	val logger: Logger = Logger(this.getClass())
 	/*val deviceRegisterServiceAPIActor = system.actorOf(Props[DeviceRegisterService].withRouter(FromConfig()),
 		name = "deviceRegisterServiceAPIActor")*/
 
-	def getDruidHealthStatus() = Action.async { implicit request =>
+	def getDruidHealthStatus() = Action.async { request: Request[AnyContent] =>
 		val result = ask(druidHealthActor, "health").mapTo[String]
 		result.map { x =>
 			Ok(x).withHeaders(CONTENT_TYPE -> "text/plain");
 		}
 	}
 
-	def checkAPIhealth() = Action.async { implicit request =>
+	def checkAPIhealth() = Action.async { request: Request[AnyContent] =>
     val result = ask(healthCheckAPIActor, GetHealthStatus).mapTo[String]
     result.map { x =>
       Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
     }
 	}
 
-	def recommendations() = Action.async { implicit request =>
+	def recommendations() = Action.async { request: Request[AnyContent] =>
 		val body: String = Json.stringify(request.body.asJson.get);
 		val futureRes = ask(recommendAPIActor, Consumption(body, config)).mapTo[String]
-		val timeoutFuture = play.api.libs.concurrent.Promise.timeout(CommonUtil.errorResponseSerialized("ekstep.analytics.recommendations", "request timeout", ResponseCode.REQUEST_TIMEOUT.toString()), 3.seconds);
+		val timeoutFuture = futures.delayed(3.seconds)(Future.successful(CommonUtil.errorResponseSerialized("ekstep.analytics.recommendations", "request timeout", ResponseCode.REQUEST_TIMEOUT.toString())))
 		val firstCompleted = Future.firstCompletedOf(Seq(futureRes, timeoutFuture))
 		val response: Future[String] = firstCompleted.recoverWith {
 			case ex: ClientException =>
 				Future { CommonUtil.errorResponseSerialized("ekstep.analytics.recommendations", ex.getMessage, ResponseCode.CLIENT_ERROR.toString()) }
 		};
 		response.map { resp =>
-			play.Logger.info(request + " body - " + body + "\n\t => " + resp)
+			logger.info(request + " body - " + body + "\n\t => " + resp)
 			val result = if (resp.contains(ResponseCode.CLIENT_ERROR.toString) || config.getBoolean("recommendation.enable")) resp
 			else JSONUtils.serialize(CommonUtil.OK("ekstep.analytics.recommendations", Map[String, AnyRef]("content" -> List(), "count" -> Int.box(0))))
 			Ok(result).withHeaders(CONTENT_TYPE -> "application/json")
 		}
 	}
-	
-	def creationRecommendations() = Action.async { implicit request =>
+
+	def creationRecommendations() = Action.async { request: Request[AnyContent] =>
 		val body: String = Json.stringify(request.body.asJson.get)
 		val futureRes = ask(recommendAPIActor, Creation(body, config)).mapTo[String]
-		val timeoutFuture = play.api.libs.concurrent.Promise.timeout(CommonUtil.errorResponseSerialized("ekstep.analytics.creation.recommendations", "request timeout", ResponseCode.REQUEST_TIMEOUT.toString()), 3.seconds);
+		val timeoutFuture = futures.delayed(3.seconds)(Future.successful(CommonUtil.errorResponseSerialized("ekstep.analytics.recommendations", "request timeout", ResponseCode.REQUEST_TIMEOUT.toString())))
 		val firstCompleted = Future.firstCompletedOf(Seq(futureRes, timeoutFuture))
 		val response: Future[String] = firstCompleted.recoverWith {
 			case ex: ClientException =>
@@ -79,22 +80,22 @@ class Application @Inject() (system: ActorSystem) extends BaseController {
 			Ok(result).withHeaders(CONTENT_TYPE -> "application/json")
 		}
 	}
-	
-	def registerTag(tagId: String) = Action.async { implicit request =>
+
+	def registerTag(tagId: String) = Action.async { request: Request[AnyContent] =>
 		val result = ask(tagServiceAPIActor, RegisterTag(tagId)).mapTo[String]
     result.map { x =>
       Ok(x).withHeaders(CONTENT_TYPE -> "application/json")
     }
 	}
 
-	def deleteTag(tagId: String) = Action.async { implicit request =>
+	def deleteTag(tagId: String) = Action.async { request: Request[AnyContent] =>
 		val result = ask(tagServiceAPIActor, DeleteTag(tagId)).mapTo[String]
     result.map { x =>
       Ok(x).withHeaders(CONTENT_TYPE -> "application/json")
     }
 	}
 
-	def logClientErrors() = Action.async { implicit request =>
+	def logClientErrors() = Action.async { request: Request[AnyContent] =>
 		val body: String = Json.stringify(request.body.asJson.get)
 		try {
 			val requestObj = JSONUtils.deserialize[ClientLogRequest](body)

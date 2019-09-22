@@ -1,21 +1,17 @@
 package controllers
 
-import org.ekstep.analytics.api.service.JobAPIService
-import org.ekstep.analytics.api.service.JobAPIService._
-import akka.actor.ActorSystem
-import akka.actor.Props
+import akka.actor.{ActorSystem, Props}
 import akka.pattern.ask
 import akka.routing.FromConfig
 import javax.inject.Inject
-import javax.inject.Singleton
-
-import org.ekstep.analytics.api._
+import org.ekstep.analytics.api.service.JobAPIService
+import org.ekstep.analytics.api.service.JobAPIService._
 import org.ekstep.analytics.api.util.{APILogger, CacheUtil, CommonUtil, JSONUtils}
-import org.ekstep.analytics.api.{APIIds, ResponseCode}
+import org.ekstep.analytics.api.{APIIds, ResponseCode, _}
+import play.api.Configuration
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
-import play.api.mvc._
-import play.api.mvc.Result
+import play.api.mvc.{Request, Result, _}
 
 import scala.concurrent.Future
 
@@ -23,12 +19,15 @@ import scala.concurrent.Future
  * @author Amit Behera, mahesh
  */
 
-@Singleton
-class JobController @Inject() (system: ActorSystem) extends BaseController {
+class JobController @Inject() (
+                                system: ActorSystem,
+                                configuration: Configuration,
+                                cc: ControllerComponents
+                              ) extends BaseController(cc, configuration) {
 
     val jobAPIActor = system.actorOf(Props[JobAPIService].withRouter(FromConfig()), name = "jobApiActor")
 
-    def dataRequest() = Action.async { implicit request =>
+    def dataRequest() = Action.async { request: Request[AnyContent] =>
         val body: String = Json.stringify(request.body.asJson.get)
         val channelId = request.headers.get("X-Channel-ID").getOrElse("")
         val consumerId = request.headers.get("X-Consumer-ID").getOrElse("")
@@ -45,7 +44,7 @@ class JobController @Inject() (system: ActorSystem) extends BaseController {
         }
     }
 
-    def getJob(clientKey: String, requestId: String) = Action.async { implicit request =>
+    def getJob(clientKey: String, requestId: String) = Action.async { request: Request[AnyContent] =>
 
         if (authorizeDataExhaustRequest(request)) {
             val res = ask(jobAPIActor, GetDataRequest(clientKey, requestId, config)).mapTo[Response]
@@ -59,7 +58,7 @@ class JobController @Inject() (system: ActorSystem) extends BaseController {
         }
     }
 
-    def getJobList(clientKey: String) = Action.async { implicit request =>
+    def getJobList(clientKey: String) = Action.async { request: Request[AnyContent] =>
 
         val channelId = request.headers.get("X-Channel-ID").getOrElse("")
         val consumerId = request.headers.get("X-Consumer-ID").getOrElse("")
@@ -77,7 +76,7 @@ class JobController @Inject() (system: ActorSystem) extends BaseController {
         }
     }
 
-    def getTelemetry(datasetId: String) = Action.async { implicit request =>
+    def getTelemetry(datasetId: String) = Action.async { request: Request[AnyContent] =>
 
         val summaryType =  request.getQueryString("type")
         val from = request.getQueryString("from").getOrElse("")
@@ -106,7 +105,7 @@ class JobController @Inject() (system: ActorSystem) extends BaseController {
         }
     }
 
-    def refreshCache(cacheType: String) = Action { implicit request =>
+    def refreshCache(cacheType: String) = Action { request: Request[AnyContent] =>
         cacheType match {
             case "ConsumerChannel" =>
                 CacheUtil.initConsumerChannelCache()

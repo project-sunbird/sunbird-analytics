@@ -1,24 +1,8 @@
 package org.ekstep.analytics.api
 
-import com.datastax.driver.core.querybuilder.QueryBuilder
-import org.ekstep.analytics.framework.Fetcher
-import org.ekstep.analytics.framework.exception.DataFetcherException
-import org.ekstep.analytics.framework.Query
-import org.apache.spark.SparkContext
 import com.typesafe.config.Config
-import org.apache.spark.rdd.RDD
-import org.ekstep.analytics.api.util.{APILogger, CommonUtil, DBUtil, DataFetcher}
-import org.jets3t.service.S3ServiceException
-
-import scala.collection.JavaConverters.iterableAsScalaIterableConverter
-import scala.reflect.ClassTag
 import org.ekstep.analytics.framework.Period._
-import org.ekstep.analytics.framework.conf.AppConf
-import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils}
-import com.weather.scalacass.syntax._
-import com.weather.scalacass.CCCassFormatDecoder
-import org.apache.spark.sql.Row
-import org.joda.time.DateTime
+import org.jets3t.service.S3ServiceException
 
 /**
  * @author mahesh

@@ -1,28 +1,25 @@
 package controllers
 
-import akka.actor.Props
-
-import scala.collection.JavaConverters.mapAsJavaMapConverter
-import scala.concurrent.duration.DurationInt
-import com.typesafe.config.Config
-import com.typesafe.config.ConfigFactory
 import akka.util.Timeout
 import akka.util.Timeout.durationToTimeout
-import appconf.AppConf
-import org.ekstep.analytics.api.service.DeviceRegisterService
+import com.typesafe.config.Config
 import org.ekstep.analytics.api.util.{APILogger, CacheUtil}
+import play.api.Configuration
 import play.api.mvc._
+
+import scala.concurrent.duration.DurationInt
 
 /**
  * @author mahesh
  */
 
-abstract class BaseController extends Controller {
+class BaseController(cc: ControllerComponents, configuration: Configuration) extends AbstractController(cc) {
 
   implicit val className = "controllers.BaseController"
-  implicit val config = AppConf.config
 
-    implicit val timeout: Timeout = 20 seconds
+  implicit lazy val config: Config = configuration.underlying
+
+  implicit val timeout: Timeout = 20 seconds
 
     def result(code: String, res: String): Result = {
         val resultObj = code match {

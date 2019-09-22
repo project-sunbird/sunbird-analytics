@@ -2,6 +2,7 @@ package org.ekstep.analytics.api.service.experiment
 
 import akka.actor.Actor
 import com.typesafe.config.{Config, ConfigFactory}
+import javax.inject.Inject
 import org.ekstep.analytics.api.util.{APILogger, ElasticsearchService, JSONUtils, RedisUtil}
 import redis.clients.jedis.Jedis
 
@@ -12,7 +13,7 @@ import scala.util.{Failure, Success}
 case class ExperimentRequest(deviceId: Option[String], userId: Option[String], url: Option[String], producer: Option[String])
 case class ExperimentData(id: String, name: String, startDate: String, endDate: String, key: String, expType: String, userId: String, deviceId: String, userIdMod: Long, deviceIdMod: Long)
 
-class ExperimentService(redisUtil: RedisUtil, elasticsearchService :ElasticsearchService) extends Actor {
+class ExperimentService @Inject()(redisUtil: RedisUtil, elasticsearchService :ElasticsearchService) extends Actor {
 
   implicit val ec: ExecutionContext = context.system.dispatchers.lookup("experiment-actor")
   implicit val className: String = "org.ekstep.analytics.api.service.experiment.ExperimentService"

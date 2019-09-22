@@ -3,7 +3,7 @@ package org.ekstep.analytics.api.util
 import akka.actor.Actor
 import com.datastax.driver.core._
 import com.datastax.driver.core.querybuilder.{QueryBuilder => QB}
-import org.ekstep.analytics.api.{Constants, ExperimentCreateRequest, ExperimentDefinition, JobRequest}
+import org.ekstep.analytics.api.{Constants, ExperimentDefinition, JobRequest}
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.util.JobLogger
 import org.joda.time.DateTime
@@ -23,6 +23,7 @@ object DBUtil {
         Cluster.builder()
             .addContactPoint(host)
             .withPort(port)
+            .withoutJMXReporting()
             .build()
     }
     val session = cluster.connect()

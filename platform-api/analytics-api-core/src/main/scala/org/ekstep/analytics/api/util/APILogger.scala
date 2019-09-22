@@ -3,12 +3,11 @@ package org.ekstep.analytics.api.util
 import java.nio.charset.Charset
 
 import com.typesafe.config.ConfigFactory
-import org.apache.logging.log4j.{LogManager, Logger}
 import org.apache.logging.log4j.core.LoggerContext
 import org.apache.logging.log4j.core.appender.mom.kafka.KafkaAppender
 import org.apache.logging.log4j.core.config.Property
 import org.apache.logging.log4j.core.layout.PatternLayout
-import org.ekstep.analytics.framework.util.JSONUtils
+import org.apache.logging.log4j.{LogManager, Logger}
 import org.ekstep.analytics.framework._
 import org.joda.time.DateTime
 

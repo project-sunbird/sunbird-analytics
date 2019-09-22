@@ -1,31 +1,17 @@
 
-import org.ekstep.analytics.api.util.{CacheUtil, PostgresDBUtil}
-import org.specs2.runner._
-import org.junit.runner._
-import play.api.test._
-import play.api.http._
-import play.api.test._
-import play.api.test.Helpers._
-import org.ekstep.analytics.api.util.JSONUtils
-import org.ekstep.analytics.api.util.DBUtil
-import org.ekstep.analytics.api.JobRequest
-import org.joda.time.DateTime
-import org.ekstep.analytics.api.JobResponse
-import scala.concurrent.Await
-import scala.concurrent.duration.DurationInt
-import scala.concurrent._
-import scala.concurrent.duration._
-import ExecutionContext.Implicits.global
-import scala.concurrent.{ Future }
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.{ Failure, Success }
-import scala.util.Random
-import org.ekstep.analytics.api.util.CommonUtil
-import org.cassandraunit.utils.EmbeddedCassandraServerHelper
 import org.cassandraunit.CQLDataLoader
 import org.cassandraunit.dataset.cql.FileCQLDataSet
-import org.ekstep.analytics.framework.conf.AppConf
-import org.scalatest.BeforeAndAfterAll
+import org.cassandraunit.utils.EmbeddedCassandraServerHelper
+import org.ekstep.analytics.api.JobRequest
+import org.ekstep.analytics.api.util.{CacheUtil, DBUtil, PostgresDBUtil}
+import org.joda.time.DateTime
+import org.junit.runner._
+import org.specs2.runner._
+import play.api.test.Helpers._
+import play.api.test._
+
+import scala.concurrent.Await
+import scala.concurrent.duration.DurationInt
 @RunWith(classOf[JUnitRunner])
 class JobsAPISpec extends BaseSpec with Serializable {
 
@@ -137,7 +123,7 @@ class JobsAPISpec extends BaseSpec with Serializable {
 //        "return api status report - SUBMITTED response" in new WithApplication() {
 //            val response = route(FakeRequest(GET, "/dataset/request/read/dev-portal/BA215FC2FA3A9E69210C335BCA7B2EE7")).get
 //            status(response) must equalTo(FORBIDDEN)
-//            
+//
 //            val response1 = route(FakeRequest(GET, "/dataset/request/read/dev-portal/BA215FC2FA3A9E69210C335BCA7B2EE7").withHeaders(("X-Consumer-ID", "test_id_01"), ("X-Channel-ID", "in.ekstep"))).get
 //            status(response1) must equalTo(OK)
 //            contentAsString(response1) must contain(""""status":"SUBMITTED"""")
@@ -200,7 +186,7 @@ class JobsAPISpec extends BaseSpec with Serializable {
 
         "channel exhaust - with headers with an authorized request" in new WithApplication() {
             val request = FakeRequest(GET, "/dataset/get/raw?from=2017-08-24&to=2017-08-25").withHeaders(("X-Consumer-ID", "test_id_01"), ("X-Channel-ID", "in.ekstep"))
-            val response = route(request).get
+            val response = route(app, request).get
             status(response) must equalTo(OK)
         }
 
@@ -208,7 +194,7 @@ class JobsAPISpec extends BaseSpec with Serializable {
 
         "channel exhaust - request without headers" in new WithApplication() {
             val request = FakeRequest(GET, "/dataset/get/raw?from=2017-08-24&to=2017-08-25")
-            val response = route(request).get
+            val response = route(app, request).get
             status(response) must equalTo(FORBIDDEN)
         }
 
@@ -233,7 +219,7 @@ class JobsAPISpec extends BaseSpec with Serializable {
 
 
             val request = FakeRequest(GET, "/refresh-cache/ConsumerChannel")
-            val response = route(request).get
+            val response = route(app, request).get
             status(response) must equalTo(OK)
             val statUpdated = CacheUtil.getConsumerChannlTable().get(consumer, channel)
             statUpdated should be (Int.box(1))

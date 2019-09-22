@@ -3,27 +3,27 @@ package controllers
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.pattern._
 import akka.routing.FromConfig
-import javax.inject.{Inject, Singleton}
-import org.ekstep.analytics.api.{Filter, MetricsRequestBody}
+import javax.inject.Inject
+import org.ekstep.analytics.api.MetricsRequestBody
 import org.ekstep.analytics.api.service.MetricsAPIService
 import org.ekstep.analytics.api.service.MetricsAPIService._
 import org.ekstep.analytics.framework.util.JSONUtils
+import play.api.Configuration
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, BodyParsers, Request}
+import play.api.mvc.{AnyContent, ControllerComponents, Request}
 
 /**
  * @author mahesh
  */
 
-@Singleton
-class Metrics @Inject() (system: ActorSystem) extends BaseController {
+class Metrics @Inject() (system: ActorSystem, cc: ControllerComponents, configuration: Configuration) extends BaseController(cc, configuration) {
     implicit override val className: String = "controllers.Metrics"
     val metricsAPIActor: ActorRef = system.actorOf(Props[MetricsAPIService].withRouter(FromConfig()), name = "metricsApiActor")
 
     def getMetricsSummary(datasetId: String, summary: String) =
-        Action.async(BodyParsers.parse.json) { implicit request =>
-            val body = JSONUtils.deserialize[MetricsRequestBody](Json.stringify(request.body))
+        Action.async { implicit request =>
+            val body = JSONUtils.deserialize[MetricsRequestBody](Json.stringify(request.body.asJson.get))
             val result = ask(metricsAPIActor, Metrics(datasetId, summary, body, config)).mapTo[String]
             result.map { res =>
                 Ok(res).withHeaders(CONTENT_TYPE -> "application/json")
