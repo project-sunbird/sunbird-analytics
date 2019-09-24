@@ -17,8 +17,6 @@ object AssessmentReportUtil {
     val provider = AppConf.getConfig("assessment.metrics.cloud.provider")
     val container = AppConf.getConfig("course.metrics.cloud.container")
     val objectKey = AppConf.getConfig("assessment.metrics.cloud.objectKey")
-
-    if (!reportDF.take(1).isEmpty) {
       reportDF.coalesce(1).write
         .mode("overwrite")
         .format("com.databricks.spark.csv")
@@ -26,7 +24,6 @@ object AssessmentReportUtil {
         .save(url)
       FileUtil.renameReport(tempDir, renamedDir, batchId)
       FileUtil.uploadReport(renamedDir, provider, container, Some(objectKey))
-    }
   }
 
   def saveToElastic(index: String, alias: String, reportDF: DataFrame): Unit = {

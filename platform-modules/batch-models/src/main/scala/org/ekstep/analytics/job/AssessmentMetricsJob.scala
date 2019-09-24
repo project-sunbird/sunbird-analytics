@@ -28,18 +28,16 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     val jobConfig = JSONUtils.deserialize[JobConfig](config)
     JobContext.parallelization = jobConfig.parallelization.getOrElse(10) // Default to 10
 
-    def runJob(sc: SparkContext): Unit = {
+    def runJob(implicit sc: SparkContext): Unit = {
       try {
-        execute(jobConfig)(sc)
+        execute(jobConfig)
       } finally {
-        CommonUtil.closeSparkContext()(sc)
-        null
+        CommonUtil.closeSparkContext()
       }
     }
 
     sc match {
       case Some(value) => {
-        implicit val sparkContext: SparkContext = value
         runJob(value)
       }
       case None => {
@@ -58,7 +56,6 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
   private def execute(config: JobConfig)(implicit sc: SparkContext) = {
     val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
     val readConsistencyLevel: String = AppConf.getConfig("assessment.metrics.cassandra.input.consistency")
-    val renamedDir = s"$tempDir/renamed"
     val sparkConf = sc.getConf
       .set("spark.cassandra.input.consistency.level", readConsistencyLevel)
     val spark = SparkSession.builder.config(sparkConf).getOrCreate()
@@ -73,6 +70,9 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     val denormedDF = denormAssessment(sparkCompositeES, reportDF)
     saveReport(denormedDF, tempDir)
     JobLogger.end("AssessmentReport Generation Job completed successfully!", "SUCCESS", Option(Map("config" -> config, "model" -> name)))
+    spark.stop()
+    sparkCompositeES.stop()
+    JobLogger.log("Spark session is got closed..", None, INFO)
   }
 
   /**
