@@ -33,6 +33,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
         execute(jobConfig)(sc)
       } finally {
         CommonUtil.closeSparkContext()(sc)
+        null
       }
     }
 
