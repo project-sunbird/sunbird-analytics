@@ -145,8 +145,8 @@ object CommonUtil {
     }
 
     def closeSparkContext()(implicit sc: SparkContext) {
-        JobLogger.log("Closing Spark Context")
-        sc.stop();
+        JobLogger.log("Closing Spark Context", None, INFO)
+        sc.stop()
     }
 
     class Visitor extends java.nio.file.SimpleFileVisitor[java.nio.file.Path] {
