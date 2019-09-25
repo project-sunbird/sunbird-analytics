@@ -176,7 +176,8 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
       * Compute the sum of all the worksheet contents score.
       */
     val assessmentAggDf = Window.partitionBy("user_id", "batch_id", "course_id")
-    val aggregatedDF = latestAssessmentDF.withColumn("total_sum_score", sum("total_score") over assessmentAggDf)
+    val aggregatedDF = latestAssessmentDF.withColumn("agg_score", sum("total_score") over assessmentAggDf)
+    .withColumn("total_sum_score", concat(col("agg_score"), lit("/"), col("total_max_score")))
 
     /**
       * Filter only valid enrolled userid for the specific courseid
@@ -222,7 +223,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     report.join(contentNameDF, report.col("content_id") === contentNameDF.col("identifier"), "left_outer")
       .select(col("name").as("content_name"),
         col("total_sum_score"), report.col("userid"), report.col("courseid"), report.col("batchid"),
-        col("total_score"), report.col("maskedemail"), report.col("district_name"), report.col("maskedphone"),
+        col("total_score"), col("grand_total"), report.col("maskedemail"), report.col("district_name"), report.col("maskedphone"),
         report.col("orgname_resolved"), report.col("externalid"), report.col("schoolname_resolved"), report.col("username")
       )
   }
