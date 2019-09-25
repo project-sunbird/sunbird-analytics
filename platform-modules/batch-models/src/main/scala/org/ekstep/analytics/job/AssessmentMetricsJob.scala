@@ -181,7 +181,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
       .withColumn("agg_max_score", sum("total_max_score") over assessmentAggDf)
       .withColumn("total_sum_score", concat(col("agg_score"), lit("/"), col("agg_max_score")))
     /**
-      * Filter only valid enrolled useritotal_scored for the specific courseid
+      * Filter only valid enrolled userid for the specific courseid
       */
     val userAssessmentResolvedDF = userLocationResolvedDF.join(aggregatedDF, userLocationResolvedDF.col("userid") === aggregatedDF.col("user_id") && userLocationResolvedDF.col("batchid") === aggregatedDF.col("batch_id") && userLocationResolvedDF.col("courseid") === aggregatedDF.col("course_id"), "right_outer")
     val resolvedExternalIdDF = userAssessmentResolvedDF.join(externalIdMapDF, Seq("userid"), "left_outer")
