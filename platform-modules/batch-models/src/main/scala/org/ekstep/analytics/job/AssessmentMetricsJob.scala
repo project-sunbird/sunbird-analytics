@@ -73,6 +73,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     JobLogger.end("AssessmentReport Generation Job completed successfully!", "SUCCESS", Option(Map("config" -> config, "model" -> name)))
     sparkEs.stop()
     spark.stop()
+    CommonUtil.closeSparkContext()(sc)
     JobLogger.log("Spark session is closed", None, INFO)
   }
 
