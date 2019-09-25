@@ -69,7 +69,8 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     val reportDF = prepareReport(spark, loadData)
     // Get the content name details from the compositeelastic search
     val denormedDF = denormAssessment(sparkEs, reportDF)
-    saveReport(denormedDF, tempDir)
+    val status = saveReportData(denormedDF, tempDir)
+    JobLogger.log("Report is saved status" + status, None, INFO)
     JobLogger.end("AssessmentReport Generation Job completed successfully!", "SUCCESS", Option(Map("config" -> config, "model" -> name)))
   }
 
@@ -90,6 +91,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
 
   override def saveReportES(reportDF: DataFrame): Unit = ???
 
+  override def saveReport(reportDF: DataFrame, url: String): Unit = ???
   /**
     * Loading the specific tables from the cassandra db.
     */
@@ -233,7 +235,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     * Alias name: cbatch-assessment
     * Index name: cbatch-assessment-24-08-1993-09-30 (dd-mm-yyyy-hh-mm)
     */
-  def saveReport(reportDF: DataFrame, url: String): Unit = {
+  def saveReportData(reportDF: DataFrame, url: String): Boolean = {
     // Save assessment report to ealstic search
     val aliasName = AppConf.getConfig("assessment.metrics.es.alias")
     val indexPrefix = AppConf.getConfig("assessment.metrics.es.index.prefix")
@@ -265,8 +267,10 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
           }
         })
       })
+      true
     } else {
       JobLogger.log("Skipping uploading reports into to azure", None, INFO)
+      false
     }
   }
 
