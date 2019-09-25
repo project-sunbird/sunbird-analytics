@@ -5,16 +5,19 @@ import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.{DataFrame, SQLContext}
+import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.dispatcher.AzureDispatcher
+import org.ekstep.analytics.framework.exception.DruidConfigException
 import org.ekstep.analytics.framework.fetcher.DruidDataFetcher
 import org.ekstep.analytics.framework.util.JSONUtils
-import org.ekstep.analytics.framework._
-import org.ekstep.analytics.framework.exception.{DispatcherException, DruidConfigException}
 import org.sunbird.cloud.storage.conf.AppConf
 
-
-case class DruidOutput(date: Option[String], state: Option[String], producer_id: Option[String], total_scans: Option[Integer] = Option(0), total_sessions: Option[Integer] = Option(0),
-                       total_ts: Option[Double] = Option(0.0), total_successful_scans: Option[Integer] = Option(0), total_failed_scans: Option[Integer] = Option(0)) extends Input with AlgoInput with AlgoOutput with Output
+case class DruidOutput(date: Option[String], state: Option[String], producer_id: Option[String], total_scans: Option[Integer] = Option(0),
+                       total_sessions: Option[Integer] = Option(0), total_ts: Option[Double] = Option(0.0),
+                       total_successful_scans: Option[Integer] = Option(0), total_failed_scans: Option[Integer] = Option(0),
+                       total_content_download: Option[Integer] = Option(0), total_content_plays: Option[Integer] = Option(0),
+                       total_unique_devices: Option[Double] = Option(0), total_time_spent_in_hours: Option[Double] = Option(0),
+                       total_percent_failed_scans: Option[Double] = Option(0)) extends Input with AlgoInput with AlgoOutput with Output
 
 case class ReportConfig(id: String, queryType: String, dateRange: QueryDateRange, metrics: List[Metrics], labels: Map[String, String], output: List[OutputConfig])
 case class QueryDateRange(interval: Option[QueryInterval], staticInterval: Option[String], granularity: Option[String])
@@ -92,7 +95,7 @@ object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, Druid
                 val filteredDf = df.select(fieldsList.head, fieldsList.tail:_*)
                 val renamedDf =  filteredDf.select(filteredDf.columns.map(c => filteredDf.col(c).as(labelsLookup.getOrElse(c, c))): _*)
                 val reportFinalId = if(f.label.nonEmpty && f.label.get.nonEmpty) reportConfig.id + "/" + f.label.get else reportConfig.id
-                //renamedDf.show(150)
+                renamedDf.show(150)
                 val dirPath = writeToCSVAndRename(renamedDf, config ++ Map("dims" -> dimsLabels, "reportId" -> reportFinalId, "fileParameters" -> f.fileParameters))
                 AzureDispatcher.dispatchDirectory(config ++ Map("dirPath" -> (dirPath + reportFinalId + "/"), "key" -> (key + reportFinalId + "/")))
             }

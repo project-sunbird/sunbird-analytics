@@ -94,7 +94,7 @@ case class DruidQueryModel(queryType: String, dataSource: String, intervals: Str
 @scala.beans.BeanInfo
 case class DruidDimension(fieldName: String, aliasName: Option[String])
 @scala.beans.BeanInfo
-case class Aggregation(name: Option[String], `type`: String, fieldName: String)
+case class Aggregation(name: Option[String], `type`: String, fieldName: String, fnAggregate: Option[String] = None, fnCombine: Option[String] = None, fnReset: Option[String] = None)
 @scala.beans.BeanInfo
 case class PostAggregation(`type`: String, name: String, fields: PostAggregationFields, fn: String, ordering: Option[String] = None)
 // only right field can have type as FieldAccess or Constant. Only if it Constant, need to specify "rightFieldType"
