@@ -54,22 +54,22 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
   }
 
   private def execute(config: JobConfig)(implicit sc: SparkContext) = {
-    val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
     val readConsistencyLevel: String = AppConf.getConfig("assessment.metrics.cassandra.input.consistency")
     val sparkConf = sc.getConf
       .set("spark.cassandra.input.consistency.level", readConsistencyLevel)
     val spark = SparkSession.builder.config(sparkConf).getOrCreate()
-    val reportDF = prepareReport(spark, loadData)
-
-
     val compositeESConf = sc.getConf
       .set("es.scroll.size", AppConf.getConfig("es.scroll.size"))
       .set("es.node", AppConf.getConfig("es.composite.host"))
     val sparkCompositeES = SparkSession.builder.config(compositeESConf).getOrCreate()
-    // Get the content name details from the compositeelastic search
-    val denormedDF = denormAssessment(sparkCompositeES, reportDF)
-    saveReport(denormedDF, tempDir)
-    JobLogger.end("AssessmentReport Generation Job completed successfully!", "SUCCESS", Option(Map("config" -> config, "model" -> name)))
+    val time = CommonUtil.time({
+      val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
+      val reportDF = prepareReport(spark, loadData)
+      // Get the content name details from the composite-elastic search
+      val denormedDF = denormAssessment(sparkCompositeES, reportDF)
+      saveReport(denormedDF, tempDir)
+    })
+    JobLogger.end("AssessmentReport Generation Job completed successfully!", "SUCCESS", Option(Map("config" -> config, "timeTaken" -> Double.box(time._1 / 1000), "model" -> name)))
     spark.stop()
     sparkCompositeES.stop()
     JobLogger.log("Spark session is got closed..", None, INFO)
@@ -262,8 +262,8 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
             val reportData = transposeDF(reportDF, courseId, batchId)
             // Save report to azure cloud storage
             AssessmentReportUtil.save(reportData, url, batchId)
-          }else{
-            JobLogger.log("Report failed to create since course_id is " +courseId + "and batch_id is " + batchId , None, INFO)
+          } else {
+            JobLogger.log("Report failed to create since course_id is " + courseId + "and batch_id is " + batchId, None, INFO)
           }
         })
       })
