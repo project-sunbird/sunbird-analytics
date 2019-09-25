@@ -12,13 +12,12 @@ import org.ekstep.analytics.framework.fetcher.DruidDataFetcher
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.sunbird.cloud.storage.conf.AppConf
 
-
 case class DruidOutput(date: Option[String], state: Option[String], producer_id: Option[String], total_scans: Option[Integer] = Option(0),
                        total_sessions: Option[Integer] = Option(0), total_ts: Option[Double] = Option(0.0),
                        total_successful_scans: Option[Integer] = Option(0), total_failed_scans: Option[Integer] = Option(0),
                        total_content_download: Option[Integer] = Option(0), total_content_plays: Option[Integer] = Option(0),
-                       total_unique_devices: Option[Integer] = Option(0), total_time_spent_in_hours: Option[Integer] = Option(0),
-                       total_percent_failed_scans: Option[Integer] = Option(0)) extends Input with AlgoInput with AlgoOutput with Output
+                       total_unique_devices: Option[Double] = Option(0), total_time_spent_in_hours: Option[Double] = Option(0),
+                       total_percent_failed_scans: Option[Double] = Option(0)) extends Input with AlgoInput with AlgoOutput with Output
 
 case class ReportConfig(id: String, queryType: String, dateRange: QueryDateRange, metrics: List[Metrics], labels: Map[String, String], output: List[OutputConfig])
 case class QueryDateRange(interval: Option[QueryInterval], staticInterval: Option[String], granularity: Option[String])

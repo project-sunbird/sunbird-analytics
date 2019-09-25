@@ -7,6 +7,12 @@ jobs:
       - restore_cache:
           key: dp-dependency-cache-{{ checksum "pom.xml" }}
       - run:
+          name: scuid-build
+          command: |
+            git clone https://github.com/ing-bank/scruid.git
+            cd scruid && sed -i 's/scalaVersion in ThisBuild := "2.12.8"/scalaVersion in ThisBuild := "2.11.8"/g' build.sbt
+            sbt compile && sbt package && sbt publishM2
+      - run:
           name: analytics-framework-build
           command: cd platform-framework && mvn clean install -DskipTests=true
       - run:
