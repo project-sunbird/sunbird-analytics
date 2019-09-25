@@ -29,10 +29,20 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     JobContext.parallelization = jobConfig.parallelization.getOrElse(10) // Default to 10
 
     def runJob(sc: SparkContext): Unit = {
+      val compositeESConf = sc.getConf
+        .set("es.scroll.size", AppConf.getConfig("es.scroll.size"))
+        .set("es.node", AppConf.getConfig("es.composite.host"))
+      val sparkCompositeES = SparkSession.builder.config(compositeESConf).getOrCreate()
+      val readConsistencyLevel: String = AppConf.getConfig("assessment.metrics.cassandra.input.consistency")
+      val sparkConf = sc.getConf
+        .set("spark.cassandra.input.consistency.level", readConsistencyLevel)
+      val spark = SparkSession.builder.config(sparkConf).getOrCreate()
       try {
-        execute(jobConfig)(sc)
+        execute(jobConfig, spark, sparkCompositeES)(sc)
       } finally {
         CommonUtil.closeSparkContext()(sc)
+        sparkCompositeES.stop()
+        spark.stop()
       }
     }
 
@@ -54,26 +64,13 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     }
   }
 
-  private def execute(config: JobConfig)(implicit sc: SparkContext) = {
+  private def execute(config: JobConfig, spark: SparkSession, sparkEs: SparkSession)(implicit sc: SparkContext) = {
     val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
-    val readConsistencyLevel: String = AppConf.getConfig("assessment.metrics.cassandra.input.consistency")
-    val renamedDir = s"$tempDir/renamed"
-    val sparkConf = sc.getConf
-      .set("spark.cassandra.input.consistency.level", readConsistencyLevel)
-    val spark = SparkSession.builder.config(sparkConf).getOrCreate()
     val reportDF = prepareReport(spark, loadData)
-
-
-    val compositeESConf = sc.getConf
-      .set("es.scroll.size", AppConf.getConfig("es.scroll.size"))
-      .set("es.node", AppConf.getConfig("es.composite.host"))
-    val sparkCompositeES = SparkSession.builder.config(compositeESConf).getOrCreate()
     // Get the content name details from the compositeelastic search
-    val denormedDF = denormAssessment(sparkCompositeES, reportDF)
+    val denormedDF = denormAssessment(sparkEs, reportDF)
     saveReport(denormedDF, tempDir)
     JobLogger.end("AssessmentReport Generation Job completed successfully!", "SUCCESS", Option(Map("config" -> config, "model" -> name)))
-    sparkCompositeES.stop()
-    spark.stop()
   }
 
   /**
@@ -263,8 +260,8 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
             val reportData = transposeDF(reportDF, courseId, batchId)
             // Save report to azure cloud storage
             AssessmentReportUtil.save(reportData, url, batchId)
-          }else{
-            JobLogger.log("Report failed to create since course_id is " +courseId + "and batch_id is " + batchId , None, INFO)
+          } else {
+            JobLogger.log("Report failed to create since course_id is " + courseId + "and batch_id is " + batchId, None, INFO)
           }
         })
       })
