@@ -41,8 +41,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
         execute(jobConfig, spark, sparkCompositeES)(sc)
       } finally {
         CommonUtil.closeSparkContext()(sc)
-        sparkCompositeES.stop()
-        spark.stop()
+
       }
     }
 
@@ -72,6 +71,9 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     val status = saveReportData(denormedDF, tempDir)
     JobLogger.log("Report is saved status" + status, None, INFO)
     JobLogger.end("AssessmentReport Generation Job completed successfully!", "SUCCESS", Option(Map("config" -> config, "model" -> name)))
+    sparkEs.stop()
+    spark.stop()
+    JobLogger.log("Spark session is closed", None, INFO)
   }
 
   /**
