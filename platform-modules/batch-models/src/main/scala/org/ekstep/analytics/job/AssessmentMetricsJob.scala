@@ -67,7 +67,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
       val reportDF = prepareReport(spark, loadData)
       // Get the content name details from the composite-elastic search
       val denormedDF = denormAssessment(sparkCompositeES, reportDF)
-      saveReport(denormedDF, tempDir)
+      val reportStatus = saveReport(denormedDF, tempDir)
     })
     JobLogger.end("AssessmentReport Generation Job completed successfully!", "SUCCESS", Option(Map("config" -> config, "timeTaken" -> Double.box(time._1 / 1000), "model" -> name)))
     spark.stop()

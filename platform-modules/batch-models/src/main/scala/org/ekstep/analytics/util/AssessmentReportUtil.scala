@@ -23,7 +23,8 @@ object AssessmentReportUtil {
         .option("header", "true")
         .save(url)
       FileUtil.renameReport(tempDir, renamedDir, batchId)
-      FileUtil.uploadReport(renamedDir, provider, container, Some(objectKey))
+     val uploadedFile =  FileUtil.uploadReport(renamedDir, provider, container, Some(objectKey))
+     JobLogger.log("uploadedFile is" + uploadedFile , None, INFO)
   }
 
   def saveToElastic(index: String, alias: String, reportDF: DataFrame): Unit = {
