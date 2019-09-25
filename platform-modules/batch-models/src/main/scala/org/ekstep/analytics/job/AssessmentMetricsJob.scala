@@ -176,8 +176,10 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
       * Compute the sum of all the worksheet contents score.
       */
     val assessmentAggDf = Window.partitionBy("user_id", "batch_id", "course_id")
-    val aggregatedDF = latestAssessmentDF.withColumn("agg_score", sum("total_score") over assessmentAggDf)
-    .withColumn("total_sum_score", concat(col("agg_score"), lit("/"), col("total_max_score")))
+    val aggregatedDF = latestAssessmentDF
+      .withColumn("agg_score", sum("total_score") over assessmentAggDf)
+      .withColumn("agg_max_score", sum("total_max_score") over assessmentAggDf)
+      .withColumn("total_sum_score", concat(col("agg_score"), lit("/"), col("agg_max_score")))
 
     /**
       * Filter only valid enrolled userid for the specific courseid
@@ -262,8 +264,8 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
             val reportData = transposeDF(reportDF, courseId, batchId)
             // Save report to azure cloud storage
             AssessmentReportUtil.save(reportData, url, batchId)
-          }else{
-            JobLogger.log("Report failed to create since course_id is " +courseId + "and batch_id is " + batchId , None, INFO)
+          } else {
+            JobLogger.log("Report failed to create since course_id is " + courseId + "and batch_id is " + batchId, None, INFO)
           }
         })
       })
