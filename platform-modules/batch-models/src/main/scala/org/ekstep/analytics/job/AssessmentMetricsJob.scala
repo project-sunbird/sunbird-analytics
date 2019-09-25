@@ -72,6 +72,8 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     val denormedDF = denormAssessment(sparkCompositeES, reportDF)
     saveReport(denormedDF, tempDir)
     JobLogger.end("AssessmentReport Generation Job completed successfully!", "SUCCESS", Option(Map("config" -> config, "model" -> name)))
+    sparkCompositeES.stop()
+    spark.stop()
   }
 
   /**
