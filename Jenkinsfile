@@ -5,7 +5,6 @@ node('build-slave') {
         String ANSI_BOLD = "\u001B[1m"
         String ANSI_RED = "\u001B[31m"
         String ANSI_YELLOW = "\u001B[33m"
-
         ansiColor('xterm') {
             stage('Checkout') {
                 cleanWs()
@@ -14,18 +13,17 @@ node('build-slave') {
                     commit_hash = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
                     branch_name = sh(script: 'git name-rev --name-only HEAD | rev | cut -d "/" -f1| rev', returnStdout: true).trim()
                     artifact_version = branch_name + "_" + commit_hash
-		    println(ANSI_BOLD + ANSI_YELLOW + "github_release_tag not specified, using the latest commit hash: " + commit_hash + ANSI_NORMAL)
+            println(ANSI_BOLD + ANSI_YELLOW + "github_release_tag not specified, using the latest commit hash: " + commit_hash + ANSI_NORMAL)
                 }
                 else {
                     def scmVars = checkout scm
                     checkout scm: [$class: 'GitSCM', branches: [[name: "refs/tags/$params.github_release_tag"]],  userRemoteConfigs: [[url: scmVars.GIT_URL]]]
                     artifact_version = params.github_release_tag
-		    println(ANSI_BOLD + ANSI_YELLOW + "github_release_tag specified, building from github_release_tag: " + params.github_release_tag + ANSI_NORMAL)
+            println(ANSI_BOLD + ANSI_YELLOW + "github_release_tag specified, building from github_release_tag: " + params.github_release_tag + ANSI_NORMAL)
                 }
                 echo "artifact_version: "+ artifact_version
             }
         }
-
         stage('Pre-Build') {
             sh '''
                 sed -i "s#>logs<#>/mount/data/analytics/logs/api-service<#g" platform-api/analytics-api/conf/log4j2.xml
@@ -40,9 +38,10 @@ node('build-slave') {
                 cp -r platform-scripts/VidyaVani/GenieSearch script
                 cp -r platform-scripts/VidyaVani/VidyavaniCnQ script
                 zip -r script.zip script
+                git clone https://github.com/ing-bank/scruid.git
+                cd scruid && sed -i 's/scalaVersion in ThisBuild := "2.12.8"/scalaVersion in ThisBuild := "2.11.8"/g' build.sbt
                 '''
         }
-
         stage('Build') {
             sh '''
                 cd platform-framework && mvn clean install -DskipTests=true
@@ -50,10 +49,9 @@ node('build-slave') {
                 cd job-manager && mvn clean package
                 cd ../../platform-api && mvn clean install -DskipTests=true
                 mvn play2:dist -pl analytics-api
+                cd scruid && sbt compile && sbt package && sbt publishM2
                 '''
         }
-
-
         stage('Archive artifacts'){
             sh """
                         mkdir lpa_artifacts
@@ -70,10 +68,8 @@ node('build-slave') {
             currentBuild.description = artifact_version
         }
     }
-
     catch (err) {
         currentBuild.result = "FAILURE"
         throw err
     }
-
 }
