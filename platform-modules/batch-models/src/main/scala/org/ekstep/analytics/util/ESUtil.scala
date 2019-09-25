@@ -117,7 +117,7 @@ object ESUtil extends ESService {
   def getContentNames(spark: SparkSession, content: List[String], esIndex: String): DataFrame = {
     case class content_identifiers(identifiers: List[String])
     val contentList = JSONUtils.serialize(content_identifiers(content).identifiers)
-    JobLogger.log(s"Total number of unique content identifiers are ${contentList.length}", None, INFO)
+    JobLogger.log("Content Identifiers are " + contentList)
     val request =
       s"""
          {
