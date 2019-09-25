@@ -13,6 +13,7 @@ import org.ekstep.analytics.util.{AssessmentReportUtil, ESUtil}
 import org.sunbird.cloud.storage.conf.AppConf
 
 import scala.collection.{Map, _}
+import scala.concurrent.Future
 
 
 object AssessmentMetricsJob extends optional.Application with IJob with ReportGenerator {
@@ -62,17 +63,22 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
       .set("es.scroll.size", AppConf.getConfig("es.scroll.size"))
       .set("es.node", AppConf.getConfig("es.composite.host"))
     val sparkCompositeES = SparkSession.builder.config(compositeESConf).getOrCreate()
-    val time = CommonUtil.time({
+    import scala.concurrent.ExecutionContext.Implicits.global
+    val result = Future {
       val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
       val reportDF = prepareReport(spark, loadData)
       // Get the content name details from the composite-elastic search
       val denormedDF = denormAssessment(sparkCompositeES, reportDF)
-      val reportStatus = saveReport(denormedDF, tempDir)
-    })
-    JobLogger.end("AssessmentReport Generation Job completed successfully!", "SUCCESS", Option(Map("config" -> config, "timeTaken" -> Double.box(time._1 / 1000), "model" -> name)))
-    spark.stop()
-    sparkCompositeES.stop()
-    JobLogger.log("Spark session is got closed..", None, INFO)
+      saveReport(denormedDF, tempDir)
+    }
+    import scala.util.{Failure, Success}
+    result.onComplete {
+      case Success(result) => JobLogger.end("AssessmentReport Generation Job completed successfully!", "SUCCESS", Option(Map("config" -> config, "model" -> name)))
+        spark.stop()
+        sparkCompositeES.stop()
+        JobLogger.log("Spark session is got closed..", None, INFO)
+      case Failure(e) => e.printStackTrace
+    }
   }
 
   /**
