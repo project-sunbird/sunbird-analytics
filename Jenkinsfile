@@ -45,7 +45,7 @@ node('build-slave') {
         stage('Build') {
             sh '''
                 cd scruid && sbt compile && sbt package && sbt publishM2
-                cd platform-framework && mvn clean install -DskipTests=true
+                cd ../platform-framework && mvn clean install -DskipTests=true
                 cd ../platform-modules && mvn clean install -DskipTests
                 cd job-manager && mvn clean package
                 cd ../../platform-api && mvn clean install -DskipTests=true
