@@ -11,22 +11,19 @@ import org.sunbird.cloud.storage.conf.AppConf
 object AssessmentReportUtil {
   implicit val className = "org.ekstep.analytics.job.AssessmentMetricsJob"
 
-  def save(reportDF: DataFrame, url: String, batchId:String): Unit = {
+  def save(reportDF: DataFrame, url: String, batchId: String): Unit = {
     val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
     val renamedDir = s"$tempDir/renamed"
     val provider = AppConf.getConfig("assessment.metrics.cloud.provider")
     val container = AppConf.getConfig("course.metrics.cloud.container")
     val objectKey = AppConf.getConfig("assessment.metrics.cloud.objectKey")
-
-    if (!reportDF.take(1).isEmpty) {
-      reportDF.coalesce(1).write
-        .mode("overwrite")
-        .format("com.databricks.spark.csv")
-        .option("header", "true")
-        .save(url)
-      FileUtil.renameReport(tempDir, renamedDir, batchId)
-      FileUtil.uploadReport(renamedDir, provider, container, Some(objectKey))
-    }
+    reportDF.coalesce(1).write
+      .mode("overwrite")
+      .format("com.databricks.spark.csv")
+      .option("header", "true")
+      .save(url)
+    FileUtil.renameReport(tempDir, renamedDir, batchId)
+    FileUtil.uploadReport(renamedDir, provider, container, Some(objectKey))
   }
 
   def saveToElastic(index: String, alias: String, reportDF: DataFrame): Unit = {
@@ -35,7 +32,7 @@ object AssessmentReportUtil {
       col("username").as("userName"),
       col("courseid").as("courseId"),
       col("batchid").as("batchId"),
-      col("total_score").as("score"),
+      col("grand_total").as("score"),
       col("maskedemail").as("maskedEmail"),
       col("maskedphone").as("maskedPhone"),
       col("district_name").as("districtName"),
