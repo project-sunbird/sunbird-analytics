@@ -223,7 +223,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     report.join(contentNameDF, report.col("content_id") === contentNameDF.col("identifier"), "left_outer")
       .select(col("name").as("content_name"),
         col("total_sum_score"), report.col("userid"), report.col("courseid"), report.col("batchid"),
-        col("total_score"), col("grand_total"), report.col("maskedemail"), report.col("district_name"), report.col("maskedphone"),
+        col("grand_total"), report.col("maskedemail"), report.col("district_name"), report.col("maskedphone"),
         report.col("orgname_resolved"), report.col("externalid"), report.col("schoolname_resolved"), report.col("username")
       )
   }
@@ -296,7 +296,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     // Re-shape the dataframe (Convert the content name from the row to column)
     JobLogger.log(s"Generating report for ${courseId} course and ${batchId} batch", None, INFO)
     val reshapedDF = reportDF.filter(col("courseid") === courseId && col("batchid") === batchId).
-      groupBy("courseid", "batchid", "userid").pivot("content_name").agg(first("total_score"))
+      groupBy("courseid", "batchid", "userid").pivot("content_name").agg(first("grand_total"))
     reshapedDF
       .join(reportDF, Seq("courseid", "batchid", "userid"),
         "inner").select(
