@@ -173,6 +173,8 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     val groupdedDF = Window.partitionBy("user_id", "batch_id", "course_id", "content_id").orderBy(desc("last_attempted_on"))
     val latestAssessmentDF = assessmentProfileDF.withColumn("rownum", row_number.over(groupdedDF)).where(col("rownum") === 1).drop("rownum")
 
+    println(latestAssessmentDF.show(false))
+
     /**
       * Compute the sum of all the worksheet contents score.
       */
