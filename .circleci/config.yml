@@ -7,7 +7,7 @@ jobs:
       - restore_cache:
           key: dp-dependency-cache-{{ checksum "pom.xml" }}
       - run:
-          name: scuid-build
+          name: scruid-build
           command: |
             git clone https://github.com/ing-bank/scruid.git
             cd scruid && sed -i 's/scalaVersion in ThisBuild := "2.12.8"/scalaVersion in ThisBuild := "2.11.8"/g' build.sbt
