@@ -218,6 +218,12 @@ object JobFactory {
                 AssessmentMetricsJob
             case "druid-query-processor" =>
                 DruidQueryProcessor
+            case "pipeline-failed-events-audit" =>
+                AuditComputationJob
+            case "pipeline-druid-events-audit" =>
+                AuditComputationJob
+            case "pipeline-audit" =>
+                AuditComputationJob
             case _ =>
                 throw new JobNotFoundException("Unknown job type found")
         }
