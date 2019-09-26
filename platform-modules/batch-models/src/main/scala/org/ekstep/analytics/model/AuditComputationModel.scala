@@ -10,6 +10,8 @@ object AuditComputationModel extends IBatchModelTemplate[Empty, Empty, AuditOutp
 
   implicit val className: String = "org.ekstep.analytics.model.AuditComputationModel"
 
+  override def name(): String = "AuditComputationModel"
+
   /**
     * Pre processing steps before running the algorithm. Few pre-process steps are
     * 1. Transforming input - Filter/Map etc.
