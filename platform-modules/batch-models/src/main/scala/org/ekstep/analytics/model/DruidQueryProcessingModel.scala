@@ -119,7 +119,7 @@ object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, Druid
         val fileParameters = config.getOrElse("fileParameters", List("")).asInstanceOf[List[String]]
         var dims = config.getOrElse("dims", List()).asInstanceOf[List[String]]
 
-        dims = if (fileParameters.nonEmpty && fileParameters.contains("date")) dims ++ List("Date") else dims
+        dims = if (fileParameters.nonEmpty && fileParameters.contains("date")) dims else dims ++ List("Date")
         val finalPath = filePath + key.split("/").last
         if(dims.nonEmpty) {
             val duplicateDims = dims.map(f => f.concat("Duplicate"))
