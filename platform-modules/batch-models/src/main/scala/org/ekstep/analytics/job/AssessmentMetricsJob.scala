@@ -15,7 +15,7 @@ import org.sunbird.cloud.storage.conf.AppConf
 import scala.collection.{Map, _}
 
 
-object AssessmentMetricsJob extends optional.Application with IJob with ReportGenerator {
+object AssessmentMetricsJob extends optional.Application with IJob {
 
   implicit val className = "org.ekstep.analytics.job.AssessmentMetricsJob"
 
@@ -28,27 +28,26 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     val jobConfig = JSONUtils.deserialize[JobConfig](config)
     JobContext.parallelization = jobConfig.parallelization.getOrElse(10) // Default to 10
 
-    def runJob(sc: SparkContext): Unit = {
+    def runJob(implicit sc: SparkContext): Unit = {
       try {
-        execute(jobConfig)(sc)
+        execute(jobConfig)
       } finally {
-        CommonUtil.closeSparkContext()(sc)
+        CommonUtil.closeSparkContext()
       }
     }
 
     sc match {
       case Some(value) => {
-        implicit val sparkContext: SparkContext = value
         runJob(value)
       }
       case None => {
         val sparkCassandraConnectionHost =
           jobConfig.modelParams.getOrElse(Map[String, Option[AnyRef]]()).get("sparkCassandraConnectionHost")
-        val sparkElasticsearchConnectionHost =
+        val sparkElasticSearchConnectionHost =
           jobConfig.modelParams.getOrElse(Map[String, Option[AnyRef]]()).get("sparkElasticsearchConnectionHost")
         implicit val sparkContext: SparkContext =
           CommonUtil.getSparkContext(JobContext.parallelization,
-            jobConfig.appName.getOrElse(jobConfig.model), sparkCassandraConnectionHost, sparkElasticsearchConnectionHost)
+            jobConfig.appName.getOrElse(jobConfig.model), sparkCassandraConnectionHost, sparkElasticSearchConnectionHost)
         runJob(sparkContext)
       }
     }
@@ -57,21 +56,22 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
   private def execute(config: JobConfig)(implicit sc: SparkContext) = {
     val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
     val readConsistencyLevel: String = AppConf.getConfig("assessment.metrics.cassandra.input.consistency")
-    val renamedDir = s"$tempDir/renamed"
     val sparkConf = sc.getConf
       .set("spark.cassandra.input.consistency.level", readConsistencyLevel)
     val spark = SparkSession.builder.config(sparkConf).getOrCreate()
     val reportDF = prepareReport(spark, loadData)
 
-
     val compositeESConf = sc.getConf
       .set("es.scroll.size", AppConf.getConfig("es.scroll.size"))
       .set("es.node", AppConf.getConfig("es.composite.host"))
+
     val sparkCompositeES = SparkSession.builder.config(compositeESConf).getOrCreate()
-    // Get the content name details from the compositeelastic search
-    val denormedDF = denormAssessment(sparkCompositeES, reportDF)
-    saveReport(denormedDF, tempDir)
+    // Get the content name details from the composite elastic search
+    val denormalizedDF = denormAssessment(sparkCompositeES, reportDF)
+    saveReport(denormalizedDF, tempDir, spark)
     JobLogger.end("AssessmentReport Generation Job completed successfully!", "SUCCESS", Option(Map("config" -> config, "model" -> name)))
+    spark.stop()
+    sparkCompositeES.stop()
   }
 
   /**
@@ -88,8 +88,6 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
       .options(settings)
       .load()
   }
-
-  override def saveReportES(reportDF: DataFrame): Unit = ???
 
   /**
     * Loading the specific tables from the cassandra db.
@@ -232,44 +230,33 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
 
   /**
     * This method is used to upload the report the azure cloud service and
-    * Index report data into elastic search.
+    * Index report data into core elastic search.
     * Alias name: cbatch-assessment
     * Index name: cbatch-assessment-24-08-1993-09-30 (dd-mm-yyyy-hh-mm)
     */
-  def saveReport(reportDF: DataFrame, url: String): Unit = {
-    // Save assessment report to ealstic search
-    val aliasName = AppConf.getConfig("assessment.metrics.es.alias")
-    val indexPrefix = AppConf.getConfig("assessment.metrics.es.index.prefix")
-    val indexName = AssessmentReportUtil.suffixDate(indexPrefix)
-    val indexToEs = AppConf.getConfig("course.es.index.enabled")
-    if (StringUtils.isNotBlank(indexToEs) && StringUtils.equalsIgnoreCase("true", indexToEs)) {
-      AssessmentReportUtil.saveToElastic(indexName, aliasName, reportDF)
-    } else {
-      JobLogger.log("Skipping Indexing assessment report into ES", None, INFO)
-    }
-
-    val result = reportDF
-      .groupBy("courseid")
-      .agg(collect_list("batchid").as("batchid"))
+  def saveReport(reportDF: DataFrame, url: String, spark:SparkSession): Unit = {
+    // Save the report to azure cloud storage
+    var signedURlMap = Map[String, String]()
+    val result = reportDF.groupBy("courseid").agg(collect_list("batchid").as("batchid"))
     val uploadToAzure = AppConf.getConfig("course.upload.reports.enabled")
     if (StringUtils.isNotBlank(uploadToAzure) && StringUtils.equalsIgnoreCase("true", uploadToAzure)) {
+      println("yes..")
       val courseBatchList = result.collect.map(r => Map(result.columns.zip(r.toSeq): _*))
-      courseBatchList.foreach(item => {
-        JobLogger.log("Course batch mappings: " + item, None, INFO)
-        val batchList = item.getOrElse("batchid", "").asInstanceOf[Seq[String]].distinct
-        val courseId = item.getOrElse("courseid", "").asInstanceOf[String]
-        batchList.foreach(batchId => {
-          if (!courseId.isEmpty && !batchId.isEmpty) {
-            val reportData = transposeDF(reportDF, courseId, batchId)
-            // Save report to azure cloud storage
-            AssessmentReportUtil.save(reportData, url, batchId)
-          } else {
-            JobLogger.log("Report failed to create since course_id is " + courseId + "and batch_id is " + batchId, None, INFO)
-          }
-        })
-      })
+      signedURlMap = AssessmentReportUtil.saveToAzure(courseBatchList, reportDF, url)
     } else {
       JobLogger.log("Skipping uploading reports into to azure", None, INFO)
+    }
+
+    // Get the singed URL For all the report and upload the report to elastic search with signed url.
+    val signedURLDF = spark.createDataFrame(signedURlMap.toSeq).toDF("batchid","signedurl")
+    val resolvedDF = reportDF.join(signedURLDF, Seq("batchid"))
+    val aliasName = AppConf.getConfig("assessment.metrics.es.alias")
+    val indexName = AssessmentReportUtil.suffixDate(AppConf.getConfig("assessment.metrics.es.index.prefix"))
+    val indexToEs = AppConf.getConfig("course.es.index.enabled")
+    if (StringUtils.isNotBlank(indexToEs) && StringUtils.equalsIgnoreCase("true", indexToEs)) {
+      AssessmentReportUtil.saveToElastic(indexName, aliasName, resolvedDF)
+    } else {
+      JobLogger.log("Skipping Indexing assessment report into ES", None, INFO)
     }
   }
 
