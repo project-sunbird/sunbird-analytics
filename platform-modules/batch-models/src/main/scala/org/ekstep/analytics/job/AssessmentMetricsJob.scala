@@ -28,7 +28,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     val jobConfig = JSONUtils.deserialize[JobConfig](config)
     JobContext.parallelization = jobConfig.parallelization.getOrElse(10) // Default to 10
 
-    def runJob(sc: SparkContext): Unit = {
+    def runJob(implicit sc: SparkContext): Unit = {
       val compositeESConf = sc.getConf
         .set("es.scroll.size", AppConf.getConfig("es.scroll.size"))
         .set("es.node", AppConf.getConfig("es.composite.host"))
@@ -38,16 +38,17 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
         .set("spark.cassandra.input.consistency.level", readConsistencyLevel)
       val spark = SparkSession.builder.config(sparkConf).getOrCreate()
       try {
-        execute(jobConfig, spark, sparkCompositeES)(sc)
+        execute(jobConfig, spark, sparkCompositeES)
       } finally {
-        CommonUtil.closeSparkContext()(sc)
-
+        sparkCompositeES.stop()
+        spark.stop()
+        CommonUtil.closeSparkContext()
+        JobLogger.log("context is closed.", None, INFO)
       }
     }
 
     sc match {
       case Some(value) => {
-        implicit val sparkContext: SparkContext = value
         runJob(value)
       }
       case None => {
@@ -66,15 +67,11 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
   private def execute(config: JobConfig, spark: SparkSession, sparkEs: SparkSession)(implicit sc: SparkContext) = {
     val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
     val reportDF = prepareReport(spark, loadData)
-    // Get the content name details from the compositeelastic search
+    // Get the content name details from the composite elastic search
     val denormedDF = denormAssessment(sparkEs, reportDF)
-    val status = saveReportData(denormedDF, tempDir)
-    JobLogger.log("Report is saved status" + status, None, INFO)
+    saveReportData(denormedDF, tempDir)
     JobLogger.end("AssessmentReport Generation Job completed successfully!", "SUCCESS", Option(Map("config" -> config, "model" -> name)))
-    sparkEs.stop()
-    spark.stop()
-    CommonUtil.closeSparkContext()(sc)
-    JobLogger.log("Spark session is closed", None, INFO)
+    JobLogger.log("End is invoked", None, INFO)
   }
 
   /**
@@ -240,7 +237,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
     * Alias name: cbatch-assessment
     * Index name: cbatch-assessment-24-08-1993-09-30 (dd-mm-yyyy-hh-mm)
     */
-  def saveReportData(reportDF: DataFrame, url: String): Boolean = {
+  def saveReportData(reportDF: DataFrame, url: String): Unit = {
     // Save assessment report to ealstic search
     val aliasName = AppConf.getConfig("assessment.metrics.es.alias")
     val indexPrefix = AppConf.getConfig("assessment.metrics.es.index.prefix")
@@ -272,10 +269,8 @@ object AssessmentMetricsJob extends optional.Application with IJob with ReportGe
           }
         })
       })
-      true
     } else {
       JobLogger.log("Skipping uploading reports into to azure", None, INFO)
-      false
     }
   }
 
