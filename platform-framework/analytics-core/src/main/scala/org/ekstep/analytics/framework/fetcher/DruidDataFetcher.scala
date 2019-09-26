@@ -9,10 +9,9 @@ import ing.wbaa.druid.dql.Dim
 import ing.wbaa.druid.dql.expressions.{AggregationExpression, FilteringExpression, PostAggregationExpression}
 import io.circe.Json
 import org.ekstep.analytics.framework.conf.AppConf
-import org.ekstep.analytics.framework.{DruidFilter, DruidQueryModel, PostAggregationFields}
 import org.ekstep.analytics.framework.exception.DataFetcherException
-import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, JobLogger}
-import org.ekstep.analytics.framework.Level._
+import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils}
+import org.ekstep.analytics.framework.{DruidQueryModel, PostAggregationFields}
 
 import scala.concurrent.Await
 
@@ -40,7 +39,10 @@ object DruidDataFetcher {
                             else if ("String".equalsIgnoreCase(f._2.name))
                                 (f._1 -> f._2.asString.get)
                             else if("Number".equalsIgnoreCase(f._2.name))
+                              {
                                 (f._1 -> CommonUtil.roundDouble(f._2.asNumber.get.toDouble, 2))
+                              }
+
                             else (f._1 -> f._2)
                         }
                     }
@@ -110,15 +112,16 @@ object DruidDataFetcher {
     def getAggregation(query: DruidQueryModel): List[AggregationExpression] = {
         query.aggregations.getOrElse(List(org.ekstep.analytics.framework.Aggregation(None, "count", "count"))).map{f =>
             val aggType = AggregationType.decode(f.`type`).right.getOrElse(AggregationType.Count)
-            getAggregationByType(aggType, f.name, f.fieldName)
+            getAggregationByType(aggType, f.name, f.fieldName, f.fnAggregate, f.fnCombine, f.fnReset)
         }
     }
 
-    def getAggregationByType(aggType: AggregationType, name: Option[String], fieldName: String): AggregationExpression = {
+    def getAggregationByType(aggType: AggregationType, name: Option[String], fieldName: String, fnAggregate: Option[String], fnCombine: Option[String], fnReset: Option[String]): AggregationExpression = {
         aggType match {
             case AggregationType.Count => count as name.getOrElse(s"${AggregationType.Count.toString.toLowerCase()}_${fieldName.toLowerCase()}")
             case AggregationType.HyperUnique => dim(fieldName).hyperUnique as name.getOrElse(s"${AggregationType.HyperUnique.toString.toLowerCase()}_${fieldName.toLowerCase()}")
             case AggregationType.ThetaSketch => thetaSketch(Dim(fieldName)) as name.getOrElse(s"${AggregationType.ThetaSketch.toString.toLowerCase()}_${fieldName.toLowerCase()}")
+            case AggregationType.Cardinality => cardinality(Dim(fieldName)) as name.getOrElse(s"${AggregationType.Cardinality.toString.toLowerCase}_${fieldName.toLowerCase()}")
             case AggregationType.LongSum => longSum(Dim(fieldName)) as name.getOrElse(s"${AggregationType.LongSum.toString.toLowerCase()}_${fieldName.toLowerCase()}")
             case AggregationType.DoubleSum => doubleSum(Dim(fieldName)) as name.getOrElse(s"${AggregationType.DoubleSum.toString.toLowerCase()}_${fieldName.toLowerCase()}")
             case AggregationType.DoubleMax => doubleMax(Dim(fieldName)) as name.getOrElse(s"${AggregationType.DoubleMax.toString.toLowerCase()}_${fieldName.toLowerCase()}")
@@ -129,6 +132,7 @@ object DruidDataFetcher {
             case AggregationType.DoubleLast => doubleLast(Dim(fieldName)) as name.getOrElse(s"${AggregationType.DoubleLast.toString.toLowerCase()}_${fieldName.toLowerCase()}")
             case AggregationType.LongLast => longLast(Dim(fieldName)) as name.getOrElse(s"${AggregationType.LongLast.toString.toLowerCase()}_${fieldName.toLowerCase()}")
             case AggregationType.LongFirst =>longFirst(Dim(fieldName)) as name.getOrElse(s"${AggregationType.LongFirst.toString.toLowerCase()}_${fieldName.toLowerCase()}")
+            case AggregationType.Javascript => ing.wbaa.druid.dql.AggregationOps.javascript(name.getOrElse(""), Iterable(fieldName), fnAggregate.get, fnCombine.get, fnReset.get)
         }
     }
 
@@ -184,8 +188,7 @@ object DruidDataFetcher {
                     case "*" => if("constant".equalsIgnoreCase(fields.rightFieldType)) Dim(fields.leftField).*(fields.rightField.asInstanceOf[Number].doubleValue()) as name else Dim(fields.leftField).*(Dim(fields.rightField.asInstanceOf[String])) as name
                     case "/" => if("constant".equalsIgnoreCase(fields.rightFieldType)) Dim(fields.leftField)./(fields.rightField.asInstanceOf[Number].doubleValue()) as name else Dim(fields.leftField)./(Dim(fields.rightField.asInstanceOf[String])) as name
                 }
-            //case PostAggregationType.Javascript => Dim(fields.leftField)
-
+            case PostAggregationType.Javascript => javascript(name, Seq(Dim(fields.leftField),Dim(fields.rightField.asInstanceOf[String])), fn)
         }
     }
 
