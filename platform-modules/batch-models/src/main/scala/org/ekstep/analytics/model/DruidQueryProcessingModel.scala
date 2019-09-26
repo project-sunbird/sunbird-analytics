@@ -9,7 +9,7 @@ import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.dispatcher.AzureDispatcher
 import org.ekstep.analytics.framework.exception.DruidConfigException
 import org.ekstep.analytics.framework.fetcher.DruidDataFetcher
-import org.ekstep.analytics.framework.util.JSONUtils
+import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger}
 import org.sunbird.cloud.storage.conf.AppConf
 
 case class DruidOutput(date: Option[String], state: Option[String], producer_id: Option[String], total_scans: Option[Integer] = Option(0),
@@ -73,36 +73,41 @@ object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, Druid
 
     override def postProcess(data: RDD[DruidOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DruidOutput] = {
 
-        val configMap = config("reportConfig").asInstanceOf[Map[String, AnyRef]]
-        val reportConfig = JSONUtils.deserialize[ReportConfig](JSONUtils.serialize(configMap))
-        val dimFields = reportConfig.metrics.flatMap { m =>
-            if(m.druidQuery.dimensions.nonEmpty) m.druidQuery.dimensions.get.map(f => f.aliasName.getOrElse(f.fieldName))
-            else List()
+        if (data.count() > 0) {
+            val configMap = config("reportConfig").asInstanceOf[Map[String, AnyRef]]
+            val reportConfig = JSONUtils.deserialize[ReportConfig](JSONUtils.serialize(configMap))
+            val dimFields = reportConfig.metrics.flatMap { m =>
+                if (m.druidQuery.dimensions.nonEmpty) m.druidQuery.dimensions.get.map(f => f.aliasName.getOrElse(f.fieldName))
+                else List()
+            }
+
+            val labelsLookup = reportConfig.labels ++ Map("date" -> "Date")
+            implicit val sqlContext = new SQLContext(sc)
+            import sqlContext.implicits._
+
+            // Using foreach as parallel execution might conflict with local file path
+            val key = config.getOrElse("key", null).asInstanceOf[String]
+            reportConfig.output.foreach { f =>
+                if ("csv".equalsIgnoreCase(f.`type`)) {
+                    val df = data.toDF().na.fill(0L)
+                    val metricFields = f.metrics
+                    val fieldsList = (dimFields ++ metricFields ++ List("date")).distinct
+                    val dimsLabels = labelsLookup.filter(x => f.dims.contains(x._1)).values.toList
+                    val filteredDf = df.select(fieldsList.head, fieldsList.tail: _*)
+                    val renamedDf = filteredDf.select(filteredDf.columns.map(c => filteredDf.col(c).as(labelsLookup.getOrElse(c, c))): _*)
+                    val reportFinalId = if (f.label.nonEmpty && f.label.get.nonEmpty) reportConfig.id + "/" + f.label.get else reportConfig.id
+                    renamedDf.show(150)
+                    val dirPath = writeToCSVAndRename(renamedDf, config ++ Map("dims" -> dimsLabels, "reportId" -> reportFinalId, "fileParameters" -> f.fileParameters))
+                    AzureDispatcher.dispatchDirectory(config ++ Map("dirPath" -> (dirPath + reportFinalId + "/"), "key" -> (key + reportFinalId + "/")))
+                }
+                else {
+                    val strData = data.map(f => JSONUtils.serialize(f))
+                    AzureDispatcher.dispatch(strData.collect(), config)
+                }
+            }
         }
-
-        val labelsLookup = reportConfig.labels ++ Map("date" -> "Date")
-        implicit val sqlContext = new SQLContext(sc)
-        import sqlContext.implicits._
-
-        // Using foreach as parallel execution might conflict with local file path
-        val key = config.getOrElse("key", null).asInstanceOf[String]
-        reportConfig.output.foreach{ f =>
-            if("csv".equalsIgnoreCase(f.`type`)) {
-                val df = data.toDF().na.fill(0L)
-                val metricFields = f.metrics
-                val fieldsList = (dimFields ++ metricFields ++ List("date")).distinct
-                val dimsLabels = labelsLookup.filter(x => f.dims.contains(x._1)).values.toList
-                val filteredDf = df.select(fieldsList.head, fieldsList.tail:_*)
-                val renamedDf =  filteredDf.select(filteredDf.columns.map(c => filteredDf.col(c).as(labelsLookup.getOrElse(c, c))): _*)
-                val reportFinalId = if(f.label.nonEmpty && f.label.get.nonEmpty) reportConfig.id + "/" + f.label.get else reportConfig.id
-                renamedDf.show(150)
-                val dirPath = writeToCSVAndRename(renamedDf, config ++ Map("dims" -> dimsLabels, "reportId" -> reportFinalId, "fileParameters" -> f.fileParameters))
-                AzureDispatcher.dispatchDirectory(config ++ Map("dirPath" -> (dirPath + reportFinalId + "/"), "key" -> (key + reportFinalId + "/")))
-            }
-            else {
-                val strData = data.map(f => JSONUtils.serialize(f))
-                AzureDispatcher.dispatch(strData.collect(), config)
-            }
+        else {
+            JobLogger.log("No data found from druid", None, Level.INFO)
         }
         data
     }
