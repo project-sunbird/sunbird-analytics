@@ -44,7 +44,7 @@ object AssessmentReportUtil {
       col("schoolname_resolved").as("subOrgName"),
       col("total_sum_score").as("totalScore"),
       col("content_name").as("contentName"),
-      col("signedurl").as("blobUrl")
+      col("bloburl").as("blobUrl")
     )
     try {
       val indexList = ESUtil.getIndexName(alias)
@@ -70,7 +70,6 @@ object AssessmentReportUtil {
         if (!courseId.isEmpty && !batchId.isEmpty) {
           val reportData = transposeDF(reportDF, courseId, batchId)
           try {
-            // create a map of batch identifier and signed url
             urlBatch(batchId) = AssessmentReportUtil.save(reportData, url, batchId)
           } catch {
             case e: Exception => JobLogger.log("File upload is failed due to " + e)

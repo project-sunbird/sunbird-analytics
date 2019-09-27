@@ -240,7 +240,6 @@ object AssessmentMetricsJob extends optional.Application with IJob {
     val result = reportDF.groupBy("courseid").agg(collect_list("batchid").as("batchid"))
     val uploadToAzure = AppConf.getConfig("course.upload.reports.enabled")
     if (StringUtils.isNotBlank(uploadToAzure) && StringUtils.equalsIgnoreCase("true", uploadToAzure)) {
-      println("yes..")
       val courseBatchList = result.collect.map(r => Map(result.columns.zip(r.toSeq): _*))
       signedURlMap = AssessmentReportUtil.saveToAzure(courseBatchList, reportDF, url)
     } else {
@@ -248,7 +247,8 @@ object AssessmentMetricsJob extends optional.Application with IJob {
     }
 
     // Get the singed URL For all the report and upload the report to elastic search with signed url.
-    val signedURLDF = spark.createDataFrame(signedURlMap.toSeq).toDF("batchid","signedurl")
+    val signedURLDF = spark.createDataFrame(signedURlMap.toSeq).toDF("batchid","bloburl")
+    println(signedURLDF.show(false))
     val resolvedDF = reportDF.join(signedURLDF, Seq("batchid"))
     val aliasName = AppConf.getConfig("assessment.metrics.es.alias")
     val indexName = AssessmentReportUtil.suffixDate(AppConf.getConfig("assessment.metrics.es.index.prefix"))
