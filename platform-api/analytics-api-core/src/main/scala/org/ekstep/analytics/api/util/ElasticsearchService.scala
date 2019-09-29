@@ -26,6 +26,14 @@ class ElasticsearchService extends ESsearch {
 
     private def getConnection = HttpClient(ElasticsearchClientUri(host, port))
 
+    def checkConnection: Boolean = {
+        val conn = getConnection
+        conn match {
+            case c: HttpClient => true
+            case _ => false
+        }
+    }
+
     def searchExperiment(fields: Map[String, String]): Future[Option[ExperimentData]] = {
 
         val functionList: List[ScoreFunctionDefinition] = List(

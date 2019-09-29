@@ -4,32 +4,7 @@
 
 # General APIs
 GET  /health controllers.Application.checkAPIhealth
-POST /content/recommend controllers.Application.recommendations
-POST /content/creation/recommend controllers.Application.creationRecommendations
 
-# Metrics APIs
-POST /metrics/content-usage controllers.Metrics.contentUsage
-POST /metrics/content-popularity controllers.Metrics.contentPopularity
-POST /metrics/item-usage controllers.Metrics.itemUsage
-POST /metrics/genie-launch controllers.Metrics.genieLaunch
-POST /metrics/list/content controllers.Metrics.contentList
-POST /tag/register/:tagId controllers.Application.registerTag(tagId: String)
-DELETE /tag/delete/:tagId controllers.Application.deleteTag(tagId: String)
-POST /metrics/workflow-usage controllers.Metrics.workflowUsage
-
-POST /metrics/dial/usage controllers.Metrics.dialcodeUsage
-
-POST /metrics/:datasetId/:summary controllers.Metrics.getMetricsSummary(datasetId: String, summary: String)
-
-GET /metrics/druid controllers.Application.getDruidHealthStatus
-
-# Data Exhaust
-POST /dataset/request/submit controllers.JobController.dataRequest
-GET /dataset/request/read/:clientKey/:requestId controllers.JobController.getJob(clientKey: String, requestId: String)
-GET /dataset/request/list/:clientKey controllers.JobController.getJobList(clientKey: String)
-
-GET /dataset/get/:datasetId controllers.JobController.getTelemetry(datasetId: String)
-GET /refresh-cache/:cacheType controllers.JobController.refreshCache(cacheType: String)
 
 # API Monitoring
 

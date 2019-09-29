@@ -1,9 +1,7 @@
 package org.ekstep.analytics.api.service
 
-import org.ekstep.analytics.api.util.CommonUtil
-import org.ekstep.analytics.api.util.DBUtil
-import org.ekstep.analytics.api.util.JSONUtils
 import akka.actor.Actor
+import org.ekstep.analytics.api.util._
 
 case class ServiceHealthReport(name: String, healthy: Boolean, message: Option[String] = None)
 
@@ -35,18 +33,31 @@ object HealthCheckAPIService {
         }
     }
 
+    private def checkRedisConnection(): Boolean = {
+        val redis = new RedisUtil()
+        redis.checkConnection
+    }
+
+    private def checkPostgresConnection(): Boolean = PostgresDBUtil.checkConnection
+
+    private def checkElasticsearchConnection(): Boolean = {
+        val es = new ElasticsearchService()
+        es.checkConnection
+    }
+
     private def getChecks(): Array[ServiceHealthReport] = {
         try {
-            val sparkReport = ServiceHealthReport("Spark Cluster", true);
-            val cassReport = ServiceHealthReport("Cassandra Database", checkCassandraConnection());
-            Array(sparkReport, cassReport);
+            val cassandraStatus = ServiceHealthReport("Cassandra Database", checkCassandraConnection())
+            val postgresStatus = ServiceHealthReport("Postgres Database", checkPostgresConnection())
+            val redisStatus = ServiceHealthReport("Redis Database", checkRedisConnection())
+            val ESStatus = ServiceHealthReport("Elasticsearch Database", checkElasticsearchConnection())
+            val DBStatus = ServiceHealthReport("Database Health", true)
+            Array(cassandraStatus, postgresStatus, redisStatus, ESStatus, DBStatus);
         } catch {
             // $COVERAGE-OFF$ Disabling scoverage as the below code cannot be covered
-            // TODO: Need to get confirmation from amit.
             case ex: Exception =>
-                val sparkReport = ServiceHealthReport("Spark Cluster", false, Option(ex.getMessage));
-                val cassReport = ServiceHealthReport("Cassandra Database", false, Option("Unknown.... because of Spark Cluster is not up"));
-                Array(sparkReport, cassReport);
+                val DBStatus = ServiceHealthReport("Database Health", false, Option(ex.getMessage))
+                Array(DBStatus)
             // $COVERAGE-ON$
         }
     }

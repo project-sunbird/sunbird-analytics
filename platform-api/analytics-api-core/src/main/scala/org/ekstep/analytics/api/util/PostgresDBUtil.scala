@@ -1,5 +1,7 @@
 package org.ekstep.analytics.api.util
 
+import java.sql.Connection
+
 import com.typesafe.config.{Config, ConfigFactory}
 import scalikejdbc._
 
@@ -26,6 +28,17 @@ object PostgresDBUtil {
 
     def executeQuery(sqlString: String) = {
         SQL(sqlString)
+    }
+
+    def checkConnection = {
+        val conn = ConnectionPool.borrow()
+        conn match {
+            case c: Connection => {
+                conn.close()
+                true
+            }
+            case _ => false
+        }
     }
 }
 

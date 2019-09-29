@@ -59,4 +59,15 @@ class RedisUtil {
     jedisPool.close()
     jedisPool = new JedisPool(buildPoolConfig, redis_host, redis_port)
   }
+
+  def checkConnection = {
+    val conn = getConnection
+    conn match {
+      case j: Jedis => {
+        conn.close()
+        true
+      }
+      case _ => false
+    }
+  }
 }
