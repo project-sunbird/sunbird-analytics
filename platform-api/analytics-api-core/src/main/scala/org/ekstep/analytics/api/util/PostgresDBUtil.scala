@@ -31,13 +31,17 @@ object PostgresDBUtil {
     }
 
     def checkConnection = {
-        val conn = ConnectionPool.borrow()
-        conn match {
-            case c: Connection => {
-                conn.close()
-                true
+        try {
+            val conn = ConnectionPool.borrow()
+            conn match {
+                case c: Connection => {
+                    conn.close()
+                    true
+                }
+                case _ => false
             }
-            case _ => false
+        } catch {
+            case ex: Exception => false
         }
     }
 }

@@ -51,7 +51,7 @@ object HealthCheckAPIService {
             val postgresStatus = ServiceHealthReport("Postgres Database", checkPostgresConnection())
             val redisStatus = ServiceHealthReport("Redis Database", checkRedisConnection())
             val ESStatus = ServiceHealthReport("Elasticsearch Database", checkElasticsearchConnection())
-            val DBStatus = ServiceHealthReport("Database Health", true)
+            val DBStatus = ServiceHealthReport("Database Health", cassandraStatus.healthy && postgresStatus.healthy && redisStatus.healthy && ESStatus.healthy)
             Array(cassandraStatus, postgresStatus, redisStatus, ESStatus, DBStatus);
         } catch {
             // $COVERAGE-OFF$ Disabling scoverage as the below code cannot be covered

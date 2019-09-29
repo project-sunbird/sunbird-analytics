@@ -70,6 +70,7 @@
 			<groupId>com.datastax.cassandra</groupId>
 			<artifactId>cassandra-driver-core</artifactId>
 			<version>3.7.0</version>
+			<classifier>shaded</classifier>
 			<exclusions>
 				<exclusion>
 					<groupId>io.netty</groupId>

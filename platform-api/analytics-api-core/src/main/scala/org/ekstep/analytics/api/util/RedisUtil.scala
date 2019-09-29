@@ -61,13 +61,17 @@ class RedisUtil {
   }
 
   def checkConnection = {
-    val conn = getConnection
-    conn match {
-      case j: Jedis => {
-        conn.close()
-        true
+    try {
+      val conn = getConnection
+      conn match {
+        case j: Jedis => {
+          conn.close()
+          true
+        }
+        case _ => false
       }
-      case _ => false
+    } catch {
+      case ex: Exception => false
     }
   }
 }

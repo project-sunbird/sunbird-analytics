@@ -27,10 +27,17 @@ class ElasticsearchService extends ESsearch {
     private def getConnection = HttpClient(ElasticsearchClientUri(host, port))
 
     def checkConnection: Boolean = {
-        val conn = getConnection
-        conn match {
-            case c: HttpClient => true
-            case _ => false
+        try {
+            val conn = getConnection
+            conn match {
+                case c: HttpClient => {
+                    c.close()
+                    true
+                }
+                case _ => false
+            }
+        } catch {
+            case ex: Exception => false
         }
     }
 
