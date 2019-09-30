@@ -174,10 +174,13 @@ object AssessmentMetricsJob extends optional.Application with IJob {
       * Compute the sum of all the worksheet contents score.
       */
     val assessmentAggDf = Window.partitionBy("user_id", "batch_id", "course_id")
-    val aggregatedDF = latestAssessmentDF
+    val resDF = latestAssessmentDF
       .withColumn("agg_score", sum("total_score") over assessmentAggDf)
-      .withColumn("agg_max_score", sum("total_max_score") over assessmentAggDf)
-      .withColumn("total_sum_score", concat(col("agg_score"), lit("/"), col("agg_max_score")))
+      .withColumn("agg_max_score",sum("total_max_score") over assessmentAggDf)
+      .withColumn("total_sum_score", concat(lit("\u201C"), col("agg_score"), lit("/"), col("agg_max_score"), lit("\u201D")))
+
+    val aggregatedDF = resDF.withColumn("grand_score", concat(lit("\u201C"), col("grand_total"), lit("\u201D")))
+
     /**
       * Filter only valid enrolled userid for the specific courseid
       */
@@ -222,7 +225,7 @@ object AssessmentMetricsJob extends optional.Application with IJob {
     report.join(contentNameDF, report.col("content_id") === contentNameDF.col("identifier"), "left_outer")
       .select(col("name").as("content_name"),
         col("total_sum_score"), report.col("userid"), report.col("courseid"), report.col("batchid"),
-        col("grand_total"), report.col("maskedemail"), report.col("district_name"), report.col("maskedphone"),
+        col("grand_score"), report.col("maskedemail"), report.col("district_name"), report.col("maskedphone"),
         report.col("orgname_resolved"), report.col("externalid"), report.col("schoolname_resolved"), report.col("username")
       )
   }
@@ -234,7 +237,7 @@ object AssessmentMetricsJob extends optional.Application with IJob {
     * Alias name: cbatch-assessment
     * Index name: cbatch-assessment-24-08-1993-09-30 (dd-mm-yyyy-hh-mm)
     */
-  def saveReport(reportDF: DataFrame, url: String, spark:SparkSession): Unit = {
+  def saveReport(reportDF: DataFrame, url: String, spark: SparkSession): Unit = {
     // Save the report to azure cloud storage
     var signedURlMap = Map[String, String]()
     val result = reportDF.groupBy("courseid").agg(collect_list("batchid").as("batchid"))
@@ -247,8 +250,7 @@ object AssessmentMetricsJob extends optional.Application with IJob {
     }
 
     // Get the singed URL For all the report and upload the report to elastic search with signed url.
-    val signedURLDF = spark.createDataFrame(signedURlMap.toSeq).toDF("batchid","bloburl")
-    println(signedURLDF.show(false))
+    val signedURLDF = spark.createDataFrame(signedURlMap.toSeq).toDF("batchid", "bloburl")
     val resolvedDF = reportDF.join(signedURLDF, Seq("batchid"))
     val aliasName = AppConf.getConfig("assessment.metrics.es.alias")
     val indexName = AssessmentReportUtil.suffixDate(AppConf.getConfig("assessment.metrics.es.index.prefix"))
@@ -284,7 +286,7 @@ object AssessmentMetricsJob extends optional.Application with IJob {
     // Re-shape the dataframe (Convert the content name from the row to column)
     JobLogger.log(s"Generating report for ${courseId} course and ${batchId} batch", None, INFO)
     val reshapedDF = reportDF.filter(col("courseid") === courseId && col("batchid") === batchId).
-      groupBy("courseid", "batchid", "userid").pivot("content_name").agg(first("grand_total"))
+      groupBy("courseid", "batchid", "userid").pivot("content_name").agg(first("grand_score"))
     reshapedDF
       .join(reportDF, Seq("courseid", "batchid", "userid"),
         "inner").select(

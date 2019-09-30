@@ -35,7 +35,7 @@ object AssessmentReportUtil {
       col("username").as("userName"),
       col("courseid").as("courseId"),
       col("batchid").as("batchId"),
-      col("grand_total").as("score"),
+      col("grand_score").as("score"),
       col("maskedemail").as("maskedEmail"),
       col("maskedphone").as("maskedPhone"),
       col("district_name").as("districtName"),
