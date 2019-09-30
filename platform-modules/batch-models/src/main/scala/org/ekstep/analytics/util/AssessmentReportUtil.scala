@@ -44,7 +44,7 @@ object AssessmentReportUtil {
       col("schoolname_resolved").as("subOrgName"),
       col("total_sum_score").as("totalScore"),
       col("content_name").as("contentName"),
-      col("bloburl").as("blobUrl")
+      col("reportUrl").as("reportUrl")
     )
     try {
       val indexList = ESUtil.getIndexName(alias)

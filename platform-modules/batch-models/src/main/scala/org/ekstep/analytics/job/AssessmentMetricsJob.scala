@@ -241,19 +241,19 @@ object AssessmentMetricsJob extends optional.Application with IJob {
     */
   def saveReport(reportDF: DataFrame, url: String, spark: SparkSession): Unit = {
     // Save the report to azure cloud storage
-    var signedURlMap = Map[String, String]()
+    var reportURL = Map[String, String]()
     val result = reportDF.groupBy("courseid").agg(collect_list("batchid").as("batchid"))
     val uploadToAzure = AppConf.getConfig("course.upload.reports.enabled")
     if (StringUtils.isNotBlank(uploadToAzure) && StringUtils.equalsIgnoreCase("true", uploadToAzure)) {
       val courseBatchList = result.collect.map(r => Map(result.columns.zip(r.toSeq): _*))
-      signedURlMap = AssessmentReportUtil.saveToAzure(courseBatchList, reportDF, url)
+      reportURL = AssessmentReportUtil.saveToAzure(courseBatchList, reportDF, url)
     } else {
       JobLogger.log("Skipping uploading reports into to azure", None, INFO)
     }
 
-    // Get the singed URL For all the report and upload the report to elastic search with signed url.
-    val signedURLDF = spark.createDataFrame(signedURlMap.toSeq).toDF("batchid", "bloburl")
-    val resolvedDF = reportDF.join(signedURLDF, Seq("batchid"))
+    // Get the URL For all the report and index the report path to elastic search.
+    val reportUrlDF = spark.createDataFrame(reportURL.toSeq).toDF("batchid", "reportUrl")
+    val resolvedDF = reportDF.join(reportUrlDF, Seq("batchid"))
     val aliasName = AppConf.getConfig("assessment.metrics.es.alias")
     val indexName = AssessmentReportUtil.suffixDate(AppConf.getConfig("assessment.metrics.es.index.prefix"))
     val indexToEs = AppConf.getConfig("course.es.index.enabled")
