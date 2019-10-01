@@ -145,7 +145,7 @@ object CommonUtil {
     }
 
     def closeSparkContext()(implicit sc: SparkContext) {
-        JobLogger.log("Closing Spark Context")
+        JobLogger.log("Closing Spark Context", None, INFO)
         sc.stop();
     }
 
