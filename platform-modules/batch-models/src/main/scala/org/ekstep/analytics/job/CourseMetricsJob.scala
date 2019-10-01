@@ -46,11 +46,15 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     def runJob(sc: SparkContext): Unit = {
       try {
         execute(jobConfig)(sc)
-      }catch {
-        case e:Exception => JobLogger.log("Exception is" + e, None, INFO)
+      } catch {
+        case e: Exception => JobLogger.log("Exception is" + e, None, INFO)
       }
       finally {
         CommonUtil.closeSparkContext()(sc)
+        // Adding system exit since Job is not exiting from the spark-submit task.
+        // TODO: Need to exit the job from the spark-submit, Once the job task is finished.
+        JobLogger.log("course metrics exit is invoked", None, INFO)
+        System.exit(0)
 
       }
     }
@@ -88,10 +92,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     uploadReport(renamedDir)
     saveReportES(reportDF)
     JobLogger.end("CourseMetrics Job completed successfully!", "SUCCESS", Option(Map("config" -> config, "model" -> name)))
-    // Adding system exit since Job is not exiting from the spark-submit task.
-    // TODO: Need to exit the job from the spark-submit, Once the job task is finished.
-    JobLogger.log("course metrics exit is invoked", None, INFO)
-    System.exit(0)
+
   }
 
   def loadData(spark: SparkSession, settings: Map[String, String]): DataFrame = {
@@ -290,7 +291,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
       // upsert batch details to cbatch index
       batchDetailsDF.saveToEs(s"$cBatchIndex/_doc", Map("es.mapping.id" -> "id"))
       val batchStatsPerBatchCount = batchStatsDF.groupBy("batchId").count().collect().map(_.toSeq)
-      val batchStatsCount  = batchStatsDF.count()
+      val batchStatsCount = batchStatsDF.count()
 
       val batchDetailsPerBatchCount = batchDetailsDF.groupBy("id").count().collect().map(_.toSeq)
       val batchDetailsCount = batchDetailsDF.count()
