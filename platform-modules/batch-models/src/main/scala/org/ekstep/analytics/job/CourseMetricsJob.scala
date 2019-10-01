@@ -48,6 +48,9 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
         execute(jobConfig)(sc)
       } finally {
         CommonUtil.closeSparkContext()(sc)
+        // Adding system exit since Job is not exiting from the spark-submit task.
+        // TODO: Need to exit the job from the spark-submit, Once the job task is finished.
+        System.exit(0)
       }
     }
 
