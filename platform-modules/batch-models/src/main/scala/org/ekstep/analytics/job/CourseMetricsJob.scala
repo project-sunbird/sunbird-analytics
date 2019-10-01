@@ -46,7 +46,10 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     def runJob(sc: SparkContext): Unit = {
       try {
         execute(jobConfig)(sc)
-      } finally {
+      }catch {
+        case e:Exception => JobLogger.log("Exception is" + e, None, INFO)
+      }
+      finally {
         CommonUtil.closeSparkContext()(sc)
 
       }
