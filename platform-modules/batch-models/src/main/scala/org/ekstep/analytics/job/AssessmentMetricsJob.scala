@@ -32,7 +32,7 @@ object AssessmentMetricsJob extends optional.Application with IJob {
       try {
         execute(jobConfig)
       } catch {
-        case e: Exception => JobLogger.log("Exception is" + e, None, INFO)
+        case e: Exception => JobLogger.log("Assessment Metrics exception is" + e.getMessage, None, INFO)
       }
       finally {
         CommonUtil.closeSparkContext()

@@ -47,7 +47,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
       try {
         execute(jobConfig)(sc)
       } catch {
-        case e: Exception => JobLogger.log("Exception is" + e, None, INFO)
+        case e: Exception => JobLogger.log("Course Metrics Exception is" + e.getMessage, None, INFO)
       }
       finally {
         CommonUtil.closeSparkContext()(sc)
