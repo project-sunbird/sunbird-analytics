@@ -48,10 +48,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
         execute(jobConfig)(sc)
       } finally {
         CommonUtil.closeSparkContext()(sc)
-        // Adding system exit since Job is not exiting from the spark-submit task.
-        // TODO: Need to exit the job from the spark-submit, Once the job task is finished.
-        JobLogger.log("course metrics exit is invoked", None, INFO)
-        System.exit(0)
+
       }
     }
 
@@ -88,6 +85,10 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     uploadReport(renamedDir)
     saveReportES(reportDF)
     JobLogger.end("CourseMetrics Job completed successfully!", "SUCCESS", Option(Map("config" -> config, "model" -> name)))
+    // Adding system exit since Job is not exiting from the spark-submit task.
+    // TODO: Need to exit the job from the spark-submit, Once the job task is finished.
+    JobLogger.log("course metrics exit is invoked", None, INFO)
+    System.exit(0)
   }
 
   def loadData(spark: SparkSession, settings: Map[String, String]): DataFrame = {
