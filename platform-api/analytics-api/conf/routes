@@ -19,3 +19,11 @@ POST /data/v1/client/logs controllers.Application.logClientErrors
 
 POST /experiment/create controllers.ExperimentController.createExperiment
 GET /experiment/get/:experimentId controllers.ExperimentController.getExperiment(experimentId:String)
+
+# Data Exhaust
+POST /dataset/request/submit controllers.JobController.dataRequest
+GET /dataset/request/read/:clientKey/:requestId controllers.JobController.getJob(clientKey: String, requestId: String)
+GET /dataset/request/list/:clientKey controllers.JobController.getJobList(clientKey: String)
+
+GET /dataset/get/:datasetId controllers.JobController.getTelemetry(datasetId: String)
+GET /refresh-cache/:cacheType controllers.JobController.refreshCache(cacheType: String)
