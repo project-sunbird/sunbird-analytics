@@ -31,7 +31,10 @@ object AssessmentMetricsJob extends optional.Application with IJob {
     def runJob(implicit sc: SparkContext): Unit = {
       try {
         execute(jobConfig)
-      } finally {
+      } catch {
+        case e: Exception => JobLogger.log("Assessment Metrics exception is" + e.getMessage, None, INFO)
+      }
+      finally {
         CommonUtil.closeSparkContext()
         // Adding system exit since Job is not exiting from the spark-submit task
         // TODO: Need to exit the job from the spark-submit, Once the job task is finished.
