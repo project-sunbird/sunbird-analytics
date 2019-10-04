@@ -218,6 +218,10 @@ object JobFactory {
                 AssessmentMetricsJob
             case "druid-query-processor" =>
                 DruidQueryProcessor
+            case "cmo-mhrd-dashboard" =>
+                DruidQueryProcessor
+            case "landing-page-2019" =>
+                DruidQueryProcessor
             case "pipeline-failed-events-audit" =>
                 AuditComputationJob
             case "pipeline-druid-events-audit" =>
