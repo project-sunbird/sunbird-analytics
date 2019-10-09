@@ -279,13 +279,15 @@ object AssessmentMetricsJob extends optional.Application with IJob {
     */
   def transposeDF(reportDF: DataFrame, courseId: String, batchId: String): DataFrame = {
     // Re-shape the dataframe (Convert the content name from the row to column)
-    JobLogger.log(s"Generating report for ${courseId} course and ${batchId} batch", None, INFO)
-    val filteredDF = reportDF.filter(col("courseid") === courseId && col("batchid") === batchId).cache()
+    JobLogger.log(s"transposing report for ${courseId} course and ${batchId} batch", None, INFO)
+    val filteredDF = reportDF.filter(col("courseid") === courseId && col("batchid") === batchId).persist()
     val reshapedDF = filteredDF.
       groupBy("courseid", "batchid", "userid").pivot("content_name").agg(first("grand_score"))
-    reshapedDF
+    val resolvedDF = reshapedDF
       .join(filteredDF, Seq("courseid", "batchid", "userid"),
-        "inner").select(
+        "inner")
+    filteredDF.unpersist()
+    resolvedDF.select(
       reportDF.col("externalid").as("External ID"),
       reportDF.col("userid").as("User ID"),
       reportDF.col("username").as("User Name"),
