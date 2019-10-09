@@ -2,7 +2,7 @@ package org.ekstep.analytics.util
 
 import org.apache.commons.lang3.StringUtils
 import org.apache.spark.sql.{DataFrame, SparkSession}
-import org.apache.spark.sql.functions.col
+import org.apache.spark.sql.functions.{col, lit}
 import org.ekstep.analytics.framework.Level.{ERROR, INFO}
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.job.AssessmentMetricsJob.transposeDF
@@ -50,11 +50,9 @@ object AssessmentReportUtil {
       col("reportUrl").as("reportUrl")
     )
     try {
-      val indexList = ESUtil.getIndexName(alias)
-      val oldIndex = indexList.mkString("")
       ESUtil.saveToIndex(assessmentReportDF, index)
       JobLogger.log("Indexing of assessment report data is success: " + index, None, INFO)
-      if (!oldIndex.equals(index)) ESUtil.rolloverIndex(index, alias)
+
     } catch {
       case ex: Exception => {
         JobLogger.log(ex.getMessage, None, ERROR)
@@ -63,24 +61,27 @@ object AssessmentReportUtil {
     }
   }
 
+  def rollOverIndex(index: String, alias: String): Unit = {
+    val indexList = ESUtil.getIndexName(alias)
+    println(indexList)
+    val oldIndex = indexList.mkString("")
+    if (!oldIndex.equals(index)) ESUtil.rolloverIndex(index, alias)
+  }
+
+
   def save(courseBatchList: Array[Map[String, Any]], reportDF: DataFrame, url: String, spark: SparkSession): Unit = {
+    val aliasName = AppConf.getConfig("assessment.metrics.es.alias")
+    val indexToEs = AppConf.getConfig("course.es.index.enabled")
     courseBatchList.foreach(item => {
       JobLogger.log("Course batch mappings: " + item, None, INFO)
       val courseId = item.getOrElse("courseid", "").asInstanceOf[String]
       val batchList = item.getOrElse("batchid", "").asInstanceOf[Seq[String]].distinct
-
-      val aliasName = AppConf.getConfig("assessment.metrics.es.alias")
-      val indexToEs = AppConf.getConfig("course.es.index.enabled")
-      val urlBatch = scala.collection.mutable.Map[String, String]()
       batchList.foreach(batchId => {
         if (!courseId.isEmpty && !batchId.isEmpty) {
           val reportData = transposeDF(reportDF, courseId, batchId)
           try {
-            urlBatch(batchId) = AssessmentReportUtil.saveToAzure(reportData, url, batchId)
-
-            val reportUrlDF = spark.createDataFrame(urlBatch.toSeq).toDF("batchid", "reportUrl")
-            val resolvedDF = reportDF.join(reportUrlDF, Seq("batchid"))
-
+            val urlBatch = AssessmentReportUtil.saveToAzure(reportData, url, batchId)
+            val resolvedDF = reportDF.withColumn("reportUrl", lit(urlBatch))
             if (StringUtils.isNotBlank(indexToEs) && StringUtils.equalsIgnoreCase("true", indexToEs)) {
               AssessmentReportUtil.saveToElastic(indexName, aliasName, resolvedDF)
             } else {
@@ -94,5 +95,6 @@ object AssessmentReportUtil {
         }
       })
     })
+    AssessmentReportUtil.rollOverIndex(indexName, aliasName)
   }
 }
