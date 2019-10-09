@@ -63,7 +63,6 @@ object AssessmentReportUtil {
 
   def rollOverIndex(index: String, alias: String): Unit = {
     val indexList = ESUtil.getIndexName(alias)
-    println(indexList)
     val oldIndex = indexList.mkString("")
     if (!oldIndex.equals(index)) ESUtil.rolloverIndex(index, alias)
   }
