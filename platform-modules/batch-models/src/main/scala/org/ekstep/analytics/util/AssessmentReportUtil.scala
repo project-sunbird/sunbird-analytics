@@ -2,12 +2,10 @@ package org.ekstep.analytics.util
 
 import org.apache.commons.lang3.StringUtils
 import org.apache.spark.sql.{DataFrame, SparkSession}
-import org.apache.spark.sql.functions.{col, lit}
+import org.apache.spark.sql.functions.{col, _}
 import org.ekstep.analytics.framework.Level.{ERROR, INFO}
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.job.AssessmentMetricsJob.transposeDF
-import org.joda.time.DateTime
-import org.joda.time.format.DateTimeFormat
 import org.sunbird.cloud.storage.conf.AppConf
 
 import scala.collection.{Map, Seq}
@@ -15,7 +13,7 @@ import scala.collection.{Map, Seq}
 object AssessmentReportUtil {
   implicit val className = "org.ekstep.analytics.job.AssessmentMetricsJob"
 
-  val indexName: String = AppConf.getConfig("assessment.metrics.es.index.prefix") + DateTimeFormat.forPattern("dd-MM-yyyy-HH-mm").print(DateTime.now())
+  private var indexName: String = ""
 
   def saveToAzure(reportDF: DataFrame, url: String, batchId: String): String = {
     val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
@@ -32,7 +30,7 @@ object AssessmentReportUtil {
     FileUtil.uploadReport(renamedDir, provider, container, Some(objectKey))
   }
 
-  def saveToElastic(index: String, alias: String, reportDF: DataFrame): Unit = {
+  def saveToElastic(index: String, alias: String, reportDF: DataFrame): EsResponse = {
     val assessmentReportDF = reportDF.select(
       col("userid").as("userId"),
       col("username").as("userName"),
@@ -49,16 +47,7 @@ object AssessmentReportUtil {
       col("content_name").as("contentName"),
       col("reportUrl").as("reportUrl")
     )
-    try {
-      ESUtil.saveToIndex(assessmentReportDF, index)
-      JobLogger.log("Indexing of assessment report data is success: " + index, None, INFO)
-
-    } catch {
-      case ex: Exception => {
-        JobLogger.log(ex.getMessage, None, ERROR)
-        ex.printStackTrace()
-      }
-    }
+    ESUtil.saveToIndex(assessmentReportDF, index)
   }
 
   def rollOverIndex(index: String, alias: String): Unit = {
@@ -77,23 +66,36 @@ object AssessmentReportUtil {
       val batchList = item.getOrElse("batchid", "").asInstanceOf[Seq[String]].distinct
       batchList.foreach(batchId => {
         if (!courseId.isEmpty && !batchId.isEmpty) {
-          val reportData = transposeDF(reportDF, courseId, batchId)
+          val filteredDF = reportDF.filter(col("courseid") === courseId && col("batchid") === batchId).cache()
+          val reportData = transposeDF(filteredDF)
           try {
             val urlBatch = AssessmentReportUtil.saveToAzure(reportData, url, batchId)
-            val resolvedDF = reportDF.withColumn("reportUrl", lit(urlBatch))
+            val resolvedDF = filteredDF.withColumn("reportUrl", lit(urlBatch))
+            filteredDF.unpersist(true)
             if (StringUtils.isNotBlank(indexToEs) && StringUtils.equalsIgnoreCase("true", indexToEs)) {
-              AssessmentReportUtil.saveToElastic(indexName, aliasName, resolvedDF)
+              val status = AssessmentReportUtil.saveToElastic(this.getIndexName, aliasName, resolvedDF)
+              if (status.acknowledged) {
+                JobLogger.log("Indexing of assessment report data is success: " + this.getIndexName, None, INFO)
+              }
             } else {
               JobLogger.log("Skipping Indexing assessment report into ES", None, INFO)
             }
           } catch {
-            case e: Exception => JobLogger.log("File upload is failed due to " + e)
+            case e: Exception => JobLogger.log("File upload is failed due to " + e, None, INFO)
           }
         } else {
           JobLogger.log("Report failed to create since course_id is " + courseId + "and batch_id is " + batchId, None, INFO)
         }
       })
     })
-    AssessmentReportUtil.rollOverIndex(indexName, aliasName)
+    AssessmentReportUtil.rollOverIndex(getIndexName, aliasName)
+  }
+
+  def setIndexName(name: String): Unit = {
+    this.indexName = name
+  }
+
+  def getIndexName: String = {
+    this.indexName
   }
 }

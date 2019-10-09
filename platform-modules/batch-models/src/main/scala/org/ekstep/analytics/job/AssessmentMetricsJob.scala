@@ -10,6 +10,8 @@ import org.ekstep.analytics.framework.Level.INFO
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, JobLogger}
 import org.ekstep.analytics.util.{AssessmentReportUtil, ESUtil}
+import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormat
 import org.sunbird.cloud.storage.conf.AppConf
 
 import scala.collection.{Map, _}
@@ -110,6 +112,13 @@ object AssessmentMetricsJob extends optional.Application with IJob {
     val externalIdentityDF = loadData(spark, Map("table" -> "usr_external_identity", "keyspace" -> sunbirdKeyspace))
     val assessmentProfileDF = loadData(spark, Map("table" -> "assessment_aggregator", "keyspace" -> sunbirdCoursesKeyspace))
 
+
+    /**
+      * Set the index name
+      */
+    val esIndexName = AppConf.getConfig("assessment.metrics.es.index.prefix") + DateTimeFormat.forPattern("dd-MM-yyyy-HH-mm").print(DateTime.now())
+    AssessmentReportUtil.setIndexName(esIndexName)
+
     /*
     * courseBatchDF has details about the course and batch details for which we have to prepare the report
     * courseBatchDF is the primary source for the report
@@ -175,7 +184,6 @@ object AssessmentMetricsJob extends optional.Application with IJob {
     // Get only last attempted questions for the specific user and content from specific batch and course from the assessment_aggregator table based on.
     val groupdedDF = Window.partitionBy("user_id", "batch_id", "course_id", "content_id").orderBy(desc("last_attempted_on"))
     val latestAssessmentDF = assessmentProfileDF.withColumn("rownum", row_number.over(groupdedDF)).where(col("rownum") === 1).drop("rownum")
-
     /**
       * Compute the sum of all the worksheet contents score.
       */
@@ -184,11 +192,10 @@ object AssessmentMetricsJob extends optional.Application with IJob {
       .withColumn("agg_score", sum("total_score") over assessmentAggDf)
       .withColumn("agg_max_score", sum("total_max_score") over assessmentAggDf)
       // To avoid converting numeric field to date format in the spread sheet, We enclosing score with double quotes.
-      // Example: 2/3 => “2/3”. Since google spread sheet will consider 2/3 as date format column.
-      .withColumn("total_sum_score", concat(lit("\u201C"), col("agg_score"), lit("/"), col("agg_max_score"), lit("\u201D")))
+      // Example: 2/3 => '2/3'. Since google spread sheet will consider 2/3 as date format column.
+      .withColumn("total_sum_score", concat(lit("'"), col("agg_score"), lit("/"), col("agg_max_score"), lit("'")))
 
-    val aggregatedDF = resDF.withColumn("grand_score", concat(lit("\u201C"), col("grand_total"), lit("\u201D")))
-
+    val aggregatedDF = resDF.withColumn("grand_score", concat(lit("'"), col("grand_total"), lit("'")))
     /**
       * Filter only valid enrolled userid for the specific courseid
       */
@@ -277,16 +284,10 @@ object AssessmentMetricsJob extends optional.Application with IJob {
     * +--------------------+-------+-------+------------------+-------------+
     * Example:
     */
-  def transposeDF(reportDF: DataFrame, courseId: String, batchId: String): DataFrame = {
+  def transposeDF(reportDF: DataFrame): DataFrame = {
     // Re-shape the dataframe (Convert the content name from the row to column)
-    JobLogger.log(s"transposing report for ${courseId} course and ${batchId} batch", None, INFO)
-    val filteredDF = reportDF.filter(col("courseid") === courseId && col("batchid") === batchId).persist()
-    val reshapedDF = filteredDF.
-      groupBy("courseid", "batchid", "userid").pivot("content_name").agg(first("grand_score"))
-    val resolvedDF = reshapedDF
-      .join(filteredDF, Seq("courseid", "batchid", "userid"),
-        "inner")
-    filteredDF.unpersist()
+    val reshapedDF = reportDF.groupBy("courseid", "batchid", "userid").pivot("content_name").agg(first("grand_score"))
+    val resolvedDF = reshapedDF.join(reportDF, Seq("courseid", "batchid", "userid"), "inner")
     resolvedDF.select(
       reportDF.col("externalid").as("External ID"),
       reportDF.col("userid").as("User ID"),

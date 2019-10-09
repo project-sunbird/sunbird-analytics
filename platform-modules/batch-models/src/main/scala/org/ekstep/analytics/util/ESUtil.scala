@@ -142,11 +142,16 @@ object ESUtil extends ESService {
     spark.read.format("org.elasticsearch.spark.sql")
       .option("query", request)
       .option("pushdown", "true")
-      .load(esIndex+"/cs")
+      .load(esIndex + "/cs")
       .select("name", "identifier") // Fields need to capture from the elastic search
   }
 
-  def saveToIndex(data: DataFrame, index: String): Unit = {
-    data.saveToEs(s"$index/_doc")
+  def saveToIndex(data: DataFrame, index: String): EsResponse = {
+    try {
+      data.saveToEs(s"$index/_doc")
+      EsResponse(true, false, index, None, None)
+    } catch {
+      case e: Exception => EsResponse(false, false, index, e.getMessage, None)
+    }
   }
 }
