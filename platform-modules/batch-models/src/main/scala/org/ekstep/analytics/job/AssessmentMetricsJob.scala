@@ -182,12 +182,12 @@ object AssessmentMetricsJob extends optional.Application with IJob {
     val assessmentAggDf = Window.partitionBy("user_id", "batch_id", "course_id")
     val resDF = latestAssessmentDF
       .withColumn("agg_score", sum("total_score") over assessmentAggDf)
-      .withColumn("agg_max_score",sum("total_max_score") over assessmentAggDf)
+      .withColumn("agg_max_score", sum("total_max_score") over assessmentAggDf)
       // To avoid converting numeric field to date format in the spread sheet, We enclosing score with double quotes.
       // Example: 2/3 => “2/3”. Since google spread sheet will consider 2/3 as date format column.
       .withColumn("total_sum_score", concat(lit("\u201C"), col("agg_score"), lit("/"), col("agg_max_score"), lit("\u201D")))
 
-     val aggregatedDF = resDF.withColumn("grand_score", concat(lit("\u201C"), col("grand_total"), lit("\u201D")))
+    val aggregatedDF = resDF.withColumn("grand_score", concat(lit("\u201C"), col("grand_total"), lit("\u201D")))
 
     /**
       * Filter only valid enrolled userid for the specific courseid
@@ -293,10 +293,11 @@ object AssessmentMetricsJob extends optional.Application with IJob {
   def transposeDF(reportDF: DataFrame, courseId: String, batchId: String): DataFrame = {
     // Re-shape the dataframe (Convert the content name from the row to column)
     JobLogger.log(s"Generating report for ${courseId} course and ${batchId} batch", None, INFO)
-    val reshapedDF = reportDF.filter(col("courseid") === courseId && col("batchid") === batchId).
+    val filteredDF = reportDF.filter(col("courseid") === courseId && col("batchid") === batchId)
+    val reshapedDF = filteredDF.
       groupBy("courseid", "batchid", "userid").pivot("content_name").agg(first("grand_score"))
     reshapedDF
-      .join(reportDF, Seq("courseid", "batchid", "userid"),
+      .join(filteredDF, Seq("courseid", "batchid", "userid"),
         "inner").select(
       reportDF.col("externalid").as("External ID"),
       reportDF.col("userid").as("User ID"),
