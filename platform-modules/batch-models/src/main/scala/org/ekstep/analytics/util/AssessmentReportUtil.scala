@@ -1,6 +1,7 @@
 package org.ekstep.analytics.util
 
-import org.apache.spark.sql.DataFrame
+import org.apache.commons.lang3.StringUtils
+import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.functions.col
 import org.ekstep.analytics.framework.Level.{ERROR, INFO}
 import org.ekstep.analytics.framework.util.JobLogger
@@ -14,7 +15,9 @@ import scala.collection.{Map, Seq}
 object AssessmentReportUtil {
   implicit val className = "org.ekstep.analytics.job.AssessmentMetricsJob"
 
-  def save(reportDF: DataFrame, url: String, batchId: String): String = {
+  val indexName: String = AppConf.getConfig("assessment.metrics.es.index.prefix") + DateTimeFormat.forPattern("dd-MM-yyyy-HH-mm").print(DateTime.now())
+
+  def saveToAzure(reportDF: DataFrame, url: String, batchId: String): String = {
     val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
     val renamedDir = s"$tempDir/renamed"
     val provider = AppConf.getConfig("assessment.metrics.cloud.provider")
@@ -60,17 +63,29 @@ object AssessmentReportUtil {
     }
   }
 
-  def saveToAzure(courseBatchList: Array[Map[String, Any]], reportDF: DataFrame, url: String): Map[String, String] = {
-    val urlBatch = scala.collection.mutable.Map[String, String]()
+  def save(courseBatchList: Array[Map[String, Any]], reportDF: DataFrame, url: String, spark: SparkSession): Unit = {
     courseBatchList.foreach(item => {
       JobLogger.log("Course batch mappings: " + item, None, INFO)
       val courseId = item.getOrElse("courseid", "").asInstanceOf[String]
       val batchList = item.getOrElse("batchid", "").asInstanceOf[Seq[String]].distinct
+
+      val aliasName = AppConf.getConfig("assessment.metrics.es.alias")
+      val indexToEs = AppConf.getConfig("course.es.index.enabled")
+      val urlBatch = scala.collection.mutable.Map[String, String]()
       batchList.foreach(batchId => {
         if (!courseId.isEmpty && !batchId.isEmpty) {
           val reportData = transposeDF(reportDF, courseId, batchId)
           try {
-            urlBatch(batchId) = AssessmentReportUtil.save(reportData, url, batchId)
+            urlBatch(batchId) = AssessmentReportUtil.saveToAzure(reportData, url, batchId)
+
+            val reportUrlDF = spark.createDataFrame(urlBatch.toSeq).toDF("batchid", "reportUrl")
+            val resolvedDF = reportDF.join(reportUrlDF, Seq("batchid"))
+
+            if (StringUtils.isNotBlank(indexToEs) && StringUtils.equalsIgnoreCase("true", indexToEs)) {
+              AssessmentReportUtil.saveToElastic(indexName, aliasName, resolvedDF)
+            } else {
+              JobLogger.log("Skipping Indexing assessment report into ES", None, INFO)
+            }
           } catch {
             case e: Exception => JobLogger.log("File upload is failed due to " + e)
           }
@@ -79,11 +94,5 @@ object AssessmentReportUtil {
         }
       })
     })
-    urlBatch
   }
-
-  def suffixDate(index: String): String = {
-    index + DateTimeFormat.forPattern("dd-MM-yyyy-HH-mm").print(DateTime.now())
-  }
-
 }

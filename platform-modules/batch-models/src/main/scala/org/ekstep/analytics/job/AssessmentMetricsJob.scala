@@ -247,26 +247,13 @@ object AssessmentMetricsJob extends optional.Application with IJob {
     */
   def saveReport(reportDF: DataFrame, url: String, spark: SparkSession): Unit = {
     // Save the report to azure cloud storage
-    var reportURL = Map[String, String]()
     val result = reportDF.groupBy("courseid").agg(collect_list("batchid").as("batchid"))
     val uploadToAzure = AppConf.getConfig("course.upload.reports.enabled")
     if (StringUtils.isNotBlank(uploadToAzure) && StringUtils.equalsIgnoreCase("true", uploadToAzure)) {
       val courseBatchList = result.collect.map(r => Map(result.columns.zip(r.toSeq): _*))
-      reportURL = AssessmentReportUtil.saveToAzure(courseBatchList, reportDF, url)
+      AssessmentReportUtil.save(courseBatchList, reportDF, url, spark)
     } else {
       JobLogger.log("Skipping uploading reports into to azure", None, INFO)
-    }
-
-    // Get the URL For all the report and index the report path to elastic search.
-    val reportUrlDF = spark.createDataFrame(reportURL.toSeq).toDF("batchid", "reportUrl")
-    val resolvedDF = reportDF.join(reportUrlDF, Seq("batchid"))
-    val aliasName = AppConf.getConfig("assessment.metrics.es.alias")
-    val indexName = AssessmentReportUtil.suffixDate(AppConf.getConfig("assessment.metrics.es.index.prefix"))
-    val indexToEs = AppConf.getConfig("course.es.index.enabled")
-    if (StringUtils.isNotBlank(indexToEs) && StringUtils.equalsIgnoreCase("true", indexToEs)) {
-      AssessmentReportUtil.saveToElastic(indexName, aliasName, resolvedDF)
-    } else {
-      JobLogger.log("Skipping Indexing assessment report into ES", None, INFO)
     }
   }
 
@@ -293,7 +280,7 @@ object AssessmentMetricsJob extends optional.Application with IJob {
   def transposeDF(reportDF: DataFrame, courseId: String, batchId: String): DataFrame = {
     // Re-shape the dataframe (Convert the content name from the row to column)
     JobLogger.log(s"Generating report for ${courseId} course and ${batchId} batch", None, INFO)
-    val filteredDF = reportDF.filter(col("courseid") === courseId && col("batchid") === batchId)
+    val filteredDF = reportDF.filter(col("courseid") === courseId && col("batchid") === batchId).cache()
     val reshapedDF = filteredDF.
       groupBy("courseid", "batchid", "userid").pivot("content_name").agg(first("grand_score"))
     reshapedDF
