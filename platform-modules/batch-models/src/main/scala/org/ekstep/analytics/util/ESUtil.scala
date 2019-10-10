@@ -151,7 +151,7 @@ object ESUtil extends ESService {
       data.saveToEs(s"$index/_doc")
     }
     catch {
-      case e: Exception => JobLogger.log("Indexing of data into es is failed: " + e.getMessage, None, INFO)
+      case e: Exception => JobLogger.log("Indexing of data into es is failed: " + e.getMessage, None, ERROR)
     }
   }
 }
