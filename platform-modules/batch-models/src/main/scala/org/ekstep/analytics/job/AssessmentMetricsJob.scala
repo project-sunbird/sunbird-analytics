@@ -66,19 +66,11 @@ object AssessmentMetricsJob extends optional.Application with IJob {
       .set("spark.cassandra.input.consistency.level", readConsistencyLevel)
     val spark = SparkSession.builder.config(sparkConf).getOrCreate()
     val reportDF = prepareReport(spark, loadData).cache()
-
-    val compositeESConf = sc.getConf
-      .set("es.scroll.size", AppConf.getConfig("es.scroll.size"))
-      .set("es.nodes", AppConf.getConfig("es.composite.host"))
-
-    val sparkCompositeES = SparkSession.builder.config(compositeESConf).getOrCreate()
-    // Get the content name details from the composite elastic search
-    val denormalizedDF = denormAssessment(sparkCompositeES, reportDF)
+    val denormalizedDF = denormAssessment(spark, reportDF)
     saveReport(denormalizedDF, tempDir, spark)
     reportDF.unpersist(true)
     JobLogger.end("AssessmentReport Generation Job completed successfully!", "SUCCESS", Option(Map("config" -> config, "model" -> name)))
     spark.stop()
-    sparkCompositeES.stop()
   }
 
   /**

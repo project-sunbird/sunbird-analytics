@@ -142,6 +142,9 @@ object ESUtil extends ESService {
     spark.read.format("org.elasticsearch.spark.sql")
       .option("query", request)
       .option("pushdown", "true")
+      .option("es.nodes", AppConf.getConfig("es.composite.host"))
+      .option("es.port", AppConf.getConfig("es.port"))
+      .option("es.scroll.size", AppConf.getConfig("es.scroll.size"))
       .load(esIndex + "/cs")
       .select("name", "identifier") // Fields need to capture from the elastic search
   }
