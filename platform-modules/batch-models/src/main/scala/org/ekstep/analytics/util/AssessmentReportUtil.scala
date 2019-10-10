@@ -79,7 +79,7 @@ object AssessmentReportUtil {
               JobLogger.log("Skipping Indexing assessment report into ES", None, INFO)
             }
           } catch {
-            case e: Exception => JobLogger.log("File upload is failed due to " + e, None, INFO)
+            case e: Exception => JobLogger.log("File upload is failed due to " + e, None, ERROR)
           }
         } else {
           JobLogger.log("Report failed to create since course_id is " + courseId + "and batch_id is " + batchId, None, ERROR)
