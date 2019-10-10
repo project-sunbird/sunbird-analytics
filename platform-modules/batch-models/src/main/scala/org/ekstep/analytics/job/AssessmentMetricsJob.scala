@@ -285,7 +285,7 @@ object AssessmentMetricsJob extends optional.Application with IJob {
     * Example:
     */
   def transposeDF(reportDF: DataFrame): DataFrame = {
-    // Re-shape the dataframe (Convert the content name from the row to column)
+    // Re-shape the dataFrame (Convert the content name from the row to column)
     val reshapedDF = reportDF.groupBy("courseid", "batchid", "userid").pivot("content_name").agg(first("grand_score"))
     val resolvedDF = reshapedDF.join(reportDF, Seq("courseid", "batchid", "userid"), "inner")
     resolvedDF.select(
