@@ -146,12 +146,12 @@ object ESUtil extends ESService {
       .select("name", "identifier") // Fields need to capture from the elastic search
   }
 
-  def saveToIndex(data: DataFrame, index: String): EsResponse = {
+  def saveToIndex(data: DataFrame, index: String): Unit = {
     try {
       data.saveToEs(s"$index/_doc")
-      EsResponse(true, false, index, None, None)
-    } catch {
-      case e: Exception => EsResponse(false, false, index, e.getMessage, None)
+    }
+    catch {
+      case e: Exception => JobLogger.log("Indexing of data into es is failed: " + e.getMessage, None, INFO)
     }
   }
 }

@@ -30,7 +30,7 @@ object AssessmentReportUtil {
     FileUtil.uploadReport(renamedDir, provider, container, Some(objectKey))
   }
 
-  def saveToElastic(index: String, alias: String, reportDF: DataFrame): EsResponse = {
+  def saveToElastic(index: String, alias: String, reportDF: DataFrame): Unit = {
     val assessmentReportDF = reportDF.select(
       col("userid").as("userId"),
       col("username").as("userName"),
@@ -52,31 +52,28 @@ object AssessmentReportUtil {
 
   def rollOverIndex(index: String, alias: String): Unit = {
     val indexList = ESUtil.getIndexName(alias)
-    val oldIndex = indexList.mkString("")
-    if (!oldIndex.equals(index)) ESUtil.rolloverIndex(index, alias)
+    if(!indexList.contains(index)) ESUtil.rolloverIndex(index, alias)
   }
 
 
-  def save(courseBatchList: Array[Map[String, Any]], reportDF: DataFrame, url: String, spark: SparkSession): Unit = {
+  def save(courseBatchList: Array[Map[String, Any]], reportData: DataFrame, url: String, spark: SparkSession): Unit = {
     val aliasName = AppConf.getConfig("assessment.metrics.es.alias")
     val indexToEs = AppConf.getConfig("course.es.index.enabled")
+    val reportDF = reportData.cache()
     courseBatchList.foreach(item => {
       JobLogger.log("Course batch mappings: " + item, None, INFO)
       val courseId = item.getOrElse("courseid", "").asInstanceOf[String]
       val batchList = item.getOrElse("batchid", "").asInstanceOf[Seq[String]].distinct
       batchList.foreach(batchId => {
         if (!courseId.isEmpty && !batchId.isEmpty) {
-          val filteredDF = reportDF.filter(col("courseid") === courseId && col("batchid") === batchId).cache()
+          val filteredDF = reportDF.filter(col("courseid") === courseId && col("batchid") === batchId)
           val reportData = transposeDF(filteredDF)
           try {
             val urlBatch = AssessmentReportUtil.saveToAzure(reportData, url, batchId)
             val resolvedDF = filteredDF.withColumn("reportUrl", lit(urlBatch))
-            filteredDF.unpersist(true)
             if (StringUtils.isNotBlank(indexToEs) && StringUtils.equalsIgnoreCase("true", indexToEs)) {
-              val status = AssessmentReportUtil.saveToElastic(this.getIndexName, aliasName, resolvedDF)
-              if (status.acknowledged) {
-                JobLogger.log("Indexing of assessment report data is success: " + this.getIndexName, None, INFO)
-              }
+              AssessmentReportUtil.saveToElastic(this.getIndexName, aliasName, resolvedDF)
+              JobLogger.log("Indexing of assessment report data is success: " + this.getIndexName, None, INFO)
             } else {
               JobLogger.log("Skipping Indexing assessment report into ES", None, INFO)
             }
@@ -88,6 +85,7 @@ object AssessmentReportUtil {
         }
       })
     })
+    reportDF.unpersist(true)
     AssessmentReportUtil.rollOverIndex(getIndexName, aliasName)
   }
 
