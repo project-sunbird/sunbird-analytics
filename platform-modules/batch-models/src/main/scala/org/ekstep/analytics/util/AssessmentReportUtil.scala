@@ -6,6 +6,8 @@ import org.apache.spark.sql.functions.{col, _}
 import org.ekstep.analytics.framework.Level.{ERROR, INFO}
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.job.AssessmentMetricsJob.transposeDF
+import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormat
 import org.sunbird.cloud.storage.conf.AppConf
 
 import scala.collection.{Map, Seq}
@@ -13,7 +15,7 @@ import scala.collection.{Map, Seq}
 object AssessmentReportUtil {
   implicit val className = "org.ekstep.analytics.job.AssessmentMetricsJob"
 
-  private var indexName: String = ""
+  private val indexName: String = AppConf.getConfig("assessment.metrics.es.index.prefix") + DateTimeFormat.forPattern("dd-MM-yyyy-HH-mm").print(DateTime.now())
 
   def saveToAzure(reportDF: DataFrame, url: String, batchId: String): String = {
     val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
@@ -56,10 +58,9 @@ object AssessmentReportUtil {
   }
 
 
-  def save(courseBatchList: Array[Map[String, Any]], reportData: DataFrame, url: String, spark: SparkSession): Unit = {
+  def save(courseBatchList: Array[Map[String, Any]], reportDF: DataFrame, url: String, spark: SparkSession): Unit = {
     val aliasName = AppConf.getConfig("assessment.metrics.es.alias")
     val indexToEs = AppConf.getConfig("course.es.index.enabled")
-    val reportDF = reportData.cache()
     courseBatchList.foreach(item => {
       JobLogger.log("Course batch mappings: " + item, None, INFO)
       val courseId = item.getOrElse("courseid", "").asInstanceOf[String]
@@ -81,16 +82,11 @@ object AssessmentReportUtil {
             case e: Exception => JobLogger.log("File upload is failed due to " + e, None, INFO)
           }
         } else {
-          JobLogger.log("Report failed to create since course_id is " + courseId + "and batch_id is " + batchId, None, INFO)
+          JobLogger.log("Report failed to create since course_id is " + courseId + "and batch_id is " + batchId, None, ERROR)
         }
       })
     })
-    reportDF.unpersist(true)
     AssessmentReportUtil.rollOverIndex(getIndexName, aliasName)
-  }
-
-  def setIndexName(name: String): Unit = {
-    this.indexName = name
   }
 
   def getIndexName: String = {

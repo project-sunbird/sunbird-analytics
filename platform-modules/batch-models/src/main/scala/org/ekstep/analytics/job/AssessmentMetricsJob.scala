@@ -6,12 +6,10 @@ import org.apache.spark.SparkContext
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions.{col, _}
-import org.ekstep.analytics.framework.Level.INFO
+import org.ekstep.analytics.framework.Level._
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, JobLogger}
 import org.ekstep.analytics.util.{AssessmentReportUtil, ESUtil}
-import org.joda.time.DateTime
-import org.joda.time.format.DateTimeFormat
 import org.sunbird.cloud.storage.conf.AppConf
 
 import scala.collection.{Map, _}
@@ -34,7 +32,7 @@ object AssessmentMetricsJob extends optional.Application with IJob {
       try {
         execute(jobConfig)
       } catch {
-        case e: Exception => JobLogger.log("Assessment Metrics exception is" + e.getMessage, None, INFO)
+        case e: Exception => JobLogger.log("Assessment Metrics exception is" + e.getMessage, None, ERROR)
       }
       finally {
         CommonUtil.closeSparkContext()
@@ -67,16 +65,17 @@ object AssessmentMetricsJob extends optional.Application with IJob {
     val sparkConf = sc.getConf
       .set("spark.cassandra.input.consistency.level", readConsistencyLevel)
     val spark = SparkSession.builder.config(sparkConf).getOrCreate()
-    val reportDF = prepareReport(spark, loadData)
+    val reportDF = prepareReport(spark, loadData).cache()
 
     val compositeESConf = sc.getConf
       .set("es.scroll.size", AppConf.getConfig("es.scroll.size"))
-      .set("es.node", AppConf.getConfig("es.composite.host"))
+      .set("es.nodes", AppConf.getConfig("es.composite.host"))
 
     val sparkCompositeES = SparkSession.builder.config(compositeESConf).getOrCreate()
     // Get the content name details from the composite elastic search
     val denormalizedDF = denormAssessment(sparkCompositeES, reportDF)
     saveReport(denormalizedDF, tempDir, spark)
+    reportDF.unpersist(true)
     JobLogger.end("AssessmentReport Generation Job completed successfully!", "SUCCESS", Option(Map("config" -> config, "model" -> name)))
     spark.stop()
     sparkCompositeES.stop()
@@ -112,12 +111,6 @@ object AssessmentMetricsJob extends optional.Application with IJob {
     val externalIdentityDF = loadData(spark, Map("table" -> "usr_external_identity", "keyspace" -> sunbirdKeyspace))
     val assessmentProfileDF = loadData(spark, Map("table" -> "assessment_aggregator", "keyspace" -> sunbirdCoursesKeyspace))
 
-
-    /**
-      * Set the index name
-      */
-    val esIndexName = AppConf.getConfig("assessment.metrics.es.index.prefix") + DateTimeFormat.forPattern("dd-MM-yyyy-HH-mm").print(DateTime.now())
-    AssessmentReportUtil.setIndexName(esIndexName)
 
     /*
     * courseBatchDF has details about the course and batch details for which we have to prepare the report
@@ -287,19 +280,19 @@ object AssessmentMetricsJob extends optional.Application with IJob {
   def transposeDF(reportDF: DataFrame): DataFrame = {
     // Re-shape the dataFrame (Convert the content name from the row to column)
     val reshapedDF = reportDF.groupBy("courseid", "batchid", "userid").pivot("content_name").agg(first("grand_score"))
-    val resolvedDF = reshapedDF.join(reportDF, Seq("courseid", "batchid", "userid"), "inner")
-    resolvedDF.select(
-      reportDF.col("externalid").as("External ID"),
-      reportDF.col("userid").as("User ID"),
-      reportDF.col("username").as("User Name"),
-      reportDF.col("maskedemail").as("Email ID"),
-      reportDF.col("maskedphone").as("Mobile Number"),
-      reportDF.col("orgname_resolved").as("Organisation Name"),
-      reportDF.col("district_name").as("District Name"),
-      reportDF.col("schoolname_resolved").as("School Name"),
-      reshapedDF.col("*"), // Since we don't know the content name column so we are using col("*")
-      reportDF.col("total_sum_score").as("Total Score")
-    ).dropDuplicates("userid", "courseid", "batchid").drop("userid", "courseid", "batchid")
+    reshapedDF.join(reportDF, Seq("courseid", "batchid", "userid"), "inner").
+      select(
+        reportDF.col("externalid").as("External ID"),
+        reportDF.col("userid").as("User ID"),
+        reportDF.col("username").as("User Name"),
+        reportDF.col("maskedemail").as("Email ID"),
+        reportDF.col("maskedphone").as("Mobile Number"),
+        reportDF.col("orgname_resolved").as("Organisation Name"),
+        reportDF.col("district_name").as("District Name"),
+        reportDF.col("schoolname_resolved").as("School Name"),
+        reshapedDF.col("*"), // Since we don't know the content name column so we are using col("*")
+        reportDF.col("total_sum_score").as("Total Score")
+      ).dropDuplicates("userid", "courseid", "batchid").drop("userid", "courseid", "batchid")
   }
 
 }
