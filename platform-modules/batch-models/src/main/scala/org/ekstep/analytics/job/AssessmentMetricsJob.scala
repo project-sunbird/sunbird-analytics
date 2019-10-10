@@ -6,7 +6,7 @@ import org.apache.spark.SparkContext
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions.{col, _}
-import org.ekstep.analytics.framework.Level.INFO
+import org.ekstep.analytics.framework.Level._
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, JobLogger}
 import org.ekstep.analytics.util.{AssessmentReportUtil, ESUtil}
@@ -32,7 +32,7 @@ object AssessmentMetricsJob extends optional.Application with IJob {
       try {
         execute(jobConfig)
       } catch {
-        case e: Exception => JobLogger.log("Assessment Metrics exception is" + e.getMessage, None, INFO)
+        case e: Exception => JobLogger.log("Assessment Metrics exception is" + e.getMessage, None, ERROR)
       }
       finally {
         CommonUtil.closeSparkContext()
@@ -65,16 +65,17 @@ object AssessmentMetricsJob extends optional.Application with IJob {
     val sparkConf = sc.getConf
       .set("spark.cassandra.input.consistency.level", readConsistencyLevel)
     val spark = SparkSession.builder.config(sparkConf).getOrCreate()
-    val reportDF = prepareReport(spark, loadData)
+    val reportDF = prepareReport(spark, loadData).cache()
 
     val compositeESConf = sc.getConf
       .set("es.scroll.size", AppConf.getConfig("es.scroll.size"))
-      .set("es.node", AppConf.getConfig("es.composite.host"))
+      .set("es.nodes", AppConf.getConfig("es.composite.host"))
 
     val sparkCompositeES = SparkSession.builder.config(compositeESConf).getOrCreate()
     // Get the content name details from the composite elastic search
     val denormalizedDF = denormAssessment(sparkCompositeES, reportDF)
     saveReport(denormalizedDF, tempDir, spark)
+    reportDF.unpersist(true)
     JobLogger.end("AssessmentReport Generation Job completed successfully!", "SUCCESS", Option(Map("config" -> config, "model" -> name)))
     spark.stop()
     sparkCompositeES.stop()
@@ -109,6 +110,7 @@ object AssessmentMetricsJob extends optional.Application with IJob {
     val locationDF = loadData(spark, Map("table" -> "location", "keyspace" -> sunbirdKeyspace))
     val externalIdentityDF = loadData(spark, Map("table" -> "usr_external_identity", "keyspace" -> sunbirdKeyspace))
     val assessmentProfileDF = loadData(spark, Map("table" -> "assessment_aggregator", "keyspace" -> sunbirdCoursesKeyspace))
+
 
     /*
     * courseBatchDF has details about the course and batch details for which we have to prepare the report
@@ -175,20 +177,18 @@ object AssessmentMetricsJob extends optional.Application with IJob {
     // Get only last attempted questions for the specific user and content from specific batch and course from the assessment_aggregator table based on.
     val groupdedDF = Window.partitionBy("user_id", "batch_id", "course_id", "content_id").orderBy(desc("last_attempted_on"))
     val latestAssessmentDF = assessmentProfileDF.withColumn("rownum", row_number.over(groupdedDF)).where(col("rownum") === 1).drop("rownum")
-
     /**
       * Compute the sum of all the worksheet contents score.
       */
     val assessmentAggDf = Window.partitionBy("user_id", "batch_id", "course_id")
     val resDF = latestAssessmentDF
       .withColumn("agg_score", sum("total_score") over assessmentAggDf)
-      .withColumn("agg_max_score",sum("total_max_score") over assessmentAggDf)
+      .withColumn("agg_max_score", sum("total_max_score") over assessmentAggDf)
       // To avoid converting numeric field to date format in the spread sheet, We enclosing score with double quotes.
-      // Example: 2/3 => “2/3”. Since google spread sheet will consider 2/3 as date format column.
-      .withColumn("total_sum_score", concat(lit("\u201C"), col("agg_score"), lit("/"), col("agg_max_score"), lit("\u201D")))
+      // Example: 2/3 => '2/3'. Since google spread sheet will consider 2/3 as date format column.
+      .withColumn("total_sum_score", concat(lit("'"), col("agg_score"), lit("/"), col("agg_max_score"), lit("'")))
 
-     val aggregatedDF = resDF.withColumn("grand_score", concat(lit("\u201C"), col("grand_total"), lit("\u201D")))
-
+    val aggregatedDF = resDF.withColumn("grand_score", concat(lit("'"), col("grand_total"), lit("'")))
     /**
       * Filter only valid enrolled userid for the specific courseid
       */
@@ -247,26 +247,13 @@ object AssessmentMetricsJob extends optional.Application with IJob {
     */
   def saveReport(reportDF: DataFrame, url: String, spark: SparkSession): Unit = {
     // Save the report to azure cloud storage
-    var reportURL = Map[String, String]()
     val result = reportDF.groupBy("courseid").agg(collect_list("batchid").as("batchid"))
     val uploadToAzure = AppConf.getConfig("course.upload.reports.enabled")
     if (StringUtils.isNotBlank(uploadToAzure) && StringUtils.equalsIgnoreCase("true", uploadToAzure)) {
       val courseBatchList = result.collect.map(r => Map(result.columns.zip(r.toSeq): _*))
-      reportURL = AssessmentReportUtil.saveToAzure(courseBatchList, reportDF, url)
+      AssessmentReportUtil.save(courseBatchList, reportDF, url, spark)
     } else {
       JobLogger.log("Skipping uploading reports into to azure", None, INFO)
-    }
-
-    // Get the URL For all the report and index the report path to elastic search.
-    val reportUrlDF = spark.createDataFrame(reportURL.toSeq).toDF("batchid", "reportUrl")
-    val resolvedDF = reportDF.join(reportUrlDF, Seq("batchid"))
-    val aliasName = AppConf.getConfig("assessment.metrics.es.alias")
-    val indexName = AssessmentReportUtil.suffixDate(AppConf.getConfig("assessment.metrics.es.index.prefix"))
-    val indexToEs = AppConf.getConfig("course.es.index.enabled")
-    if (StringUtils.isNotBlank(indexToEs) && StringUtils.equalsIgnoreCase("true", indexToEs)) {
-      AssessmentReportUtil.saveToElastic(indexName, aliasName, resolvedDF)
-    } else {
-      JobLogger.log("Skipping Indexing assessment report into ES", None, INFO)
     }
   }
 
@@ -290,25 +277,22 @@ object AssessmentMetricsJob extends optional.Application with IJob {
     * +--------------------+-------+-------+------------------+-------------+
     * Example:
     */
-  def transposeDF(reportDF: DataFrame, courseId: String, batchId: String): DataFrame = {
-    // Re-shape the dataframe (Convert the content name from the row to column)
-    JobLogger.log(s"Generating report for ${courseId} course and ${batchId} batch", None, INFO)
-    val reshapedDF = reportDF.filter(col("courseid") === courseId && col("batchid") === batchId).
-      groupBy("courseid", "batchid", "userid").pivot("content_name").agg(first("grand_score"))
-    reshapedDF
-      .join(reportDF, Seq("courseid", "batchid", "userid"),
-        "inner").select(
-      reportDF.col("externalid").as("External ID"),
-      reportDF.col("userid").as("User ID"),
-      reportDF.col("username").as("User Name"),
-      reportDF.col("maskedemail").as("Email ID"),
-      reportDF.col("maskedphone").as("Mobile Number"),
-      reportDF.col("orgname_resolved").as("Organisation Name"),
-      reportDF.col("district_name").as("District Name"),
-      reportDF.col("schoolname_resolved").as("School Name"),
-      reshapedDF.col("*"), // Since we don't know the content name column so we are using col("*")
-      reportDF.col("total_sum_score").as("Total Score")
-    ).dropDuplicates("userid", "courseid", "batchid").drop("userid", "courseid", "batchid")
+  def transposeDF(reportDF: DataFrame): DataFrame = {
+    // Re-shape the dataFrame (Convert the content name from the row to column)
+    val reshapedDF = reportDF.groupBy("courseid", "batchid", "userid").pivot("content_name").agg(first("grand_score"))
+    reshapedDF.join(reportDF, Seq("courseid", "batchid", "userid"), "inner").
+      select(
+        reportDF.col("externalid").as("External ID"),
+        reportDF.col("userid").as("User ID"),
+        reportDF.col("username").as("User Name"),
+        reportDF.col("maskedemail").as("Email ID"),
+        reportDF.col("maskedphone").as("Mobile Number"),
+        reportDF.col("orgname_resolved").as("Organisation Name"),
+        reportDF.col("district_name").as("District Name"),
+        reportDF.col("schoolname_resolved").as("School Name"),
+        reshapedDF.col("*"), // Since we don't know the content name column so we are using col("*")
+        reportDF.col("total_sum_score").as("Total Score")
+      ).dropDuplicates("userid", "courseid", "batchid").drop("userid", "courseid", "batchid")
   }
 
 }
