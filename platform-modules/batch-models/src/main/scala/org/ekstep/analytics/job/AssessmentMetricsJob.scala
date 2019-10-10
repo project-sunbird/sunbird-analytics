@@ -186,9 +186,10 @@ object AssessmentMetricsJob extends optional.Application with IJob {
       .withColumn("agg_max_score", sum("total_max_score") over assessmentAggDf)
       // To avoid converting numeric field to date format in the spread sheet, We enclosing score with double quotes.
       // Example: 2/3 => '2/3'. Since google spread sheet will consider 2/3 as date format column.
-      .withColumn("total_sum_score", concat(lit("'"), col("agg_score"), lit("/"), col("agg_max_score"), lit("'")))
+      .withColumn("total_sum_score", concat(col("agg_score"), lit("/"), col("agg_max_score")))
 
-    val aggregatedDF = resDF.withColumn("grand_score", concat(lit("'"), col("grand_total"), lit("'")))
+    val quoteStr = udf((scoreStr: String) => "\"" + scoreStr + "\"")
+    val aggregatedDF = resDF.withColumn("total_sum_score", quoteStr(col("total_sum_score"))).withColumn("grand_score", quoteStr(col("grand_total")))
     /**
       * Filter only valid enrolled userid for the specific courseid
       */
@@ -237,7 +238,6 @@ object AssessmentMetricsJob extends optional.Application with IJob {
         report.col("orgname_resolved"), report.col("externalid"), report.col("schoolname_resolved"), report.col("username")
       )
   }
-
 
   /**
     * This method is used to upload the report the azure cloud service and
