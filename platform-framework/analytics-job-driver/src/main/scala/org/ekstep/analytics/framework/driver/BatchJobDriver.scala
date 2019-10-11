@@ -24,6 +24,11 @@ object BatchJobDriver {
             implicit val sc = CommonUtil.getSparkContext(JobContext.parallelization, config.appName.getOrElse(config.model), sparkCassandraConnectionHost,sparkElasticsearchConnectionHost)
             try {
                 _process(config, models);
+            }
+            catch {
+                case ex: Exception =>
+                    JobLogger.log(ex.getMessage, None, ERROR);
+                    ex.printStackTrace();
             } finally {
                 CommonUtil.closeSparkContext();
                 /*
@@ -40,6 +45,7 @@ object BatchJobDriver {
     private def _process[T, R](config: JobConfig, models: List[IBatchModel[T, R]])(implicit mf: Manifest[T], mfr: Manifest[R], sc: SparkContext) {
 
         val rdd = DataFetcher.fetchBatchData[T](config.search).cache();
+        JobLogger.log("BatchJobDriver - data count", Option(Map("data" -> rdd.count)), INFO)
         val count = rdd.count;
         _setDeviceMapping(config, rdd);
         val data = DataFilter.filterAndSort[T](rdd, config.filters, config.sort);

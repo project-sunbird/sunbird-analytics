@@ -141,6 +141,8 @@ object CommonUtil {
         val accName = AppConf.getStorageKey("azure")
         val accKey = AppConf.getStorageSecret("azure")
         sc.hadoopConfiguration.set("fs.azure", "org.apache.hadoop.fs.azure.NativeAzureFileSystem")
+        sc.hadoopConfiguration.set("fs.wasb.impl","org.apache.hadoop.fs.azure.NativeAzureFileSystem")
+        sc.hadoopConfiguration.set("fs.AbstractFileSystem.wasb.impl", "org.apache.hadoop.fs.azure.Wasb")
         sc.hadoopConfiguration.set("fs.azure.account.key."+accName+".blob.core.windows.net", accKey)
     }
 

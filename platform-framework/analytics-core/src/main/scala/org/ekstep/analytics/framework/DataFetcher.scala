@@ -4,6 +4,7 @@ import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.dstream.DStream
+import org.ekstep.analytics.framework.Level.INFO
 import org.ekstep.analytics.framework.exception.DataFetcherException
 import org.ekstep.analytics.framework.fetcher.{AzureDataFetcher, DruidDataFetcher, S3DataFetcher}
 import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger}
@@ -41,22 +42,25 @@ object DataFetcher {
             case _ =>
                 throw new DataFetcherException("Unknown fetcher type found");
         }
+        JobLogger.log("DataFetcher - printing keys count", Option(Map("keys" -> keys.length)), INFO)
         if (null == keys || keys.length == 0) {
             return sc.parallelize(Seq[T](), JobContext.parallelization);
         }
-        JobLogger.log("Deserializing Input Data");
+        JobLogger.log("Deserializing Input Data", None, INFO);
         val isString = mf.runtimeClass.getName.equals("java.lang.String");
-        sc.textFile(keys.mkString(","), JobContext.parallelization).map { line => {
+        val data = sc.textFile(keys.mkString(","), JobContext.parallelization).map { line => {
+            println("line: " + line)
             try {
                 if (isString) line.asInstanceOf[T] else JSONUtils.deserialize[T](line);
             } catch {
                 case ex: Exception =>
-                    //JobLogger.log(ex.getMessage, Option(Map("date" -> date)));
+                    JobLogger.log(ex.getMessage, None, INFO);
                     null.asInstanceOf[T]
                 }
             }
         }.filter { x => x != null };
-
+        JobLogger.log("DataFetcher - data count", Option(Map("keys" -> data.count)), INFO)
+        data
     }
 
     /**
