@@ -42,14 +42,12 @@ object DataFetcher {
             case _ =>
                 throw new DataFetcherException("Unknown fetcher type found");
         }
-        JobLogger.log("DataFetcher - printing keys count", Option(Map("keys" -> keys.length)), INFO)
         if (null == keys || keys.length == 0) {
             return sc.parallelize(Seq[T](), JobContext.parallelization);
         }
         JobLogger.log("Deserializing Input Data", None, INFO);
         val isString = mf.runtimeClass.getName.equals("java.lang.String");
-        val data = sc.textFile(keys.mkString(","), JobContext.parallelization).map { line => {
-            println("line: " + line)
+        sc.textFile(keys.mkString(","), JobContext.parallelization).map { line => {
             try {
                 if (isString) line.asInstanceOf[T] else JSONUtils.deserialize[T](line);
             } catch {
@@ -59,8 +57,6 @@ object DataFetcher {
                 }
             }
         }.filter { x => x != null };
-        JobLogger.log("DataFetcher - data count", Option(Map("keys" -> data.count)), INFO)
-        data
     }
 
     /**

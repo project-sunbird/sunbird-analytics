@@ -45,7 +45,6 @@ object BatchJobDriver {
     private def _process[T, R](config: JobConfig, models: List[IBatchModel[T, R]])(implicit mf: Manifest[T], mfr: Manifest[R], sc: SparkContext) {
 
         val rdd = DataFetcher.fetchBatchData[T](config.search).cache();
-        JobLogger.log("BatchJobDriver - data count", Option(Map("data" -> rdd.count)), INFO)
         val count = rdd.count;
         _setDeviceMapping(config, rdd);
         val data = DataFilter.filterAndSort[T](rdd, config.filters, config.sort);

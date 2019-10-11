@@ -23,11 +23,6 @@
       		<!--<name>bintray-pagerduty-oss-maven</name>-->
       		<!--<url>https://dl.bintray.com/pagerduty/oss-maven</url>-->
     	<!--</repository>-->
-		<repository>
-			<id>cloud-staging-repo</id>
-			<name>cloud-sdk</name>
-			<url>https://oss.sonatype.org/content/repositories/orgsunbird-1053</url>
-		</repository>
     </repositories>
 
 	<dependencies>
@@ -126,7 +121,22 @@
 		<dependency>
 		    <groupId>org.sunbird</groupId>
 		    <artifactId>cloud-store-sdk</artifactId>
-		    <version>1.2.7</version>
+		    <version>1.2.6</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.microsoft.azure</groupId>
+					<artifactId>azure-storage</artifactId>
+				</exclusion>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-core</artifactId>
+                </exclusion>
+        	</exclusions>
+    	</dependency>
+		<dependency>
+			<groupId>com.microsoft.azure</groupId>
+			<artifactId>azure-storage</artifactId>
+			<version>3.0.0</version>
 		</dependency>
 		
 	</dependencies>
