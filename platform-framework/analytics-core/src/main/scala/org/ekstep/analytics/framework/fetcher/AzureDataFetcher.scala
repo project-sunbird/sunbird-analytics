@@ -1,8 +1,6 @@
 package org.ekstep.analytics.framework.fetcher
 
-import org.ekstep.analytics.framework.Level.INFO
 import org.ekstep.analytics.framework.Query
-import org.ekstep.analytics.framework.util.JobLogger
 //import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.exception.DataFetcherException
 import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}

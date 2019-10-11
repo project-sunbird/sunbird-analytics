@@ -24,11 +24,6 @@ object BatchJobDriver {
             implicit val sc = CommonUtil.getSparkContext(JobContext.parallelization, config.appName.getOrElse(config.model), sparkCassandraConnectionHost,sparkElasticsearchConnectionHost)
             try {
                 _process(config, models);
-            }
-            catch {
-                case ex: Exception =>
-                    JobLogger.log(ex.getMessage, None, ERROR);
-                    ex.printStackTrace();
             } finally {
                 CommonUtil.closeSparkContext();
                 /*
