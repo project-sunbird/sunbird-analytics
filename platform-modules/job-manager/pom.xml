@@ -16,7 +16,8 @@
 	<properties>
 		<scoverage.plugin.version>1.1.1</scoverage.plugin.version>
 	</properties>
-	
+
+	<!--
 	<repositories>
     	<repository>
       		<id>bintray-pagerduty-oss-maven</id>
@@ -24,6 +25,7 @@
       		<url>https://dl.bintray.com/pagerduty/oss-maven</url>
     	</repository>
     </repositories>
+    -->
 
 	<dependencies>
 		<!--
