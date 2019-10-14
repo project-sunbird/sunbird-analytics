@@ -69,7 +69,7 @@ object DeviceSummaryModel extends IBatchModelTemplate[String, DeviceInput, Devic
         }
         val firstAccessFromCassandra = summary.map{ x => x._1}
           .joinWithCassandraTable[Option[Long]](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_PROFILE_TABLE).select("first_access")
-          .on(SomeColumns("device_id", "channel"))
+          .on(SomeColumns("device_id"))
         summary.leftOuterJoin(firstAccessFromCassandra)
           .map{ x =>
               val firstAccessValue = x._2._2.getOrElse(Option(0L))

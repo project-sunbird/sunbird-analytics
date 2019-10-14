@@ -20,7 +20,8 @@ object BatchJobDriver {
         JobContext.parallelization = CommonUtil.getParallelization(config);
         if (null == sc) {
             val sparkCassandraConnectionHost = config.modelParams.getOrElse(Map()).get("sparkCassandraConnectionHost")
-            implicit val sc = CommonUtil.getSparkContext(JobContext.parallelization, config.appName.getOrElse(config.model), sparkCassandraConnectionHost);
+            val sparkElasticsearchConnectionHost = config.modelParams.getOrElse(Map()).get("sparkElasticsearchConnectionHost")
+            implicit val sc = CommonUtil.getSparkContext(JobContext.parallelization, config.appName.getOrElse(config.model), sparkCassandraConnectionHost,sparkElasticsearchConnectionHost)
             try {
                 _process(config, models);
             } finally {
@@ -55,6 +56,8 @@ object BatchJobDriver {
                     JobLogger.log(ex.getMessage, None, ERROR);
                     JobLogger.end(model.name + " processing failed", "FAILED", Option(Map("model" -> model.name, "date" -> endDate, "inputEvents" -> count, "statusMsg" -> ex.getMessage)));
                     ex.printStackTrace();
+            } finally {
+                rdd.unpersist()
             }
         }
     }

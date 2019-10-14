@@ -1,11 +1,15 @@
 package controllers
 
+import akka.actor.Props
+
 import scala.collection.JavaConverters.mapAsJavaMapConverter
 import scala.concurrent.duration.DurationInt
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import akka.util.Timeout
 import akka.util.Timeout.durationToTimeout
+import appconf.AppConf
+import org.ekstep.analytics.api.service.DeviceRegisterService
 import org.ekstep.analytics.api.util.{APILogger, CacheUtil}
 import play.api.mvc._
 
@@ -16,21 +20,9 @@ import play.api.mvc._
 abstract class BaseController extends Controller {
 
   implicit val className = "controllers.BaseController"
+  implicit val config = AppConf.config
 
     implicit val timeout: Timeout = 20 seconds
-    implicit val config: Config = play.Play.application.configuration.underlying()
-        .withFallback(ConfigFactory.parseMap(Map("content2vec.scripts_path" -> "",
-            "python.home" -> "",
-            "content2vec.download_path" -> "/tmp",
-            "content2vec.download_file_prefix" -> "temp_",
-            "content2vec.enrich_content" -> "true",
-            "content2vec.content_corpus" -> "true",
-            "content2vec.train_model" -> "false",
-            "content2vec.s3_bucket" -> "ekstep-dev-data-store",
-            "content2vec.model_path" -> "model",
-            "content2vec.s3_key_prefix" -> "model",
-            "content2vec.infer_all" -> "false",
-            "content2vec.corpus_path" -> "").asJava))
 
     def result(code: String, res: String): Result = {
         val resultObj = code match {

@@ -21,6 +21,8 @@ POST /metrics/dial/usage @controllers.Metrics.dialcodeUsage
 
 POST /metrics/:datasetId/:summary @controllers.Metrics.getMetricsSummary(datasetId: String, summary: String)
 
+GET /metrics/druid @controllers.Application.getDruidHealthStatus
+
 # Data Exhaust
 POST /dataset/request/submit @controllers.JobController.dataRequest
 GET /dataset/request/read/:clientKey/:requestId @controllers.JobController.getJob(clientKey: String, requestId: String)
@@ -33,4 +35,13 @@ GET /refresh-cache/:cacheType @controllers.JobController.refreshCache(cacheType:
 GET /admin/metrics @com.kenshoo.play.metrics.MetricsController.metrics
 
 # Device Register API
-POST /v1/device/register/:deviceId @controllers.Application.registerDevice(deviceId: String)
+# POST /v1/device/register/:deviceId @controllers.Application.registerDevice(deviceId: String)
+POST /v1/device/register/:deviceId @controllers.DeviceController.registerDevice(deviceId: String)
+
+#client error API
+POST /data/v1/client/logs @controllers.Application.logClientErrors
+
+#Experiemnt API
+
+POST /experiment/create @controllers.ExperimentController.createExperiment
+GET /experiment/get/:experimentId @controllers.ExperimentController.getExperiment(experimentId:String)

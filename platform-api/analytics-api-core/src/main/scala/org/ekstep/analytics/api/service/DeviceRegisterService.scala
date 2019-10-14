@@ -1,45 +1,80 @@
 package org.ekstep.analytics.api.service
 
-import org.ekstep.analytics.api.util.{CommonUtil, DBUtil, JSONUtils}
+import org.ekstep.analytics.api.util._
 import org.ekstep.analytics.api._
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
-import akka.actor.Actor
+import akka.actor.{Actor, ActorRef}
 import com.google.common.net.InetAddresses
 import com.typesafe.config.Config
-import org.ekstep.analytics.api.util.PostgresDBUtil
 import com.typesafe.config.ConfigFactory
 import com.datastax.driver.core.ResultSet
+import com.datastax.driver.core.exceptions.DriverException
 import com.google.common.primitives.UnsignedInts
-import org.ekstep.analytics.api.util.DeviceLocation
 import is.tagomor.woothee.Classifier
-import org.ekstep.analytics.framework.util.JobLogger
+import org.postgresql.util.PSQLException
 
-case class RegisterDevice(did: String, ip: String, request: String, uaspec: Option[String])
+import scala.concurrent.ExecutionContext
 
-class DeviceRegisterService extends Actor {
+case class RegisterDevice(did: String, headerIP: String, ip_addr: Option[String], fcmToken: Option[String], producer: Option[String], dspec: Option[String], uaspec: Option[String])
+
+class DeviceRegisterService(saveMetricsActor: ActorRef) extends Actor {
+
+    implicit val ec: ExecutionContext = context.system.dispatchers.lookup("device-register-actor")
     implicit val className: String ="DeviceRegisterService"
     val config: Config = ConfigFactory.load()
     val geoLocationCityTableName: String = config.getString("postgres.table.geo_location_city.name")
     val geoLocationCityIpv4TableName: String = config.getString("postgres.table.geo_location_city_ipv4.name")
-    val defaultChannel: String = config.getString("default.channel")
+    val metricsActor: ActorRef = saveMetricsActor //context.system.actorOf(Props[SaveMetricsActor])
+
 
     def receive = {
-        case RegisterDevice(did: String, ip: String, request: String, uaspec: Option[String]) => sender() ! registerDevice(did, ip, request, uaspec)
+        case RegisterDevice(did: String, headerIP: String, ip_addr: Option[String], fcmToken: Option[String], producer: Option[String], dspec: Option[String], uaspec: Option[String]) =>
+            try {
+                metricsActor.tell(IncrementApiCalls, ActorRef.noSender)
+                registerDevice(did, headerIP, ip_addr, fcmToken, producer, dspec, uaspec)
+            } catch {
+                case ex: PSQLException =>
+                    ex.printStackTrace()
+                    val errorMessage = "DeviceRegisterAPI failed due to " + ex.getMessage
+                    metricsActor.tell(IncrementLocationDbErrorCount, ActorRef.noSender)
+                    APILogger.log("", Option(Map("type" -> "api_access",
+                        "params" -> List(Map("status" -> 500, "method" -> "POST",
+                            "rid" -> "registerDevice", "title" -> "registerDevice")), "data" -> errorMessage)),
+                        "registerDevice")
+                case ex: DriverException =>
+                    ex.printStackTrace()
+                    val errorMessage = "DeviceRegisterAPI failed due to " + ex.getMessage
+                    metricsActor.tell(IncrementDeviceDbSaveErrorCount, ActorRef.noSender)
+                    APILogger.log("", Option(Map("type" -> "api_access",
+                        "params" -> List(Map("status" -> 500, "method" -> "POST",
+                            "rid" -> "registerDevice", "title" -> "registerDevice")), "data" -> errorMessage)),
+                        "registerDevice")
+            }
     }
 
-    def registerDevice(did: String, ipAddress: String, request: String, uaspec: Option[String]): String = {
-        val body = JSONUtils.deserialize[RequestBody](request)
-        val validIp = if (ipAddress.startsWith("192")) body.request.ip_addr.getOrElse("") else ipAddress
-        println(s"did: $did | device_spec: ${body.request.dspec} | uaspec: ${uaspec.getOrElse("")}")
+    def registerDevice(did: String, headerIP: String, ip_addr: Option[String], fcmToken: Option[String], producer: Option[String], dspec: Option[String], uaspec: Option[String]) = {
+        val validIp = if (headerIP.startsWith("192")) ip_addr.getOrElse("") else headerIP
         if (validIp.nonEmpty) {
             val location = resolveLocation(validIp)
-            println(s"Resolved Location for device_id $did: $location")
-            val channel = body.request.channel.getOrElse(defaultChannel)
-            val deviceSpec = body.request.dspec
-            val data = updateDeviceProfile(
+
+            // logging metrics
+            if(isLocationResolved(location)) {
+                APILogger.log("", Option(Map("comments" -> s"Location resolved for $did to state: ${location.state} and city: ${location.city}")), "registerDevice")
+                metricsActor.tell(IncrementLocationDbSuccessCount, ActorRef.noSender)
+            }
+            else {
+                APILogger.log("", Option(Map("comments" -> s"Location is not resolved for $did")), "registerDevice")
+                metricsActor.tell(IncrementLocationDbMissCount, ActorRef.noSender)
+            }
+
+            val deviceSpec: Map[String, AnyRef] = dspec match {
+                case Some(value) => JSONUtils.deserialize[Map[String, AnyRef]](value)
+                case None => Map()
+            }
+
+            updateDeviceProfile(
                 did,
-                channel,
                 Option(location.countryCode).map(_.trim).filterNot(_.isEmpty),
                 Option(location.countryName).map(_.trim).filterNot(_.isEmpty),
                 Option(location.stateCode).map(_.trim).filterNot(_.isEmpty),
@@ -48,17 +83,21 @@ class DeviceRegisterService extends Actor {
                 Option(location.stateCustom).map(_.trim).filterNot(_.isEmpty),
                 Option(location.stateCodeCustom).map(_.trim).filterNot(_.isEmpty),
                 Option(location.districtCustom).map(_.trim).filterNot(_.isEmpty),
-                deviceSpec,
-                uaspec.map(_.trim).filterNot(_.isEmpty)
+                Option(deviceSpec),
+                uaspec.map(_.trim).filterNot(_.isEmpty),
+                fcmToken,
+                producer
             )
-        }
-        JSONUtils.serialize(CommonUtil.OK("analytics.device-register",
-            Map("message" -> s"Device registered successfully")))
 
+            // updateDeviceFirstAccess(did)
+        }
+
+        metricsActor.tell(IncrementDeviceDbSaveSuccessCount, ActorRef.noSender)
     }
 
     def resolveLocation(ipAddress: String): DeviceLocation = {
         val ipAddressInt: Long = UnsignedInts.toLong(InetAddresses.coerceToInteger(InetAddresses.forString(ipAddress)))
+        
         val query =
             s"""
                |SELECT
@@ -79,7 +118,13 @@ class DeviceRegisterService extends Actor {
                |  AND gip.network_start_integer <= $ipAddressInt
                |  AND gip.network_last_integer >= $ipAddressInt
                """.stripMargin
+               
+        metricsActor.tell(IncrementLocationDbHitCount, ActorRef.noSender)
         PostgresDBUtil.readLocation(query).headOption.getOrElse(new DeviceLocation())
+    }
+
+    def isLocationResolved(loc: DeviceLocation): Boolean = {
+        Option(loc.state).nonEmpty
     }
 
     def parseUserAgent(uaspec: Option[String]): Option[String] = {
@@ -93,20 +138,20 @@ class DeviceRegisterService extends Actor {
         }
     }
 
-    def updateDeviceProfile(did: String, channel: String, countryCode: Option[String], country: Option[String],
+    def updateDeviceProfile(did: String, countryCode: Option[String], country: Option[String],
                             stateCode: Option[String], state: Option[String], city: Option[String],
                             stateCustom: Option[String], stateCodeCustom: Option[String], districtCustom: Option[String],
-                            deviceSpec: Option[Map[String, AnyRef]], uaspec: Option[String]): ResultSet = {
+                            deviceSpec: Option[Map[String, AnyRef]], uaspec: Option[String], fcmToken: Option[String], producer: Option[String]): ResultSet = {
 
         val uaspecStr = parseUserAgent(uaspec)
-        val queryMap: Map[String, Any] = Map("device_id" -> s"'$did'", "channel" -> s"'$channel'",
+        val queryMap: Map[String, Any] = Map("device_id" -> s"'$did'",
             "country_code" -> s"'${countryCode.getOrElse("")}'", "country" -> s"'${country.getOrElse("")}'",
             "state_code" -> s"'${stateCode.getOrElse("")}'", "state" -> s"'${state.getOrElse("")}'", "city" -> s"'${city.getOrElse("")}'",
             "state_custom" -> s"'${stateCustom.getOrElse("")}'","state_code_custom" -> s"'${stateCodeCustom.getOrElse("")}'",
             "district_custom" -> s"'${districtCustom.getOrElse("")}'",
             "device_spec" -> deviceSpec.map(x => JSONUtils.serialize(x.mapValues(_.toString))
               .replaceAll("\"", "'")).getOrElse(Map()),
-            "uaspec" -> uaspecStr.getOrElse(""), "updated_date" -> DateTime.now(DateTimeZone.UTC).getMillis)
+            "uaspec" -> uaspecStr.getOrElse(""), "fcm_token" -> s"'${fcmToken.getOrElse("")}'", "producer_id" -> s"'${producer.getOrElse("")}'", "updated_date" -> DateTime.now(DateTimeZone.UTC).getMillis)
 
         val finalQueryValues = queryMap.filter {
             m =>
@@ -122,7 +167,16 @@ class DeviceRegisterService extends Actor {
                | (${finalQueryValues.keys.mkString(",")})
                | VALUES(${finalQueryValues.values.mkString(",")})
            """.stripMargin
-        println(query)
+        DBUtil.session.execute(query)
+    }
+
+    def updateDeviceFirstAccess(did: String): Unit = {
+        val query =
+            s"""
+               |UPDATE ${Constants.DEVICE_DB}.${Constants.DEVICE_PROFILE_TABLE}
+               | SET first_access = ${new DateTime(DateTimeZone.UTC).getMillis}
+               | WHERE device_id = '$did' IF first_access = null
+           """.stripMargin
         DBUtil.session.execute(query)
     }
 }

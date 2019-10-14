@@ -202,6 +202,24 @@ object JobFactory {
                 WorkFlowUsageMetricsUpdater
             case "dialcode-usage-updater" =>
                 DialcodeUsageUpdater
+            case "course-dashboard-metrics" =>
+                CourseMetricsJob
+            case "telemetry-replay" =>
+                EventsReplayJob
+            case "summary-replay" =>
+                EventsReplayJob
+            case "content-rating-updater" =>
+                ContentRatingUpdater
+            case "experiment" =>
+                ExperimentDefinitionJob
+            case "daily-metrics-consumption-reports" =>
+                ConsumptionReportsJob
+            case "pipeline-failed-events-audit" =>
+                AuditComputationJob
+            case "pipeline-druid-events-audit" =>
+                AuditComputationJob
+            case "pipeline-audit" =>
+                AuditComputationJob
             case _ =>
                 throw new JobNotFoundException("Unknown job type found")
         }

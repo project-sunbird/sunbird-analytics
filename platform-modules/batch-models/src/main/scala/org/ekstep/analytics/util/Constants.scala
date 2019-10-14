@@ -45,6 +45,7 @@ object Constants {
     
     val WORKFLOW_USAGE_SUMMARY_FACT = "workflow_usage_summary_fact";
     val DEVICE_PROFILE_TABLE = "device_profile";
+    val EXPERIMENT_DEFINITION_TABLE = "experiment_definition";
 
     /* Creation tables and keyspaces */
     val CREATION_KEY_SPACE_NAME = env+"creation_db";
@@ -67,6 +68,7 @@ object Constants {
     val COMPOSITE_SEARCH_URL = s"$SEARCH_SERVICE_URL" + AppConf.getConfig("service.search.path")
     val ORG_SEARCH_URL: String = AppConf.getConfig("org.search.api.url")
     val ORG_SEARCH_API_KEY: String = AppConf.getConfig("org.search.api.key")
+    val USER_SEARCH_URL : String = AppConf.getConfig("user.search.api.url")
     val GENIE_ENV = "Genie"
     val PLAYER_ENV = "ContentPlayer"
     val PORTAL_ENV = "portal"
