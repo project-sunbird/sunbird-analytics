@@ -35,7 +35,7 @@ object CreationRecommendations extends IRecommendations {
         if (validation.value) {
             val context = requestBody.request.context.getOrElse(Map());
             val authorId = context.getOrElse("uid", "").asInstanceOf[String];
-            val query = QueryBuilder.select().all().from(Constants.PLATFORML_DB, Constants.REQUEST_RECOS_TABLE).where(QueryBuilder.eq("uid", QueryBuilder.bindMarker())).toString()
+            val query = QueryBuilder.select().all().from(Constants.PLATFORM_DB, Constants.REQUEST_RECOS_TABLE).where(QueryBuilder.eq("uid", QueryBuilder.bindMarker())).toString()
 			val ps = DBUtil.session.prepare(query)
 			val requestsFromCassandra = DBUtil.session.execute(ps.bind(authorId)).asScala
 			val getrequests = requestsFromCassandra.map(row => row.getList("requests", classOf[UDTValue]).asInstanceOf[ArrayList[UDTValue]]).map(f => f.asScala).flatMap(f => f).toList

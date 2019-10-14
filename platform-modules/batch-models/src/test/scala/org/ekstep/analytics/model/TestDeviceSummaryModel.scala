@@ -75,10 +75,10 @@ class TestDeviceSummaryModel extends SparkSpec(null) {
     it should "update the value of first_access according to the value from Cassandra else update with dt_range.from" in {
         CassandraConnector(sc.getConf).withSessionDo { session =>
             session.execute("TRUNCATE " + Constants.DEVICE_KEY_SPACE_NAME + "." + Constants.DEVICE_PROFILE_TABLE)
-            session.execute("INSERT INTO " + Constants.DEVICE_KEY_SPACE_NAME + "." + Constants.DEVICE_PROFILE_TABLE +"(device_id, channel, first_access)" +
-              "VALUES('49edda82418a1e916e9906a2fd7942cb','b00bc992ef25f1a9a8d63291e20efc8d', 1536995435000)")
-            session.execute("INSERT INTO " + Constants.DEVICE_KEY_SPACE_NAME + "." + Constants.DEVICE_PROFILE_TABLE +"(device_id, channel, first_access)" +
-              "VALUES('88edda82418a1e916e9906a2fd7942cb','b00bc992ef25f1a9a8d63291e20efc8d', 1536909035000)")
+            session.execute("INSERT INTO " + Constants.DEVICE_KEY_SPACE_NAME + "." + Constants.DEVICE_PROFILE_TABLE +"(device_id, first_access)" +
+              "VALUES('49edda82418a1e916e9906a2fd7942cb', 1536995435000)")
+            session.execute("INSERT INTO " + Constants.DEVICE_KEY_SPACE_NAME + "." + Constants.DEVICE_PROFILE_TABLE +"(device_id, first_access)" +
+              "VALUES('88edda82418a1e916e9906a2fd7942cb', 1536909035000)")
         }
         val rdd = loadFile[String]("src/test/resources/device-summary/test_data1.log")
         val measuredEvent = DeviceSummaryModel.execute(rdd, None)
@@ -96,10 +96,10 @@ class TestDeviceSummaryModel extends SparkSpec(null) {
     it should "update the value of first_access with dt_range.from if null is returned from Cassandra" in {
         CassandraConnector(sc.getConf).withSessionDo { session =>
             session.execute("TRUNCATE " + Constants.DEVICE_KEY_SPACE_NAME + "." + Constants.DEVICE_PROFILE_TABLE)
-            session.execute("INSERT INTO " + Constants.DEVICE_KEY_SPACE_NAME + "." + Constants.DEVICE_PROFILE_TABLE +"(device_id, channel)" +
-              "VALUES('49edda82418a1e916e9906a2fd7942cb','b00bc992ef25f1a9a8d63291e20efc8d')")
-            session.execute("INSERT INTO " + Constants.DEVICE_KEY_SPACE_NAME + "." + Constants.DEVICE_PROFILE_TABLE +"(device_id, channel, first_access)" +
-              "VALUES('88edda82418a1e916e9906a2fd7942cb','b00bc992ef25f1a9a8d63291e20efc8d', 1536909035000)")
+            session.execute("INSERT INTO " + Constants.DEVICE_KEY_SPACE_NAME + "." + Constants.DEVICE_PROFILE_TABLE +"(device_id)" +
+              "VALUES('49edda82418a1e916e9906a2fd7942cb')")
+            session.execute("INSERT INTO " + Constants.DEVICE_KEY_SPACE_NAME + "." + Constants.DEVICE_PROFILE_TABLE +"(device_id, first_access)" +
+              "VALUES('88edda82418a1e916e9906a2fd7942cb', 1536909035000)")
         }
         val rdd = loadFile[String]("src/test/resources/device-summary/test_data1.log")
         val measuredEvent = DeviceSummaryModel.execute(rdd, None)
