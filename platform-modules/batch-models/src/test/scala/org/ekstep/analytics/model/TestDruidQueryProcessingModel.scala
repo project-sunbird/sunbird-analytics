@@ -76,6 +76,15 @@ class TestDruidQueryProcessingModel extends SparkSpec(null) {
         DruidQueryProcessingModel.execute(sc.emptyRDD, Option(modelParams));
     }
 
+    it should "execute report for content plays and generate csv reports" in {
+
+        val contentPlayedQuery = DruidQueryModel("groupBy", "summary-events", "LastDay", None, Option(List(Aggregation(Option("total_content_plays"), "count", ""))), Option(List(DruidDimension("device_loc_state", Option("state")))), Option(List(DruidFilter("equals", "eid", Option("ME_WORKFLOW_SUMMARY")), DruidFilter("in", "dimensions_pdata_id", None, Option(List("prod.diksha.app", "prod.diksha.portal"))),DruidFilter("equals", "dimensions_type", Option("content")), DruidFilter("equals", "dimensions_mode", Option("play")))))
+        val reportConfig2 = ReportConfig("usage_metrics", "groupBy", QueryDateRange(None, Option("Last30Days"), Option("day")), List( Metrics("totalContentPlays", "Total ContentPlay Sessions", contentPlayedQuery)), Map("state" -> "State", "total_content_plays" -> "Number of Content Plays"), List(OutputConfig("csv", None, List( "total_content_plays"), List("state"))))
+        val strConfig2 = JSONUtils.serialize(reportConfig2)
+        val modelParams = Map("reportConfig" -> JSONUtils.deserialize[Map[String, AnyRef]](strConfig2), "bucket" -> "test-container", "key" -> "druid-reports/", "filePath" -> "src/test/resources/")
+        DruidQueryProcessingModel.execute(sc.emptyRDD, Option(modelParams))
+    }
+
     it should "execute weekly report for successful QR Scans and generate csv reports" in {
 //        val totalQRscansQuery = DruidQueryModel("timeSeries", "telemetry-events", "LastDay", None, Option(List(Aggregation(Option("total_scans"), "count", ""))), None, Option(List(DruidFilter("isnotnull", "edata_filters_dialcodes", None),DruidFilter("equals", "eid", Option("SEARCH")))))
         val totalSuccessfulQRScansQuery = DruidQueryModel("timeSeries", "telemetry-events", "LastDay", None, Option(List(Aggregation(Option("total_successful_scans"), "count", ""))), None, Option(List(DruidFilter("isnotnull", "edata_filters_dialcodes", None),DruidFilter("equals", "eid", Option("SEARCH")), DruidFilter("greaterthan", "edata_size", Option(0.asInstanceOf[AnyRef])))))
