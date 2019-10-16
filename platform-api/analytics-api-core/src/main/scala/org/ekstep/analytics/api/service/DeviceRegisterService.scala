@@ -11,10 +11,14 @@ import is.tagomor.woothee.Classifier
 import org.apache.logging.log4j.LogManager
 import org.postgresql.util.PSQLException
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
-case class RegisterDevice(did: String, headerIP: String, ip_addr: Option[String] = None, fcmToken: Option[String] = None, producer: Option[String] = None, dspec: Option[String] = None, uaspec: Option[String] = None, first_access: Option[Long]= None)
-case class DeviceProfileLog(device_id: String, location: DeviceLocation, device_spec: Option[Map[String, AnyRef]] = None, uaspec: Option[String] = None, fcm_token: Option[String] = None, producer_id: Option[String] = None, first_access: Option[Long] = None)
+case class RegisterDevice(did: String, headerIP: String, ip_addr: Option[String] = None, fcmToken: Option[String] = None, producer: Option[String] = None, dspec: Option[String] = None, uaspec: Option[String] = None, first_access: Option[Long]= None, user_declared_state: Option[String] = None, user_declared_district: Option[String] = None)
+case class DeviceProfileLog(device_id: String, location: DeviceLocation, device_spec: Option[Map[String, AnyRef]] = None, uaspec: Option[String] = None, fcm_token: Option[String] = None, producer_id: Option[String] = None, first_access: Option[Long] = None, user_declared_state: Option[String] = None, user_declared_district: Option[String] = None)
+case class GetDeviceProfile(did: String, headerIP: String)
+case class DeviceProfile(userDeclaredLocation: Option[Location], ipLocation: Option[Location])
+case class Location(state: String, district: String)
 
 class DeviceRegisterService(saveMetricsActor: ActorRef, config: Config) extends Actor {
 
@@ -42,6 +46,23 @@ class DeviceRegisterService(saveMetricsActor: ActorRef, config: Config) extends 
                             "rid" -> "registerDevice", "title" -> "registerDevice")), "data" -> errorMessage)),
                         "registerDevice")
             }
+        case deviceProfile: GetDeviceProfile =>
+            try {
+                val result = getDeviceProfile(deviceProfile)
+                val reply = sender()
+                result.onComplete {
+                    case Success(value) => reply ! value
+                    case Failure(error) => reply ! None
+                }
+            } catch {
+                case ex: Exception =>
+                    ex.printStackTrace()
+                    val errorMessage = "DeviceRegisterAPI failed due to " + ex.getMessage
+                    APILogger.log("", Option(Map("type" -> "api_access",
+                        "params" -> List(Map("status" -> 500, "method" -> "POST",
+                            "rid" -> "getDeviceProfile", "title" -> "getDeviceProfile")), "data" -> errorMessage)),
+                        "getDeviceProfile")
+            }
     }
 
 
@@ -65,13 +86,19 @@ class DeviceRegisterService(saveMetricsActor: ActorRef, config: Config) extends 
             }
 
             val deviceProfileLog = DeviceProfileLog(registrationDetails.did, location, Option(deviceSpec),
-              registrationDetails.uaspec, registrationDetails.fcmToken, registrationDetails.producer, registrationDetails.first_access)
+              registrationDetails.uaspec, registrationDetails.fcmToken, registrationDetails.producer, registrationDetails.first_access,
+              registrationDetails.user_declared_state, registrationDetails.user_declared_district)
 
             val deviceRegisterLogEvent = generateDeviceRegistrationLogEvent(deviceProfileLog)
             logger.info(deviceRegisterLogEvent)
             metricsActor.tell(IncrementLogDeviceRegisterSuccessCount, ActorRef.noSender)
         }
 
+    }
+
+    def getDeviceProfile(getProfileDetails: GetDeviceProfile): Future[Option[DeviceProfile]] = {
+
+        Future(Some(DeviceProfile(Option(Location("Karnataka", "Bangalore")), Option(Location("Karnataka", "Bangalore")))))
     }
 
     def resolveLocation(ipAddress: String): DeviceLocation = {
@@ -137,7 +164,9 @@ class DeviceRegisterService(saveMetricsActor: ActorRef, config: Config) extends 
             "fcm_token" -> result.fcm_token.orNull,
             "producer_id" -> result.producer_id.orNull,
             "api_last_updated_on" -> currentTime,
-            "first_access" -> currentTime
+            "first_access" -> currentTime,
+            "user_declared_state"  -> result.user_declared_state,
+            "user_declared_district" -> result.user_declared_district
           )
         JSONUtils.serialize(deviceProfile)
     }
