@@ -146,7 +146,8 @@ object ESUtil extends ESService {
       .option("es.port", AppConf.getConfig("es.port"))
       .option("es.scroll.size", AppConf.getConfig("es.scroll.size"))
       .load(esIndex + "/cs")
-      .select("name", "identifier") // Fields need to capture from the elastic search
+      .select("name", "identifier", "contentType") // Fields need to capture from the elastic search
+
   }
 
   def saveToIndex(data: DataFrame, index: String): Unit = {
