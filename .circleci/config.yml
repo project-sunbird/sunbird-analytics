@@ -10,7 +10,7 @@ jobs:
           name: scruid-build
           command: |
             git clone https://github.com/ing-bank/scruid.git
-            cd scruid && sed -i 's/scalaVersion in ThisBuild := "2.12.8"/scalaVersion in ThisBuild := "2.11.8"/g' build.sbt
+            cd scruid && sed -i 's/scalaVersion in ThisBuild := "2.12.9"/scalaVersion in ThisBuild := "2.11.8"/g' build.sbt
             sbt compile && sbt package && sbt publishM2
       - run:
           name: analytics-framework-build
