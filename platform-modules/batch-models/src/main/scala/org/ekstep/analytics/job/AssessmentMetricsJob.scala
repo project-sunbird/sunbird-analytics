@@ -221,7 +221,7 @@ object AssessmentMetricsJob extends optional.Application with IJob {
     val contentIds = report.select(col("content_id")).rdd.map(r => r.getString(0)).collect.toList.distinct.filter(_ != null)
     val contentMetaDataDF = ESUtil.getContentNames(spark, contentIds, AppConf.getConfig("assessment.metrics.content.index"))
       .filter(col("contentType") === AppConf.getConfig("assessment.metrics.supported.contenttype"))
-    report.join(contentMetaDataDF, report.col("content_id") === contentMetaDataDF.col("identifier"), "right_outer")
+    report.join(contentMetaDataDF, report.col("content_id") === contentMetaDataDF.col("identifier"), "left_outer")
       .select(col("name").as("content_name"),
         col("total_sum_score"), report.col("userid"), report.col("courseid"), report.col("batchid"),
         col("grand_score"), report.col("maskedemail"), report.col("district_name"), report.col("maskedphone"),
