@@ -3,9 +3,9 @@ package org.ekstep.analytics.job
 
 import org.apache.commons.lang3.StringUtils
 import org.apache.spark.SparkContext
-import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions.{col, _}
+import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.ekstep.analytics.framework.Level._
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, JobLogger}
@@ -289,13 +289,13 @@ object AssessmentMetricsJob extends optional.Application with IJob {
   /**
     * Get the Either last updated assessment question or Best attempt assessment
     *
-    * @param isLatestAttempt - Boolean, Enables to get the latest attempt question
+    * @param bestAttemptScore - Boolean, To get the best attempt score
     * @param reportDF        - Dataframe, Report df.
     * @return DataFrame
     */
-  def getAssessmentData(isLatestAttempt: Boolean, reportDF: DataFrame): DataFrame = {
-    val columnName: String = if (isLatestAttempt) "total_score" else "last_attempted_on"
-    val groupdedDF = Window.partitionBy("user_id", "batch_id", "course_id", "content_id").orderBy(desc(columnName))
-    reportDF.withColumn("rownum", row_number.over(groupdedDF)).where(col("rownum") === 1).drop("rownum")
+  def getAssessmentData(bestAttemptScore: Boolean, reportDF: DataFrame): DataFrame = {
+    val columnName: String = if (bestAttemptScore) "total_score" else "last_attempted_on"
+    val df = Window.partitionBy("user_id", "batch_id", "course_id", "content_id").orderBy(desc(columnName))
+    reportDF.withColumn("rownum", row_number.over(df)).where(col("rownum") === 1).drop("rownum")
   }
 }
