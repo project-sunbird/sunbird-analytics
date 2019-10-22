@@ -177,7 +177,6 @@ object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, Druid
                 fs.delete(new Path(finalCRCPath), false)
             }
         }
-        fs.close()
         outDir
     }
 }
