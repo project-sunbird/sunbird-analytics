@@ -1,16 +1,20 @@
 package org.ekstep.analytics.api.service
 
-import com.datastax.driver.core.{ResultSet, Row}
+import akka.actor.ActorSystem
+import akka.testkit.TestActorRef
+import com.typesafe.config.Config
 import org.ekstep.analytics.api.BaseSpec
 import org.ekstep.analytics.api.util.DeviceLocation
-import org.ekstep.analytics.framework.Response
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.mockito.Mockito._
-import org.mockito.{Mockito, Spy}
 
 class TestDeviceRegisterService extends BaseSpec {
 
   val deviceRegisterServiceMock: DeviceRegisterService = mock[DeviceRegisterService]
+  private implicit val system: ActorSystem = ActorSystem("device-register-test-actor-system", config)
+  private val configMock = mock[Config]
+  val saveMetricsActor = TestActorRef(new SaveMetricsActor(configMock))
+  private val deviceRegisterService = TestActorRef(new DeviceRegisterService(saveMetricsActor, configMock)).underlyingActor
 
   val request: String =
     s"""
@@ -41,38 +45,55 @@ class TestDeviceRegisterService extends BaseSpec {
 
   override def beforeAll() {
     super.beforeAll()
-    // val query = "TRUNCATE TABLE " + Constants.DEVICE_DB + "." + Constants.DEVICE_PROFILE_TABLE
-    // DBUtil.session.execute(query)
   }
 
   val uaspec = s"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36"
 
 
-  ignore should "register given device" in {
-    when(deviceRegisterServiceMock.resolveLocation(ipAddress = "10.6.0.16"))
-      .thenReturn(DeviceLocation("Asia", "IN", "India", "KA", "Karnataka", "", "Bangalore", "KARNATAKA", "29", "BANGALORE"))
+  "Device register request " should "generate data for logging device register request" in {
 
-    val dspec = JSONUtils.deserialize[Map[String, AnyRef]]("{\"cpu\":\"abi:  armeabi-v7a  ARMv7 Processor rev 4 (v7l)\",\"make\":\"Micromax Micromax A065\",\"os\":\"Android 4.4.2\"}")
+    val deviceLocation = DeviceLocation("Asia", "IN", "India", "KA", "Karnataka", "", "Bangalore", "KARNATAKA", "29", "BANGALORE")
+    val deviceId = "test-device-1"
+    val deviceSpec = JSONUtils.deserialize[Map[String, AnyRef]]("{\"cpu\":\"abi:  armeabi-v7a  ARMv7 Processor rev 4 (v7l)\",\"make\":\"Micromax Micromax A065\",\"os\":\"Android 4.4.2\"}")
+    val producerId = Some("prod.diksha.app")
+    val fcmToken = Some("test-token")
 
-    //val updateDeviceProfileSpy = Mockito.spy(deviceRegisterServiceMock)
+    when(configMock.getInt("metrics.time.interval.min")).thenReturn(300)
+    when(configMock.getString("postgres.table.geo_location_city.name")).thenReturn("geo_location_city.name")
+    when(configMock.getString("postgres.table.geo_location_city_ipv4.name")).thenReturn("geo_location_city_ipv4.name")
 
-    deviceRegisterServiceMock.
-      registerDevice(did = "test-device-1", "10.6.0.16", None, None, None, None, uaspec = Some(uaspec))
+    val deviceProfileLog = DeviceProfileLog(device_id = deviceId, location = deviceLocation, producer_id = producerId,
+      device_spec = Some(deviceSpec), uaspec = Some(uaspec), fcm_token = fcmToken)
+    val log = deviceRegisterService.generateDeviceRegistrationLogEvent(deviceProfileLog)
+    val outputMap = JSONUtils.deserialize[Map[String, AnyRef]](log)
 
-    Mockito.verify(deviceRegisterServiceMock, atLeastOnce).updateDeviceProfile(
-      "test-device-1",
-      Some("IN"),
-      Some("India"),
-      Some("KA"),
-      Some("Karnataka"),
-      Some("Bangalore"),
-      Some("KARNATAKA"),
-      Some("29"),
-      Some("BANGALORE"),
-      Some(dspec),
-      Some(uaspec),
-      None,
-      None)
+    val listOfExpectedKeys = List("device_id", "city", "country", "country_code", "state_code_custom", "state_code", "state", "state_custom",
+      "district_custom", "first_access", "device_spec", "uaspec", "api_last_updated_on", "producer_id", "fcm_token")
+    val diff = outputMap.keySet.diff(listOfExpectedKeys.toSet)
+
+    // All the input keys should be written to log
+    diff.size should be (0)
+  }
+
+
+  "Optional fields in the device register request " should " be skipped from the log" in {
+
+    val deviceLocation = DeviceLocation("Asia", "IN", "India", "KA", "Karnataka", "", "Bangalore", "KARNATAKA", "29", "BANGALORE")
+    val deviceId = "test-device-1"
+    val deviceSpec = JSONUtils.deserialize[Map[String, AnyRef]]("{\"cpu\":\"abi:  armeabi-v7a  ARMv7 Processor rev 4 (v7l)\",\"make\":\"Micromax Micromax A065\",\"os\":\"Android 4.4.2\"}")
+
+    when(configMock.getInt("metrics.time.interval.min")).thenReturn(300)
+    when(configMock.getString("postgres.table.geo_location_city.name")).thenReturn("geo_location_city.name")
+    when(configMock.getString("postgres.table.geo_location_city_ipv4.name")).thenReturn("geo_location_city_ipv4.name")
+
+    val deviceProfileLog = DeviceProfileLog(device_id = deviceId, location = deviceLocation, device_spec = Some(deviceSpec), uaspec = Some(uaspec))
+    val log = deviceRegisterService.generateDeviceRegistrationLogEvent(deviceProfileLog)
+    val outputMap = JSONUtils.deserialize[Map[String, AnyRef]](log)
+
+    // All the optional keys not present in the input request should not be written to log
+    outputMap.contains("fcm_token") should be (false)
+    outputMap.contains("producer_id") should be (false)
+    outputMap.contains("first_access") should be (false)
   }
 
   "Resolve location" should "return location details given an IP address" in {
@@ -103,174 +124,9 @@ class TestDeviceRegisterService extends BaseSpec {
     deviceLocation.districtCustom should be("")
   }
 
-  "Update device profile db given state and district information" should "return updated device location and device spec details" in {
-    val resultSetMock = mock[ResultSet]
-    val mockedRow = mock[Row]
-    when(resultSetMock.one()).thenReturn(mockedRow)
-    when(mockedRow.getString("country_code")).thenReturn("IN")
-    when(mockedRow.getString("country")).thenReturn("India")
-    when(mockedRow.getString("state_code")).thenReturn("KA")
-    when(mockedRow.getString("state")).thenReturn("Karnataka")
-    when(mockedRow.getString("city")).thenReturn("Bangalore")
-    when(mockedRow.getString("state_code_custom")).thenReturn("29")
-    when(mockedRow.getString("state_custom")).thenReturn("KARNATAKA")
-    when(mockedRow.getString("district_custom")).thenReturn("BANGALORE")
-    when(mockedRow.getString("uaspec")).thenReturn(uaspec)
-    when(mockedRow.getString("fcm_token")).thenReturn("xyz")
-    when(mockedRow.getString("producer_id")).thenReturn("sunbird-app")
-
-    val dspec = Map("cpu" -> "abi:  armeabi-v7a  ARMv7 Processor rev 4 (v7l)",
-      "make" -> "Micromax Micromax A065", "os" -> "Android 4.4.2")
-
-    when(deviceRegisterServiceMock.updateDeviceProfile(did = "test-device-2",
-      countryCode = Some("IN"), country = Some("India"), stateCode = Some("KA"), state = Some("Karnataka"),
-      city = Some("Bangalore"), stateCustom = Some("KARNATAKA"), stateCodeCustom = Some("29"), districtCustom = Some("BANGALORE"),
-      deviceSpec = Some(dspec), uaspec = Some(uaspec), fcmToken = Some("xyz"), producer = Some("sunbird-app"))).thenReturn(resultSetMock)
-
-    val resultRow = deviceRegisterServiceMock.updateDeviceProfile(did = "test-device-2",
-      countryCode = Some("IN"), country = Some("India"), stateCode = Some("KA"), state = Some("Karnataka"),
-      city = Some("Bangalore"), stateCustom = Some("KARNATAKA"), stateCodeCustom = Some("29"), districtCustom = Some("BANGALORE"),
-      deviceSpec = Some(dspec), uaspec = Some(uaspec), fcmToken = Some("xyz"), producer = Some("sunbird-app")).one()
-
-    resultRow.getString("country_code") should be("IN")
-    resultRow.getString("country") should be("India")
-    resultRow.getString("state_code") should be("KA")
-    resultRow.getString("state") should be("Karnataka")
-    resultRow.getString("city") should be("Bangalore")
-    resultRow.getString("state_code_custom") should be("29")
-    resultRow.getString("state_custom") should be("KARNATAKA")
-    resultRow.getString("district_custom") should be("BANGALORE")
-    resultRow.getString("uaspec") should be(uaspec)
-    resultRow.getString("fcm_token") should be("xyz")
-    resultRow.getString("producer_id") should be("sunbird-app")
-  }
-
-  "Update device profile db with only dspec/uaspec" should "return updated device spec and uaspec details" in {
-
-    val dspec = Map("cpu" -> "abi:  armeabi-v7a  ARMv7 Processor rev 4 (v7l)",
-      "make" -> "Micromax Micromax A065", "os" -> "Android 4.4.2")
-
-    val resultSetMock = mock[ResultSet]
-    val mockedRow = mock[Row]
-    when(resultSetMock.one()).thenReturn(mockedRow)
-    when(mockedRow.getString("country_code")).thenReturn("")
-    when(mockedRow.getString("country")).thenReturn("")
-    when(mockedRow.getString("state_code")).thenReturn("")
-    when(mockedRow.getString("state")).thenReturn("")
-    when(mockedRow.getString("city")).thenReturn("")
-    when(mockedRow.getString("uaspec")).thenReturn(uaspec)
-    when(mockedRow.getString("fcm_token")).thenReturn("")
-    when(mockedRow.getString("producer_id")).thenReturn("sunbird-portal")
-
-    when(deviceRegisterServiceMock.updateDeviceProfile(did = "test-device-2",
-      countryCode = None, country = None, stateCode = None, state = None,
-      city = None, stateCustom = Some(""), stateCodeCustom = Some(""), districtCustom = Some(""),
-      deviceSpec = Some(dspec), uaspec = Some(uaspec), fcmToken = None, producer = Some("sunbird-portal"))).thenReturn(resultSetMock)
-
-    val resultRow = deviceRegisterServiceMock.updateDeviceProfile(did = "test-device-2",
-      countryCode = None, country = None, stateCode = None, state = None,
-      city = None,stateCustom = Some(""), stateCodeCustom = Some(""), districtCustom = Some(""),
-      deviceSpec = Some(dspec), uaspec = Some(uaspec), fcmToken = None, producer = Some("sunbird-portal")).one()
-
-    resultRow.getString("country_code") should be("")
-    resultRow.getString("country") should be("")
-    resultRow.getString("state_code") should be("")
-    resultRow.getString("state") should be("")
-    resultRow.getString("city") should be("")
-    resultRow.getString("uaspec") should be(uaspec)
-    resultRow.getString("fcm_token") should be("")
-    resultRow.getString("producer_id") should be("sunbird-portal")
-  }
-
-  "When uaspec is empty" should "return updated device location and device spec" in {
-
-    val dspec = Map("cpu" -> "abi:  armeabi-v7a  ARMv7 Processor rev 4 (v7l)",
-      "make" -> "Micromax Micromax A065", "os" -> "Android 4.4.2")
-
-    val resultSetMock = mock[ResultSet]
-    val mockedRow = mock[Row]
-    when(resultSetMock.one()).thenReturn(mockedRow)
-    when(mockedRow.getString("country_code")).thenReturn("IN")
-    when(mockedRow.getString("country")).thenReturn("India")
-    when(mockedRow.getString("state_code")).thenReturn("KA")
-    when(mockedRow.getString("state")).thenReturn("Karnataka")
-    when(mockedRow.getString("city")).thenReturn("Bangalore")
-    when(mockedRow.getString("uaspec")).thenReturn("")
-    when(mockedRow.getString("fcm_token")).thenReturn("")
-    when(mockedRow.getString("producer_id")).thenReturn("sunbird-portal")
-
-    when(deviceRegisterServiceMock.updateDeviceProfile(did = "test-device-2",
-      countryCode = Some("IN"), country = Some("India"), stateCode = Some("KA"), state = Some("Karnataka"),
-      city = Some("Bangalore"), stateCustom = Some(""), stateCodeCustom = Some(""), districtCustom = Some(""),
-      deviceSpec = Some(dspec), uaspec = None, fcmToken = None, producer = Some("sunbird-portal"))).thenReturn(resultSetMock)
-
-    val resultRow = deviceRegisterServiceMock.updateDeviceProfile(did = "test-device-2",
-      countryCode = Some("IN"), country = Some("India"), stateCode = Some("KA"), state = Some("Karnataka"),
-      city = Some("Bangalore"), stateCustom = Some(""), stateCodeCustom = Some(""), districtCustom = Some(""),
-      deviceSpec = Some(dspec), uaspec = None, fcmToken = None, producer = Some("sunbird-portal")).one()
-
-    resultRow.getString("country_code") should be("IN")
-    resultRow.getString("country") should be("India")
-    resultRow.getString("state_code") should be("KA")
-    resultRow.getString("state") should be("Karnataka")
-    resultRow.getString("city") should be("Bangalore")
-    resultRow.getString("uaspec") should be("")
-    resultRow.getString("fcm_token") should be("")
-    resultRow.getString("producer_id") should be("sunbird-portal")
-  }
-
   "When User-Agent is empty" should "return empty string for user agent map" in {
     when(deviceRegisterServiceMock.parseUserAgent(None)).thenReturn(None)
     val uaspecResult: Option[String] = deviceRegisterServiceMock.parseUserAgent(None)
     uaspecResult should be (None)
   }
-  /*
-  ignore should "register given device with IP" in {
-    val response =
-      deviceRegisterServiceMock
-        .registerDevice(did ="test-device-2", ipAddress = "106.51.74.185", request = request, uaspec = uaspec)
-    val resp = JSONUtils.deserialize[Response](response)
-    resp.id should be("analytics.device-register")
-    resp.params.status should be(Some("successful"))
-
-    val query = "SELECT * FROM " + Constants.DEVICE_DB + "." + Constants.DEVICE_PROFILE_TABLE + " WHERE device_id='test-device-2'"
-    val row = DBUtil.session.execute(query).asScala.head
-    row.getString("state") should be("Karnataka")
-    row.getString("district") should be("Bangalore")
-  }
-
-  ignore should "register given device without IP" in {
-    val response =
-      deviceRegisterServiceMock
-        .registerDevice(did = "test-device-3", ipAddress = "", request = request, uaspec = uaspec)
-    val resp = JSONUtils.deserialize[Response](response)
-    resp.id should be("analytics.device-register")
-    resp.params.status should be(Some("successful"))
-
-    val query = "SELECT * FROM " + Constants.DEVICE_DB + "." + Constants.DEVICE_PROFILE_TABLE + " WHERE device_id='test-device-3'"
-    val row = DBUtil.session.execute(query).asScala
-    row.size should be(0)
-  }
-
-  ignore should "register given device local IP" in {
-    val response =
-      deviceRegisterServiceMock.registerDevice(did = "test-device-4", ipAddress = "192.168.0.0",
-        request =
-          s"""
-             |{"id":"analytics.device.register",
-             |"ver":"1.0","ts":"2016-09-12T18:43:23.890+00:00",
-             |"params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341"},
-             |"request":{"channel":"test-channel","ip_addr": "61.1.139.221"}}
-             |""".stripMargin,
-        uaspec = uaspec)
-    val resp = JSONUtils.deserialize[Response](response)
-    resp.id should be("analytics.device-register")
-    resp.params.status should be(Some("successful"))
-
-    val query = "SELECT * FROM " + Constants.DEVICE_DB + "." + Constants.DEVICE_PROFILE_TABLE + " WHERE device_id='test-device-4'"
-    val row = DBUtil.session.execute(query).asScala.head
-    row.getString("state") should be("Karnataka")
-    row.getString("district") should be("Mysore")
-  }
-  */
 }

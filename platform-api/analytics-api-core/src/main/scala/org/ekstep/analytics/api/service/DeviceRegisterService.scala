@@ -1,38 +1,41 @@
 package org.ekstep.analytics.api.service
 
 import org.ekstep.analytics.api.util._
-import org.ekstep.analytics.api._
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
 import akka.actor.{Actor, ActorRef}
 import com.google.common.net.InetAddresses
 import com.typesafe.config.Config
-import com.typesafe.config.ConfigFactory
-import com.datastax.driver.core.ResultSet
-import com.datastax.driver.core.exceptions.DriverException
 import com.google.common.primitives.UnsignedInts
 import is.tagomor.woothee.Classifier
+import org.apache.logging.log4j.LogManager
 import org.postgresql.util.PSQLException
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
-case class RegisterDevice(did: String, headerIP: String, ip_addr: Option[String], fcmToken: Option[String], producer: Option[String], dspec: Option[String], uaspec: Option[String])
+case class RegisterDevice(did: String, headerIP: String, ip_addr: Option[String] = None, fcmToken: Option[String] = None, producer: Option[String] = None, dspec: Option[String] = None, uaspec: Option[String] = None, first_access: Option[Long]= None, user_declared_state: Option[String] = None, user_declared_district: Option[String] = None)
+case class DeviceProfileLog(device_id: String, location: DeviceLocation, device_spec: Option[Map[String, AnyRef]] = None, uaspec: Option[String] = None, fcm_token: Option[String] = None, producer_id: Option[String] = None, first_access: Option[Long] = None, user_declared_state: Option[String] = None, user_declared_district: Option[String] = None)
+case class GetDeviceProfile(did: String, headerIP: String)
+case class DeviceProfile(userDeclaredLocation: Option[Location], ipLocation: Option[Location])
+case class Location(state: String, district: String)
 
-class DeviceRegisterService(saveMetricsActor: ActorRef) extends Actor {
+class DeviceRegisterService(saveMetricsActor: ActorRef, config: Config) extends Actor {
 
     implicit val ec: ExecutionContext = context.system.dispatchers.lookup("device-register-actor")
     implicit val className: String ="DeviceRegisterService"
-    val config: Config = ConfigFactory.load()
     val geoLocationCityTableName: String = config.getString("postgres.table.geo_location_city.name")
     val geoLocationCityIpv4TableName: String = config.getString("postgres.table.geo_location_city_ipv4.name")
-    val metricsActor: ActorRef = saveMetricsActor //context.system.actorOf(Props[SaveMetricsActor])
+    val metricsActor: ActorRef = saveMetricsActor
+    private val logger = LogManager.getLogger("device-logger")
 
 
     def receive = {
-        case RegisterDevice(did: String, headerIP: String, ip_addr: Option[String], fcmToken: Option[String], producer: Option[String], dspec: Option[String], uaspec: Option[String]) =>
+        case deviceRegDetails: RegisterDevice =>
             try {
                 metricsActor.tell(IncrementApiCalls, ActorRef.noSender)
-                registerDevice(did, headerIP, ip_addr, fcmToken, producer, dspec, uaspec)
+                // registerDevice(registrationDetails.did, registrationDetails.headerIP, registrationDetails.ip_addr, registrationDetails.fcmToken, registrationDetails.producer, registrationDetails.dspec, registrationDetails.uaspec)
+                registerDevice(deviceRegDetails)
             } catch {
                 case ex: PSQLException =>
                     ex.printStackTrace()
@@ -42,62 +45,65 @@ class DeviceRegisterService(saveMetricsActor: ActorRef) extends Actor {
                         "params" -> List(Map("status" -> 500, "method" -> "POST",
                             "rid" -> "registerDevice", "title" -> "registerDevice")), "data" -> errorMessage)),
                         "registerDevice")
-                case ex: DriverException =>
+            }
+        case deviceProfile: GetDeviceProfile =>
+            try {
+                val result = getDeviceProfile(deviceProfile)
+                val reply = sender()
+                result.onComplete {
+                    case Success(value) => reply ! value
+                    case Failure(error) => reply ! None
+                }
+            } catch {
+                case ex: Exception =>
                     ex.printStackTrace()
                     val errorMessage = "DeviceRegisterAPI failed due to " + ex.getMessage
-                    metricsActor.tell(IncrementDeviceDbSaveErrorCount, ActorRef.noSender)
                     APILogger.log("", Option(Map("type" -> "api_access",
                         "params" -> List(Map("status" -> 500, "method" -> "POST",
-                            "rid" -> "registerDevice", "title" -> "registerDevice")), "data" -> errorMessage)),
-                        "registerDevice")
+                            "rid" -> "getDeviceProfile", "title" -> "getDeviceProfile")), "data" -> errorMessage)),
+                        "getDeviceProfile")
             }
     }
 
-    def registerDevice(did: String, headerIP: String, ip_addr: Option[String], fcmToken: Option[String], producer: Option[String], dspec: Option[String], uaspec: Option[String]) = {
-        val validIp = if (headerIP.startsWith("192")) ip_addr.getOrElse("") else headerIP
+
+    def registerDevice(registrationDetails: RegisterDevice) {
+        val validIp = if (registrationDetails.headerIP.startsWith("192")) registrationDetails.ip_addr.getOrElse("") else registrationDetails.headerIP
         if (validIp.nonEmpty) {
             val location = resolveLocation(validIp)
 
             // logging metrics
             if(isLocationResolved(location)) {
-                APILogger.log("", Option(Map("comments" -> s"Location resolved for $did to state: ${location.state} and city: ${location.city}")), "registerDevice")
+                APILogger.log("", Option(Map("comments" -> s"Location resolved for ${registrationDetails.did} to state: ${location.state}, city: ${location.city}, district: ${location.districtCustom}")), "registerDevice")
                 metricsActor.tell(IncrementLocationDbSuccessCount, ActorRef.noSender)
-            }
-            else {
-                APILogger.log("", Option(Map("comments" -> s"Location is not resolved for $did")), "registerDevice")
+            } else {
+                APILogger.log("", Option(Map("comments" -> s"Location is not resolved for ${registrationDetails.did}")), "registerDevice")
                 metricsActor.tell(IncrementLocationDbMissCount, ActorRef.noSender)
             }
 
-            val deviceSpec: Map[String, AnyRef] = dspec match {
+            val deviceSpec: Map[String, AnyRef] = registrationDetails.dspec match {
                 case Some(value) => JSONUtils.deserialize[Map[String, AnyRef]](value)
                 case None => Map()
             }
 
-            updateDeviceProfile(
-                did,
-                Option(location.countryCode).map(_.trim).filterNot(_.isEmpty),
-                Option(location.countryName).map(_.trim).filterNot(_.isEmpty),
-                Option(location.stateCode).map(_.trim).filterNot(_.isEmpty),
-                Option(location.state).map(_.trim).filterNot(_.isEmpty),
-                Option(location.city).map(_.trim).filterNot(_.isEmpty),
-                Option(location.stateCustom).map(_.trim).filterNot(_.isEmpty),
-                Option(location.stateCodeCustom).map(_.trim).filterNot(_.isEmpty),
-                Option(location.districtCustom).map(_.trim).filterNot(_.isEmpty),
-                Option(deviceSpec),
-                uaspec.map(_.trim).filterNot(_.isEmpty),
-                fcmToken,
-                producer
-            )
+            val deviceProfileLog = DeviceProfileLog(registrationDetails.did, location, Option(deviceSpec),
+              registrationDetails.uaspec, registrationDetails.fcmToken, registrationDetails.producer, registrationDetails.first_access,
+              registrationDetails.user_declared_state, registrationDetails.user_declared_district)
 
-            // updateDeviceFirstAccess(did)
+            val deviceRegisterLogEvent = generateDeviceRegistrationLogEvent(deviceProfileLog)
+            logger.info(deviceRegisterLogEvent)
+            metricsActor.tell(IncrementLogDeviceRegisterSuccessCount, ActorRef.noSender)
         }
 
-        metricsActor.tell(IncrementDeviceDbSaveSuccessCount, ActorRef.noSender)
+    }
+
+    def getDeviceProfile(getProfileDetails: GetDeviceProfile): Future[Option[DeviceProfile]] = {
+
+        Future(Some(DeviceProfile(Option(Location("Karnataka", "Bangalore")), Option(Location("Karnataka", "Bangalore")))))
     }
 
     def resolveLocation(ipAddress: String): DeviceLocation = {
         val ipAddressInt: Long = UnsignedInts.toLong(InetAddresses.coerceToInteger(InetAddresses.forString(ipAddress)))
-        
+
         val query =
             s"""
                |SELECT
@@ -118,7 +124,7 @@ class DeviceRegisterService(saveMetricsActor: ActorRef) extends Actor {
                |  AND gip.network_start_integer <= $ipAddressInt
                |  AND gip.network_last_integer >= $ipAddressInt
                """.stripMargin
-               
+
         metricsActor.tell(IncrementLocationDbHitCount, ActorRef.noSender)
         PostgresDBUtil.readLocation(query).headOption.getOrElse(new DeviceLocation())
     }
@@ -138,45 +144,31 @@ class DeviceRegisterService(saveMetricsActor: ActorRef) extends Actor {
         }
     }
 
-    def updateDeviceProfile(did: String, countryCode: Option[String], country: Option[String],
-                            stateCode: Option[String], state: Option[String], city: Option[String],
-                            stateCustom: Option[String], stateCodeCustom: Option[String], districtCustom: Option[String],
-                            deviceSpec: Option[Map[String, AnyRef]], uaspec: Option[String], fcmToken: Option[String], producer: Option[String]): ResultSet = {
+    def generateDeviceRegistrationLogEvent(result: DeviceProfileLog): String = {
 
-        val uaspecStr = parseUserAgent(uaspec)
-        val queryMap: Map[String, Any] = Map("device_id" -> s"'$did'",
-            "country_code" -> s"'${countryCode.getOrElse("")}'", "country" -> s"'${country.getOrElse("")}'",
-            "state_code" -> s"'${stateCode.getOrElse("")}'", "state" -> s"'${state.getOrElse("")}'", "city" -> s"'${city.getOrElse("")}'",
-            "state_custom" -> s"'${stateCustom.getOrElse("")}'","state_code_custom" -> s"'${stateCodeCustom.getOrElse("")}'",
-            "district_custom" -> s"'${districtCustom.getOrElse("")}'",
-            "device_spec" -> deviceSpec.map(x => JSONUtils.serialize(x.mapValues(_.toString))
-              .replaceAll("\"", "'")).getOrElse(Map()),
-            "uaspec" -> uaspecStr.getOrElse(""), "fcm_token" -> s"'${fcmToken.getOrElse("")}'", "producer_id" -> s"'${producer.getOrElse("")}'", "updated_date" -> DateTime.now(DateTimeZone.UTC).getMillis)
+        val uaspecStr = parseUserAgent(result.uaspec)
+        val currentTime = DateTime.now(DateTimeZone.UTC).getMillis
 
-        val finalQueryValues = queryMap.filter {
-            m =>
-                m._2 match {
-                    case s: String => Option(s).exists(_.trim.nonEmpty)
-                    case x: Long => Option(x).isDefined
-                    case other => other.asInstanceOf[Map[String, String]].nonEmpty
-                }
-        }
-        val query =
-            s"""
-               |INSERT INTO ${Constants.DEVICE_DB}.${Constants.DEVICE_PROFILE_TABLE}
-               | (${finalQueryValues.keys.mkString(",")})
-               | VALUES(${finalQueryValues.values.mkString(",")})
-           """.stripMargin
-        DBUtil.session.execute(query)
+        val deviceProfile: Map[String, Any] =
+          Map("device_id" -> result.device_id,
+            "country_code" -> result.location.countryCode,
+            "country" -> result.location.countryName,
+            "state_code" -> result.location.stateCode,
+            "state" -> result.location.state,
+            "city" -> result.location.city,
+            "state_custom" -> result.location.stateCustom,
+            "state_code_custom" -> result.location.stateCodeCustom,
+            "district_custom" -> result.location.districtCustom,
+            "device_spec" -> result.device_spec.map(x => JSONUtils.serialize(x.mapValues(_.toString)).replaceAll("\"", "'")).orNull,
+            "uaspec" -> uaspecStr.orNull,
+            "fcm_token" -> result.fcm_token.orNull,
+            "producer_id" -> result.producer_id.orNull,
+            "api_last_updated_on" -> currentTime,
+            "first_access" -> currentTime,
+            "user_declared_state"  -> result.user_declared_state,
+            "user_declared_district" -> result.user_declared_district
+          )
+        JSONUtils.serialize(deviceProfile)
     }
 
-    def updateDeviceFirstAccess(did: String): Unit = {
-        val query =
-            s"""
-               |UPDATE ${Constants.DEVICE_DB}.${Constants.DEVICE_PROFILE_TABLE}
-               | SET first_access = ${new DateTime(DateTimeZone.UTC).getMillis}
-               | WHERE device_id = '$did' IF first_access = null
-           """.stripMargin
-        DBUtil.session.execute(query)
-    }
 }

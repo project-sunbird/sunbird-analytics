@@ -20,6 +20,19 @@
 		<scoverage.plugin.version>1.1.1</scoverage.plugin.version>
 	</properties>
 
+	<repositories>
+		<repository>
+			<id>in-project</id>
+			<name>In Project Repo</name>
+			<url>file://${project.basedir}/lib</url>
+		</repository>
+<!--		<repository>-->
+<!--			<id>ing-bank</id>-->
+<!--			<name>Ing-bank Repo</name>-->
+<!--			<url>https://dl.bintray.com/ing-bank/maven-releases/</url>-->
+<!--		</repository>-->
+	</repositories>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.scala-lang</groupId>
@@ -38,6 +51,12 @@
 					<groupId>net.java.dev.jets3t</groupId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.spark</groupId>
+			<artifactId>spark-sql_${scala.maj.version}</artifactId>
+			<version>${spark.version}</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.google.guava</groupId>
@@ -184,9 +203,29 @@
 		</dependency> -->
 		<!-- https://mvnrepository.com/artifact/org.sunbird/cloud-store-sdk -->
 		<dependency>
-		    <groupId>org.sunbird</groupId>
-		    <artifactId>cloud-store-sdk</artifactId>
-		    <version>1.0</version>
+			<groupId>org.sunbird</groupId>
+			<artifactId>cloud-store-sdk</artifactId>
+			<version>1.2.6</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.microsoft.azure</groupId>
+					<artifactId>azure-storage</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.fasterxml.jackson.core</groupId>
+					<artifactId>jackson-core</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.microsoft.azure</groupId>
+			<artifactId>azure-storage</artifactId>
+			<version>3.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-core</artifactId>
+			<version>2.7.8</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-text -->
 		<dependency>
@@ -194,6 +233,82 @@
 			<artifactId>commons-text</artifactId>
 			<version>1.6</version>
 		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>ing.wbaa.druid</groupId>-->
+<!--			<artifactId>scruid_2.11</artifactId>-->
+<!--			<version>2.1.0</version>-->
+<!--		</dependency>-->
+		<dependency>
+			<groupId>ing.wbaa.druid</groupId>
+			<artifactId>scruid_2.11</artifactId>
+			<version>2.3.0-SNAPSHOT</version>
+		</dependency>
+
+		<!-- scruid dependency START -->
+
+		<!-- https://mvnrepository.com/artifact/io.circe/circe-core-->
+		<dependency>
+			<groupId>io.circe</groupId>
+			<artifactId>circe-core_2.11</artifactId>
+			<version>0.11.1</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/io.circe/circe-parser -->
+		<dependency>
+			<groupId>io.circe</groupId>
+			<artifactId>circe-parser_2.11</artifactId>
+			<version>0.11.1</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/io.circe/circe-generic -->
+		<dependency>
+			<groupId>io.circe</groupId>
+			<artifactId>circe-generic_2.11</artifactId>
+			<version>0.11.1</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/io.circe/circe-java8 -->
+		<dependency>
+			<groupId>io.circe</groupId>
+			<artifactId>circe-java8_2.11</artifactId>
+			<version>0.11.1</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.mdedetrich/akka-stream-json -->
+		<dependency>
+			<groupId>org.mdedetrich</groupId>
+			<artifactId>akka-stream-json_2.11</artifactId>
+			<version>0.3.0</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.mdedetrich/akka-stream-circe -->
+		<dependency>
+			<groupId>org.mdedetrich</groupId>
+			<artifactId>akka-stream-circe_2.11</artifactId>
+			<version>0.3.0</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.mdedetrich/akka-http-circe -->
+		<dependency>
+			<groupId>org.mdedetrich</groupId>
+			<artifactId>akka-http-circe_2.11</artifactId>
+			<version>0.3.0</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.mdedetrich/akka-http-json -->
+		<dependency>
+			<groupId>org.mdedetrich</groupId>
+			<artifactId>akka-http-json_2.11</artifactId>
+			<version>0.3.0</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.typesafe.akka/akka-http -->
+		<dependency>
+			<groupId>com.typesafe.akka</groupId>
+			<artifactId>akka-http_2.11</artifactId>
+			<version>10.1.5</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.typesafe.akka/akka-stream -->
+		<dependency>
+			<groupId>com.typesafe.akka</groupId>
+			<artifactId>akka-stream_2.11</artifactId>
+			<version>2.5.25</version>
+		</dependency>
+
+		<!-- scruid dependency END -->
+
 		<dependency>
 			<groupId>org.elasticsearch</groupId>
 			<artifactId>elasticsearch-hadoop</artifactId>
@@ -202,8 +317,8 @@
 	</dependencies>
 
 	<build>
-		<sourceDirectory>src/main/scala</sourceDirectory>
-		<testSourceDirectory>src/test/scala</testSourceDirectory>
+			<sourceDirectory>src/main/scala</sourceDirectory>
+			<testSourceDirectory>src/test/scala</testSourceDirectory>
 		<plugins>
 			<plugin>
 				<!-- see http://davidb.github.com/scala-maven-plugin -->
