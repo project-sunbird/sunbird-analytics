@@ -400,24 +400,15 @@ CREATE TABLE IF NOT EXISTS local_device_db.device_content_summary_fact (
 
 CREATE TABLE IF NOT EXISTS local_device_db.device_profile (
 	device_id text,
-    channel text,
-    first_access timestamp,
-    last_access timestamp,
-    total_ts double,
-    total_launches bigint,
-    avg_ts double,
-    device_spec Map<text,text>,
-    updated_date timestamp,
-    state text,
-    state_code text,
-    country text,
-    country_code text,
-    city text,
-    uaspec Map<text,text>,
-    state_custom text,
-    state_code_custom text,
-    district_custom text,
-    PRIMARY KEY (device_id, channel)
+	channel text,
+	first_access timestamp,
+	last_access timestamp,
+	total_ts double,
+	total_launches bigint,
+	avg_ts double,
+	spec Map<text,text>,
+	updated_date timestamp,
+	PRIMARY KEY (device_id, channel)
 );
 
 CREATE KEYSPACE IF NOT EXISTS local_platform_db WITH replication = {
