@@ -72,7 +72,7 @@ class TestUpdateDeviceProfileDB extends SparkSpec(null) {
         CassandraConnector(sc.getConf).withSessionDo { session =>
             session.execute("TRUNCATE " + Constants.DEVICE_KEY_SPACE_NAME + "." + Constants.DEVICE_PROFILE_TABLE)
             session.execute("INSERT INTO " + Constants.DEVICE_KEY_SPACE_NAME + "." + Constants.DEVICE_PROFILE_TABLE +"(device_id,  state_custom, state_code_custom, district_custom, fcm_token, producer_id) VALUES ('88edda82418a1e916e9906a2fd7942cb', 'karnataka', '29', 'bangalore', 'token-xyz', 'sunbird-app')")
-            session.execute("INSERT INTO " + Constants.DEVICE_KEY_SPACE_NAME + "." + Constants.DEVICE_PROFILE_TABLE +"(device_id,  state_custom, state_code_custom, district_custom, fcm_token, producer_id) VALUES ('test-device-1', 'Karnataka', '29', 'Bangalore', '', 'sunbird-portal')")
+            session.execute("INSERT INTO " + Constants.DEVICE_KEY_SPACE_NAME + "." + Constants.DEVICE_PROFILE_TABLE +"(device_id,  state_custom, state_code_custom, district_custom, fcm_token, producer_id, user_declared_state, user_declared_district) VALUES ('test-device-1', 'Karnataka', '29', 'Bangalore', '', 'sunbird-portal', 'Karnataka', 'Bangalore')")
         }
         val rdd = loadFile[DerivedEvent]("src/test/resources/device-profile/test-data2.log")
         UpdateDeviceProfileDB.execute(rdd, None)
@@ -92,5 +92,7 @@ class TestUpdateDeviceProfileDB extends SparkSpec(null) {
         val device3 = sc.cassandraTable[DeviceProfileOutput](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_PROFILE_TABLE).where("device_id=?", "test-device-1").first
         device3.fcm_token.get should be("")
         device3.producer_id.get should be("sunbird-portal")
+        device3.user_declared_state.get should be("Karnataka")
+        device3.user_declared_district.get should be("Bangalore")
     }
 }

@@ -1,7 +1,7 @@
 package org.ekstep.analytics.api.service
 
 import akka.actor.Actor
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.Config
 import org.apache.logging.log4j.LogManager
 import org.ekstep.analytics.api.util.JSONUtils
 
@@ -12,13 +12,14 @@ case object IncrementLocationDbHitCount
 case object IncrementLocationDbMissCount
 case object IncrementLocationDbSuccessCount
 case object IncrementLocationDbErrorCount
+case object IncrementLogDeviceRegisterSuccessCount
 case object IncrementDeviceDbSaveSuccessCount
 case object IncrementDeviceDbSaveErrorCount
 
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class SaveMetricsActor extends Actor {
+class SaveMetricsActor(config: Config) extends Actor {
 
   private val logger = LogManager.getLogger("metrics-logger")
 
@@ -27,12 +28,10 @@ class SaveMetricsActor extends Actor {
   private var locationDbMissCount: Int = 0
   private var locationDbSuccessCount: Int = 0
   private var locationDbErrorCount: Int = 0
-  private var deviceDbSaveSuccessCount: Int = 0
-  private var deviceDbSaveErrorCount: Int = 0
+  private var logDeviceRegisterSuccessCount: Int = 0
 
 
   override def preStart(): Unit = {
-    val config: Config = ConfigFactory.load()
     val metricsPublishInterval: Int = config.getInt("metrics.time.interval.min")
     context.system.scheduler.schedule(initialDelay = 0.seconds, interval = metricsPublishInterval.minutes, self, SaveMetrics)
   }
@@ -43,8 +42,7 @@ class SaveMetricsActor extends Actor {
     case IncrementLocationDbMissCount => locationDbMissCount += 1
     case IncrementLocationDbSuccessCount => locationDbSuccessCount += 1
     case IncrementLocationDbErrorCount => locationDbErrorCount += 1
-    case IncrementDeviceDbSaveSuccessCount => deviceDbSaveSuccessCount += 1
-    case IncrementDeviceDbSaveErrorCount => deviceDbSaveErrorCount += 1
+    case IncrementLogDeviceRegisterSuccessCount => logDeviceRegisterSuccessCount += 1
     case SaveMetrics => writeMetricsToLog()
   }
 
@@ -54,15 +52,20 @@ class SaveMetricsActor extends Actor {
     locationDbMissCount = 0
     locationDbSuccessCount = 0
     locationDbErrorCount = 0
-    deviceDbSaveSuccessCount = 0
-    deviceDbSaveErrorCount = 0
+    logDeviceRegisterSuccessCount = 0
   }
 
   def writeMetricsToLog() = {
-    val data = Map("job-name" -> "DeviceRegisterAPI", "api-version" -> "v1", "timestamp" -> System.currentTimeMillis(),
-      "api-calls" -> apiCalls, "location-db-hit-count" -> locationDbHitCount, "location-db-success-count" -> locationDbSuccessCount,
-      "location-db-miss-count" -> locationDbMissCount, "location-db-error-count" -> locationDbErrorCount,
-      "device-db-save-success-count" -> deviceDbSaveSuccessCount, "device-db-save-error-count" -> deviceDbSaveErrorCount)
+    val data = Map(
+      "job-name" -> "DeviceRegisterAPI",
+      "api-version" -> "v1",
+      "timestamp" -> System.currentTimeMillis(),
+      "api-calls" -> apiCalls,
+      "location-db-hit-count" -> locationDbHitCount,
+      "location-db-success-count" -> locationDbSuccessCount,
+      "location-db-miss-count" -> locationDbMissCount,
+      "location-db-error-count" -> locationDbErrorCount,
+      "log-device-register-success-count" -> logDeviceRegisterSuccessCount)
     logger.info(JSONUtils.serialize(data))
     resetCounts()
   }

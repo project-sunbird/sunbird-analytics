@@ -1,8 +1,10 @@
 package org.ekstep.analytics.util
 
+import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.ekstep.analytics.framework.Level.{ERROR, INFO}
-import org.ekstep.analytics.framework.util.{JobLogger, RestUtil}
+import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger, RestUtil}
 import org.ekstep.analytics.job.ESIndexResponse
+import org.elasticsearch.spark.sql._
 import org.sunbird.cloud.storage.conf.AppConf
 
 import scala.collection.mutable.ListBuffer
@@ -112,5 +114,47 @@ object ESUtil extends ESService {
     }
   }
 
+  def getContentNames(spark: SparkSession, content: List[String], esIndex: String): DataFrame = {
+    case class content_identifiers(identifiers: List[String])
+    val contentList = JSONUtils.serialize(content_identifiers(content).identifiers)
+    JobLogger.log(s"Total number of unique content identifiers are ${content.length}", None, INFO)
+    val request =
+      s"""
+         {
+         |  "_source": {
+         |    "includes": [
+         |      "name"
+         |    ]
+         |  },
+         |  "query": {
+         |    "bool": {
+         |      "must": [
+         |        {
+         |          "terms": {
+         |            "identifier.raw": $contentList
+         |          }
+         |        }
+         |      ]
+         |    }
+         |  }
+         |}
+       """.stripMargin
+    spark.read.format("org.elasticsearch.spark.sql")
+      .option("query", request)
+      .option("pushdown", "true")
+      .option("es.nodes", AppConf.getConfig("es.composite.host"))
+      .option("es.port", AppConf.getConfig("es.port"))
+      .option("es.scroll.size", AppConf.getConfig("es.scroll.size"))
+      .load(esIndex + "/cs")
+      .select("name", "identifier") // Fields need to capture from the elastic search
+  }
 
+  def saveToIndex(data: DataFrame, index: String): Unit = {
+    try {
+      data.saveToEs(s"$index/_doc")
+    }
+    catch {
+      case e: Exception => JobLogger.log("Indexing of data into es is failed: " + e.getMessage, None, ERROR)
+    }
+  }
 }
