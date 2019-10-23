@@ -224,7 +224,7 @@ object JobFactory {
                 AuditComputationJob
             case "pipeline-audit" =>
                 AuditComputationJob
-            case "admin-page-reports" =>
+            case "admin-user-reports" =>
                 StateAdminReportJob
             case _ =>
                 throw new JobNotFoundException("Unknown job type found")
