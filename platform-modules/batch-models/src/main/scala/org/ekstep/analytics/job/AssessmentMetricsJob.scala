@@ -166,7 +166,7 @@ object AssessmentMetricsJob extends optional.Application with IJob {
     val userLocationResolvedDF = userOrgDenormDF
       .join(locationDenormDF, Seq("userid"), "left_outer")
 
-    val assessmentDF = getAssessmentData(AppConf.getConfig("assessment.metrics.bestscore.report").toBoolean, assessmentProfileDF)
+    val assessmentDF = getAssessmentData(assessmentProfileDF)
     /**
       * Compute the sum of all the worksheet contents score.
       */
@@ -219,9 +219,8 @@ object AssessmentMetricsJob extends optional.Application with IJob {
     */
   def denormAssessment(spark: SparkSession, report: DataFrame): DataFrame = {
     val contentIds = report.select(col("content_id")).rdd.map(r => r.getString(0)).collect.toList.distinct.filter(_ != null)
-    val contentMetaDataDF = ESUtil.getContentNames(spark, contentIds, AppConf.getConfig("assessment.metrics.content.index"))
-      .filter(col("contentType") === AppConf.getConfig("assessment.metrics.supported.contenttype"))
-    report.join(contentMetaDataDF, report.col("content_id") === contentMetaDataDF.col("identifier"), "right_outer")
+    val contentMetaDataDF = ESUtil.getContentNames(spark, contentIds, AppConf.getConfig("assessment.metrics.content.index"),  AppConf.getConfig("assessment.metrics.supported.contenttype"))
+    report.join(contentMetaDataDF, report.col("content_id") === contentMetaDataDF.col("identifier"), "right_outer") // Doing right join since to generate report only for the "SelfAssess" content types
       .select(col("name").as("content_name"),
         col("total_sum_score"), report.col("userid"), report.col("courseid"), report.col("batchid"),
         col("grand_score"), report.col("maskedemail"), report.col("district_name"), report.col("maskedphone"),
@@ -293,8 +292,9 @@ object AssessmentMetricsJob extends optional.Application with IJob {
     * @param reportDF        - Dataframe, Report df.
     * @return DataFrame
     */
-  def getAssessmentData(bestAttemptScore: Boolean, reportDF: DataFrame): DataFrame = {
-    val columnName: String = if (bestAttemptScore) "total_score" else "last_attempted_on"
+  def getAssessmentData(reportDF: DataFrame): DataFrame = {
+    val bestScoreReport = AppConf.getConfig("assessment.metrics.bestscore.report").toBoolean
+    val columnName: String = if (bestScoreReport) "total_score" else "last_attempted_on"
     val df = Window.partitionBy("user_id", "batch_id", "course_id", "content_id").orderBy(desc(columnName))
     reportDF.withColumn("rownum", row_number.over(df)).where(col("rownum") === 1).drop("rownum")
   }
