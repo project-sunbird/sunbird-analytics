@@ -76,7 +76,6 @@ class TestUpdateDeviceProfileDB extends SparkSpec(null) {
         }
         val rdd = loadFile[DerivedEvent]("src/test/resources/device-profile/test-data2.log")
         UpdateDeviceProfileDB.execute(rdd, None)
-
         val device = sc.cassandraTable[DeviceProfileOutput](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_PROFILE_TABLE).where("device_id=?", "88edda82418a1e916e9906a2fd7942cb").first
         device.state_custom.get should be("karnataka")
         device.state_code_custom.get should be("29")
