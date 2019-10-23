@@ -16,19 +16,6 @@ import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
 
 import scala.collection.{Map, _}
 
-trait ReportGenerator {
-  def loadData(spark: SparkSession, settings: Map[String, String]): DataFrame
-
-  def generateReports(spark: SparkSession, fetchTable: (SparkSession, Map[String, String]) => DataFrame): DataFrame
-
-  def saveReportES(reportDF: DataFrame): Unit
-
-  def saveSummaryReport(reportDF: DataFrame, url: String): Unit
-
-  def saveDetailsReport(reportDF: DataFrame, url: String): Unit
-}
-
-//case class ESIndexResponse(isOldIndexDeleted: Boolean, isIndexLinkedToAlias: Boolean)
 
 object UserStatus extends Enumeration {
   type UserStatus = Value
@@ -96,7 +83,7 @@ object StateAdminReportJob extends optional.Application with IJob with ReportGen
       .set("spark.cassandra.input.consistency.level", readConsistencyLevel)
 
     val spark = SparkSession.builder.config(sparkConf).getOrCreate()
-    val reportDF = generateReports(spark, loadData)
+    val reportDF = prepareReport(spark, loadData)
     uploadReport(renamedDir)
     JobLogger.end("StateAdminReportJob completed successfully!", "SUCCESS", Option(Map("config" -> config, "model" -> name)))
   }
@@ -109,7 +96,7 @@ object StateAdminReportJob extends optional.Application with IJob with ReportGen
       .load()
   }
 
-  def generateReports(spark: SparkSession, loadData: (SparkSession, Map[String, String]) => DataFrame): DataFrame = {
+  def prepareReport(spark: SparkSession, loadData: (SparkSession, Map[String, String]) => DataFrame): DataFrame = {
     val sunbirdKeyspace = AppConf.getConfig("course.metrics.cassandra.sunbirdKeyspace")
     val distinctChannelDF = loadData(spark, Map("table" -> "shadow_user", "keyspace" -> sunbirdKeyspace)).select(col = "channel").distinct()
 
@@ -128,14 +115,12 @@ object StateAdminReportJob extends optional.Application with IJob with ReportGen
       JobLogger.log(s"${rowUnit.mkString} has ${oneOrgUsersDF.cache().count()} many users in shadow_user table")
       //println(s"${rowUnit.mkString} has ${oneOrgUsersDF.cache().count()} many users in shadow_user table")
 
-      saveDetailsReport(oneOrgUsersDF, tempDir)
-      saveSummaryReport(oneOrgUsersDF, tempDir)
+      saveReport(oneOrgUsersDF, tempDir)
 
       renameReport(tempDir, renamedDir, ".csv", "user-detail")
       renameReport(tempDir, renamedDir, ".json", "user-summary")
       //uploadReport(renamedDir)
     })
-
 
     // TODO Geo-data
 
@@ -146,6 +131,18 @@ object StateAdminReportJob extends optional.Application with IJob with ReportGen
   def saveReportES(reportDF: DataFrame): Unit = {
   }
 
+  def saveReport(reportDF: DataFrame, url: String): Unit = {
+    saveDetailsReport(reportDF, url);
+    saveSummaryReport(reportDF, url);
+  }
+
+  /**
+    * Saves the raw data as a .csv.
+    * Appends /detail to the URL to prevent overwrites.
+    * Check function definition for the exact column ordering.
+    * @param reportDF
+    * @param url
+    */
   def saveDetailsReport(reportDF: DataFrame, url: String): Unit = {
     reportDF.coalesce(1)
       .write
@@ -157,6 +154,13 @@ object StateAdminReportJob extends optional.Application with IJob with ReportGen
     JobLogger.log(s"StateAdminReportJob: uploadedSuccess nRecords = ${reportDF.count()}")
   }
 
+  /**
+    * Saves the raw data as a .json.
+    * Appends /detail to the URL to prevent overwrites.
+    * Check function definition for the exact column ordering.
+    * @param reportDF
+    * @param url
+    */
   def saveSummaryReport(reportDF: DataFrame, url: String): Unit = {
     reportDF.coalesce(1)
       .write
