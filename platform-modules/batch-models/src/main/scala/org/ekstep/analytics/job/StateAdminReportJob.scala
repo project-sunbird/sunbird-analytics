@@ -169,9 +169,14 @@ object StateAdminReportJob extends optional.Application with IJob with ReportGen
   }
 
   def uploadReport(sourcePath: String) = {
+    // FIX - The cloud provider can shed away course-metrics
     val provider = AppConf.getConfig("course.metrics.cloud.provider")
+
+    // TODO - container name can be generic - we dont want to create as many container as many reports
     val container = AppConf.getConfig("course.metrics.cloud.container")
-    val objectKey = AppConf.getConfig("admin.report.cloud.objectKey")
+
+    // ObjectKey is defaulted to /reports, which is good.
+    val objectKey = AppConf.getConfig("course.metrics.cloud.objectKey")
 
     val storageService = StorageServiceFactory
       .getStorageService(StorageConfig(provider, AppConf.getStorageKey(provider), AppConf.getStorageSecret(provider)))
