@@ -1,0 +1,4 @@
+channel,userextid,addedby,claimedon,claimedstatus,createdon,email,name,orgextid,phone,processid,updatedon,userid,userids,userstatus
+tn,tnext1,null,null,0,null,abc1@123.com,emp1Name,orgext1,1234567890,anyProcessId,null,null,null,0
+tn,tnext2,null,null,0,null,abc2@123.com,emp2Name,orgext2,1234567809,anyProcessId2,null,null,null,0
+ap,apext1,null,null,0,null,abc@123.com,emp1Name,orgext1,1234567890,anyProcessId,null,null,null,0
