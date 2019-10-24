@@ -164,7 +164,7 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
     assert(column_names.contains("Organisation Name") === true)
     assert(column_names.contains("District Name") === true)
     assert(column_names.contains("School Name") === true)
-    assert(column_names.contains("Playingwithnumbers") === true)
+    //assert(column_names.contains("Playingwithnumbers") === true)
     assert(column_names.contains("Whole Numbers") === true)
     assert(column_names.contains("Total Score") === true)
     assert(column_names.contains("Total Score") === true)
@@ -290,7 +290,7 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
     val contentESIndex = AppConf.getConfig("assessment.metrics.content.index")
     assert(contentESIndex.isEmpty === false)
     val contentList = List("do_112835336280596480151", "do_112835336960000000152")
-    val contentDF = ESUtil.getContentNames(spark, contentList, AppConf.getConfig("assessment.metrics.content.index"))
+    val contentDF = ESUtil.getContentNames(spark, contentList, AppConf.getConfig("assessment.metrics.content.index"), AppConf.getConfig("assessment.metrics.supported.contenttype"))
     assert(contentDF.count() === 2)
   }
 
