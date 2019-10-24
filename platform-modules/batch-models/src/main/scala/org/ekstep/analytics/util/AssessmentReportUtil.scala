@@ -1,8 +1,8 @@
 package org.ekstep.analytics.util
 
 import org.apache.commons.lang3.StringUtils
-import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.functions.{col, _}
+import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.ekstep.analytics.framework.Level.{ERROR, INFO}
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.job.AssessmentMetricsJob.transposeDF
