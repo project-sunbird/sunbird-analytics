@@ -290,7 +290,7 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
     val contentESIndex = AppConf.getConfig("assessment.metrics.content.index")
     assert(contentESIndex.isEmpty === false)
     val contentList = List("do_112835336280596480151", "do_112835336960000000152")
-    val contentDF = ESUtil.getContentNames(spark, contentList, AppConf.getConfig("assessment.metrics.content.index"), AppConf.getConfig("assessment.metrics.supported.contenttype"))
+    val contentDF = ESUtil.getAssessmentNames(spark, contentList, AppConf.getConfig("assessment.metrics.content.index"), AppConf.getConfig("assessment.metrics.supported.contenttype"))
     assert(contentDF.count() === 2)
   }
 
