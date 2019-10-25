@@ -4,7 +4,7 @@ import akka.actor.ActorSystem
 import akka.testkit.TestActorRef
 import com.typesafe.config.Config
 import org.ekstep.analytics.api.BaseSpec
-import org.ekstep.analytics.api.util.DeviceLocation
+import org.ekstep.analytics.api.util.{DeviceLocation, RedisUtil}
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.mockito.Mockito._
 
@@ -13,8 +13,9 @@ class TestDeviceRegisterService extends BaseSpec {
   val deviceRegisterServiceMock: DeviceRegisterService = mock[DeviceRegisterService]
   private implicit val system: ActorSystem = ActorSystem("device-register-test-actor-system", config)
   private val configMock = mock[Config]
+  val redisUtil = mock[RedisUtil]
   val saveMetricsActor = TestActorRef(new SaveMetricsActor(configMock))
-  private val deviceRegisterService = TestActorRef(new DeviceRegisterService(saveMetricsActor, configMock)).underlyingActor
+  private val deviceRegisterService = TestActorRef(new DeviceRegisterService(saveMetricsActor, configMock, redisUtil)).underlyingActor
 
   val request: String =
     s"""
