@@ -104,7 +104,7 @@ class DeviceRegisterService(saveMetricsActor: ActorRef, config: Config, redisUti
         if(getProfileDetails.headerIP.nonEmpty) {
             val ipLocation = resolveLocation(getProfileDetails.headerIP)
             val deviceLocation = redisUtil.getAllByKey(getProfileDetails.did)
-            val userDeclaredLoc = if (deviceLocation.nonEmpty && deviceLocation.get("user_declared_state").nonEmpty) Option(Location(deviceLocation.get("user_declared_state"), deviceLocation.get("user_declared_district"))) else None
+            val userDeclaredLoc = if (deviceLocation.nonEmpty && deviceLocation.get.getOrElse("user_declared_state", "").nonEmpty) Option(Location(deviceLocation.get("user_declared_state"), deviceLocation.get("user_declared_district"))) else None
             //        val query =
             //            s"""
             //               |SELECT
