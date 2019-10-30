@@ -3,9 +3,9 @@ package org.ekstep.analytics.job
 
 import org.apache.commons.lang3.StringUtils
 import org.apache.spark.SparkContext
-import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions.{col, _}
+import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.ekstep.analytics.framework.Level._
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, JobLogger}
@@ -166,14 +166,12 @@ object AssessmentMetricsJob extends optional.Application with IJob {
     val userLocationResolvedDF = userOrgDenormDF
       .join(locationDenormDF, Seq("userid"), "left_outer")
 
-    // Get only last attempted questions for the specific user and content from specific batch and course from the assessment_aggregator table based on.
-    val groupdedDF = Window.partitionBy("user_id", "batch_id", "course_id", "content_id").orderBy(desc("last_attempted_on"))
-    val latestAssessmentDF = assessmentProfileDF.withColumn("rownum", row_number.over(groupdedDF)).where(col("rownum") === 1).drop("rownum")
+    val assessmentDF = getAssessmentData(assessmentProfileDF)
     /**
       * Compute the sum of all the worksheet contents score.
       */
     val assessmentAggDf = Window.partitionBy("user_id", "batch_id", "course_id")
-    val resDF = latestAssessmentDF
+    val resDF = assessmentDF
       .withColumn("agg_score", sum("total_score") over assessmentAggDf)
       .withColumn("agg_max_score", sum("total_max_score") over assessmentAggDf)
       // To avoid converting numeric field to date format in the spread sheet, We enclosing score with double quotes.
@@ -221,8 +219,8 @@ object AssessmentMetricsJob extends optional.Application with IJob {
     */
   def denormAssessment(spark: SparkSession, report: DataFrame): DataFrame = {
     val contentIds = report.select(col("content_id")).rdd.map(r => r.getString(0)).collect.toList.distinct.filter(_ != null)
-    val contentNameDF = ESUtil.getContentNames(spark, contentIds, AppConf.getConfig("assessment.metrics.content.index"))
-    report.join(contentNameDF, report.col("content_id") === contentNameDF.col("identifier"), "left_outer")
+    val contentMetaDataDF = ESUtil.getAssessmentNames(spark, contentIds, AppConf.getConfig("assessment.metrics.content.index"),  AppConf.getConfig("assessment.metrics.supported.contenttype"))
+    report.join(contentMetaDataDF, report.col("content_id") === contentMetaDataDF.col("identifier"), "right_outer") // Doing right join since to generate report only for the "SelfAssess" content types
       .select(col("name").as("content_name"),
         col("total_sum_score"), report.col("userid"), report.col("courseid"), report.col("batchid"),
         col("grand_score"), report.col("maskedemail"), report.col("district_name"), report.col("maskedphone"),
@@ -287,4 +285,17 @@ object AssessmentMetricsJob extends optional.Application with IJob {
       ).dropDuplicates("userid", "courseid", "batchid").drop("userid", "courseid", "batchid")
   }
 
+  /**
+    * Get the Either last updated assessment question or Best attempt assessment
+    *
+    * @param bestAttemptScore - Boolean, To get the best attempt score
+    * @param reportDF        - Dataframe, Report df.
+    * @return DataFrame
+    */
+  def getAssessmentData(reportDF: DataFrame): DataFrame = {
+    val bestScoreReport = AppConf.getConfig("assessment.metrics.bestscore.report").toBoolean
+    val columnName: String = if (bestScoreReport) "total_score" else "last_attempted_on"
+    val df = Window.partitionBy("user_id", "batch_id", "course_id", "content_id").orderBy(desc(columnName))
+    reportDF.withColumn("rownum", row_number.over(df)).where(col("rownum") === 1).drop("rownum")
+  }
 }
