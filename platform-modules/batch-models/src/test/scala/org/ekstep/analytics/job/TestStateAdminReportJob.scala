@@ -13,6 +13,8 @@ import scala.collection.Map
 class TestStateAdminReportJob extends SparkSpec(null) with MockFactory {
   var spark: SparkSession = _
   var shadowUserDF: DataFrame = _
+  var locationDF: DataFrame = _
+  var orgDF: DataFrame = _
   var reporterMock: ReportGenerator = mock[ReportGenerator]
   val sunbirdKeyspace = "sunbird"
 
@@ -20,20 +22,42 @@ class TestStateAdminReportJob extends SparkSpec(null) with MockFactory {
     super.beforeAll()
     spark = SparkSession.builder.config(sc.getConf).getOrCreate()
 
-    //(jobLoggerMock.isInfoEnabled _).thenReturn(true)
     shadowUserDF = spark
       .read
       .format("com.databricks.spark.csv")
       .option("header", "true")
       .load("src/test/resources/state-admin-report-updater/shadowUserTable.csv")
       .cache()
+
+    locationDF = spark
+      .read
+      .format("com.databricks.spark.csv")
+      .option("header", "true")
+      .load("src/test/resources/state-admin-report-updater/locationTable.csv")
+      .cache()
+
+    orgDF = spark
+      .read
+      .format("com.databricks.spark.csv")
+      .option("header", "true")
+      .option("inferSchema", "true")
+      .load("src/test/resources/state-admin-report-updater/orgTable.csv")
+      .cache()
   }
 
 
-  "TestUpdateCourseMetrics" should "generate reports" in {
+  "TestUpdateStateAdminReport" should "generate reports" in {
     (reporterMock.loadData _)
       .expects(spark, Map("table" -> "shadow_user", "keyspace" -> sunbirdKeyspace))
       .returning(shadowUserDF).repeat(3)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "location", "keyspace" -> sunbirdKeyspace))
+      .returning(locationDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace))
+      .returning(orgDF).repeat(Range(0, 10))
 
     val reportDF = StateAdminReportJob
       .prepareReport(spark, reporterMock.loadData)
