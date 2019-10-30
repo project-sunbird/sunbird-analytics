@@ -90,14 +90,14 @@ object CacheUtil {
       val locCityData = PostgresDBUtil.readGeoLocationCity(cityQuery)
       locCityData.map{
         loc =>
-              val insertQuery = s"INSERT INTO geo_location_city(geoname_id, subdivision_1_name, subdivision_2_custom_name) VALUES (${loc.geoname_id}, '${loc.subdivision_1_name}', '${loc.subdivision_2_custom_name}')"
-              H2DBUtil.executeQuery(insertQuery)
+          val insertQuery = s"INSERT INTO $geoLocationCityTableName(geoname_id, subdivision_1_name, subdivision_2_custom_name) VALUES (${loc.geoname_id}, '${loc.subdivision_1_name}', '${loc.subdivision_2_custom_name}')"
+          H2DBUtil.executeQuery(insertQuery)
       }
 
       val locRangeData = PostgresDBUtil.readGeoLocationRange(rangeQuery)
       locRangeData.map{
         loc =>
-          val insertQuery = s"INSERT INTO geo_location_city_ipv4(network_start_integer, network_last_integer, geoname_id) VALUES (${loc.network_start_integer}, ${loc.network_last_integer}, ${loc.geoname_id})"
+          val insertQuery = s"INSERT INTO $geoLocationCityIpv4TableName(network_start_integer, network_last_integer, geoname_id) VALUES (${loc.network_start_integer}, ${loc.network_last_integer}, ${loc.geoname_id})"
           H2DBUtil.executeQuery(insertQuery)
       }
 
