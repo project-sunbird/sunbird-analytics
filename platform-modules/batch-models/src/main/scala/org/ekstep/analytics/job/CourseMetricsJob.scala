@@ -3,6 +3,7 @@ package org.ekstep.analytics.job
 import java.io.File
 import java.nio.file.{Files, StandardCopyOption}
 
+import javafx.beans.binding.When
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.functions.{col, unix_timestamp, _}
 import org.apache.spark.sql.types.DataTypes
@@ -109,7 +110,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     val courseBatchDF = loadData(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace))
     val userCoursesDF = loadData(spark, Map("table" -> "user_courses", "keyspace" -> sunbirdCoursesKeyspace))
     val userDF = loadData(spark, Map("table" -> "user", "keyspace" -> sunbirdKeyspace))
-    val userOrgDF = loadData(spark, Map("table" -> "user_org", "keyspace" -> sunbirdKeyspace)).filter(lower(col("isdeleted")) === "false")
+    val userOrgDF = loadData(spark, Map("table" -> "user_org", "keyspace" -> sunbirdKeyspace)).filter(lower(col("isdeleted")) === "false").filter(col("userid") === "user021")
     val organisationDF = loadData(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace))
     val locationDF = loadData(spark, Map("table" -> "location", "keyspace" -> sunbirdKeyspace))
     val externalIdentityDF = loadData(spark, Map("table" -> "usr_external_identity", "keyspace" -> sunbirdKeyspace))
@@ -152,6 +153,12 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     val externalIdMapDF = userDF.join(externalIdentityDF, externalIdentityDF.col("idtype") === userDF.col("channel") && externalIdentityDF.col("provider") === userDF.col("channel") && externalIdentityDF.col("userid") === userDF.col("userid"), "inner")
       .select(externalIdentityDF.col("externalid"), externalIdentityDF.col("userid"))
 
+
+    println("userDenormDF")
+    println(userDenormDF.show(false))
+    println("userOrgDF")
+    println(userOrgDF.show(false))
+
     /*
     * userDenormDF lacks organisation details, here we are mapping each users to get the organisationids
     * */
@@ -159,15 +166,28 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
       .join(userOrgDF, userOrgDF.col("userid") === userDenormDF.col("userid") && userOrgDF.col("organisationid") === userDenormDF.col("rootorgid"))
       .select(userDenormDF.col("*"), col("organisationid"))
 
+    println("userRootOrgDF")
+    println(userRootOrgDF.show(false))
+
     val userSubOrgDF = userDenormDF
       .join(userOrgDF, userOrgDF.col("userid") === userDenormDF.col("userid") && userOrgDF.col("organisationid") =!= userDenormDF.col("rootorgid"))
       .select(userDenormDF.col("*"), col("organisationid"))
+
+
+    println("userSubOrgDF")
+    println(userSubOrgDF.show(false))
 
     val rootOnlyOrgDF = userRootOrgDF
       .join(userSubOrgDF, Seq("userid"), "leftanti")
       .select(userRootOrgDF.col("*"))
 
+    println("rootOnlyOrgDF")
+    println(rootOnlyOrgDF.show(false))
+
     val userOrgDenormDF = rootOnlyOrgDF.union(userSubOrgDF)
+
+    println("userOrgDenormDF")
+    println(userOrgDenormDF.show(false))
 
     val locationDenormDF = userOrgDenormDF
       .withColumn("exploded_location", explode(col("locationids")))
@@ -187,7 +207,16 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     val userLocationResolvedDF = userOrgDenormDF
       .join(locationDenormDF, Seq("userid"), "left_outer")
 
+    println("blockDenormDF")
+    println(blockDenormDF.show(false))
+
+    println("userLocationResolvedDF")
+    println(userLocationResolvedDF.show(false))
+
     val userBlockResolvedDF = userLocationResolvedDF.join(blockDenormDF, Seq("userid"), "left_outer")
+
+    println("userBlockResolvedDF")
+    println(userBlockResolvedDF.show(false))
 
     val resolvedExternalIdDF = userBlockResolvedDF.join(externalIdMapDF, Seq("userid"), "left_outer")
 
@@ -195,10 +224,16 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     /*
     * Resolve organisation name from `rootorgid`
     * */
+    println("organisationDF")
+    println(organisationDF.show(false))
+
     val resolvedOrgNameDF = resolvedExternalIdDF
       .join(organisationDF, organisationDF.col("id") === resolvedExternalIdDF.col("rootorgid"), "left_outer")
       .dropDuplicates(Seq("userid"))
-      .select(resolvedExternalIdDF.col("userid"), col("orgname").as("orgname_resolved"))
+      .select(resolvedExternalIdDF.col("userid"), col("id").as("rootorgid"), col("orgname").as("orgname_resolved"))
+
+    println("resolvedOrdName")
+    println(resolvedOrgNameDF.show(false))
 
 
     /*
@@ -206,23 +241,71 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     * */
     val resolvedSchoolNameDF = resolvedExternalIdDF
       .join(organisationDF, organisationDF.col("id") === resolvedExternalIdDF.col("organisationid"), "left_outer")
-      .dropDuplicates(Seq("userid"))
-      .select(resolvedExternalIdDF.col("userid"), col("orgname").as("schoolname_resolved"))
+      //.dropDuplicates(Seq("userid"))
+      .select(resolvedExternalIdDF.col("userid"), resolvedExternalIdDF.col("organisationid"), col("orgname").as("schoolname_resolved"))
 
+
+
+    var responseDF = resolvedSchoolNameDF.groupBy(col("userid"))
+      .agg(collect_list(col("schoolname_resolved")) as "schoolname_resolved")
+    println("responseDF")
+    println(responseDF.show(false))
+
+
+    //resolvedSchoolNameDF.groupBy("userid"),
+  /* val resSch =  resolvedSchoolNameDF.groupBy(col("userid"))
+      .agg(collect_list(col("schoolname_resolved")) as "schoolname_resolved")
+      .withColumn("schoolname_resolved", concat_ws(",", col("schoolname_resolved")))
+*/
+
+   //val resSch = resolvedSchoolNameDF.groupBy(col("userid")).count().as("count")
+
+   //var resSchCount =  resSch.count().as("count")
+
+//   //var testdf=  resSch.agg(collect_list(col("schoolname_resolved")) as "schoolname_resolved")
+//        .withColumn("school",  when(col("count") > 0, 0)
+//            .otherwise(lit("0"))
+//
+//        )
+
+
+
+    //resSch.withColumn("schoolname_resolved", when(col("count") > 1, resSch.agg(collect_list(col("schoolname_resolved")) as "schoolname_resolved")))
+     //.agg(collect_list(col("schoolname_resolved")) as "schoolname_resolved")
+      // .withColumn("schoolname_resolved", when("schoolname_resolved").)
+    //println("spec")
+    //println(spec.show(false))
+
+   // println("testdf")
+    //println(testdf.show(false))
 
 
     /*
     * merge orgName and schoolName based on `userid` and calculate the course progress percentage from `progress` column which is no of content visited/read
     * */
 
-    resolvedExternalIdDF
-      .join(resolvedSchoolNameDF, Seq("userid"), "left_outer")
-      .join(resolvedOrgNameDF, Seq("userid"), "left_outer")
-      .withColumn("course_completion",
-        when(col("completionpercentage").isNull, 0)
-          .when(col("completionpercentage") > 100, 100)
-          .otherwise(col("completionpercentage")).cast("int"))
+    //println("exterDF")
+   // println(resolvedExternalIdDF.show(false))
+
+    var df1 = resolvedExternalIdDF
+      .join(resolvedSchoolNameDF, Seq("userid", "organisationid"), "left_outer")
+    println("df1")
+    println(df1.show(false))
+
+    var df2 = df1.join(resolvedOrgNameDF, Seq("userid", "rootorgid"), "left_outer")
+    println("df2")
+    println(df2.show(false))
+
+    var res = df2.withColumn("course_completion",
+      when(col("completionpercentage").isNull, 0)
+        .when(col("completionpercentage") > 100, 100)
+        .otherwise(col("completionpercentage")).cast("int"))
       .withColumn("generatedOn", date_format(from_utc_timestamp(current_timestamp.cast(DataTypes.TimestampType), "Asia/Kolkata"), "yyyy-MM-dd'T'HH:mm:ss'Z'"))
+      .dropDuplicates("userid", "organisationid")
+    println("res")
+    println(res.show(false))
+    res
+
   }
 
 
@@ -311,7 +394,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
   }
 
   def saveReport(reportDF: DataFrame, url: String): Unit = {
-    reportDF
+    val df = reportDF
       .select(
         col("externalid").as("External ID"),
         col("userid").as("User ID"),
@@ -329,7 +412,9 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
         col("batchid")
 
       )
-      .coalesce(1)
+    println("Final report is ")
+    println(df.show(false))
+    df.coalesce(1)
       .write
       .partitionBy("batchid")
       .mode("overwrite")
