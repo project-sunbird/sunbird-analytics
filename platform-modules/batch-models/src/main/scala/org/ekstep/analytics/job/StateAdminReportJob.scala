@@ -147,8 +147,8 @@ object StateAdminReportJob extends optional.Application with IJob with ReportGen
       JobLogger.log(s"${rowUnit.mkString} has ${oneOrgUsersDF.cache().count()} many users in shadow_user table")
 
       val jsonStr = JSONUtils.serialize(summaryOutput)
-      //val rdd = spark.sparkContext.parallelize(Seq(jsonStr))
-      val summaryDF = spark.read.json(jsonStr)
+      val rdd = spark.sparkContext.parallelize(Seq(jsonStr))
+      val summaryDF = spark.read.json(rdd)
 
       saveUserDetailsReport(oneOrgUsersDF, s"${detailDir}/channel=${channelName}")
       saveSummaryReport(summaryDF, s"${summaryDir}/channel=${channelName}")
