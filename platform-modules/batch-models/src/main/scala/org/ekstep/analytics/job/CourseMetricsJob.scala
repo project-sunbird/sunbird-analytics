@@ -110,7 +110,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     val courseBatchDF = loadData(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace))
     val userCoursesDF = loadData(spark, Map("table" -> "user_courses", "keyspace" -> sunbirdCoursesKeyspace))
     val userDF = loadData(spark, Map("table" -> "user", "keyspace" -> sunbirdKeyspace))
-    val userOrgDF = loadData(spark, Map("table" -> "user_org", "keyspace" -> sunbirdKeyspace)).filter(lower(col("isdeleted")) === "false").filter(col("userid") === "user021")
+    val userOrgDF = loadData(spark, Map("table" -> "user_org", "keyspace" -> sunbirdKeyspace)).filter(lower(col("isdeleted")) === "false")
     val organisationDF = loadData(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace))
     val locationDF = loadData(spark, Map("table" -> "location", "keyspace" -> sunbirdKeyspace))
     val externalIdentityDF = loadData(spark, Map("table" -> "usr_external_identity", "keyspace" -> sunbirdKeyspace))
@@ -246,10 +246,10 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
 
 
 
-    var responseDF = resolvedSchoolNameDF.groupBy(col("userid"))
-      .agg(collect_list(col("schoolname_resolved")) as "schoolname_resolved")
-    println("responseDF")
-    println(responseDF.show(false))
+//    var responseDF = resolvedSchoolNameDF.groupBy(col("userid"))
+//      .agg(collect_list(col("schoolname_resolved")) as "schoolname_resolved")
+//    println("responseDF")
+//    println(responseDF.show(false))
 
 
     //resolvedSchoolNameDF.groupBy("userid"),
@@ -283,9 +283,6 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     /*
     * merge orgName and schoolName based on `userid` and calculate the course progress percentage from `progress` column which is no of content visited/read
     * */
-
-    //println("exterDF")
-   // println(resolvedExternalIdDF.show(false))
 
     var df1 = resolvedExternalIdDF
       .join(resolvedSchoolNameDF, Seq("userid", "organisationid"), "left_outer")
@@ -413,7 +410,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
 
       )
     println("Final report is ")
-    println(df.show(false))
+    println(df.show(40,false))
     df.coalesce(1)
       .write
       .partitionBy("batchid")
