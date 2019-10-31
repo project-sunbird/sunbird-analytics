@@ -1,8 +1,5 @@
 package org.ekstep.analytics.job
 
-import java.io.File
-import java.nio.file.{Files, StandardCopyOption}
-
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.functions.{col, _}
 import org.apache.spark.sql.{DataFrame, SparkSession}
@@ -33,18 +30,13 @@ object UserStatus extends Enumeration {
 }
 
 // Shadow user summary in the json will have this POJO
-object UserSummary {
-  var accounts_validated = 0L
-  var accounts_rejected = 0L
-  var accounts_unclaimed = 0L
-  var accounts_failed = 0L
+case class UserSummary(accounts_validated: Long, accounts_rejected: Long,
+                       accounts_unclaimed: Long, accounts_failed: Long) {
 }
 
 // Geo user summary in the json will have this POJO
-object GeoSummary {
-  var districts = 0L
-  var blocks = 0L
-  var schools = 0L
+case class GeoSummary(districts: Long, blocks: Long, school: Long) {
+
 }
 
 
@@ -99,6 +91,7 @@ object StateAdminReportJob extends optional.Application with IJob with ReportGen
       .set("spark.cassandra.input.consistency.level", readConsistencyLevel)
 
     val spark = SparkSession.builder.config(sparkConf).getOrCreate()
+
     val reportDF = prepareReport(spark, loadData)
     uploadReport(renamedDir)
     JobLogger.end("StateAdminReportJob completed successfully!", "SUCCESS", Option(Map("config" -> config, "model" -> name)))
@@ -126,7 +119,7 @@ object StateAdminReportJob extends optional.Application with IJob with ReportGen
         .select(col("id"), col("channel"))
         .where(col("isrootorg") && col("status").=== (1))
 
-    println(activeRootOrganisationDF.count())
+    JobLogger.log(s"Active root org count = $activeRootOrganisationDF.count()")
 
     val tempDir = AppConf.getConfig("course.metrics.temp.dir")
     val renamedDir = s"$tempDir/renamed"
@@ -139,10 +132,8 @@ object StateAdminReportJob extends optional.Application with IJob with ReportGen
     // For distinct channel names, do the following:
     // 1. Create a json, csv report - user-summary.json, user-detail.csv.
     distinctChannelDF.collect().foreach(rowUnit => {
-      var summaryOutput = UserSummary
-
-      var channelName = rowUnit.mkString
-      JobLogger.log(channelName)
+      val channelName = rowUnit.mkString
+      JobLogger.log(s"Start working on $channelName")
 
       val oneOrgUsersDF = loadData(spark, Map("table" -> "shadow_user", "keyspace" -> sunbirdKeyspace))
           .where(col("channel").===(channelName))
@@ -151,16 +142,13 @@ object StateAdminReportJob extends optional.Application with IJob with ReportGen
       val rejectedCount = oneOrgUsersDF.where(s"claimedstatus == ${UserStatus.rejected.id}").count()
       val failedCount = oneOrgUsersDF.where(s"claimedStatus >= ${UserStatus.failed.id}").count()
 
-      summaryOutput.accounts_validated = claimedCount
-      summaryOutput.accounts_failed = failedCount
-      summaryOutput.accounts_rejected = rejectedCount
-      summaryOutput.accounts_unclaimed = unclaimedCount
+      var summaryOutput = UserSummary(claimedCount, rejectedCount, unclaimedCount, failedCount)
 
       JobLogger.log(s"${rowUnit.mkString} has ${oneOrgUsersDF.cache().count()} many users in shadow_user table")
 
       val jsonStr = JSONUtils.serialize(summaryOutput)
-      val rdd = spark.sparkContext.parallelize(Seq(jsonStr))
-      val summaryDF = spark.read.json(rdd)
+      //val rdd = spark.sparkContext.parallelize(Seq(jsonStr))
+      val summaryDF = spark.read.json(jsonStr)
 
       saveUserDetailsReport(oneOrgUsersDF, s"${detailDir}/channel=${channelName}")
       saveSummaryReport(summaryDF, s"${summaryDir}/channel=${channelName}")
@@ -178,7 +166,6 @@ object StateAdminReportJob extends optional.Application with IJob with ReportGen
       val rootOrgId = rowUnit.get(0).toString
       val channelName = rowUnit.get(1).toString
       JobLogger.log(s"RootOrg id found = ${rootOrgId} and channel = ${channelName}")
-      println(s"RootOrg id found = ${rootOrgId} and channel = ${channelName}")
 
       // fetching all suborg for a particular rootOrg
       var schoolCountDf = loadData(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace))
@@ -197,7 +184,6 @@ object StateAdminReportJob extends optional.Application with IJob with ReportGen
           col("exploded_location").cast("string")
             .contains(col("locid"))
            && locationDF.col("type") === "district")
-        .dropDuplicates(Seq("id"))
       // collecting district count
       val districtCount = districtDF.count()
 
@@ -206,7 +192,6 @@ object StateAdminReportJob extends optional.Application with IJob with ReportGen
         .join(locationDF,
           col("exploded_location").cast("string").contains(col("locid"))
             && locationDF.col("type") === "block")
-        .dropDuplicates(Seq("id"))
 
       //collecting block count
       val blockCount = blockDetailsDF.count()
@@ -214,10 +199,7 @@ object StateAdminReportJob extends optional.Application with IJob with ReportGen
       val geoDetailsDF = districtDF.union(blockDetailsDF)
       //geoDetailsDF.show(false)
 
-      var geoSummary = GeoSummary
-      geoSummary.blocks = blockCount
-      geoSummary.districts = districtCount
-      geoSummary.schools = schoolCount
+      var geoSummary = GeoSummary(districtCount, blockCount, schoolCount)
       val jsonStr = JSONUtils.serialize(geoSummary)
       val rdd = spark.sparkContext.parallelize(Seq(jsonStr))
       val summaryDF = spark.read.json(rdd)
@@ -234,7 +216,7 @@ object StateAdminReportJob extends optional.Application with IJob with ReportGen
     fSFileUtils.purgeDirectory(summaryDir)
 
     JobLogger.log("Finished with prepareReport")
-    return distinctChannelDF
+    distinctChannelDF
   }
 
 
