@@ -203,9 +203,8 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
 
     val resolvedOrgNameDF = resolvedExternalIdDF
       .join(organisationDF, organisationDF.col("id") === resolvedExternalIdDF.col("rootorgid"), "left_outer")
+      .select(resolvedExternalIdDF.col("userid"), resolvedExternalIdDF.col("rootorgid"), col("orgname").as("orgname_resolved"))
       .dropDuplicates(Seq("userid"))
-      .select(resolvedExternalIdDF.col("userid"), col("id").as("rootorgid"), col("orgname").as("orgname_resolved"))
-
 
     /*
     * Resolve school name from `orgid`
