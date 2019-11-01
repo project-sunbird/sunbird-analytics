@@ -225,7 +225,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
           .when(col("completionpercentage") > 100, 100)
           .otherwise(col("completionpercentage")).cast("int"))
       .withColumn("generatedOn", date_format(from_utc_timestamp(current_timestamp.cast(DataTypes.TimestampType), "Asia/Kolkata"), "yyyy-MM-dd'T'HH:mm:ss'Z'"))
-      .dropDuplicates("userid", "organisationid")
+      .dropDuplicates("userid", "organisationid" , "batchid")
 
   }
 
