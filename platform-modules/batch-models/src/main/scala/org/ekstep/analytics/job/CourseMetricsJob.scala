@@ -15,6 +15,7 @@ import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import org.sunbird.cloud.storage.conf.AppConf
 import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
+import org.apache.spark.sql.expressions.Window
 
 import scala.collection.{Map, _}
 
@@ -209,23 +210,31 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     /*
     * Resolve school name from `orgid`
     * */
-    val resolvedSchoolNameDF = resolvedExternalIdDF
+
+
+    val schoolNameDF = resolvedExternalIdDF
       .join(organisationDF, organisationDF.col("id") === resolvedExternalIdDF.col("organisationid"), "left_outer")
-      .select(resolvedExternalIdDF.col("userid"), resolvedExternalIdDF.col("organisationid"), col("orgname").as("schoolname_resolved"))
+      .select(resolvedExternalIdDF.col("userid"), resolvedExternalIdDF.col("organisationid"), col("orgname").as("schoolname_resolved"), resolvedExternalIdDF.col("batchid"))
+
+    val schoolNameIndexDF = schoolNameDF.withColumn("index", count("userid").over(Window.partitionBy("userid", "batchid").orderBy("userid")).cast("int"))
+
+    val resolvedSchoolNameDF = schoolNameIndexDF.selectExpr("*").filter(col("index") === 1).drop("organisationid", "index","batchid")
+      .union(schoolNameIndexDF.filter(col("index") =!= 1).groupBy("userid").agg(collect_list("schoolname_resolved").cast("string").as("schoolname_resolved")))
+
 
 
     /*
     * merge orgName and schoolName based on `userid` and calculate the course progress percentage from `progress` column which is no of content visited/read
     * */
     resolvedExternalIdDF
-      .join(resolvedSchoolNameDF, Seq("userid", "organisationid"), "left_outer")
+      .join(resolvedSchoolNameDF, Seq("userid"), "left_outer")
       .join(resolvedOrgNameDF, Seq("userid", "rootorgid"), "left_outer")
       .withColumn("course_completion",
         when(col("completionpercentage").isNull, 0)
           .when(col("completionpercentage") > 100, 100)
           .otherwise(col("completionpercentage")).cast("int"))
       .withColumn("generatedOn", date_format(from_utc_timestamp(current_timestamp.cast(DataTypes.TimestampType), "Asia/Kolkata"), "yyyy-MM-dd'T'HH:mm:ss'Z'"))
-      .dropDuplicates("userid", "organisationid" , "batchid")
+      .dropDuplicates("userid", "batchid")
 
   }
 
