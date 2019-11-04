@@ -193,8 +193,6 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
 
 
     val userBlockResolvedDF = userLocationResolvedDF.join(blockDenormDF, Seq("userid"), "left_outer")
-
-
     val resolvedExternalIdDF = userBlockResolvedDF.join(externalIdMapDF, Seq("userid"), "left_outer")
 
 
@@ -216,12 +214,32 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
       .join(organisationDF, organisationDF.col("id") === resolvedExternalIdDF.col("organisationid"), "left_outer")
       .select(resolvedExternalIdDF.col("userid"), resolvedExternalIdDF.col("organisationid"), col("orgname").as("schoolname_resolved"), resolvedExternalIdDF.col("batchid"))
 
+    /**
+      *  If the user present in the multiple organisation, then zip all the org names.
+      *  Example:
+     FROM:
+      +-------+------------------------------------+
+      |userid |orgname                             |
+      +-------+------------------------------------+
+      |user030|SACRED HEART(B)PS,TIRUVARANGAM      |
+      |user030| MPPS BAYYARAM                     |
+      |user001| MPPS BAYYARAM                     |
+      +-------+------------------------------------+
+      TO:
+      +-------+-------------------------------------------------------+
+      |userid |orgname                                                |
+      +-------+-------------------------------------------------------+
+      |user030|[ SACRED HEART(B)PS,TIRUVARANGAM, MPPS BAYYARAM ]      |
+      |user001| MPPS BAYYARAM                                         |
+      +-------+-------------------------------------------------------+
+      Zipping the orgnames of particular userid
+      *
+      *
+      */
     val schoolNameIndexDF = schoolNameDF.withColumn("index", count("userid").over(Window.partitionBy("userid", "batchid").orderBy("userid")).cast("int"))
 
     val resolvedSchoolNameDF = schoolNameIndexDF.selectExpr("*").filter(col("index") === 1).drop("organisationid", "index","batchid")
       .union(schoolNameIndexDF.filter(col("index") =!= 1).groupBy("userid").agg(collect_list("schoolname_resolved").cast("string").as("schoolname_resolved")))
-
-
 
     /*
     * merge orgName and schoolName based on `userid` and calculate the course progress percentage from `progress` column which is no of content visited/read
