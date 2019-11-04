@@ -2,7 +2,7 @@ package org.ekstep.analytics.job
 
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.functions.{col, _}
-import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.apache.spark.sql.{DataFrame, Encoder, Encoders, SparkSession}
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, JobLogger}
 import org.ekstep.analytics.util.HDFSFileUtils
@@ -29,20 +29,19 @@ object UserStatus extends Enumeration {
   val orgextidmismatch = Value(5, "ORGEXTIDMISMATCH")
 }
 
+case class ShadowUserData(channel: String, claimedstatus: String)
+case class RootOrgData(id: String, channel: String)
+
 // Shadow user summary in the json will have this POJO
-case class UserSummary(accounts_validated: Long, accounts_rejected: Long,
-                       accounts_unclaimed: Long, accounts_failed: Long) {
-}
+case class UserSummary(accounts_validated: Long, accounts_rejected: Long, accounts_unclaimed: Long, accounts_failed: Long)
 
 // Geo user summary in the json will have this POJO
-case class GeoSummary(districts: Long, blocks: Long, school: Long) {
-
-}
+case class GeoSummary(districts: Long, blocks: Long, school: Long)
 
 
-object StateAdminReportJob extends optional.Application with IJob with ReportGenerator {
+object StateAdminReportJob extends optional.Application with IJob with ReportGenerator with Serializable {
 
-  implicit val className = "org.ekstep.analytics.job.StateAdminReportJob"
+  implicit val className: String = "org.ekstep.analytics.job.StateAdminReportJob"
 
   def name(): String = "StateAdminReportJob"
 
@@ -106,7 +105,10 @@ object StateAdminReportJob extends optional.Application with IJob with ReportGen
   }
 
   def prepareReport(spark: SparkSession, loadData: (SparkSession, Map[String, String]) => DataFrame): DataFrame = {
+
+    import spark.implicits._
     val sunbirdKeyspace = AppConf.getConfig("course.metrics.cassandra.sunbirdKeyspace")
+
     val locationDF = loadData(spark, Map("table" -> "location", "keyspace" -> sunbirdKeyspace)).select(
       col("id").as("locid"),
       col("code").as("code"),
@@ -114,10 +116,17 @@ object StateAdminReportJob extends optional.Application with IJob with ReportGen
       col("parentid").as("parentid"),
       col("type").as("type")
     )
-    val distinctChannelDF = loadData(spark, Map("table" -> "shadow_user", "keyspace" -> sunbirdKeyspace)).select(col = "channel").distinct()
+
+    implicit val shadowDataEncoder: Encoder[ShadowUserData] = Encoders.product[ShadowUserData]
+    implicit val rootOrgDataEncoder: Encoder[RootOrgData] = Encoders.product[RootOrgData]
+
+    val distinctChannelDF = loadData(spark, Map("table" -> "shadow_user", "keyspace" -> sunbirdKeyspace))
+      .select("channel", "claimedstatus").as[ShadowUserData]
+
     val activeRootOrganisationDF = loadData(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace))
         .select(col("id"), col("channel"))
         .where(col("isrootorg") && col("status").=== (1))
+        .as[RootOrgData]
 
     JobLogger.log(s"Active root org count = $activeRootOrganisationDF.count()")
 
@@ -126,33 +135,33 @@ object StateAdminReportJob extends optional.Application with IJob with ReportGen
 
     val fSFileUtils = new HDFSFileUtils(className, JobLogger)
 
-    val detailDir = s"${tempDir}/detail"
-    val summaryDir = s"${tempDir}/summary"
+    val detailDir = s"$tempDir/detail"
+    val summaryDir = s"$tempDir/summary"
 
     // For distinct channel names, do the following:
     // 1. Create a json, csv report - user-summary.json, user-detail.csv.
-    distinctChannelDF.collect().foreach(rowUnit => {
-      val channelName = rowUnit.mkString
+    distinctChannelDF.foreach(channelData => {
+      val channelName = channelData.channel
       JobLogger.log(s"Start working on $channelName")
-
-      val oneOrgUsersDF = loadData(spark, Map("table" -> "shadow_user", "keyspace" -> sunbirdKeyspace))
-          .where(col("channel").===(channelName))
-      val unclaimedCount = oneOrgUsersDF.where(s"claimedstatus == ${UserStatus.unclaimed.id}").count()
-      val claimedCount = oneOrgUsersDF.where(s"claimedstatus == ${UserStatus.claimed.id}").count()
-      val rejectedCount = oneOrgUsersDF.where(s"claimedstatus == ${UserStatus.rejected.id}").count()
-      val failedCount = oneOrgUsersDF.where(s"claimedStatus >= ${UserStatus.failed.id}").count()
+      val oneOrgUsersDF = loadData(spark, Map("table" -> "shadow_user", "keyspace" -> sunbirdKeyspace)).filter(col("channel") === channelName)
+      val unclaimedCount = oneOrgUsersDF.where(s"claimedstatus === ${UserStatus.unclaimed.id}").count()
+      val claimedCount = oneOrgUsersDF.where(s"claimedstatus === ${UserStatus.claimed.id}").count()
+      val rejectedCount = oneOrgUsersDF.where(s"claimedstatus === ${UserStatus.rejected.id}").count()
+      val failedCount = oneOrgUsersDF.where(s"claimedStatus >== ${UserStatus.failed.id}").count()
 
       var summaryOutput = UserSummary(claimedCount, rejectedCount, unclaimedCount, failedCount)
 
-      JobLogger.log(s"${rowUnit.mkString} has ${oneOrgUsersDF.cache().count()} many users in shadow_user table")
+      JobLogger.log(s"$channelName has ${oneOrgUsersDF.cache().count()} many users in shadow_user table")
 
       val jsonStr = JSONUtils.serialize(summaryOutput)
       val rdd = spark.sparkContext.parallelize(Seq(jsonStr))
       val summaryDF = spark.read.json(rdd)
 
-      saveUserDetailsReport(oneOrgUsersDF, s"${detailDir}/channel=${channelName}")
-      saveSummaryReport(summaryDF, s"${summaryDir}/channel=${channelName}")
+      saveUserDetailsReport(oneOrgUsersDF, s"$detailDir/channel=$channelName")
+      saveSummaryReport(summaryDF, s"$summaryDir/channel=$channelName")
     })
+
+    // val shadowUserDataDf = distinctChannelDF.groupBy("channel").pivot("claimstatus").agg(count("claimstatus"))
 
     fSFileUtils.renameReport(detailDir, renamedDir, ".csv", "user-detail")
     fSFileUtils.renameReport(summaryDir, renamedDir, ".json", "user-summary")
@@ -162,10 +171,10 @@ object StateAdminReportJob extends optional.Application with IJob with ReportGen
     fSFileUtils.purgeDirectory(summaryDir)
 
     // iterating through all active rootOrg and fetching all active suborg for a particular rootOrg
-    activeRootOrganisationDF.collect().foreach(rowUnit => {
-      val rootOrgId = rowUnit.get(0).toString
-      val channelName = rowUnit.get(1).toString
-      JobLogger.log(s"RootOrg id found = ${rootOrgId} and channel = ${channelName}")
+    activeRootOrganisationDF.foreach(rootOrgData => {
+      val rootOrgId = rootOrgData.id
+      val channelName = rootOrgData.channel
+      JobLogger.log(s"RootOrg id found = $rootOrgId and channel = $channelName")
 
       // fetching all suborg for a particular rootOrg
       var schoolCountDf = loadData(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace))
@@ -199,13 +208,13 @@ object StateAdminReportJob extends optional.Application with IJob with ReportGen
       val geoDetailsDF = districtDF.union(blockDetailsDF)
       //geoDetailsDF.show(false)
 
-      var geoSummary = GeoSummary(districtCount, blockCount, schoolCount)
+      val geoSummary = GeoSummary(districtCount, blockCount, schoolCount)
       val jsonStr = JSONUtils.serialize(geoSummary)
       val rdd = spark.sparkContext.parallelize(Seq(jsonStr))
       val summaryDF = spark.read.json(rdd)
 
-      saveGeoDetailsReport(geoDetailsDF, s"${detailDir}/channel=${channelName}")
-      saveSummaryReport(summaryDF, s"${summaryDir}/channel=${channelName}")
+      saveGeoDetailsReport(geoDetailsDF, s"$detailDir/channel=$channelName")
+      saveSummaryReport(summaryDF, s"$summaryDir/channel=$channelName")
     })
 
     fSFileUtils.renameReport(detailDir, renamedDir, ".csv", "geo-detail")
@@ -216,16 +225,13 @@ object StateAdminReportJob extends optional.Application with IJob with ReportGen
     fSFileUtils.purgeDirectory(summaryDir)
 
     JobLogger.log("Finished with prepareReport")
-    distinctChannelDF
+    distinctChannelDF.toDF()
   }
 
 
-  def saveReportES(reportDF: DataFrame): Unit = {
-  }
+  override def saveReportES(reportDF: DataFrame): Unit = {}
 
-  def saveReport(reportDF: DataFrame, url: String): Unit = {
-
-  }
+  override def saveReport(reportDF: DataFrame, url: String): Unit = {}
 
   /**
     * Saves the raw data as a .csv.
