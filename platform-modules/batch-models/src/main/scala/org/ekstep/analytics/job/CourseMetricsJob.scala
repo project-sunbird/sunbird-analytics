@@ -164,11 +164,9 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
       .join(userOrgDF, userOrgDF.col("userid") === userDenormDF.col("userid") && userOrgDF.col("organisationid") =!= userDenormDF.col("rootorgid"))
       .select(userDenormDF.col("*"), col("organisationid"))
 
-
     val rootOnlyOrgDF = userRootOrgDF
       .join(userSubOrgDF, Seq("userid"), "leftanti")
       .select(userRootOrgDF.col("*"))
-
 
     val userOrgDenormDF = rootOnlyOrgDF.union(userSubOrgDF)
 
@@ -208,8 +206,6 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     /*
     * Resolve school name from `orgid`
     * */
-
-
     val schoolNameDF = resolvedExternalIdDF
       .join(organisationDF, organisationDF.col("id") === resolvedExternalIdDF.col("organisationid"), "left_outer")
       .select(resolvedExternalIdDF.col("userid"), resolvedExternalIdDF.col("organisationid"), col("orgname").as("schoolname_resolved"), resolvedExternalIdDF.col("batchid"))
