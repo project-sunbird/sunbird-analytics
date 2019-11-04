@@ -294,6 +294,7 @@
 			<version>2.3.0</version>
 			<scope>provided</scope>
 		</dependency>
+		
 	</dependencies>
 	<build>
 		<sourceDirectory>src/main/scala</sourceDirectory>
