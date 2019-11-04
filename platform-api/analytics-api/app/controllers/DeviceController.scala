@@ -134,6 +134,7 @@ class DeviceController @Inject()(system: ActorSystem) extends BaseController {
 
     }.recover {
           case ex: Exception => {
+              ex.printStackTrace()
               APILogger.log("", Option(Map("type" -> "api_access", "params" -> List(Map("status" -> 500, "method" -> "POST",
                   "rid" -> "getDeviceProfile", "title" -> "getDeviceProfile")), "data" -> ex.getMessage)), "getDeviceProfile")
 

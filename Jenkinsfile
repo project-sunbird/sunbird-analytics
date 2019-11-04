@@ -39,7 +39,7 @@ node('build-slave') {
                 cp -r platform-scripts/VidyaVani/VidyavaniCnQ script
                 zip -r script.zip script
                 git clone https://github.com/ing-bank/scruid.git
-                cd scruid && sed -i 's/scalaVersion in ThisBuild := "2.12.8"/scalaVersion in ThisBuild := "2.11.8"/g' build.sbt
+                cd scruid && sed -i 's/scalaVersion in ThisBuild := "2.12.9"/scalaVersion in ThisBuild := "2.11.8"/g' build.sbt
                 '''
         }
         stage('Build') {
