@@ -110,9 +110,11 @@ class JobController @Inject() (system: ActorSystem) extends BaseController {
         cacheType match {
             case "ConsumerChannel" =>
                 CacheUtil.initConsumerChannelCache()
+            case "DeviceLocation" =>
+                CacheUtil.initDeviceLocationCache()
             case _ =>
                 CacheUtil.initCache()
         }
-        result("OK", JSONUtils.serialize(CommonUtil.OK(APIIds.CHANNEL_TELEMETRY_EXHAUST, Map("msg" -> s"$cacheType cache refresed successfully"))))
+        result("OK", JSONUtils.serialize(CommonUtil.OK(APIIds.CHANNEL_TELEMETRY_EXHAUST, Map("msg" -> s"$cacheType cache refreshed successfully"))))
     }
 }
