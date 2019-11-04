@@ -113,9 +113,11 @@ class DeviceRegisterService(saveMetricsActor: ActorRef, config: Config, redisUti
 
             // logging resolved location details
             if(ipLocationFromH2.state.nonEmpty && ipLocationFromH2.districtCustom.nonEmpty) {
-                APILogger.log(s"IP: ${getProfileDetails.headerIP}", Option(Map("comments" -> s"Location resolved for ${getProfileDetails.did} to state: ${ipLocationFromH2.state}, district: ${ipLocationFromH2.districtCustom}")), "getDeviceProfile")
+                println(s"For IP: ${getProfileDetails.headerIP}, Location resolved for ${getProfileDetails.did} to state: ${ipLocationFromH2.state}, district: ${ipLocationFromH2.districtCustom}")
+                APILogger.log("", Option(Map("comments" -> s"Location resolved for ${getProfileDetails.did} to state: ${ipLocationFromH2.state}, district: ${ipLocationFromH2.districtCustom}")), "getDeviceProfile")
             } else {
-                APILogger.log(s"IP: ${getProfileDetails.headerIP}", Option(Map("comments" -> s"Location is not resolved for ${getProfileDetails.did}")), "getDeviceProfile")
+                println(s"For IP: ${getProfileDetails.headerIP}, Location is not resolved for ${getProfileDetails.did}")
+                APILogger.log("", Option(Map("comments" -> s"Location is not resolved for ${getProfileDetails.did}")), "getDeviceProfile")
             }
 
             val deviceLocation = redisUtil.getAllByKey(getProfileDetails.did)

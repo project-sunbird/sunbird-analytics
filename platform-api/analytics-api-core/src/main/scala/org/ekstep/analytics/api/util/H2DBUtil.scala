@@ -35,9 +35,7 @@ object H2DBUtil {
         val resultSet = connection.prepareStatement(sqlString).executeQuery()
         var loc = new DeviceStateDistrict();
         while (resultSet.next()) {
-            val state = resultSet.getString(1);
-            val district = resultSet.getString(2);
-            loc =  DeviceStateDistrict(state, district)
+            loc =  DeviceStateDistrict(resultSet)
         }
         loc
     }
@@ -58,8 +56,8 @@ case class DeviceStateDistrict(state: String, districtCustom: String) {
 }
 
 object DeviceStateDistrict extends SQLSyntaxSupport[DeviceStateDistrict] {
-    def apply(rs: WrappedResultSet) = new DeviceStateDistrict(
-        rs.string("state"),
-        rs.string("district_custom")
+    def apply(rs: ResultSet) = new DeviceStateDistrict(
+        rs.getString("state"),
+        rs.getString("district_custom")
     )
 }

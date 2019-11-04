@@ -102,17 +102,23 @@ object CacheUtil {
       }
 
       // checking row counts in h2 database after refreshing
-      val selectCityTableQuery = s"Select * from $geoLocationCityTableName"
-      val cityTableResultSet = H2DBUtil.execute(selectCityTableQuery)
-      cityTableResultSet.last()
-      println("h2 db city table records after refreshing: " + cityTableResultSet.getRow)
+      val countCityTableQuery = s"Select count(*) AS count from $geoLocationCityTableName"
+      val cityTableCount = H2DBUtil.execute(countCityTableQuery)
+      var h2CityTableCount = 0L
+      while (cityTableCount.next()) {
+          h2CityTableCount = cityTableCount.getLong("count")
+      }
 
-      val selectRangeTableQuery = s"Select * from $geoLocationCityIpv4TableName"
-      val rangeTableResultSet = H2DBUtil.execute(selectRangeTableQuery)
-      rangeTableResultSet.last()
-      println("h2 db range table records after refreshing: " + rangeTableResultSet.getRow)
+      val countRangeTableQuery = s"Select count(*) AS count from $geoLocationCityIpv4TableName"
+      val rangeTableCount = H2DBUtil.execute(countRangeTableQuery)
+      var h2RangeTableCount = 0L
+      while (rangeTableCount.next()) {
+        h2RangeTableCount = rangeTableCount.getLong("count")
+      }
 
-      APILogger.log(s"DeviceLocation Cache Refreshed Successfully!! postgress city table records: ${locCityData.length} postgress range table records: ${locRangeData.length} h2 db city table records: ${cityTableResultSet.getRow} h2 db range table records: ${rangeTableResultSet.getRow}")
+      println("h2 db city table count after refreshing: " + h2CityTableCount)
+      println("h2 db city table count after refreshing: " + h2RangeTableCount)
+      APILogger.log(s"DeviceLocation Cache Refreshed Successfully!! postgress city table records: ${locCityData.length}, postgress range table records: ${locRangeData.length}, h2 db city table records: $h2CityTableCount, h2 db range table records: $h2RangeTableCount")
     }.recover {
       case ex: Throwable =>
         APILogger.log(s"Failed to refresh DeviceLocation Cache: ${ex.getMessage}")
