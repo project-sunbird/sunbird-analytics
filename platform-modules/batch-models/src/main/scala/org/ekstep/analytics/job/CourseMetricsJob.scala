@@ -15,6 +15,7 @@ import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import org.sunbird.cloud.storage.conf.AppConf
 import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
+import org.apache.spark.sql.expressions.Window
 
 import scala.collection.{Map, _}
 
@@ -169,6 +170,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
 
     val userOrgDenormDF = rootOnlyOrgDF.union(userSubOrgDF)
 
+
     val locationDenormDF = userOrgDenormDF
       .withColumn("exploded_location", explode(col("locationids")))
       .join(locationDF, col("exploded_location") === locationDF.col("id") && locationDF.col("type") === "district")
@@ -187,42 +189,67 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     val userLocationResolvedDF = userOrgDenormDF
       .join(locationDenormDF, Seq("userid"), "left_outer")
 
-    val userBlockResolvedDF = userLocationResolvedDF.join(blockDenormDF, Seq("userid"), "left_outer")
 
+    val userBlockResolvedDF = userLocationResolvedDF.join(blockDenormDF, Seq("userid"), "left_outer")
     val resolvedExternalIdDF = userBlockResolvedDF.join(externalIdMapDF, Seq("userid"), "left_outer")
 
 
     /*
     * Resolve organisation name from `rootorgid`
     * */
+
     val resolvedOrgNameDF = resolvedExternalIdDF
       .join(organisationDF, organisationDF.col("id") === resolvedExternalIdDF.col("rootorgid"), "left_outer")
+      .select(resolvedExternalIdDF.col("userid"), resolvedExternalIdDF.col("rootorgid"), col("orgname").as("orgname_resolved"))
       .dropDuplicates(Seq("userid"))
-      .select(resolvedExternalIdDF.col("userid"), col("orgname").as("orgname_resolved"))
-
 
     /*
     * Resolve school name from `orgid`
     * */
-    val resolvedSchoolNameDF = resolvedExternalIdDF
+    val schoolNameDF = resolvedExternalIdDF
       .join(organisationDF, organisationDF.col("id") === resolvedExternalIdDF.col("organisationid"), "left_outer")
-      .dropDuplicates(Seq("userid"))
-      .select(resolvedExternalIdDF.col("userid"), col("orgname").as("schoolname_resolved"))
+      .select(resolvedExternalIdDF.col("userid"), resolvedExternalIdDF.col("organisationid"), col("orgname").as("schoolname_resolved"), resolvedExternalIdDF.col("batchid"))
 
+    /**
+      *  If the user present in the multiple organisation, then zip all the org names.
+      *  Example:
+     FROM:
+      +-------+------------------------------------+
+      |userid |orgname                             |
+      +-------+------------------------------------+
+      |user030|SACRED HEART(B)PS,TIRUVARANGAM      |
+      |user030| MPPS BAYYARAM                     |
+      |user001| MPPS BAYYARAM                     |
+      +-------+------------------------------------+
+      TO:
+      +-------+-------------------------------------------------------+
+      |userid |orgname                                                |
+      +-------+-------------------------------------------------------+
+      |user030|[ SACRED HEART(B)PS,TIRUVARANGAM, MPPS BAYYARAM ]      |
+      |user001| MPPS BAYYARAM                                         |
+      +-------+-------------------------------------------------------+
+      Zipping the orgnames of particular userid
+      *
+      *
+      */
+    val schoolNameIndexDF = schoolNameDF.withColumn("index", count("userid").over(Window.partitionBy("userid", "batchid").orderBy("userid")).cast("int"))
 
+    val resolvedSchoolNameDF = schoolNameIndexDF.selectExpr("*").filter(col("index") === 1).drop("organisationid", "index","batchid")
+      .union(schoolNameIndexDF.filter(col("index") =!= 1).groupBy("userid").agg(collect_list("schoolname_resolved").cast("string").as("schoolname_resolved")))
 
     /*
     * merge orgName and schoolName based on `userid` and calculate the course progress percentage from `progress` column which is no of content visited/read
     * */
-
     resolvedExternalIdDF
       .join(resolvedSchoolNameDF, Seq("userid"), "left_outer")
-      .join(resolvedOrgNameDF, Seq("userid"), "left_outer")
+      .join(resolvedOrgNameDF, Seq("userid", "rootorgid"), "left_outer")
       .withColumn("course_completion",
         when(col("completionpercentage").isNull, 0)
           .when(col("completionpercentage") > 100, 100)
           .otherwise(col("completionpercentage")).cast("int"))
       .withColumn("generatedOn", date_format(from_utc_timestamp(current_timestamp.cast(DataTypes.TimestampType), "Asia/Kolkata"), "yyyy-MM-dd'T'HH:mm:ss'Z'"))
+      .dropDuplicates("userid", "batchid")
+
   }
 
 
@@ -328,8 +355,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
         col("completedon").as("Completion Date"),
         col("batchid")
 
-      )
-      .coalesce(1)
+      ).coalesce(1)
       .write
       .partitionBy("batchid")
       .mode("overwrite")
