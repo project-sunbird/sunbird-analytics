@@ -28,6 +28,11 @@
 <!--			<name>Ing-bank Repo</name>-->
 <!--			<url>https://dl.bintray.com/ing-bank/maven-releases/</url>-->
 <!--		</repository>-->
+		<repository>
+			<id>jcenter-repo</id>
+			<name>Jcenter Repo</name>
+			<url>https://jcenter.bintray.com/</url>
+		</repository>
 	</repositories>
 
 	<dependencies>
