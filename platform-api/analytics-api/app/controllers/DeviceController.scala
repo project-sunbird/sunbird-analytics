@@ -3,8 +3,8 @@ package controllers
 import akka.actor._
 import appconf.AppConf
 import com.google.inject.Inject
-import org.ekstep.analytics.api.service.RegisterDevice
-import org.ekstep.analytics.api.util.{APILogger, CommonUtil, JSONUtils}
+import org.ekstep.analytics.api.service.{DeviceProfile, GetDeviceProfile, RegisterDevice}
+import org.ekstep.analytics.api.util.{APILogger, CacheUtil, CommonUtil, JSONUtils}
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, Result}
 import akka.pattern.ask
@@ -39,6 +39,8 @@ class DeviceController @Inject()(system: ActorSystem) extends BaseController {
     val dspec: Option[String] = (body \ "request" \ "dspec").toOption.map {
       value => Json.stringify(value)
     }
+    val userDefinedState = (body \ "request" \ "userDeclaredLocation" \ "state").asOpt[String]
+    val userDefinedDistrict = (body \ "request" \ "userDeclaredLocation" \ "district").asOpt[String]
 
     val extMap: Option[Map[String, String]] = (body \ "request" \ "ext").toOption.map {
       value => {
@@ -50,7 +52,7 @@ class DeviceController @Inject()(system: ActorSystem) extends BaseController {
       }
     }
 
-    deviceRegisterServiceAPIActor.tell(RegisterDevice(deviceId, headerIP, ipAddr, fcmToken, producer, dspec, uaspec, firstAccess), ActorRef.noSender)
+    deviceRegisterServiceAPIActor.tell(RegisterDevice(deviceId, headerIP, ipAddr, fcmToken, producer, dspec, uaspec, firstAccess, userDefinedState, userDefinedDistrict), ActorRef.noSender)
 
     if (isExperimentEnabled) {
       sendExperimentData(Some(deviceId), extMap.getOrElse(Map()).get("userId"), extMap.getOrElse(Map()).get("url"), producer)
@@ -100,5 +102,46 @@ class DeviceController @Inject()(system: ActorSystem) extends BaseController {
         ).withHeaders(CONTENT_TYPE -> "application/json")
       }
     }
+  }
+
+  def getDeviceProfile(deviceId: String) = Action.async { implicit request =>
+    val deviceRegisterServiceAPIActor: ActorRef = AppConf.getActorRef("deviceRegisterService")
+
+    // The X-Forwarded-For header from Azure is in the format '61.12.65.222:33740, 61.12.65.222'
+    val ip = request.headers.get("X-Forwarded-For").map {
+      x =>
+        val ipArray = x.split(",")
+        if (ipArray.length == 2) ipArray(1).trim else ipArray(0).trim
+    }
+    val headerIP = ip.getOrElse("")
+    val result = (deviceRegisterServiceAPIActor ? GetDeviceProfile(deviceId, headerIP)).mapTo[Option[DeviceProfile]]
+    result.map {
+          deviceData =>
+          if (deviceData.nonEmpty)
+          {
+              APILogger.log("", Option(Map("type" -> "api_access", "params" -> List(Map("userDeclaredLocation" -> deviceData.get.userDeclaredLocation, "ipLocation" -> deviceData.get.ipLocation) ++ Map("status" -> 200, "method" -> "POST",
+                  "rid" -> "getDeviceProfile", "title" -> "getDeviceProfile")))), "getDeviceProfile")
+
+              Ok(JSONUtils.serialize(CommonUtil.OK("analytics.device-profile",
+                  Map("userDeclaredLocation" -> deviceData.get.userDeclaredLocation, "ipLocation" -> deviceData.get.ipLocation))))
+                .withHeaders(CONTENT_TYPE -> "application/json")
+          }
+          else {
+            InternalServerError(
+              JSONUtils.serialize(CommonUtil.errorResponse("analytics.device-profile", "IP is missing in the header", "ERROR"))
+            ).withHeaders(CONTENT_TYPE -> "application/json")
+          }
+
+    }.recover {
+          case ex: Exception => {
+              ex.printStackTrace()
+              APILogger.log("", Option(Map("type" -> "api_access", "params" -> List(Map("status" -> 500, "method" -> "POST",
+                  "rid" -> "getDeviceProfile", "title" -> "getDeviceProfile")), "data" -> ex.getMessage)), "getDeviceProfile")
+
+              InternalServerError(
+                  JSONUtils.serialize(CommonUtil.errorResponse("analytics.device-profile", ex.getMessage, "ERROR"))
+              ).withHeaders(CONTENT_TYPE -> "application/json")
+          }
+      }
   }
 }

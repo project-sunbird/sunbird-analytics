@@ -1,9 +1,9 @@
 package org.ekstep.analytics.api.util
 
 import java.time.Duration
-
 import com.typesafe.config.{Config, ConfigFactory}
 import redis.clients.jedis.{Jedis, JedisPool, JedisPoolConfig}
+import scala.collection.JavaConverters._
 
 class RedisUtil {
   implicit val className = "org.ekstep.analytics.api.util.RedisUtil"
@@ -53,6 +53,16 @@ class RedisUtil {
         APILogger.log("", Option(Map("comments" -> s"Redis connection exception!  ${ex.getMessage}")), "RedisUtil")
         None
     }
+  }
+
+  def getAllByKey(key: String)(implicit jedisConnection: Jedis): Option[Map[String, String]] = {
+      try {
+          Option(jedisConnection.hgetAll(key).asScala.toMap)
+      } catch {
+          case ex: Exception =>
+              APILogger.log("", Option(Map("comments" -> s"Redis connection exception!  ${ex.getMessage}")), "RedisUtil")
+              None
+      }
   }
 
   def resetConnection(): Unit = {

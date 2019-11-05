@@ -4,17 +4,22 @@ import akka.actor.ActorSystem
 import akka.testkit.TestActorRef
 import com.typesafe.config.Config
 import org.ekstep.analytics.api.BaseSpec
-import org.ekstep.analytics.api.util.DeviceLocation
+import org.ekstep.analytics.api.util.{DeviceLocation, DeviceStateDistrict, RedisUtil}
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.mockito.Mockito._
+import scala.util.{Failure, Success}
 
 class TestDeviceRegisterService extends BaseSpec {
 
   val deviceRegisterServiceMock: DeviceRegisterService = mock[DeviceRegisterService]
   private implicit val system: ActorSystem = ActorSystem("device-register-test-actor-system", config)
   private val configMock = mock[Config]
+  val redisUtil = mock[RedisUtil]
   val saveMetricsActor = TestActorRef(new SaveMetricsActor(configMock))
-  private val deviceRegisterService = TestActorRef(new DeviceRegisterService(saveMetricsActor, configMock)).underlyingActor
+  val redisIndex: Int = config.getInt("redis.deviceIndex")
+  implicit val executor =  scala.concurrent.ExecutionContext.global
+  implicit val jedisConnection = redisUtil.getConnection(redisIndex)
+  private val deviceRegisterService = TestActorRef(new DeviceRegisterService(saveMetricsActor, configMock, redisUtil)).underlyingActor
 
   val request: String =
     s"""
@@ -128,5 +133,51 @@ class TestDeviceRegisterService extends BaseSpec {
     when(deviceRegisterServiceMock.parseUserAgent(None)).thenReturn(None)
     val uaspecResult: Option[String] = deviceRegisterServiceMock.parseUserAgent(None)
     uaspecResult should be (None)
+  }
+
+  "Resolve location for get device profile" should "return location details given an IP address" in {
+    when(deviceRegisterServiceMock.resolveLocationFromH2(ipAddress = "106.51.74.185"))
+      .thenReturn(DeviceStateDistrict("Karnataka", "BANGALORE"))
+    val deviceLocation = deviceRegisterServiceMock.resolveLocationFromH2("106.51.74.185")
+    deviceLocation.state should be("Karnataka")
+    deviceLocation.districtCustom should be("BANGALORE")
+  }
+
+  "Resolve location for get device profile" should "return empty location if the IP address is not found" in {
+    when(deviceRegisterServiceMock.resolveLocationFromH2(ipAddress = "106.51.74.185"))
+      .thenReturn(new DeviceStateDistrict())
+    val deviceLocation = deviceRegisterServiceMock.resolveLocationFromH2("106.51.74.185")
+    deviceLocation.state should be("")
+    deviceLocation.districtCustom should be("")
+  }
+
+  "Resolve declared location for get device profile" should "return declared location details" in {
+    when(redisUtil.getAllByKey("test-device"))
+      .thenReturn(Option(Map("user_declared_state" -> "Karnataka", "user_declared_district" -> "BANGALORE")))
+//    when(deviceRegisterServiceMock.resolveLocationFromH2(ipAddress = "106.51.74.185"))
+//      .thenReturn(DeviceStateDistrict("Karnataka", "BANGALORE"))
+//    val deviceLocation = deviceRegisterServiceMock.getDeviceProfile(GetDeviceProfile("test-device", "106.51.74.185"))
+//
+//    deviceLocation onComplete {
+//      case Success(value) => {
+//        value.get.userDeclaredLocation.get.state should be ("Karnataka")
+//        value.get.userDeclaredLocation.get.district should be ("BANGALORE")
+//        value.get.ipLocation.get.state should be ("Karnataka")
+//        value.get.ipLocation.get.district should be ("BANGALORE")
+//      }
+//      case Failure(error) => error.printStackTrace()
+//    }
+
+    val deviceLocation = redisUtil.getAllByKey("test-device")
+    deviceLocation.get.get("user_declared_state") should be("Karnataka")
+    deviceLocation.get.get("user_declared_district") should be("BANGALORE")
+  }
+
+  "Resolve user declared location for get device profile" should "return empty location declared location is not found" in {
+    when(redisUtil.getAllByKey("test-device"))
+      .thenReturn(None)
+
+    val deviceLocation = redisUtil.getAllByKey("test-device")
+    deviceLocation.isEmpty should be(true)
   }
 }
