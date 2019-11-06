@@ -12,7 +12,7 @@ import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
 
 import scala.collection.{Map, _}
 
-case class UserStatus(id: Int, status: String)
+case class UserStatus(id: Long, status: String)
 object UnclaimedStatus extends UserStatus(0, "UNCLAIMED")
 object ClaimedStatus extends UserStatus(1, "CLAIMED")
 object RejectedStatus extends UserStatus(2, "REJECTED")
@@ -31,7 +31,7 @@ case class UserSummary(accounts_validated: Long, accounts_rejected: Long, accoun
 // Geo user summary in the json will have this POJO
 case class GeoSummary(districts: Long, blocks: Long, school: Long)
 
-trait AdminReportGenerator {
+trait AdminReportGenerator extends Serializable {
 
   def loadData(spark: SparkSession, settings: Map[String, String]): DataFrame = {
     spark
@@ -109,16 +109,6 @@ object StateAdminReportJob extends optional.Application with IJob with AdminRepo
     JobLogger.end("StateAdminReportJob completed successfully!", "SUCCESS", Option(Map("config" -> config, "model" -> name)))
   }
 
-  /*
-  def loadData(spark: SparkSession, settings: Map[String, String]): DataFrame = {
-    spark
-      .read
-      .format("org.apache.spark.sql.cassandra")
-      .options(settings)
-      .load()
-  }
-  */
-
   override def generateReport(spark: SparkSession, loadData: (SparkSession, Map[String, String], Option[StructType]) => DataFrame): DataFrame = {
 
     import spark.implicits._
@@ -140,17 +130,19 @@ object StateAdminReportJob extends optional.Application with IJob with AdminRepo
       col("type").as("type")
     )
 
-    // implicit val shadowDataEncoder: Encoder[ShadowUserData] = Encoders.product[ShadowUserData]
     implicit val rootOrgDataEncoder: Encoder[RootOrgData] = Encoders.product[RootOrgData]
 
     val shadowDataEncoder = Encoders.product[ShadowUserData].schema
     val shadowUserDF = loadData(spark, Map("table" -> "shadow_user", "keyspace" -> sunbirdKeyspace), Some(shadowDataEncoder)).as[ShadowUserData]
-    val shadowDataSummary = generateSummaryData(shadowUserDF)(spark)
-    saveSummaryReport(shadowDataSummary, s"$summaryDir")
+
+    val shadowDataSummary = generateSummaryData(shadowUserDF.as[ShadowUserData])(spark)
+
+    saveUserSummaryReport(shadowDataSummary, s"$summaryDir")
     saveUserDetailsReport(shadowUserDF.toDF(), s"$detailDir")
 
     fSFileUtils.renameReport(detailDir, renamedDir, ".csv", "user-detail")
     fSFileUtils.renameReport(summaryDir, renamedDir, ".json", "user-summary")
+
     // Purge the directories after copying to the upload staging area
     fSFileUtils.purgeDirectory(detailDir)
     fSFileUtils.purgeDirectory(summaryDir)
@@ -217,14 +209,13 @@ object StateAdminReportJob extends optional.Application with IJob with AdminRepo
     fSFileUtils.purgeDirectory(detailDir)
     fSFileUtils.purgeDirectory(summaryDir)
 
-    JobLogger.log("Finished with prepareReport")
-    // distinctChannelDF.toDF()
+    JobLogger.log("Finished with generateReport")
+
     shadowUserDF.toDF()
   }
 
 
   def generateSummaryData(shadowUserDF: Dataset[ShadowUserData])(implicit spark: SparkSession): DataFrame = {
-
     import spark.implicits._
     def transformClaimedStatusValue()(ds: Dataset[ShadowUserData]) = {
       ds.withColumn("claim_status",
@@ -239,6 +230,8 @@ object StateAdminReportJob extends optional.Application with IJob with AdminRepo
 
     val shadowDataSummary = shadowUserDF.transform(transformClaimedStatusValue()).groupBy("channel")
       .pivot("claim_status").agg(count("claim_status")).na.fill(0)
+
+    shadowDataSummary.show(10, false)
     shadowDataSummary
   }
 
@@ -312,6 +305,42 @@ object StateAdminReportJob extends optional.Application with IJob with AdminRepo
 
     JobLogger.log(s"StateAdminReportJob: uploadedSuccess nRecords = ${reportDF.count()}")
     println(s"StateAdminReportJob: uploadedSuccess nRecords = ${reportDF.count()} and ${url}")
+  }
+
+
+  def saveUserSummaryReport(reportDF: DataFrame, url: String): Unit = {
+    val dfColumns = reportDF.columns.toSet
+
+    // Get claim status not in the current dataframe to add them.
+    val columns: Seq[String] = Seq(UnclaimedStatus.status,
+      ClaimedStatus.status,
+      RejectedStatus.status,
+      FailedStatus.status,
+      MultiMatchStatus.status,
+      OrgExtIdMismatch.status).filterNot(dfColumns)
+    val correctedReportDF = columns.foldLeft(reportDF)((acc, col) => {
+      acc.withColumn(col, lit(0))
+    })
+    JobLogger.log(s"columns to add in this report $columns")
+
+    correctedReportDF.coalesce(1)
+      .select(
+        col("channel"),
+        when(col(UnclaimedStatus.status).isNull, 0).otherwise(col(UnclaimedStatus.status)).as("accounts_unclaimed"),
+        when(col(ClaimedStatus.status).isNull, 0).otherwise(col(ClaimedStatus.status)).as("accounts_validated"),
+        when(col(RejectedStatus.status).isNull, 0).otherwise(col(RejectedStatus.status)).as("accounts_rejected"),
+        when(col(FailedStatus.status).isNull, 0).otherwise(col(FailedStatus.status)).as(FailedStatus.status),
+        when(col(MultiMatchStatus.status).isNull, 0).otherwise(col(MultiMatchStatus.status)).as(MultiMatchStatus.status),
+        when(col(OrgExtIdMismatch.status).isNull, 0).otherwise(col(OrgExtIdMismatch.status)).as(OrgExtIdMismatch.status)
+      )
+      .withColumn("accounts_failed",
+          col(FailedStatus.status) + col(MultiMatchStatus.status) + col(OrgExtIdMismatch.status))
+      .write
+      .partitionBy("channel")
+      .mode("overwrite")
+      .json(url)
+
+    JobLogger.log(s"StateAdminReportJob: uploadedSuccess nRecords = ${reportDF.count()}")
   }
 
   def uploadReport(sourcePath: String) = {
