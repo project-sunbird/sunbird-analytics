@@ -1,8 +1,9 @@
 package org.ekstep.analytics.job
 
 import org.apache.spark.SparkContext
-import org.apache.spark.sql.functions.{col, _}
-import org.apache.spark.sql.{DataFrame, Encoder, Encoders, SparkSession}
+import org.apache.spark.sql.functions.{col, lit, _}
+import org.apache.spark.sql.types.StructType
+import org.apache.spark.sql._
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, JobLogger}
 import org.ekstep.analytics.util.HDFSFileUtils
@@ -11,25 +12,17 @@ import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
 
 import scala.collection.{Map, _}
 
-// Following values are possible in shadow_user.claimedstatus column.
-object UserStatus extends Enumeration {
-  type UserStatus = Value
+case class UserStatus(id: Int, status: String)
+object UnclaimedStatus extends UserStatus(0, "UNCLAIMED")
+object ClaimedStatus extends UserStatus(1, "CLAIMED")
+object RejectedStatus extends UserStatus(2, "REJECTED")
+object FailedStatus extends UserStatus(3, "FAILED")
+object MultiMatchStatus extends UserStatus(4, "MULTIMATCH")
+object OrgExtIdMismatch extends UserStatus(5, "ORGEXTIDMISMATCH")
 
-  //  UNCLAIMED: 0 // initial Status <br>
-  val unclaimed = Value(0, "UNCLAIMED")
-  //  claimed: 1 // When the user is claimed.<br>
-  val claimed = Value(1, "CLAIMED")
-  //  REJECTED: 2 // when user says NO
-  val rejected = Value(2, "REJECTED")
-  //  FAILED: 3  // when user failed to verify the ext user id.
-  val failed = Value(3, "FAILED")
-  //  MULTIMATCH: 4 // when multiple user found with the identifier.<br>
-  val multimatch = Value(4, "MULTIMATCH")
-  //  ORGEXTIDMISMATCH: 5 // when provided ext org id is incorrect.<br>
-  val orgextidmismatch = Value(5, "ORGEXTIDMISMATCH")
-}
-
-case class ShadowUserData(channel: String, claimedstatus: String)
+case class ShadowUserData(channel: String, userextid: String, addedby: String, claimedon: Long, claimedstatus: Int,
+                          createdon: Long, email: String, name: String, orgextid: String, processid: String,
+                          phone: String, updatedon: Long, userid: String, userids: String, userstatus: String)
 case class RootOrgData(id: String, channel: String)
 
 // Shadow user summary in the json will have this POJO
@@ -38,8 +31,28 @@ case class UserSummary(accounts_validated: Long, accounts_rejected: Long, accoun
 // Geo user summary in the json will have this POJO
 case class GeoSummary(districts: Long, blocks: Long, school: Long)
 
+trait AdminReportGenerator {
 
-object StateAdminReportJob extends optional.Application with IJob with ReportGenerator with Serializable {
+  def loadData(spark: SparkSession, settings: Map[String, String]): DataFrame = {
+    spark
+      .read
+      .format("org.apache.spark.sql.cassandra")
+      .options(settings)
+      .load()
+  }
+
+  def loadDataWithSchema(spark: SparkSession, settings: Map[String, String], schema: Option[StructType] = None): DataFrame = {
+    val dataFrameReader = spark.read.format("org.apache.spark.sql.cassandra").options(settings)
+    val dataFrameReaderWithSchema = schema.map(schema => dataFrameReader.schema(schema)).getOrElse(dataFrameReader)
+    dataFrameReaderWithSchema.load()
+  }
+
+  def generateReport(spark: SparkSession, fetchTable: (SparkSession, Map[String, String], Option[StructType]) => DataFrame): DataFrame
+
+}
+
+
+object StateAdminReportJob extends optional.Application with IJob with AdminReportGenerator {
 
   implicit val className: String = "org.ekstep.analytics.job.StateAdminReportJob"
 
@@ -91,11 +104,12 @@ object StateAdminReportJob extends optional.Application with IJob with ReportGen
 
     val spark = SparkSession.builder.config(sparkConf).getOrCreate()
 
-    val reportDF = prepareReport(spark, loadData)
+    val reportDF = generateReport(spark, loadDataWithSchema)
     uploadReport(renamedDir)
     JobLogger.end("StateAdminReportJob completed successfully!", "SUCCESS", Option(Map("config" -> config, "model" -> name)))
   }
 
+  /*
   def loadData(spark: SparkSession, settings: Map[String, String]): DataFrame = {
     spark
       .read
@@ -103,32 +117,12 @@ object StateAdminReportJob extends optional.Application with IJob with ReportGen
       .options(settings)
       .load()
   }
+  */
 
-  def prepareReport(spark: SparkSession, loadData: (SparkSession, Map[String, String]) => DataFrame): DataFrame = {
+  override def generateReport(spark: SparkSession, loadData: (SparkSession, Map[String, String], Option[StructType]) => DataFrame): DataFrame = {
 
     import spark.implicits._
     val sunbirdKeyspace = AppConf.getConfig("course.metrics.cassandra.sunbirdKeyspace")
-
-    val locationDF = loadData(spark, Map("table" -> "location", "keyspace" -> sunbirdKeyspace)).select(
-      col("id").as("locid"),
-      col("code").as("code"),
-      col("name").as("name"),
-      col("parentid").as("parentid"),
-      col("type").as("type")
-    )
-
-    implicit val shadowDataEncoder: Encoder[ShadowUserData] = Encoders.product[ShadowUserData]
-    implicit val rootOrgDataEncoder: Encoder[RootOrgData] = Encoders.product[RootOrgData]
-
-    val distinctChannelDF = loadData(spark, Map("table" -> "shadow_user", "keyspace" -> sunbirdKeyspace))
-      .select("channel", "claimedstatus").as[ShadowUserData]
-
-    val activeRootOrganisationDF = loadData(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace))
-        .select(col("id"), col("channel"))
-        .where(col("isrootorg") && col("status").=== (1))
-        .as[RootOrgData]
-
-    JobLogger.log(s"Active root org count = $activeRootOrganisationDF.count()")
 
     val tempDir = AppConf.getConfig("course.metrics.temp.dir")
     val renamedDir = s"$tempDir/renamed"
@@ -138,37 +132,36 @@ object StateAdminReportJob extends optional.Application with IJob with ReportGen
     val detailDir = s"$tempDir/detail"
     val summaryDir = s"$tempDir/summary"
 
-    // For distinct channel names, do the following:
-    // 1. Create a json, csv report - user-summary.json, user-detail.csv.
-    distinctChannelDF.foreach(channelData => {
-      val channelName = channelData.channel
-      JobLogger.log(s"Start working on $channelName")
-      val oneOrgUsersDF = loadData(spark, Map("table" -> "shadow_user", "keyspace" -> sunbirdKeyspace)).filter(col("channel") === channelName)
-      val unclaimedCount = oneOrgUsersDF.where(s"claimedstatus === ${UserStatus.unclaimed.id}").count()
-      val claimedCount = oneOrgUsersDF.where(s"claimedstatus === ${UserStatus.claimed.id}").count()
-      val rejectedCount = oneOrgUsersDF.where(s"claimedstatus === ${UserStatus.rejected.id}").count()
-      val failedCount = oneOrgUsersDF.where(s"claimedStatus >== ${UserStatus.failed.id}").count()
+    val locationDF = loadData(spark, Map("table" -> "location", "keyspace" -> sunbirdKeyspace), None).select(
+      col("id").as("locid"),
+      col("code").as("code"),
+      col("name").as("name"),
+      col("parentid").as("parentid"),
+      col("type").as("type")
+    )
 
-      var summaryOutput = UserSummary(claimedCount, rejectedCount, unclaimedCount, failedCount)
+    // implicit val shadowDataEncoder: Encoder[ShadowUserData] = Encoders.product[ShadowUserData]
+    implicit val rootOrgDataEncoder: Encoder[RootOrgData] = Encoders.product[RootOrgData]
 
-      JobLogger.log(s"$channelName has ${oneOrgUsersDF.cache().count()} many users in shadow_user table")
-
-      val jsonStr = JSONUtils.serialize(summaryOutput)
-      val rdd = spark.sparkContext.parallelize(Seq(jsonStr))
-      val summaryDF = spark.read.json(rdd)
-
-      saveUserDetailsReport(oneOrgUsersDF, s"$detailDir/channel=$channelName")
-      saveSummaryReport(summaryDF, s"$summaryDir/channel=$channelName")
-    })
-
-    // val shadowUserDataDf = distinctChannelDF.groupBy("channel").pivot("claimstatus").agg(count("claimstatus"))
+    val shadowDataEncoder = Encoders.product[ShadowUserData].schema
+    val shadowUserDF = loadData(spark, Map("table" -> "shadow_user", "keyspace" -> sunbirdKeyspace), Some(shadowDataEncoder)).as[ShadowUserData]
+    val shadowDataSummary = generateSummaryData(shadowUserDF)(spark)
+    saveSummaryReport(shadowDataSummary, s"$summaryDir")
+    saveUserDetailsReport(shadowUserDF.toDF(), s"$detailDir")
 
     fSFileUtils.renameReport(detailDir, renamedDir, ".csv", "user-detail")
     fSFileUtils.renameReport(summaryDir, renamedDir, ".json", "user-summary")
-
     // Purge the directories after copying to the upload staging area
     fSFileUtils.purgeDirectory(detailDir)
     fSFileUtils.purgeDirectory(summaryDir)
+
+    val organisationDF = loadData(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace), None)
+
+    val activeRootOrganisationDF = organisationDF
+      .select(col("id"), col("channel"))
+      .where(col("isrootorg") && col("status").=== (1))
+      .as[RootOrgData]
+    JobLogger.log(s"Active root org count = ${activeRootOrganisationDF.count()}")
 
     // iterating through all active rootOrg and fetching all active suborg for a particular rootOrg
     activeRootOrganisationDF.foreach(rootOrgData => {
@@ -177,7 +170,7 @@ object StateAdminReportJob extends optional.Application with IJob with ReportGen
       JobLogger.log(s"RootOrg id found = $rootOrgId and channel = $channelName")
 
       // fetching all suborg for a particular rootOrg
-      var schoolCountDf = loadData(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace))
+      val schoolCountDf = organisationDF
         .where(col("status").equalTo(1) && not(col("isrootorg"))
           && col("rootorgid").equalTo(rootOrgId))
 
@@ -225,13 +218,29 @@ object StateAdminReportJob extends optional.Application with IJob with ReportGen
     fSFileUtils.purgeDirectory(summaryDir)
 
     JobLogger.log("Finished with prepareReport")
-    distinctChannelDF.toDF()
+    // distinctChannelDF.toDF()
+    shadowUserDF.toDF()
   }
 
 
-  override def saveReportES(reportDF: DataFrame): Unit = {}
+  def generateSummaryData(shadowUserDF: Dataset[ShadowUserData])(implicit spark: SparkSession): DataFrame = {
 
-  override def saveReport(reportDF: DataFrame, url: String): Unit = {}
+    import spark.implicits._
+    def transformClaimedStatusValue()(ds: Dataset[ShadowUserData]) = {
+      ds.withColumn("claim_status",
+        when($"claimedstatus" === UnclaimedStatus.id, lit(UnclaimedStatus.status))
+          .when($"claimedstatus" === ClaimedStatus.id, lit(ClaimedStatus.status))
+          .when($"claimedstatus" === FailedStatus.id, lit(FailedStatus.status))
+          .when($"claimedstatus" === RejectedStatus.id, lit(RejectedStatus.status))
+          .when($"claimedstatus" === MultiMatchStatus.id, lit(MultiMatchStatus.status))
+          .when($"claimedstatus" === OrgExtIdMismatch.id, lit(OrgExtIdMismatch.status))
+          .otherwise(lit("")))
+    }
+
+    val shadowDataSummary = shadowUserDF.transform(transformClaimedStatusValue()).groupBy("channel")
+      .pivot("claim_status").agg(count("claim_status")).na.fill(0)
+    shadowDataSummary
+  }
 
   /**
     * Saves the raw data as a .csv.
@@ -246,6 +255,7 @@ object StateAdminReportJob extends optional.Application with IJob with ReportGen
 
     reportDF.coalesce(1)
       .select(
+        col("channel"),
         col("userextid").as("User external id"),
         col("userstatus").as("User account status"),
         col("userid").as("User id"),
@@ -257,6 +267,7 @@ object StateAdminReportJob extends optional.Application with IJob with ReportGen
         col("updatedon").as("Last updated on")
       )
       .write
+      .partitionBy("channel")
       .mode("overwrite")
       .option("header", "true")
       .csv(url)
@@ -295,6 +306,7 @@ object StateAdminReportJob extends optional.Application with IJob with ReportGen
   def saveSummaryReport(reportDF: DataFrame, url: String): Unit = {
     reportDF.coalesce(1)
       .write
+      .partitionBy("channel")
       .mode("overwrite")
       .json(url)
 
