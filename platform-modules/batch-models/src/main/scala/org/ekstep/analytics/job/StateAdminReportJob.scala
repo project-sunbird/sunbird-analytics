@@ -22,7 +22,7 @@ object OrgExtIdMismatch extends UserStatus(5, "ORGEXTIDMISMATCH")
 
 case class ShadowUserData(channel: String, userextid: String, addedby: String, claimedon: Long, claimstatus: Int,
                           createdon: Long, email: String, name: String, orgextid: String, processid: String,
-                          phone: String, updatedon: Long, userid: String, userids: String, userstatus: String)
+                          phone: String, updatedon: Long, userid: String, userids: List[String], userstatus: String)
 case class RootOrgData(id: String, channel: String)
 
 // Shadow user summary in the json will have this POJO
