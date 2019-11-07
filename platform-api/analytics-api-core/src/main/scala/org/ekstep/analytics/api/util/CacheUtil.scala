@@ -68,6 +68,64 @@ object CacheUtil {
     }
   }
 
+  def initDeviceLocationCache()(implicit config: Config) {
+
+    APILogger.log("Refreshing DeviceLocation Cache")
+    val geoLocationCityTableName: String = config.getString("postgres.table.geo_location_city.name")
+    val geoLocationCityIpv4TableName: String = config.getString("postgres.table.geo_location_city_ipv4.name")
+
+    val truncateCityTableQuery = s"TRUNCATE TABLE $geoLocationCityTableName;"
+    val truncateRangeTableQuery = s"TRUNCATE TABLE $geoLocationCityIpv4TableName;"
+    val createCityTableQuery = s"CREATE TABLE IF NOT EXISTS $geoLocationCityTableName(geoname_id INTEGER UNIQUE, subdivision_1_name VARCHAR(100), subdivision_2_custom_name VARCHAR(100));"
+    val createRangeTableQuery = s"CREATE TABLE IF NOT EXISTS $geoLocationCityIpv4TableName(network_start_integer BIGINT, network_last_integer BIGINT, geoname_id INTEGER);"
+
+    H2DBUtil.executeQuery(createCityTableQuery)
+    H2DBUtil.executeQuery(createRangeTableQuery)
+    H2DBUtil.executeQuery(truncateCityTableQuery)
+    H2DBUtil.executeQuery(truncateRangeTableQuery)
+
+    val cityQuery = s"select geoname_id,subdivision_1_name,subdivision_2_custom_name from $geoLocationCityTableName"
+    val rangeQuery = s"select network_start_integer, network_last_integer, geoname_id from $geoLocationCityIpv4TableName"
+    Try {
+      val locCityData = PostgresDBUtil.readGeoLocationCity(cityQuery)
+      locCityData.map{
+        loc =>
+          val insertQuery = s"INSERT INTO $geoLocationCityTableName(geoname_id, subdivision_1_name, subdivision_2_custom_name) VALUES (${loc.geoname_id}, '${loc.subdivision_1_name}', '${loc.subdivision_2_custom_name}')"
+          H2DBUtil.executeQuery(insertQuery)
+      }
+
+      val locRangeData = PostgresDBUtil.readGeoLocationRange(rangeQuery)
+      locRangeData.map{
+        loc =>
+          val insertQuery = s"INSERT INTO $geoLocationCityIpv4TableName(network_start_integer, network_last_integer, geoname_id) VALUES (${loc.network_start_integer}, ${loc.network_last_integer}, ${loc.geoname_id})"
+          H2DBUtil.executeQuery(insertQuery)
+      }
+
+      // checking row counts in h2 database after refreshing
+      val countCityTableQuery = s"Select count(*) AS count from $geoLocationCityTableName"
+      val cityTableCount = H2DBUtil.execute(countCityTableQuery)
+      var h2CityTableCount = 0L
+      while (cityTableCount.next()) {
+          h2CityTableCount = cityTableCount.getLong("count")
+      }
+
+      val countRangeTableQuery = s"Select count(*) AS count from $geoLocationCityIpv4TableName"
+      val rangeTableCount = H2DBUtil.execute(countRangeTableQuery)
+      var h2RangeTableCount = 0L
+      while (rangeTableCount.next()) {
+        h2RangeTableCount = rangeTableCount.getLong("count")
+      }
+
+      println("h2 db city table count after refreshing: " + h2CityTableCount)
+      println("h2 db city table count after refreshing: " + h2RangeTableCount)
+      APILogger.log(s"DeviceLocation Cache Refreshed Successfully!! postgress city table records: ${locCityData.length}, postgress range table records: ${locRangeData.length}, h2 db city table records: $h2CityTableCount, h2 db range table records: $h2RangeTableCount")
+    }.recover {
+      case ex: Throwable =>
+        APILogger.log(s"Failed to refresh DeviceLocation Cache: ${ex.getMessage}")
+        ex.printStackTrace()
+    }
+  }
+
   def getConsumerChannlTable()(implicit config: Config): Table[String, String, Integer] = {
     if (consumerChannelTable.size() > 0)
       consumerChannelTable

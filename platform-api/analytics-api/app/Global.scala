@@ -6,8 +6,9 @@ import play.api.mvc._
 import filter.RequestInterceptor
 import org.ekstep.analytics.api.service.experiment.{ExperimentResolver, ExperimentService}
 import org.ekstep.analytics.api.service.experiment.Resolver.ModulusResolver
-import org.ekstep.analytics.api.service.{DeviceRegisterService, SaveMetricsActor}
-import org.ekstep.analytics.api.util.{APILogger, ElasticsearchService, RedisUtil}
+import org.ekstep.analytics.api.service.{CacheRefreshActor, DeviceRegisterService, SaveMetricsActor}
+import org.ekstep.analytics.api.util.{APILogger, CacheUtil, ElasticsearchService, RedisUtil}
+import com.typesafe.config.Config
 
 object Global extends WithFilters(RequestInterceptor) {
 
@@ -18,6 +19,7 @@ object Global extends WithFilters(RequestInterceptor) {
         // CacheUtil.initCache()(config)
         Logger.info("Application has started...")
         val config = ConfigFactory.load()
+
         val redisUtil = new RedisUtil()
         val metricsActor: ActorRef = app.actorSystem.actorOf(Props(new SaveMetricsActor(config)))
         val deviceRegsiterActor = app.actorSystem.actorOf(Props(new DeviceRegisterService(metricsActor, config, redisUtil)), "deviceRegisterServiceAPIActor")
@@ -28,6 +30,10 @@ object Global extends WithFilters(RequestInterceptor) {
         val elasticsearchService = new ElasticsearchService()
         val experimentActor = app.actorSystem.actorOf(Props(new ExperimentService(redisUtil, elasticsearchService)), "experimentActor")
         AppConf.setActorRef("experimentService", experimentActor)
+
+        //location cache refresh Actor
+        val locationCacheRefreshActor: ActorRef = app.actorSystem.actorOf(Props(new CacheRefreshActor(config)))
+        AppConf.setActorRef("locationCacheRefreshService", locationCacheRefreshActor)
     }
 
     override def onStop(app: Application) {
