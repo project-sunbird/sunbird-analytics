@@ -252,7 +252,7 @@ object StateAdminReportJob extends optional.Application with IJob with AdminRepo
         col("userextid").as("User external id"),
         col("userstatus").as("User account status"),
         col("userid").as("User id"),
-        col("userids").as("Matching User ids"),
+        concat_ws(",", col("userids")).as("Matching User ids"),
         col("claimedon").as("Claimed on"),
         col("orgextid").as("School external id"),
         col("claimstatus").as("Claimed status"),
