@@ -20,9 +20,9 @@ object FailedStatus extends UserStatus(3, "FAILED")
 object MultiMatchStatus extends UserStatus(4, "MULTIMATCH")
 object OrgExtIdMismatch extends UserStatus(5, "ORGEXTIDMISMATCH")
 
-case class ShadowUserData(channel: String, userextid: String, addedby: String, claimedon: Long, claimstatus: Int,
+case class ShadowUserData(channel: String, userextid: String, addedby: String, claimedon: Long, claimedstatus: Int,
                           createdon: Long, email: String, name: String, orgextid: String, processid: String,
-                          phone: String, updatedon: Long, userid: String, userids: String, userstatus: String)
+                          phone: String, updatedon: Long, userid: String, userids: List[String], userstatus: String)
 case class RootOrgData(id: String, channel: String)
 
 // Shadow user summary in the json will have this POJO
@@ -130,7 +130,7 @@ object StateAdminReportJob extends optional.Application with IJob with AdminRepo
       col("type").as("type")
     )
 
-    implicit val rootOrgDataEncoder: Encoder[RootOrgData] = Encoders.product[RootOrgData]
+    val rootOrgDataEncoder = Encoders.product[RootOrgData].schema
 
     val shadowDataEncoder = Encoders.product[ShadowUserData].schema
     val shadowUserDF = loadData(spark, Map("table" -> "shadow_user", "keyspace" -> sunbirdKeyspace), Some(shadowDataEncoder)).as[ShadowUserData]
@@ -147,7 +147,7 @@ object StateAdminReportJob extends optional.Application with IJob with AdminRepo
     fSFileUtils.purgeDirectory(detailDir)
     fSFileUtils.purgeDirectory(summaryDir)
 
-    val organisationDF = loadData(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace), None)
+    val organisationDF = loadData(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace), Some(rootOrgDataEncoder))
 
     val activeRootOrganisationDF = organisationDF
       .select(col("id"), col("channel"))
@@ -219,12 +219,12 @@ object StateAdminReportJob extends optional.Application with IJob with AdminRepo
     import spark.implicits._
     def transformClaimedStatusValue()(ds: Dataset[ShadowUserData]) = {
       ds.withColumn("claim_status",
-        when($"claimstatus" === UnclaimedStatus.id, lit(UnclaimedStatus.status))
-          .when($"claimstatus" === ClaimedStatus.id, lit(ClaimedStatus.status))
-          .when($"claimstatus" === FailedStatus.id, lit(FailedStatus.status))
-          .when($"claimstatus" === RejectedStatus.id, lit(RejectedStatus.status))
-          .when($"claimstatus" === MultiMatchStatus.id, lit(MultiMatchStatus.status))
-          .when($"claimstatus" === OrgExtIdMismatch.id, lit(OrgExtIdMismatch.status))
+        when($"claimedstatus" === UnclaimedStatus.id, lit(UnclaimedStatus.status))
+          .when($"claimedstatus" === ClaimedStatus.id, lit(ClaimedStatus.status))
+          .when($"claimedstatus" === FailedStatus.id, lit(FailedStatus.status))
+          .when($"claimedstatus" === RejectedStatus.id, lit(RejectedStatus.status))
+          .when($"claimedstatus" === MultiMatchStatus.id, lit(MultiMatchStatus.status))
+          .when($"claimedstatus" === OrgExtIdMismatch.id, lit(OrgExtIdMismatch.status))
           .otherwise(lit("")))
     }
 
@@ -244,7 +244,7 @@ object StateAdminReportJob extends optional.Application with IJob with AdminRepo
     */
   def saveUserDetailsReport(reportDF: DataFrame, url: String): Unit = {
     // List of fields available
-    //channel,userextid,addedby,claimedon,claimstatus,createdon,email,name,orgextid,phone,processid,updatedon,userid,userids,userstatus
+    //channel,userextid,addedby,claimedon,claimedstatus,createdon,email,name,orgextid,phone,processid,updatedon,userid,userids,userstatus
 
     reportDF.coalesce(1)
       .select(
@@ -255,7 +255,7 @@ object StateAdminReportJob extends optional.Application with IJob with AdminRepo
         col("userids").as("Matching User ids"),
         col("claimedon").as("Claimed on"),
         col("orgextid").as("School external id"),
-        col("claimstatus").as("Claimed status"),
+        col("claimedstatus").as("Claimed status"),
         col("createdon").as("Created on"),
         col("updatedon").as("Last updated on")
       )
