@@ -20,7 +20,7 @@ object FailedStatus extends UserStatus(3, "FAILED")
 object MultiMatchStatus extends UserStatus(4, "MULTIMATCH")
 object OrgExtIdMismatch extends UserStatus(5, "ORGEXTIDMISMATCH")
 
-case class ShadowUserData(channel: String, userextid: String, addedby: String, claimedon: Long, claimedstatus: Int,
+case class ShadowUserData(channel: String, userextid: String, addedby: String, claimedon: Long, claimstatus: Int,
                           createdon: Long, email: String, name: String, orgextid: String, processid: String,
                           phone: String, updatedon: Long, userid: String, userids: String, userstatus: String)
 case class RootOrgData(id: String, channel: String)
@@ -219,12 +219,12 @@ object StateAdminReportJob extends optional.Application with IJob with AdminRepo
     import spark.implicits._
     def transformClaimedStatusValue()(ds: Dataset[ShadowUserData]) = {
       ds.withColumn("claim_status",
-        when($"claimedstatus" === UnclaimedStatus.id, lit(UnclaimedStatus.status))
-          .when($"claimedstatus" === ClaimedStatus.id, lit(ClaimedStatus.status))
-          .when($"claimedstatus" === FailedStatus.id, lit(FailedStatus.status))
-          .when($"claimedstatus" === RejectedStatus.id, lit(RejectedStatus.status))
-          .when($"claimedstatus" === MultiMatchStatus.id, lit(MultiMatchStatus.status))
-          .when($"claimedstatus" === OrgExtIdMismatch.id, lit(OrgExtIdMismatch.status))
+        when($"claimstatus" === UnclaimedStatus.id, lit(UnclaimedStatus.status))
+          .when($"claimstatus" === ClaimedStatus.id, lit(ClaimedStatus.status))
+          .when($"claimstatus" === FailedStatus.id, lit(FailedStatus.status))
+          .when($"claimstatus" === RejectedStatus.id, lit(RejectedStatus.status))
+          .when($"claimstatus" === MultiMatchStatus.id, lit(MultiMatchStatus.status))
+          .when($"claimstatus" === OrgExtIdMismatch.id, lit(OrgExtIdMismatch.status))
           .otherwise(lit("")))
     }
 
@@ -244,7 +244,7 @@ object StateAdminReportJob extends optional.Application with IJob with AdminRepo
     */
   def saveUserDetailsReport(reportDF: DataFrame, url: String): Unit = {
     // List of fields available
-    //channel,userextid,addedby,claimedon,claimedstatus,createdon,email,name,orgextid,phone,processid,updatedon,userid,userids,userstatus
+    //channel,userextid,addedby,claimedon,claimstatus,createdon,email,name,orgextid,phone,processid,updatedon,userid,userids,userstatus
 
     reportDF.coalesce(1)
       .select(
@@ -255,7 +255,7 @@ object StateAdminReportJob extends optional.Application with IJob with AdminRepo
         col("userids").as("Matching User ids"),
         col("claimedon").as("Claimed on"),
         col("orgextid").as("School external id"),
-        col("claimedstatus").as("Claimed status"),
+        col("claimstatus").as("Claimed status"),
         col("createdon").as("Created on"),
         col("updatedon").as("Last updated on")
       )
