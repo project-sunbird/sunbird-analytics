@@ -13,14 +13,14 @@ import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
 import scala.collection.{Map, _}
 
 case class UserStatus(id: Long, status: String)
-object UnclaimedStatus extends UserStatus(0, "UNCLAIMED")
-object ClaimedStatus extends UserStatus(1, "CLAIMED")
+object Unclaimstatus extends UserStatus(0, "UNCLAIMED")
+object claimstatus extends UserStatus(1, "CLAIMED")
 object RejectedStatus extends UserStatus(2, "REJECTED")
 object FailedStatus extends UserStatus(3, "FAILED")
 object MultiMatchStatus extends UserStatus(4, "MULTIMATCH")
 object OrgExtIdMismatch extends UserStatus(5, "ORGEXTIDMISMATCH")
 
-case class ShadowUserData(channel: String, userextid: String, addedby: String, claimedon: Long, claimedstatus: Int,
+case class ShadowUserData(channel: String, userextid: String, addedby: String, claimedon: Long, claimstatus: Int,
                           createdon: Long, email: String, name: String, orgextid: String, processid: String,
                           phone: String, updatedon: Long, userid: String, userids: List[String], userstatus: String)
 case class RootOrgData(id: String, channel: String)
@@ -217,18 +217,18 @@ object StateAdminReportJob extends optional.Application with IJob with AdminRepo
 
   def generateSummaryData(shadowUserDF: Dataset[ShadowUserData])(implicit spark: SparkSession): DataFrame = {
     import spark.implicits._
-    def transformClaimedStatusValue()(ds: Dataset[ShadowUserData]) = {
+    def transformclaimstatusValue()(ds: Dataset[ShadowUserData]) = {
       ds.withColumn("claim_status",
-        when($"claimedstatus" === UnclaimedStatus.id, lit(UnclaimedStatus.status))
-          .when($"claimedstatus" === ClaimedStatus.id, lit(ClaimedStatus.status))
-          .when($"claimedstatus" === FailedStatus.id, lit(FailedStatus.status))
-          .when($"claimedstatus" === RejectedStatus.id, lit(RejectedStatus.status))
-          .when($"claimedstatus" === MultiMatchStatus.id, lit(MultiMatchStatus.status))
-          .when($"claimedstatus" === OrgExtIdMismatch.id, lit(OrgExtIdMismatch.status))
+        when($"claimstatus" === Unclaimstatus.id, lit(Unclaimstatus.status))
+          .when($"claimstatus" === claimstatus.id, lit(claimstatus.status))
+          .when($"claimstatus" === FailedStatus.id, lit(FailedStatus.status))
+          .when($"claimstatus" === RejectedStatus.id, lit(RejectedStatus.status))
+          .when($"claimstatus" === MultiMatchStatus.id, lit(MultiMatchStatus.status))
+          .when($"claimstatus" === OrgExtIdMismatch.id, lit(OrgExtIdMismatch.status))
           .otherwise(lit("")))
     }
 
-    val shadowDataSummary = shadowUserDF.transform(transformClaimedStatusValue()).groupBy("channel")
+    val shadowDataSummary = shadowUserDF.transform(transformclaimstatusValue()).groupBy("channel")
       .pivot("claim_status").agg(count("claim_status")).na.fill(0)
 
     shadowDataSummary.show(10, false)
@@ -244,7 +244,7 @@ object StateAdminReportJob extends optional.Application with IJob with AdminRepo
     */
   def saveUserDetailsReport(reportDF: DataFrame, url: String): Unit = {
     // List of fields available
-    //channel,userextid,addedby,claimedon,claimedstatus,createdon,email,name,orgextid,phone,processid,updatedon,userid,userids,userstatus
+    //channel,userextid,addedby,claimedon,claimstatus,createdon,email,name,orgextid,phone,processid,updatedon,userid,userids,userstatus
 
     reportDF.coalesce(1)
       .select(
@@ -255,7 +255,7 @@ object StateAdminReportJob extends optional.Application with IJob with AdminRepo
         col("userids").as("Matching User ids"),
         col("claimedon").as("Claimed on"),
         col("orgextid").as("School external id"),
-        col("claimedstatus").as("Claimed status"),
+        col("claimstatus").as("Claimed status"),
         col("createdon").as("Created on"),
         col("updatedon").as("Last updated on")
       )
@@ -312,8 +312,8 @@ object StateAdminReportJob extends optional.Application with IJob with AdminRepo
     val dfColumns = reportDF.columns.toSet
 
     // Get claim status not in the current dataframe to add them.
-    val columns: Seq[String] = Seq(UnclaimedStatus.status,
-      ClaimedStatus.status,
+    val columns: Seq[String] = Seq(Unclaimstatus.status,
+      claimstatus.status,
       RejectedStatus.status,
       FailedStatus.status,
       MultiMatchStatus.status,
@@ -326,8 +326,8 @@ object StateAdminReportJob extends optional.Application with IJob with AdminRepo
     correctedReportDF.coalesce(1)
       .select(
         col("channel"),
-        when(col(UnclaimedStatus.status).isNull, 0).otherwise(col(UnclaimedStatus.status)).as("accounts_unclaimed"),
-        when(col(ClaimedStatus.status).isNull, 0).otherwise(col(ClaimedStatus.status)).as("accounts_validated"),
+        when(col(Unclaimstatus.status).isNull, 0).otherwise(col(Unclaimstatus.status)).as("accounts_unclaimed"),
+        when(col(claimstatus.status).isNull, 0).otherwise(col(claimstatus.status)).as("accounts_validated"),
         when(col(RejectedStatus.status).isNull, 0).otherwise(col(RejectedStatus.status)).as("accounts_rejected"),
         when(col(FailedStatus.status).isNull, 0).otherwise(col(FailedStatus.status)).as(FailedStatus.status),
         when(col(MultiMatchStatus.status).isNull, 0).otherwise(col(MultiMatchStatus.status)).as(MultiMatchStatus.status),
