@@ -1,5 +1,6 @@
 import akka.actor.{ActorRef, Props}
 import appconf.AppConf
+import com.typesafe.config.ConfigFactory
 import play.api._
 import play.api.mvc._
 import filter.RequestInterceptor
@@ -16,8 +17,9 @@ object Global extends WithFilters(RequestInterceptor) {
         // val config: Config = play.Play.application.configuration.underlying()
         // CacheUtil.initCache()(config)
         Logger.info("Application has started...")
-        val metricsActor: ActorRef = app.actorSystem.actorOf(Props[SaveMetricsActor])
-        val deviceRegsiterActor = app.actorSystem.actorOf(Props(new DeviceRegisterService(metricsActor)), "deviceRegisterServiceAPIActor")
+        val config = ConfigFactory.load()
+        val metricsActor: ActorRef = app.actorSystem.actorOf(Props(new SaveMetricsActor(config)))
+        val deviceRegsiterActor = app.actorSystem.actorOf(Props(new DeviceRegisterService(metricsActor, config)), "deviceRegisterServiceAPIActor")
         AppConf.setActorRef("deviceRegisterService", deviceRegsiterActor)
 
         // experiment Service

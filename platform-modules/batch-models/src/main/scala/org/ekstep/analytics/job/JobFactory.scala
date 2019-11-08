@@ -214,6 +214,10 @@ object JobFactory {
                 ExperimentDefinitionJob
             case "daily-metrics-consumption-reports" =>
                 ConsumptionReportsJob
+            case "assessment-dashboard-metrics" =>
+                AssessmentMetricsJob
+            case "druid-query-processor" =>
+                DruidQueryProcessor
             case "pipeline-failed-events-audit" =>
                 AuditComputationJob
             case "pipeline-druid-events-audit" =>

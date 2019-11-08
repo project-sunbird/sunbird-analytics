@@ -1,12 +1,19 @@
 package org.ekstep.analytics.framework.dispatcher
 
 import java.io.FileWriter
+import scala.concurrent.ExecutionContext.Implicits.global
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.framework.exception.DispatcherException
-import org.ekstep.analytics.framework.util.CommonUtil
+import org.ekstep.analytics.framework.util.{CommonUtil, JobLogger}
 import org.sunbird.cloud.storage.conf.AppConf
 import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
+import org.apache.spark.sql.DataFrame
+import org.apache.hadoop.fs.{FileSystem, Path}
+import org.ekstep.analytics.framework.Level
+import scala.concurrent.Await
+import org.apache.spark.sql.functions.col
+import scala.util.{Failure, Success}
 
 object AzureDispatcher extends IDispatcher {
 
@@ -50,5 +57,24 @@ object AzureDispatcher extends IDispatcher {
         }
         events.saveAsTextFile("wasb://" + bucket + "@" + AppConf.getStorageKey(AppConf.getStorageType()) + ".blob.core.windows.net/" + key);
     }
+
+    def dispatchDirectory(config: Map[String, AnyRef])(implicit sc: SparkContext) = {
+        val dirPath = config.getOrElse("dirPath", null).asInstanceOf[String]
+        val bucket = config.getOrElse("bucket", null).asInstanceOf[String]
+        val key = config.getOrElse("key", null).asInstanceOf[String]
+        val isPublic = config.getOrElse("public", false).asInstanceOf[Boolean]
+
+        if (null == bucket || null == key || dirPath == null) {
+            throw new DispatcherException("'local file path', 'bucket' & 'key' parameters are required to upload directory to azure")
+        }
+
+        val uploadMsg = StorageServiceFactory.getStorageService(StorageConfig("azure", AppConf.getStorageKey("azure"), AppConf.getStorageSecret("azure")))
+          .uploadFolder(bucket, dirPath, key, Option(isPublic), None, Option(3))
+        val uploadWaitTime = AppConf.getConfig("druid.report.upload.wait.time.mins").toLong
+        val result = Await.result(uploadMsg, scala.concurrent.duration.Duration.apply(uploadWaitTime, "minute"))
+        JobLogger.log("Successfully Uploaded files", Option(Map("filesUploaded" -> result)), Level.INFO)
+        CommonUtil.deleteDirectory(dirPath)
+    }
+
 
 }
