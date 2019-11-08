@@ -399,16 +399,29 @@ CREATE TABLE IF NOT EXISTS local_device_db.device_content_summary_fact (
 );
 
 CREATE TABLE IF NOT EXISTS local_device_db.device_profile (
-	device_id text,
-	channel text,
-	first_access timestamp,
-	last_access timestamp,
-	total_ts double,
-	total_launches bigint,
-	avg_ts double,
-	spec Map<text,text>,
-	updated_date timestamp,
-	PRIMARY KEY (device_id, channel)
+    device_id text,
+    first_access timestamp,
+    last_access timestamp,
+    total_ts double,
+    total_launches bigint,
+    avg_ts double,
+    device_spec Map<text,text>,
+    updated_date timestamp,
+    state text,
+    state_code text,
+    country text,
+    country_code text,
+    state_custom text,
+    state_code_custom text,
+    district_custom text,
+    city text,
+    uaspec Map<text,text>,
+    fcm_token text,
+    producer_id text,
+    api_last_updated_on timestamp,
+    user_declared_state text,
+    user_declared_district text
+    PRIMARY KEY (device_id)
 );
 
 CREATE KEYSPACE IF NOT EXISTS local_platform_db WITH replication = {
@@ -439,6 +452,7 @@ CREATE TABLE IF NOT EXISTS local_platform_db.job_request (
     err_message text,
     stage text,
     stage_status text,
+    job_name text,
     PRIMARY KEY (client_key, request_id)
 );
 
@@ -611,28 +625,28 @@ CREATE TABLE IF NOT EXISTS local_creation_metrics_db.textbook_metrics_summary_fa
 );
 
 CREATE TABLE IF NOT EXISTS local_creation_metrics_db.plugin_snapshot_metrics (
-     d_period int, 
+     d_period int,
      d_plugin_id text,
      d_app_id text,
      d_channel text,
-     plugin_name text, 
-     category text, 
-     author text, 
-     content_count bigint, 
+     plugin_name text,
+     category text,
+     author text,
+     content_count bigint,
      content_count_start bigint,
      updated_date timestamp,
      PRIMARY KEY (d_period, d_plugin_id, d_app_id, d_channel)
 );
 
 CREATE TABLE IF NOT EXISTS local_creation_metrics_db.template_snapshot_metrics (
-     d_period int, 
+     d_period int,
      d_template_id text,
      d_app_id text,
      d_channel text,
-     template_name text, 
-     category text, 
-     author_id text, 
-     content_count bigint, 
+     template_name text,
+     category text,
+     author_id text,
+     content_count bigint,
      content_count_start bigint,
      question_count bigint,
      question_count_start bigint,
@@ -640,48 +654,25 @@ CREATE TABLE IF NOT EXISTS local_creation_metrics_db.template_snapshot_metrics (
      PRIMARY KEY (d_period, d_template_id, d_app_id, d_channel)
 );
 
-CREATE TABLE IF NOT EXISTS local_platform_db.workflow_usage_summary_fact (
-    d_period int,
-    d_channel text,
-    d_app_id text,
-    d_tag text,
-    d_type text,
-    d_mode text,
-    d_device_id text,
-    d_content_id text,
-    d_user_id text,
-    m_publish_date timestamp,
-    m_last_sync_date timestamp,
-    m_last_gen_date timestamp,
-    m_total_ts double,
-    m_total_sessions bigint,
-    m_avg_ts_session double,
-    m_total_interactions bigint,
-    m_avg_interactions_min double,
-    m_total_pageviews_count bigint,
-    m_avg_pageviews double,
-    m_total_users_count bigint,
-    m_total_content_count bigint,
-    m_total_devices_count bigint,
-    m_unique_users blob,
-    m_device_ids blob,
-    m_contents blob,
-    m_updated_date timestamp,
-    PRIMARY KEY (d_period, d_channel, d_app_id, d_tag, d_type, d_mode, d_device_id, d_content_id, d_user_id) );
 
-INSERT INTO local_platform_db.recommendation_config(config_key, config_value) VALUES ('device_reco_blacklist', ['org.ekstep.num.scrn.basic', 'do_30088866', 'numeracy_369', 'org.ekstep.aser', 'do_30088250', 'do_30014045', 'org.ekstep.delta', 'org.ekstep.esl1', 'do_30074519', 'domain_6444']);
-INSERT INTO local_platform_db.recommendation_config(config_key, config_value) VALUES ('content_reco_blacklist', ['org.ekstep.num.scrn.basic', 'do_30088866', 'numeracy_369', 'org.ekstep.aser', 'do_30088250', 'do_30014045', 'org.ekstep.delta', 'org.ekstep.esl1', 'do_30074519', 'domain_6444']);
+INSERT INTO local_platform_db.recommendation_config(config_key, config_value) VALUES ('device_reco_blacklist', ['org.ekstep.num.scrn.basic', 'do_30088866', 'numeracy_369', 'org.ekstep.aser', 'do_30088250', 'do_30014045', 'org.ekstep.delta', 'org.ekstep.esl1', 'do_30074519', 'domain_6444']) IF NOT EXISTS;
 
-INSERT INTO local_platform_db.job_config(category, config_key, config_value) VALUES ('vv', 'content-own-rel', {'optimizationQueries':['CREATE INDEX ON :User(type)'],'cleanupQueries':['MATCH (usr :User {type:"author"})<-[r:createdBy]-(cnt :domain{IL_FUNC_OBJECT_TYPE:"Content"}) DELETE r','MATCH (usr :User {type:"author"})-[r:uses]->(cnc :domain{IL_FUNC_OBJECT_TYPE:"Concept"}) DELETE r','MATCH (usr:User {type:"author"})-[r:createdIn]->(lan:domain{IL_FUNC_OBJECT_TYPE:"Language"}) DELETE r','MATCH(usr:User{type: "author"}) DETACH DELETE usr', 'MATCH (cntt: ContentType) DETACH DELETE cntt'],'algorithmQueries':['MATCH (usr:User {type:"author"}) SET usr.contentCount=0, usr.liveContentCount=0, usr.conceptsCount=0', 'MATCH (usr:User{type:"author"}), (cnt:domain{IL_FUNC_OBJECT_TYPE:"Content"}) WHERE usr.IL_UNIQUE_ID = cnt.createdBy MERGE (cnt)-[r:createdBy]->(usr)','MATCH (usr:User {type:"author"})<-[r:createdBy]-(cnt: domain{IL_FUNC_OBJECT_TYPE:"Content"}) WHERE lower(cnt.contentType) IN ["story", "game", "collection", "worksheet"] AND cnt.status IN ["Draft", "Review", "Live"] WITH usr,count(cnt) as cc SET usr.contentCount = cc','MATCH (usr:User {type:"author"})<-[r:createdBy]-(cnt: domain{IL_FUNC_OBJECT_TYPE:"Content"}) WHERE lower(cnt.contentType) IN ["story", "game", "collection", "worksheet"] AND cnt.status IN ["Live"] WITH usr,count(cnt) as cc SET usr.liveContentCount = cc','MATCH (usr:User {type:"author"}), (cnc:domain{IL_FUNC_OBJECT_TYPE:"Concept"}) MERGE (usr)-[r:uses{contentCount:0, liveContentCount:0}]->(cnc)','MATCH (usr:User {type:"author"}), (cnc:domain{IL_FUNC_OBJECT_TYPE:"Concept"}) MATCH path = (usr)<-[:createdBy]-(cnt:domain{IL_FUNC_OBJECT_TYPE:"Content"})-[nc:associatedTo]->(cnc), (usr)-[r:uses]->(cnc) WHERE lower(cnt.contentType) IN ["story", "game", "collection", "worksheet"] AND cnt.status IN ["Draft", "Review", "Live"] WITH r, count(cnt) AS cc SET r.contentCount=cc','MATCH (usr:User {type:"author"}), (cnc:domain{IL_FUNC_OBJECT_TYPE:"Concept"}) MATCH path = (usr)<-[:createdBy]-(cnt:domain{IL_FUNC_OBJECT_TYPE:"Content"})-[nc:associatedTo]->(cnc), (usr)-[r:uses]->(cnc) WHERE lower(cnt.contentType) IN ["story", "game", "collection", "worksheet"] AND cnt.status IN ["Live"] WITH r, count(cnt) AS cc SET r.liveContentCount=cc','MATCH p=(usr: User {type:"author"})-[r:uses]-(cnc: domain{IL_FUNC_OBJECT_TYPE:"Concept"}) WHERE r.contentCount > 0 WITH usr, count(p) AS cncCount SET usr.conceptsCount=cncCount','MATCH (usr :User {type:"author"}), (lan:domain{IL_FUNC_OBJECT_TYPE:"Language"}) MERGE (usr)-[r:createdIn{contentCount:0, liveContentCount:0}]->(lan)','MATCH (usr:User {type:"author"}), (lan:domain{IL_FUNC_OBJECT_TYPE:"Language"}), (cnt:domain{IL_FUNC_OBJECT_TYPE:"Content"}), (usr)-[r:createdIn]->(lan) WHERE lower(cnt.contentType) IN ["story", "game", "collection", "worksheet"] AND cnt.status IN ["Draft", "Review", "Live"] AND cnt.createdBy = usr.IL_UNIQUE_ID AND lower(lan.name) IN extract(language IN cnt.language | lower(language)) WITH r, count(cnt) AS cc SET r.contentCount=cc','MATCH (usr:User {type:"author"}), (lan:domain{IL_FUNC_OBJECT_TYPE:"Language"}), (cnt:domain{IL_FUNC_OBJECT_TYPE:"Content"}), (usr)-[r:createdIn]->(lan) WHERE lower(cnt.contentType) IN ["story", "game", "collection", "worksheet"] AND cnt.status IN ["Live"] AND cnt.createdBy = usr.IL_UNIQUE_ID AND lower(lan.name) IN extract(language IN cnt.language | lower(language)) WITH r, count(cnt) AS lcc SET r.liveContentCount=lcc', 'CREATE (cntt1: ContentType {IL_UNIQUE_ID: "worksheet", name: "Worksheet", contentCount: 0, liveContentCount: 0, appId: "", channel: "in.ekstep"}), (cntt2: ContentType {IL_UNIQUE_ID: "story", name: "Story", contentCount: 0, liveContentCount: 0, appId: "", channel: "in.ekstep"}), (cntt3: ContentType {IL_UNIQUE_ID: "game", name: "Game", contentCount: 0, liveContentCount: 0, appId: "", channel: "in.ekstep"}), (cntt4: ContentType {IL_UNIQUE_ID: "collection", name: "Collection", contentCount: 0, liveContentCount: 0, appId: "", channel: "in.ekstep"})', 'MATCH (usr :User {type:"author"}), (cntt:ContentType) MERGE (usr)-[r:uses{contentCount:0, liveContentCount:0}]->(cntt)', 'MATCH (usr:User {type:"author"}), (cntt:ContentType), (cnt:domain{IL_FUNC_OBJECT_TYPE:"Content"}), (usr)-[r:uses]->(cntt) WHERE lower(cnt.contentType) IN ["story", "game", "collection", "worksheet"] AND cnt.status IN ["Draft", "Review", "Live"] AND cnt.createdBy = usr.IL_UNIQUE_ID AND cntt.IL_UNIQUE_ID IN extract(conType IN cnt.contentType | lower(conType)) WITH r, count(cnt) AS cc SET r.contentCount=cc', 'MATCH (usr:User {type:"author"}), (cntt:ContentType), (cnt:domain{IL_FUNC_OBJECT_TYPE:"Content"}), (usr)-[r:uses]->(cntt) WHERE lower(cnt.contentType) IN ["story", "game", "collection", "worksheet"] AND cnt.status IN ["Live"] AND cnt.createdBy = usr.IL_UNIQUE_ID AND cntt.IL_UNIQUE_ID IN extract(conType IN cnt.contentType | lower(conType)) WITH r, count(cnt) AS lcc SET r.liveContentCount=lcc', 'MATCH (cnt:domain{IL_FUNC_OBJECT_TYPE:"Content"}), (cntt:ContentType) WHERE lower(cnt.contentType) IN ["story", "game", "collection", "worksheet"] AND cnt.status IN ["Draft", "Review", "Live"] AND cntt.IL_UNIQUE_ID IN extract(conType IN cnt.contentType | lower(conType)) CREATE (cnt)-[r:isA]->(cntt) RETURN r', 'MATCH (cnt:domain{IL_FUNC_OBJECT_TYPE:"Content"}), (cntt:ContentType) WHERE lower(cnt.contentType)IN ["story", "game", "collection", "worksheet"] AND cnt.status IN ["Draft", "Review", "Live"] MATCH p=(cnt)-[r:isA]->(cntt) WITH cntt, COUNT(p) AS cc SET cntt.contentCount = cc', 'MATCH (cnt:domain{IL_FUNC_OBJECT_TYPE:"Content"}), (cntt:ContentType) WHERE lower(cnt.contentType)IN ["story", "game", "collection", "worksheet"] AND cnt.status IN ["Live"] OPTIONAL MATCH p=(cnt)-[r:isA]->(cntt) WITH cntt, COUNT(p) AS lcc SET cntt.liveContentCount = lcc']});
-INSERT INTO local_platform_db.job_config(category, config_key, config_value) VALUES ('vv', 'concept-lan-rel', {'cleanupQueries':['MATCH (cnc:domain{IL_FUNC_OBJECT_TYPE:"Concept"})-[r:usedIn]->(lan:domain{IL_FUNC_OBJECT_TYPE:"Language"}) DELETE r'],'algorithmQueries':['MATCH (lan:domain{IL_FUNC_OBJECT_TYPE:"Language"}), (cnc:domain{IL_FUNC_OBJECT_TYPE:"Concept"}) OPTIONAL MATCH p=(lan)<-[ln:expressedIn]-(cnt:domain{IL_FUNC_OBJECT_TYPE:"Content"})-[nc:associatedTo]->(cnc) WHERE lower(cnt.contentType) IN ["story", "game", "collection", "worksheet"] AND cnt.status IN ["Draft", "Review", "Live"] WITH cnc, lan, CASE WHEN p is null THEN 0 ELSE COUNT(p) END AS cc MERGE (cnc)-[r:usedIn{contentCount: cc}]->(lan) RETURN r', 'MATCH (lan:domain{IL_FUNC_OBJECT_TYPE:"Language"}), (cnc:domain{IL_FUNC_OBJECT_TYPE:"Concept"}) OPTIONAL MATCH p=(lan)<-[ln:expressedIn]-(cnt:domain{IL_FUNC_OBJECT_TYPE:"Content"})-[nc:associatedTo]->(cnc) WHERE lower(cnt.contentType) IN ["story", "game", "collection", "worksheet"] AND cnt.status IN ["Live"] WITH cnc, lan, CASE WHEN p is null THEN 0 ELSE COUNT(p) END AS lcc MATCH (cnc)-[r:usedIn]->(lan) SET r.liveContentCount = lcc', 'MATCH (cnc:domain{IL_FUNC_OBJECT_TYPE:"Concept"}) SET cnc.contentCount=0, cnc.liveContentCount=0', 'MATCH (cnt:domain{IL_FUNC_OBJECT_TYPE:"Content"})-[r:associatedTo]->(cnc:domain{IL_FUNC_OBJECT_TYPE:"Concept"}) WHERE lower(cnt.contentType) IN ["story", "game", "collection", "worksheet"] AND cnt.status IN ["Draft", "Review", "Live"] WITH cnc, count(r) AS cc SET cnc.contentCount = cc', 'MATCH (cnt:domain{IL_FUNC_OBJECT_TYPE:"Content"})-[r:associatedTo]->(cnc:domain{IL_FUNC_OBJECT_TYPE:"Concept"}) WHERE lower(cnt.contentType) IN ["story", "game", "collection", "worksheet"] AND cnt.status IN ["Live"] WITH cnc, count(r) AS lcc SET cnc.liveContentCount = lcc']});
-INSERT INTO local_platform_db.job_config(category, config_key, config_value) VALUES ('vv', 'content-asset-rel', {'cleanupQueries':['MATCH (cnt: domain) - [r: uses] -> (ast: domain) where ast.contentType IN ["Asset"] DELETE r'],'algorithmQueries':['MATCH (ast:domain{IL_FUNC_OBJECT_TYPE:"Content", contentType:"Asset"}) SET ast.contentCount=0, ast.liveContentCount=0', 'MATCH (ast:domain{IL_FUNC_OBJECT_TYPE:"Content", contentType:"Asset"}), (cnt:domain{IL_FUNC_OBJECT_TYPE:"Content"}) MATCH p=(ast)<-[r:uses]-(cnt) WHERE lower(cnt.contentType) IN ["story", "game", "collection", "worksheet"] AND cnt.status IN ["Draft", "Review", "Live"] WITH ast, COUNT(p) AS cc SET ast.contentCount = cc', 'MATCH (ast:domain{IL_FUNC_OBJECT_TYPE:"Content", contentType:"Asset"}), (cnt:domain{IL_FUNC_OBJECT_TYPE:"Content"}) MATCH p=(ast)<-[r:uses]-(cnt) WHERE lower(cnt.contentType) IN ["story", "game", "collection", "worksheet"] AND cnt.status IN ["Live"] WITH ast, COUNT(p) AS lcc SET ast.liveContentCount = lcc']});
-INSERT INTO local_platform_db.job_config(category, config_key, config_value) VALUES ('vv', 'content-lang-rel', {'cleanupQueries':['MATCH (cnt:domain{IL_FUNC_OBJECT_TYPE:"Content"})-[r:expressedIn]->(lan:domain{IL_FUNC_OBJECT_TYPE:"Language"}) DELETE r','MATCH (lan:domain{IL_FUNC_OBJECT_TYPE:"Language"}) REMOVE lan.contentCount, lan.liveContentCount'],'algorithmQueries':['MATCH (cnt:domain{IL_FUNC_OBJECT_TYPE:"Content"}), (lan:domain{IL_FUNC_OBJECT_TYPE:"Language"}) WHERE lower(cnt.contentType) IN ["story", "game", "collection", "worksheet"] AND cnt.status IN ["Draft", "Review", "Live"] AND lower(lan.name) IN extract(language IN cnt.language | lower(language)) CREATE (cnt)-[r:expressedIn]->(lan) RETURN r', 'MATCH (cnt:domain{IL_FUNC_OBJECT_TYPE: "Content"}), (lan:domain{IL_FUNC_OBJECT_TYPE:"Language"}) WHERE lower(cnt.contentType)IN ["story", "game", "collection", "worksheet"] AND cnt.status IN ["Draft", "Review", "Live"] MATCH p=(cnt)-[r:expressedIn]->(lan) WITH lan, COUNT(p) AS cc SET lan.contentCount = cc', 'MATCH (cnt:domain{IL_FUNC_OBJECT_TYPE: "Content"}), (lan:domain{IL_FUNC_OBJECT_TYPE:"Language"}) WHERE lower(cnt.contentType)IN ["story", "game", "collection", "worksheet"] AND cnt.status IN ["Live"] OPTIONAL MATCH p=(cnt)-[r:expressedIn]->(lan) WITH lan, COUNT(p) AS lcc SET lan.liveContentCount = lcc']});
-INSERT INTO local_platform_db.job_config(category, config_key, config_value) VALUES ('vv', 're-enrichment-model', {'cleanupQueries':['MATCH  (usr:User{type: "author"})-[r:uses]-(cnc:domain{IL_FUNC_OBJECT_TYPE:"Concept"}) REMOVE r.confidence, r.lift', 'MATCH (usr:User{type:"author"})-[r:createdIn]->(lan:domain{IL_FUNC_OBJECT_TYPE:"Language"}) REMOVE r.confidence, r.lift', 'MATCH (usr:User{type:"author"})-[r:uses]->(cntt:ContentType) REMOVE r.confidence, r.lift'], 'algorithmQueries':['MATCH (cnt:domain {IL_FUNC_OBJECT_TYPE:"Content"}) where cnt.contentType in ["Game", "Worksheet", "Story", "Collection"] and cnt.status in ["Live", "Draft"] WITH count(cnt) as ncount MATCH (usr:User{type: "author"})-[r:uses]-(cnc:domain{IL_FUNC_OBJECT_TYPE:"Concept"}) WHERE cnc.contentCount > 0 WITH r, ncount, CASE usr.contentCount WHEN 0 THEN 0 ELSE toFloat(r.contentCount)/(toFloat(usr.contentCount)) END as confidence, CASE usr.contentCount WHEN 0 THEN 0 ELSE (toFloat(r.contentCount)*toFloat(ncount))/(toFloat(usr.contentCount)*toFloat(cnc.contentCount)) END as lift SET r.confidence = confidence, r.lift = lift', 'MATCH (cnt:domain {IL_FUNC_OBJECT_TYPE:"Content"}) where cnt.contentType in ["Game", "Worksheet", "Story", "Collection"] and cnt.status in ["Live", "Draft"] WITH count(cnt) as ncount MATCH (usr:User{type:"author"})-[r:createdIn]->(lan:domain{IL_FUNC_OBJECT_TYPE:"Language"}) WHERE lan.contentCount > 0 WITH r, ncount, CASE usr.contentCount WHEN 0 THEN 0 ELSE toFloat(r.contentCount)/(toFloat(usr.contentCount)) END as confidence, CASE usr.contentCount WHEN 0 THEN 0 ELSE (toFloat(r.contentCount)*toFloat(ncount))/(toFloat(usr.contentCount)*toFloat(lan.contentCount)) END as lift SET r.confidence = confidence, r.lift = lift', 'MATCH (cnt:domain {IL_FUNC_OBJECT_TYPE:"Content"}) where cnt.contentType in ["Game", "Worksheet", "Story", "Collection"] and cnt.status in ["Live", "Draft"] WITH count(cnt) as ncount MATCH (usr:User{type:"author"})-[r:uses]->(cntt:ContentType) WHERE cntt.contentCount > 0 WITH r, ncount, CASE usr.contentCount WHEN 0 THEN 0 ELSE toFloat(r.contentCount)/(toFloat(usr.contentCount)) END as confidence, CASE usr.contentCount WHEN 0 THEN 0 ELSE (toFloat(r.contentCount)*toFloat(ncount))/(toFloat(usr.contentCount)*toFloat(cntt.contentCount)) END as lift SET r.confidence = confidence, r.lift = lift']});
+INSERT INTO local_platform_db.recommendation_config(config_key, config_value) VALUES ('content_reco_blacklist', ['org.ekstep.num.scrn.basic', 'do_30088866', 'numeracy_369', 'org.ekstep.aser', 'do_30088250', 'do_30014045', 'org.ekstep.delta', 'org.ekstep.esl1', 'do_30074519', 'domain_6444']) IF NOT EXISTS;
+
+INSERT INTO local_platform_db.job_config(category, config_key, config_value) VALUES ('vv', 'content-own-rel', {'optimizationQueries':['CREATE INDEX ON :User(type)'],'cleanupQueries':['MATCH (usr :User {type:"author"})<-[r:createdBy]-(cnt :domain{IL_FUNC_OBJECT_TYPE:"Content"}) DELETE r','MATCH (usr :User {type:"author"})-[r:uses]->(cnc :domain{IL_FUNC_OBJECT_TYPE:"Concept"}) DELETE r','MATCH (usr:User {type:"author"})-[r:createdIn]->(lan:domain{IL_FUNC_OBJECT_TYPE:"Language"}) DELETE r','MATCH(usr:User{type: "author"}) DETACH DELETE usr', 'MATCH (cntt: ContentType) DETACH DELETE cntt'],'algorithmQueries':['MATCH (usr:User {type:"author"}) SET usr.contentCount=0, usr.liveContentCount=0, usr.conceptsCount=0', 'MATCH (usr:User{type:"author"}), (cnt:domain{IL_FUNC_OBJECT_TYPE:"Content"}) WHERE usr.IL_UNIQUE_ID = cnt.createdBy MERGE (cnt)-[r:createdBy]->(usr)','MATCH (usr:User {type:"author"})<-[r:createdBy]-(cnt: domain{IL_FUNC_OBJECT_TYPE:"Content"}) WHERE lower(cnt.contentType) IN ["story", "game", "collection", "worksheet"] AND cnt.status IN ["Draft", "Review", "Live"] WITH usr,count(cnt) as cc SET usr.contentCount = cc','MATCH (usr:User {type:"author"})<-[r:createdBy]-(cnt: domain{IL_FUNC_OBJECT_TYPE:"Content"}) WHERE lower(cnt.contentType) IN ["story", "game", "collection", "worksheet"] AND cnt.status IN ["Live"] WITH usr,count(cnt) as cc SET usr.liveContentCount = cc','MATCH (usr:User {type:"author"}), (cnc:domain{IL_FUNC_OBJECT_TYPE:"Concept"}) MERGE (usr)-[r:uses{contentCount:0, liveContentCount:0}]->(cnc)','MATCH (usr:User {type:"author"}), (cnc:domain{IL_FUNC_OBJECT_TYPE:"Concept"}) MATCH path = (usr)<-[:createdBy]-(cnt:domain{IL_FUNC_OBJECT_TYPE:"Content"})-[nc:associatedTo]->(cnc), (usr)-[r:uses]->(cnc) WHERE lower(cnt.contentType) IN ["story", "game", "collection", "worksheet"] AND cnt.status IN ["Draft", "Review", "Live"] WITH r, count(cnt) AS cc SET r.contentCount=cc','MATCH (usr:User {type:"author"}), (cnc:domain{IL_FUNC_OBJECT_TYPE:"Concept"}) MATCH path = (usr)<-[:createdBy]-(cnt:domain{IL_FUNC_OBJECT_TYPE:"Content"})-[nc:associatedTo]->(cnc), (usr)-[r:uses]->(cnc) WHERE lower(cnt.contentType) IN ["story", "game", "collection", "worksheet"] AND cnt.status IN ["Live"] WITH r, count(cnt) AS cc SET r.liveContentCount=cc','MATCH p=(usr: User {type:"author"})-[r:uses]-(cnc: domain{IL_FUNC_OBJECT_TYPE:"Concept"}) WHERE r.contentCount > 0 WITH usr, count(p) AS cncCount SET usr.conceptsCount=cncCount','MATCH (usr :User {type:"author"}), (lan:domain{IL_FUNC_OBJECT_TYPE:"Language"}) MERGE (usr)-[r:createdIn{contentCount:0, liveContentCount:0}]->(lan)','MATCH (usr:User {type:"author"}), (lan:domain{IL_FUNC_OBJECT_TYPE:"Language"}), (cnt:domain{IL_FUNC_OBJECT_TYPE:"Content"}), (usr)-[r:createdIn]->(lan) WHERE lower(cnt.contentType) IN ["story", "game", "collection", "worksheet"] AND cnt.status IN ["Draft", "Review", "Live"] AND cnt.createdBy = usr.IL_UNIQUE_ID AND lower(lan.name) IN extract(language IN cnt.language | lower(language)) WITH r, count(cnt) AS cc SET r.contentCount=cc','MATCH (usr:User {type:"author"}), (lan:domain{IL_FUNC_OBJECT_TYPE:"Language"}), (cnt:domain{IL_FUNC_OBJECT_TYPE:"Content"}), (usr)-[r:createdIn]->(lan) WHERE lower(cnt.contentType) IN ["story", "game", "collection", "worksheet"] AND cnt.status IN ["Live"] AND cnt.createdBy = usr.IL_UNIQUE_ID AND lower(lan.name) IN extract(language IN cnt.language | lower(language)) WITH r, count(cnt) AS lcc SET r.liveContentCount=lcc', 'CREATE (cntt1: ContentType {IL_UNIQUE_ID: "worksheet", name: "Worksheet", contentCount: 0, liveContentCount: 0, appId: "", channel: "in.ekstep"}), (cntt2: ContentType {IL_UNIQUE_ID: "story", name: "Story", contentCount: 0, liveContentCount: 0, appId: "", channel: "in.ekstep"}), (cntt3: ContentType {IL_UNIQUE_ID: "game", name: "Game", contentCount: 0, liveContentCount: 0, appId: "", channel: "in.ekstep"}), (cntt4: ContentType {IL_UNIQUE_ID: "collection", name: "Collection", contentCount: 0, liveContentCount: 0, appId: "", channel: "in.ekstep"})', 'MATCH (usr :User {type:"author"}), (cntt:ContentType) MERGE (usr)-[r:uses{contentCount:0, liveContentCount:0}]->(cntt)', 'MATCH (usr:User {type:"author"}), (cntt:ContentType), (cnt:domain{IL_FUNC_OBJECT_TYPE:"Content"}), (usr)-[r:uses]->(cntt) WHERE lower(cnt.contentType) IN ["story", "game", "collection", "worksheet"] AND cnt.status IN ["Draft", "Review", "Live"] AND cnt.createdBy = usr.IL_UNIQUE_ID AND cntt.IL_UNIQUE_ID IN extract(conType IN cnt.contentType | lower(conType)) WITH r, count(cnt) AS cc SET r.contentCount=cc', 'MATCH (usr:User {type:"author"}), (cntt:ContentType), (cnt:domain{IL_FUNC_OBJECT_TYPE:"Content"}), (usr)-[r:uses]->(cntt) WHERE lower(cnt.contentType) IN ["story", "game", "collection", "worksheet"] AND cnt.status IN ["Live"] AND cnt.createdBy = usr.IL_UNIQUE_ID AND cntt.IL_UNIQUE_ID IN extract(conType IN cnt.contentType | lower(conType)) WITH r, count(cnt) AS lcc SET r.liveContentCount=lcc', 'MATCH (cnt:domain{IL_FUNC_OBJECT_TYPE:"Content"}), (cntt:ContentType) WHERE lower(cnt.contentType) IN ["story", "game", "collection", "worksheet"] AND cnt.status IN ["Draft", "Review", "Live"] AND cntt.IL_UNIQUE_ID IN extract(conType IN cnt.contentType | lower(conType)) CREATE (cnt)-[r:isA]->(cntt) RETURN r', 'MATCH (cnt:domain{IL_FUNC_OBJECT_TYPE:"Content"}), (cntt:ContentType) WHERE lower(cnt.contentType)IN ["story", "game", "collection", "worksheet"] AND cnt.status IN ["Draft", "Review", "Live"] MATCH p=(cnt)-[r:isA]->(cntt) WITH cntt, COUNT(p) AS cc SET cntt.contentCount = cc', 'MATCH (cnt:domain{IL_FUNC_OBJECT_TYPE:"Content"}), (cntt:ContentType) WHERE lower(cnt.contentType)IN ["story", "game", "collection", "worksheet"] AND cnt.status IN ["Live"] OPTIONAL MATCH p=(cnt)-[r:isA]->(cntt) WITH cntt, COUNT(p) AS lcc SET cntt.liveContentCount = lcc']}) IF NOT EXISTS;
+
+INSERT INTO local_platform_db.job_config(category, config_key, config_value) VALUES ('vv', 'concept-lan-rel', {'cleanupQueries':['MATCH (cnc:domain{IL_FUNC_OBJECT_TYPE:"Concept"})-[r:usedIn]->(lan:domain{IL_FUNC_OBJECT_TYPE:"Language"}) DELETE r'],'algorithmQueries':['MATCH (lan:domain{IL_FUNC_OBJECT_TYPE:"Language"}), (cnc:domain{IL_FUNC_OBJECT_TYPE:"Concept"}) OPTIONAL MATCH p=(lan)<-[ln:expressedIn]-(cnt:domain{IL_FUNC_OBJECT_TYPE:"Content"})-[nc:associatedTo]->(cnc) WHERE lower(cnt.contentType) IN ["story", "game", "collection", "worksheet"] AND cnt.status IN ["Draft", "Review", "Live"] WITH cnc, lan, CASE WHEN p is null THEN 0 ELSE COUNT(p) END AS cc MERGE (cnc)-[r:usedIn{contentCount: cc}]->(lan) RETURN r', 'MATCH (lan:domain{IL_FUNC_OBJECT_TYPE:"Language"}), (cnc:domain{IL_FUNC_OBJECT_TYPE:"Concept"}) OPTIONAL MATCH p=(lan)<-[ln:expressedIn]-(cnt:domain{IL_FUNC_OBJECT_TYPE:"Content"})-[nc:associatedTo]->(cnc) WHERE lower(cnt.contentType) IN ["story", "game", "collection", "worksheet"] AND cnt.status IN ["Live"] WITH cnc, lan, CASE WHEN p is null THEN 0 ELSE COUNT(p) END AS lcc MATCH (cnc)-[r:usedIn]->(lan) SET r.liveContentCount = lcc', 'MATCH (cnc:domain{IL_FUNC_OBJECT_TYPE:"Concept"}) SET cnc.contentCount=0, cnc.liveContentCount=0', 'MATCH (cnt:domain{IL_FUNC_OBJECT_TYPE:"Content"})-[r:associatedTo]->(cnc:domain{IL_FUNC_OBJECT_TYPE:"Concept"}) WHERE lower(cnt.contentType) IN ["story", "game", "collection", "worksheet"] AND cnt.status IN ["Draft", "Review", "Live"] WITH cnc, count(r) AS cc SET cnc.contentCount = cc', 'MATCH (cnt:domain{IL_FUNC_OBJECT_TYPE:"Content"})-[r:associatedTo]->(cnc:domain{IL_FUNC_OBJECT_TYPE:"Concept"}) WHERE lower(cnt.contentType) IN ["story", "game", "collection", "worksheet"] AND cnt.status IN ["Live"] WITH cnc, count(r) AS lcc SET cnc.liveContentCount = lcc']}) IF NOT EXISTS;
+
+INSERT INTO local_platform_db.job_config(category, config_key, config_value) VALUES ('vv', 'content-asset-rel', {'cleanupQueries':['MATCH (cnt: domain) - [r: uses] -> (ast: domain) where ast.contentType IN ["Asset"] DELETE r'],'algorithmQueries':['MATCH (ast:domain{IL_FUNC_OBJECT_TYPE:"Content", contentType:"Asset"}) SET ast.contentCount=0, ast.liveContentCount=0', 'MATCH (ast:domain{IL_FUNC_OBJECT_TYPE:"Content", contentType:"Asset"}), (cnt:domain{IL_FUNC_OBJECT_TYPE:"Content"}) MATCH p=(ast)<-[r:uses]-(cnt) WHERE lower(cnt.contentType) IN ["story", "game", "collection", "worksheet"] AND cnt.status IN ["Draft", "Review", "Live"] WITH ast, COUNT(p) AS cc SET ast.contentCount = cc', 'MATCH (ast:domain{IL_FUNC_OBJECT_TYPE:"Content", contentType:"Asset"}), (cnt:domain{IL_FUNC_OBJECT_TYPE:"Content"}) MATCH p=(ast)<-[r:uses]-(cnt) WHERE lower(cnt.contentType) IN ["story", "game", "collection", "worksheet"] AND cnt.status IN ["Live"] WITH ast, COUNT(p) AS lcc SET ast.liveContentCount = lcc']}) IF NOT EXISTS;
+
+INSERT INTO local_platform_db.job_config(category, config_key, config_value) VALUES ('vv', 'content-lang-rel', {'cleanupQueries':['MATCH (cnt:domain{IL_FUNC_OBJECT_TYPE:"Content"})-[r:expressedIn]->(lan:domain{IL_FUNC_OBJECT_TYPE:"Language"}) DELETE r','MATCH (lan:domain{IL_FUNC_OBJECT_TYPE:"Language"}) REMOVE lan.contentCount, lan.liveContentCount'],'algorithmQueries':['MATCH (cnt:domain{IL_FUNC_OBJECT_TYPE:"Content"}), (lan:domain{IL_FUNC_OBJECT_TYPE:"Language"}) WHERE lower(cnt.contentType) IN ["story", "game", "collection", "worksheet"] AND cnt.status IN ["Draft", "Review", "Live"] AND lower(lan.name) IN extract(language IN cnt.language | lower(language)) CREATE (cnt)-[r:expressedIn]->(lan) RETURN r', 'MATCH (cnt:domain{IL_FUNC_OBJECT_TYPE: "Content"}), (lan:domain{IL_FUNC_OBJECT_TYPE:"Language"}) WHERE lower(cnt.contentType)IN ["story", "game", "collection", "worksheet"] AND cnt.status IN ["Draft", "Review", "Live"] MATCH p=(cnt)-[r:expressedIn]->(lan) WITH lan, COUNT(p) AS cc SET lan.contentCount = cc', 'MATCH (cnt:domain{IL_FUNC_OBJECT_TYPE: "Content"}), (lan:domain{IL_FUNC_OBJECT_TYPE:"Language"}) WHERE lower(cnt.contentType)IN ["story", "game", "collection", "worksheet"] AND cnt.status IN ["Live"] OPTIONAL MATCH p=(cnt)-[r:expressedIn]->(lan) WITH lan, COUNT(p) AS lcc SET lan.liveContentCount = lcc']}) IF NOT EXISTS;
+
+INSERT INTO local_platform_db.job_config(category, config_key, config_value) VALUES ('vv', 're-enrichment-model', {'cleanupQueries':['MATCH  (usr:User{type: "author"})-[r:uses]-(cnc:domain{IL_FUNC_OBJECT_TYPE:"Concept"}) REMOVE r.confidence, r.lift', 'MATCH (usr:User{type:"author"})-[r:createdIn]->(lan:domain{IL_FUNC_OBJECT_TYPE:"Language"}) REMOVE r.confidence, r.lift', 'MATCH (usr:User{type:"author"})-[r:uses]->(cntt:ContentType) REMOVE r.confidence, r.lift'], 'algorithmQueries':['MATCH (cnt:domain {IL_FUNC_OBJECT_TYPE:"Content"}) where cnt.contentType in ["Game", "Worksheet", "Story", "Collection"] and cnt.status in ["Live", "Draft"] WITH count(cnt) as ncount MATCH (usr:User{type: "author"})-[r:uses]-(cnc:domain{IL_FUNC_OBJECT_TYPE:"Concept"}) WHERE cnc.contentCount > 0 WITH r, ncount, CASE usr.contentCount WHEN 0 THEN 0 ELSE toFloat(r.contentCount)/(toFloat(usr.contentCount)) END as confidence, CASE usr.contentCount WHEN 0 THEN 0 ELSE (toFloat(r.contentCount)*toFloat(ncount))/(toFloat(usr.contentCount)*toFloat(cnc.contentCount)) END as lift SET r.confidence = confidence, r.lift = lift', 'MATCH (cnt:domain {IL_FUNC_OBJECT_TYPE:"Content"}) where cnt.contentType in ["Game", "Worksheet", "Story", "Collection"] and cnt.status in ["Live", "Draft"] WITH count(cnt) as ncount MATCH (usr:User{type:"author"})-[r:createdIn]->(lan:domain{IL_FUNC_OBJECT_TYPE:"Language"}) WHERE lan.contentCount > 0 WITH r, ncount, CASE usr.contentCount WHEN 0 THEN 0 ELSE toFloat(r.contentCount)/(toFloat(usr.contentCount)) END as confidence, CASE usr.contentCount WHEN 0 THEN 0 ELSE (toFloat(r.contentCount)*toFloat(ncount))/(toFloat(usr.contentCount)*toFloat(lan.contentCount)) END as lift SET r.confidence = confidence, r.lift = lift', 'MATCH (cnt:domain {IL_FUNC_OBJECT_TYPE:"Content"}) where cnt.contentType in ["Game", "Worksheet", "Story", "Collection"] and cnt.status in ["Live", "Draft"] WITH count(cnt) as ncount MATCH (usr:User{type:"author"})-[r:uses]->(cntt:ContentType) WHERE cntt.contentCount > 0 WITH r, ncount, CASE usr.contentCount WHEN 0 THEN 0 ELSE toFloat(r.contentCount)/(toFloat(usr.contentCount)) END as confidence, CASE usr.contentCount WHEN 0 THEN 0 ELSE (toFloat(r.contentCount)*toFloat(ncount))/(toFloat(usr.contentCount)*toFloat(cntt.contentCount)) END as lift SET r.confidence = confidence, r.lift = lift']}) IF NOT EXISTS;
 
 
 CREATE KEYSPACE IF NOT EXISTS local_content_store WITH replication = {
   'class': 'SimpleStrategy',
-  'replication_factor': '1'
+  'replication_factor': 1'
 };
 
 CREATE TABLE IF NOT EXISTS local_content_store.content_data (
@@ -691,14 +682,35 @@ CREATE TABLE IF NOT EXISTS local_content_store.content_data (
     oldbody blob,
     stageicons blob);
 
-CREATE TABLE IF NOT EXISTS local_platform_db.workflow_usage_summary (
-    event_date date,
-    total_content_play_sessions bigint,
-    total_timespent double,
-    total_interactions bigint,
-    total_pageviews bigint,
-    last_updated_at timestamp,
-    PRIMARY KEY (event_date)
+CREATE TABLE IF NOT EXISTS local_platform_db.workflow_usage_summary_fact (
+  d_period int,
+  d_channel text,
+  d_app_id text,
+  d_tag text,
+  d_type text,
+  d_mode text,
+  d_device_id text,
+  d_content_id text,
+  d_user_id text,
+  m_publish_date timestamp,
+  m_last_sync_date timestamp,
+  m_last_gen_date timestamp,
+  m_total_ts double,
+  m_total_sessions bigint,
+  m_avg_ts_session double,
+  m_total_interactions bigint,
+  m_avg_interactions_min double,
+  m_total_pageviews_count bigint,
+  m_avg_pageviews double,
+  m_total_users_count bigint,
+  m_total_content_count bigint,
+  m_total_devices_count bigint,
+  m_unique_users blob,
+  m_device_ids blob,
+  m_contents blob,
+  m_updated_date timestamp,
+  m_content_type text,
+  PRIMARY KEY (d_period, d_channel, d_app_id, d_tag, d_type, d_mode, d_device_id, d_content_id, d_user_id)
 );
 
 CREATE TABLE IF NOT EXISTS local_platform_db.dialcode_usage_metrics (
@@ -714,3 +726,28 @@ CREATE TABLE IF NOT EXISTS local_platform_db.dialcode_usage_metrics (
     PRIMARY KEY (period, dial_code, channel)
 );
 
+CREATE TABLE IF NOT EXISTS local_platform_db.workflow_usage_summary (
+    event_date date,
+    total_content_play_sessions bigint,
+    total_timespent double,
+    total_interactions bigint,
+    total_pageviews bigint,
+    last_updated_at timestamp,
+    PRIMARY KEY (event_date)
+);
+
+CREATE TABLE IF NOT EXISTS local_platform_db.experiment_definition (
+    exp_id text,
+    created_by text,
+    created_on timestamp,
+    criteria text,
+    exp_data text,
+    exp_description text,
+    exp_name text,
+    stats map<text, bigint>,
+    status text,
+    status_message text,
+    updated_by text,
+    updated_on timestamp,
+    PRIMARY KEY(exp_id)
+);
