@@ -271,7 +271,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with BaseRepo
   def saveToAzure(reportDF: DataFrame, url: String, batchId: String): String = {
     val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
     val renamedDir = s"$tempDir/renamed"
-    val container = AppConf.getConfig("course.metrics.cloud.container")
+    val container = AppConf.getConfig("cloud.container.reports")
     val objectKey = AppConf.getConfig("assessment.metrics.cloud.objectKey")
     reportDF.coalesce(1).write
       .mode("overwrite")

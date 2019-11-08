@@ -331,7 +331,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
   }
 
   def uploadReport(sourcePath: String) = {
-    val container = AppConf.getConfig("course.metrics.cloud.container")
+    val container = AppConf.getConfig("cloud.container.reports")
     val objectKey = AppConf.getConfig("course.metrics.cloud.objectKey")
     reportStorageService.upload(container, sourcePath, objectKey, isDirectory = Option(true))
   }
