@@ -323,7 +323,7 @@ object StateAdminReportJob extends optional.Application with IJob with AdminRepo
 
   def uploadReport(sourcePath: String) = {
     // Container name can be generic - we dont want to create as many container as many reports
-    val container = AppConf.getConfig("admin.reports.cloud.container")
+    val container = AppConf.getConfig("cloud.container.reports")
     val objectKey = AppConf.getConfig("admin.metrics.cloud.objectKey")
 
     reportStorageService.upload(container, sourcePath, objectKey, isDirectory = Option(true))
