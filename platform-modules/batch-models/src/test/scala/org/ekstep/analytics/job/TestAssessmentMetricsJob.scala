@@ -11,7 +11,7 @@ import scala.collection.Map
 
 
 class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
-  var spark: SparkSession = _
+  implicit var spark: SparkSession = _
   var courseBatchDF: DataFrame = _
   var userCoursesDF: DataFrame = _
   var userDF: DataFrame = _
@@ -152,7 +152,7 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
     val reportDF = AssessmentMetricsJob
       .prepareReport(spark, reporterMock.loadData)
       .cache()
-    val denormedDF = AssessmentMetricsJob.denormAssessment(spark, reportDF)
+    val denormedDF = AssessmentMetricsJob.denormAssessment(reportDF)
     val finalReport = AssessmentMetricsJob.transposeDF(denormedDF)
     val column_names = finalReport.columns
     // Validate the column names are proper or not.
@@ -234,9 +234,9 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
 
     val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
     val renamedDir = s"$tempDir/renamed"
-    val denormedDF = AssessmentMetricsJob.denormAssessment(spark, reportDF)
+    val denormedDF = AssessmentMetricsJob.denormAssessment(reportDF)
     println(denormedDF.show(false))
-    AssessmentMetricsJob.saveReport(denormedDF, tempDir, spark)
+    AssessmentMetricsJob.saveReport(denormedDF, tempDir)
     assert(denormedDF.count == 7)
   }
 
@@ -279,7 +279,7 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
 
     val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
     val renamedDir = s"$tempDir/renamed"
-    val denormedDF = AssessmentMetricsJob.denormAssessment(spark, reportDF)
+    val denormedDF = AssessmentMetricsJob.denormAssessment(reportDF)
     val denormedDFCount = denormedDF.groupBy("courseid", "batchid")
     denormedDF.createOrReplaceTempView("course_batch")
     val df = spark.sql("select * from course_batch where batchid ='1001' and courseid='do_2123101488779837441168' and content_name='Whole Numbers' and userid='user021' ")
@@ -334,7 +334,7 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
 
     val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
     val renamedDir = s"$tempDir/renamed"
-    val denormedDF = AssessmentMetricsJob.denormAssessment(spark, reportDF)
+    val denormedDF = AssessmentMetricsJob.denormAssessment(reportDF)
     val denormedDFCount = denormedDF.groupBy("courseid", "batchid")
     denormedDF.createOrReplaceTempView("course_batch")
     val df = spark.sql("select * from course_batch where batchid =1006 and courseid='do_1126458775024025601296' and  userid='user026' ")
@@ -383,7 +383,7 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
 
     val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
     val renamedDir = s"$tempDir/renamed"
-    val denormedDF = AssessmentMetricsJob.denormAssessment(spark, reportDF)
+    val denormedDF = AssessmentMetricsJob.denormAssessment(reportDF)
     val denormedDFCount = denormedDF.groupBy("courseid", "batchid")
     denormedDF.createOrReplaceTempView("course_batch")
     val df = spark.sql("select * from course_batch where batchid ='1005' and courseid='do_112695422838472704115' and content_name ='TEST'")
@@ -431,7 +431,7 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
 
     val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
     val renamedDir = s"$tempDir/renamed"
-    val denormedDF = AssessmentMetricsJob.denormAssessment(spark, reportDF)
+    val denormedDF = AssessmentMetricsJob.denormAssessment(reportDF)
     assert(denormedDF.columns.contains("content_name") === true)
     assert(denormedDF.columns.contains("grand_score") === true)
     assert(denormedDF.columns.contains("courseid") === true)

@@ -22,7 +22,7 @@ object OrgExtIdMismatch extends UserStatus(5, "ORGEXTIDMISMATCH")
 
 case class ShadowUserData(channel: String, userextid: String, addedby: String, claimedon: Long, claimstatus: Int,
                           createdon: Long, email: String, name: String, orgextid: String, processid: String,
-                          phone: String, updatedon: Long, userid: String, userids: List[String], userstatus: String)
+                          phone: String, updatedon: java.sql.Timestamp, userid: String, userids: List[String], userstatus: String)
 case class RootOrgData(id: String, channel: String)
 
 // Shadow user summary in the json will have this POJO
@@ -52,7 +52,7 @@ trait AdminReportGenerator extends Serializable {
 }
 
 
-object StateAdminReportJob extends optional.Application with IJob with AdminReportGenerator {
+object StateAdminReportJob extends optional.Application with IJob with AdminReportGenerator with BaseReportsJob {
 
   implicit val className: String = "org.ekstep.analytics.job.StateAdminReportJob"
 
@@ -68,30 +68,9 @@ object StateAdminReportJob extends optional.Application with IJob with AdminRepo
     val jobConfig = JSONUtils.deserialize[JobConfig](config)
     JobContext.parallelization = 10
 
-    def runJob(sc: SparkContext): Unit = {
-      try {
-        execute(jobConfig)(sc)
-      } finally {
-        CommonUtil.closeSparkContext()(sc)
-      }
-    }
-
-    sc match {
-      case Some(value) => {
-        implicit val sparkContext: SparkContext = value
-        runJob(value)
-      }
-      case None => {
-        val sparkCassandraConnectionHost =
-          jobConfig.modelParams.getOrElse(Map[String, Option[AnyRef]]()).get("sparkCassandraConnectionHost")
-        val sparkElasticsearchConnectionHost =
-          jobConfig.modelParams.getOrElse(Map[String, Option[AnyRef]]()).get("sparkElasticsearchConnectionHost")
-        implicit val sparkContext: SparkContext =
-          CommonUtil.getSparkContext(JobContext.parallelization,
-            jobConfig.appName.getOrElse(jobConfig.model), sparkCassandraConnectionHost, sparkElasticsearchConnectionHost)
-        runJob(sparkContext)
-      }
-    }
+    implicit val sparkContext: SparkContext = getReportingSparkContext(jobConfig);
+    execute(jobConfig)
+    
   }
 
   private def execute(config: JobConfig)(implicit sc: SparkContext) = {
