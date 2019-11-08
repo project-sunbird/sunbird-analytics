@@ -38,14 +38,11 @@ node('build-slave') {
                 cp -r platform-scripts/VidyaVani/GenieSearch script
                 cp -r platform-scripts/VidyaVani/VidyavaniCnQ script
                 zip -r script.zip script
-                git clone https://github.com/ing-bank/scruid.git
-                cd scruid && sed -i 's/scalaVersion in ThisBuild := "2.12.9"/scalaVersion in ThisBuild := "2.11.8"/g' build.sbt
                 '''
         }
         stage('Build') {
             sh '''
-                cd scruid && sbt compile && sbt package && sbt publishM2
-                cd ../platform-framework && mvn clean install -DskipTests=true
+                cd platform-framework && mvn clean install -DskipTests=true
                 cd ../platform-modules && mvn clean install -DskipTests
                 cd job-manager && mvn clean package
                 cd ../../platform-api && mvn clean install -DskipTests=true
