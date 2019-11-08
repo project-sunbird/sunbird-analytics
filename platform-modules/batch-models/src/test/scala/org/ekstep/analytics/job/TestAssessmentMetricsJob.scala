@@ -1,9 +1,8 @@
 package org.ekstep.analytics.job
 
 import org.apache.spark.sql.{DataFrame, SparkSession}
-import org.ekstep.analytics.job.AssessmentMetricsJob.saveReport
 import org.ekstep.analytics.model.SparkSpec
-import org.ekstep.analytics.util.{AssessmentReportUtil, ESUtil}
+import org.ekstep.analytics.util.ESUtil
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.cloud.storage.conf.AppConf
 

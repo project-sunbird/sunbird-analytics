@@ -4,7 +4,9 @@ import org.apache.spark.SparkContext
 import org.ekstep.analytics.framework.JobConfig
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.JobContext
-import org.ekstep.analytics.framework.conf.AppConf
+import org.sunbird.cloud.storage.BaseStorageService
+import org.sunbird.cloud.storage.conf.AppConf
+import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
 
 trait BaseReportsJob {
 
@@ -26,11 +28,24 @@ trait BaseReportsJob {
   }
 
   def setReportsStorageConfiguration(sc: SparkContext) {
-    val reportsStorageAccount = AppConf.getConfig("reports_azure_storage_key")
-    val reportsStorageAccountKey = AppConf.getConfig("reports_azure_storage_secret")
-    if (reportsStorageAccount != null && !reportsStorageAccount.isEmpty()) {
+    val reportsStorageAccountKey = AppConf.getConfig("reports_azure_storage_key")
+    val reportsStorageAccountSecret = AppConf.getConfig("reports_azure_storage_secret")
+    if (reportsStorageAccountKey != null && !reportsStorageAccountSecret.isEmpty) {
       sc.hadoopConfiguration.set("fs.azure", "org.apache.hadoop.fs.azure.NativeAzureFileSystem")
-      sc.hadoopConfiguration.set("fs.azure.account.key." + reportsStorageAccount + ".blob.core.windows.net", reportsStorageAccountKey)
+      sc.hadoopConfiguration.set("fs.azure.account.key." + reportsStorageAccountKey + ".blob.core.windows.net", reportsStorageAccountSecret)
+    }
+  }
+
+  def reportStorageService: BaseStorageService = {
+    val reportsStorageAccountKey = AppConf.getConfig("reports_azure_storage_key")
+    val reportsStorageAccountSecret = AppConf.getConfig("reports_azure_storage_secret")
+    val provider = AppConf.getConfig("cloud_storage_type")
+    if (reportsStorageAccountKey != null && !reportsStorageAccountSecret.isEmpty) {
+      StorageServiceFactory
+        .getStorageService(StorageConfig(provider, AppConf.getConfig("reports_azure_storage_key"), AppConf.getConfig("reports_azure_storage_secret")))
+    } else {
+      StorageServiceFactory
+        .getStorageService(StorageConfig(provider, AppConf.getConfig("azure_storage_key"), AppConf.getConfig("azure_storage_secret")))
     }
   }
 

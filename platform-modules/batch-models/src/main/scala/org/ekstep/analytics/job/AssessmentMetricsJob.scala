@@ -3,15 +3,17 @@ package org.ekstep.analytics.job
 import org.apache.commons.lang3.StringUtils
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.expressions.Window
-import org.apache.spark.sql.functions.{ col, _ }
-import org.apache.spark.sql.{ DataFrame, SparkSession }
+import org.apache.spark.sql.functions.{col, _}
+import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.ekstep.analytics.framework.Level._
 import org.ekstep.analytics.framework._
-import org.ekstep.analytics.framework.util.{ CommonUtil, JSONUtils, JobLogger }
-import org.ekstep.analytics.util.{ AssessmentReportUtil, ESUtil }
+import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, JobLogger}
+import org.ekstep.analytics.util.{ESUtil, FileUtil}
+import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormat
 import org.sunbird.cloud.storage.conf.AppConf
 
-import scala.collection.{ Map, _ }
+import scala.collection.{Map, _}
 
 object AssessmentMetricsJob extends optional.Application with IJob with BaseReportsJob {
 
@@ -209,7 +211,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with BaseRepo
     val uploadToAzure = AppConf.getConfig("course.upload.reports.enabled")
     if (StringUtils.isNotBlank(uploadToAzure) && StringUtils.equalsIgnoreCase("true", uploadToAzure)) {
       val courseBatchList = result.collect.map(r => Map(result.columns.zip(r.toSeq): _*))
-      AssessmentReportUtil.save(courseBatchList, reportDF, url, spark)
+      save(courseBatchList, reportDF, url, spark)
     } else {
       JobLogger.log("Skipping uploading reports into to azure", None, INFO)
     }
@@ -264,5 +266,80 @@ object AssessmentMetricsJob extends optional.Application with IJob with BaseRepo
     val columnName: String = if (bestScoreReport) "total_score" else "last_attempted_on"
     val df = Window.partitionBy("user_id", "batch_id", "course_id", "content_id").orderBy(desc(columnName))
     reportDF.withColumn("rownum", row_number.over(df)).where(col("rownum") === 1).drop("rownum")
+  }
+
+  def saveToAzure(reportDF: DataFrame, url: String, batchId: String): String = {
+    val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
+    val renamedDir = s"$tempDir/renamed"
+    val container = AppConf.getConfig("course.metrics.cloud.container")
+    val objectKey = AppConf.getConfig("assessment.metrics.cloud.objectKey")
+    reportDF.coalesce(1).write
+      .mode("overwrite")
+      .format("com.databricks.spark.csv")
+      .option("header", "true")
+      .save(url)
+    FileUtil.renameReport(tempDir, renamedDir, batchId)
+    reportStorageService.upload(container, renamedDir, objectKey, isDirectory = Option(true))
+  }
+
+  def saveToElastic(index: String, alias: String, reportDF: DataFrame): Unit = {
+    val assessmentReportDF = reportDF.select(
+      col("userid").as("userId"),
+      col("username").as("userName"),
+      col("courseid").as("courseId"),
+      col("batchid").as("batchId"),
+      col("grand_score").as("score"),
+      col("maskedemail").as("maskedEmail"),
+      col("maskedphone").as("maskedPhone"),
+      col("district_name").as("districtName"),
+      col("orgname_resolved").as("rootOrgName"),
+      col("externalid").as("externalId"),
+      col("schoolname_resolved").as("subOrgName"),
+      col("total_sum_score").as("totalScore"),
+      col("content_name").as("contentName"),
+      col("reportUrl").as("reportUrl")
+    )
+    ESUtil.saveToIndex(assessmentReportDF, index)
+  }
+
+  def rollOverIndex(index: String, alias: String): Unit = {
+    val indexList = ESUtil.getIndexName(alias)
+    if(!indexList.contains(index)) ESUtil.rolloverIndex(index, alias)
+  }
+
+
+  def save(courseBatchList: Array[Map[String, Any]], reportDF: DataFrame, url: String, spark: SparkSession): Unit = {
+    val aliasName = AppConf.getConfig("assessment.metrics.es.alias")
+    val indexToEs = AppConf.getConfig("course.es.index.enabled")
+    courseBatchList.foreach(item => {
+      JobLogger.log("Course batch mappings: " + item, None, INFO)
+      val courseId = item.getOrElse("courseid", "").asInstanceOf[String]
+      val batchList = item.getOrElse("batchid", "").asInstanceOf[Seq[String]].distinct
+      batchList.foreach(batchId => {
+        if (!courseId.isEmpty && !batchId.isEmpty) {
+          val filteredDF = reportDF.filter(col("courseid") === courseId && col("batchid") === batchId)
+          val reportData = transposeDF(filteredDF)
+          try {
+            val urlBatch = saveToAzure(reportData, url, batchId)
+            val resolvedDF = filteredDF.withColumn("reportUrl", lit(urlBatch))
+            if (StringUtils.isNotBlank(indexToEs) && StringUtils.equalsIgnoreCase("true", indexToEs)) {
+              saveToElastic(this.getIndexName, aliasName, resolvedDF)
+              JobLogger.log("Indexing of assessment report data is success: " + this.getIndexName, None, INFO)
+            } else {
+              JobLogger.log("Skipping Indexing assessment report into ES", None, INFO)
+            }
+          } catch {
+            case e: Exception => JobLogger.log("File upload is failed due to " + e, None, ERROR)
+          }
+        } else {
+          JobLogger.log("Report failed to create since course_id is " + courseId + "and batch_id is " + batchId, None, ERROR)
+        }
+      })
+    })
+    rollOverIndex(getIndexName, aliasName)
+  }
+
+  def getIndexName: String = {
+    AppConf.getConfig("assessment.metrics.es.index.prefix") + DateTimeFormat.forPattern("dd-MM-yyyy-HH-mm").print(DateTime.now())
   }
 }
