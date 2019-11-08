@@ -20,8 +20,8 @@ object FailedStatus extends UserStatus(3, "FAILED")
 object MultiMatchStatus extends UserStatus(4, "MULTIMATCH")
 object OrgExtIdMismatch extends UserStatus(5, "ORGEXTIDMISMATCH")
 
-case class ShadowUserData(channel: String, userextid: String, addedby: String, claimedon: Long, claimstatus: Int,
-                          createdon: Long, email: String, name: String, orgextid: String, processid: String,
+case class ShadowUserData(channel: String, userextid: String, addedby: String, claimedon: java.sql.Timestamp, claimstatus: Int,
+                          createdon: java.sql.Timestamp, email: String, name: String, orgextid: String, processid: String,
                           phone: String, updatedon: java.sql.Timestamp, userid: String, userids: List[String], userstatus: Int)
 case class RootOrgData(id: String, channel: String)
 
@@ -332,6 +332,13 @@ object StateAdminReportJob extends optional.Application with IJob with AdminRepo
     val storageService = StorageServiceFactory
       .getStorageService(StorageConfig(provider, AppConf.getStorageKey(provider), AppConf.getStorageSecret(provider)))
     storageService.upload(container, sourcePath, objectKey, isDirectory = Option(true))
+  }
+}
+
+object TestStateAdminReportJob {
+  
+  def main(args: Array[String]): Unit = {
+    StateAdminReportJob.main("""{"model":"Test"}""");
   }
 }
 
