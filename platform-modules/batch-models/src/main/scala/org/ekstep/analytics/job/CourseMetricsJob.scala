@@ -1,23 +1,22 @@
 package org.ekstep.analytics.job
 
 import java.io.File
-import java.nio.file.{ Files, StandardCopyOption }
+import java.nio.file.{Files, StandardCopyOption}
 
 import org.apache.spark.SparkContext
-import org.apache.spark.sql.functions.{ col, unix_timestamp, _ }
+import org.apache.spark.sql.expressions.Window
+import org.apache.spark.sql.functions.{col, unix_timestamp, _}
 import org.apache.spark.sql.types.DataTypes
-import org.apache.spark.sql.{ DataFrame, SparkSession }
+import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.ekstep.analytics.framework.Level._
 import org.ekstep.analytics.framework._
-import org.ekstep.analytics.framework.util.{ CommonUtil, JSONUtils, JobLogger }
+import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger}
 import org.ekstep.analytics.util.ESUtil
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import org.sunbird.cloud.storage.conf.AppConf
-import org.sunbird.cloud.storage.factory.{ StorageConfig, StorageServiceFactory }
-import org.apache.spark.sql.expressions.Window
 
-import scala.collection.{ Map, _ }
+import scala.collection.{Map, _}
 
 trait ReportGenerator {
   def loadData(spark: SparkSession, settings: Map[String, String]): DataFrame
@@ -332,13 +331,9 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
   }
 
   def uploadReport(sourcePath: String) = {
-    val provider = AppConf.getConfig("course.metrics.cloud.provider")
-    val container = AppConf.getConfig("course.metrics.cloud.container")
+    val container = AppConf.getConfig("cloud.container.reports")
     val objectKey = AppConf.getConfig("course.metrics.cloud.objectKey")
-
-    val storageService = StorageServiceFactory
-      .getStorageService(StorageConfig(provider, AppConf.getStorageKey(provider), AppConf.getStorageSecret(provider)))
-    storageService.upload(container, sourcePath, objectKey, isDirectory = Option(true))
+    reportStorageService.upload(container, sourcePath, objectKey, isDirectory = Option(true))
   }
 
   private def recursiveListFiles(file: File, ext: String): Array[File] = {

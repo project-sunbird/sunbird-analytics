@@ -1,9 +1,8 @@
 package org.ekstep.analytics.job
 
 import org.apache.spark.sql.{DataFrame, SparkSession}
-import org.ekstep.analytics.job.AssessmentMetricsJob.saveReport
 import org.ekstep.analytics.model.SparkSpec
-import org.ekstep.analytics.util.{AssessmentReportUtil, ESUtil}
+import org.ekstep.analytics.util.ESUtil
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.cloud.storage.conf.AppConf
 
@@ -110,7 +109,7 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
     assert(AppConf.getConfig("assessment.metrics.cassandra.input.consistency").isEmpty === false)
     assert(AppConf.getConfig("assessment.metrics.cloud.objectKey").isEmpty === false)
     assert(AppConf.getConfig("assessment.metrics.cloud.provider").isEmpty === false)
-    assert(AppConf.getConfig("course.metrics.cloud.container").isEmpty === false)
+    assert(AppConf.getConfig("cloud.container.reports").isEmpty === false)
     assert(AppConf.getConfig("assessment.metrics.temp.dir").isEmpty === false)
     assert(AppConf.getConfig("course.upload.reports.enabled").isEmpty === false)
     assert(AppConf.getConfig("course.es.index.enabled").isEmpty === false)

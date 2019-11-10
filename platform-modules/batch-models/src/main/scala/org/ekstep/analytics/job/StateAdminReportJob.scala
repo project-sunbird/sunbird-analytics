@@ -1,14 +1,13 @@
 package org.ekstep.analytics.job
 
 import org.apache.spark.SparkContext
+import org.apache.spark.sql._
 import org.apache.spark.sql.functions.{col, lit, _}
 import org.apache.spark.sql.types.StructType
-import org.apache.spark.sql._
 import org.ekstep.analytics.framework._
-import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, JobLogger}
+import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger}
 import org.ekstep.analytics.util.HDFSFileUtils
 import org.sunbird.cloud.storage.conf.AppConf
-import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
 
 import scala.collection.{Map, _}
 
@@ -323,22 +322,11 @@ object StateAdminReportJob extends optional.Application with IJob with AdminRepo
   }
 
   def uploadReport(sourcePath: String) = {
-    val provider = AppConf.getConfig("course.metrics.cloud.provider")
-
     // Container name can be generic - we dont want to create as many container as many reports
-    val container = AppConf.getConfig("admin.reports.cloud.container")
+    val container = AppConf.getConfig("cloud.container.reports")
     val objectKey = AppConf.getConfig("admin.metrics.cloud.objectKey")
 
-    val storageService = StorageServiceFactory
-      .getStorageService(StorageConfig(provider, AppConf.getStorageKey(provider), AppConf.getStorageSecret(provider)))
-    storageService.upload(container, sourcePath, objectKey, isDirectory = Option(true))
-  }
-}
-
-object TestStateAdminReportJob {
-  
-  def main(args: Array[String]): Unit = {
-    StateAdminReportJob.main("""{"model":"Test"}""");
+    reportStorageService.upload(container, sourcePath, objectKey, isDirectory = Option(true))
   }
 }
 
