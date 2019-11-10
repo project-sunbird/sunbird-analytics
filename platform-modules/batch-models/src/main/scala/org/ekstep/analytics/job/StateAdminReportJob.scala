@@ -2,14 +2,12 @@ package org.ekstep.analytics.job
 
 import org.apache.spark.SparkContext
 import org.apache.spark.sql._
-import org.apache.spark.sql.functions.{col, lit, _}
+import org.apache.spark.sql.functions.{ col, lit, _ }
 import org.apache.spark.sql.types.StructType
 import org.ekstep.analytics.framework._
-import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger}
+import org.ekstep.analytics.framework.util.{ JSONUtils, JobLogger }
 import org.ekstep.analytics.util.HDFSFileUtils
 import org.sunbird.cloud.storage.conf.AppConf
-
-import scala.collection.{Map, _}
 
 case class UserStatus(id: Long, status: String)
 object UnclaimedStatus extends UserStatus(0, "UNCLAIMED")
@@ -22,36 +20,19 @@ object OrgExtIdMismatch extends UserStatus(5, "ORGEXTIDMISMATCH")
 case class ShadowUserData(channel: String, userextid: String, addedby: String, claimedon: java.sql.Timestamp, claimstatus: Int,
                           createdon: java.sql.Timestamp, email: String, name: String, orgextid: String, processid: String,
                           phone: String, updatedon: java.sql.Timestamp, userid: String, userids: List[String], userstatus: Int)
-case class RootOrgData(id: String, channel: String)
+
+case class RootOrgData(rootorgjoinid: String, rootorgchannel: String)
 
 // Shadow user summary in the json will have this POJO
 case class UserSummary(accounts_validated: Long, accounts_rejected: Long, accounts_unclaimed: Long, accounts_failed: Long)
 
 // Geo user summary in the json will have this POJO
-case class GeoSummary(districts: Long, blocks: Long, school: Long)
+case class GeoSummary(channel: String, districts: Long, blocks: Long, school: Long)
 
-trait AdminReportGenerator extends Serializable {
+case class SubOrgRow(id: String, isrootorg: Boolean, rootorgid: String, channel: String, status: String, locationid: String, locationids: Seq[String],
+                     exploded_location: String, locid: String, code: String, name: String, parentid: String, loctype: String, rootorgjoinid: String, rootorgchannel: String)
 
-  def loadData(spark: SparkSession, settings: Map[String, String]): DataFrame = {
-    spark
-      .read
-      .format("org.apache.spark.sql.cassandra")
-      .options(settings)
-      .load()
-  }
-
-  def loadDataWithSchema(spark: SparkSession, settings: Map[String, String], schema: Option[StructType] = None): DataFrame = {
-    val dataFrameReader = spark.read.format("org.apache.spark.sql.cassandra").options(settings)
-    val dataFrameReaderWithSchema = schema.map(schema => dataFrameReader.schema(schema)).getOrElse(dataFrameReader)
-    dataFrameReaderWithSchema.load()
-  }
-
-  def generateReport(spark: SparkSession, fetchTable: (SparkSession, Map[String, String], Option[StructType]) => DataFrame): DataFrame
-
-}
-
-
-object StateAdminReportJob extends optional.Application with IJob with AdminReportGenerator with BaseReportsJob {
+object StateAdminReportJob extends optional.Application with IJob with BaseReportsJob {
 
   implicit val className: String = "org.ekstep.analytics.job.StateAdminReportJob"
 
@@ -67,53 +48,43 @@ object StateAdminReportJob extends optional.Application with IJob with AdminRepo
     val jobConfig = JSONUtils.deserialize[JobConfig](config)
     JobContext.parallelization = 10
 
-    implicit val sparkContext: SparkContext = getReportingSparkContext(jobConfig);
+    implicit val sparkSession: SparkSession = openSparkSession(jobConfig);
     execute(jobConfig)
-    
+    closeSparkSession();
   }
 
-  private def execute(config: JobConfig)(implicit sc: SparkContext) = {
-    val readConsistencyLevel: String = AppConf.getConfig("course.metrics.cassandra.input.consistency")
+  private def execute(config: JobConfig)(implicit sparkSession: SparkSession) = {
+
     val tempDir = AppConf.getConfig("course.metrics.temp.dir")
     val renamedDir = s"$tempDir/renamed"
-    val sparkConf = sc.getConf
-      .set("es.write.operation", "upsert")
-      .set("spark.cassandra.input.consistency.level", readConsistencyLevel)
 
-    val spark = SparkSession.builder.config(sparkConf).getOrCreate()
-
-    val reportDF = generateReport(spark, loadDataWithSchema)
+    generateReport()
     uploadReport(renamedDir)
     JobLogger.end("StateAdminReportJob completed successfully!", "SUCCESS", Option(Map("config" -> config, "model" -> name)))
   }
 
-  override def generateReport(spark: SparkSession, loadData: (SparkSession, Map[String, String], Option[StructType]) => DataFrame): DataFrame = {
+  def generateReport()(implicit sparkSession: SparkSession) {
 
-    import spark.implicits._
+    generateShadowDBReport();
+    generateGeoSummaryReport();
+
+    JobLogger.log("Finished with generateReport")
+  }
+
+  private def generateShadowDBReport()(implicit sparkSession: SparkSession) {
+
+    import sparkSession.implicits._
     val sunbirdKeyspace = AppConf.getConfig("course.metrics.cassandra.sunbirdKeyspace")
-
     val tempDir = AppConf.getConfig("course.metrics.temp.dir")
     val renamedDir = s"$tempDir/renamed"
-
     val fSFileUtils = new HDFSFileUtils(className, JobLogger)
-
     val detailDir = s"$tempDir/detail"
     val summaryDir = s"$tempDir/summary"
 
-    val locationDF = loadData(spark, Map("table" -> "location", "keyspace" -> sunbirdKeyspace), None).select(
-      col("id").as("locid"),
-      col("code").as("code"),
-      col("name").as("name"),
-      col("parentid").as("parentid"),
-      col("type").as("type")
-    )
-
-    implicit val rootOrgDataEncoder: Encoder[RootOrgData] = Encoders.product[RootOrgData]
-
     val shadowDataEncoder = Encoders.product[ShadowUserData].schema
-    val shadowUserDF = loadData(spark, Map("table" -> "shadow_user", "keyspace" -> sunbirdKeyspace), Some(shadowDataEncoder)).as[ShadowUserData]
+    val shadowUserDF = loadData(sparkSession, Map("table" -> "shadow_user", "keyspace" -> sunbirdKeyspace), Some(shadowDataEncoder)).as[ShadowUserData]
 
-    val shadowDataSummary = generateSummaryData(shadowUserDF.as[ShadowUserData])(spark)
+    val shadowDataSummary = generateSummaryData(shadowUserDF)
 
     saveUserSummaryReport(shadowDataSummary, s"$summaryDir")
     saveUserDetailsReport(shadowUserDF.toDF(), s"$detailDir")
@@ -124,79 +95,67 @@ object StateAdminReportJob extends optional.Application with IJob with AdminRepo
     // Purge the directories after copying to the upload staging area
     fSFileUtils.purgeDirectory(detailDir)
     fSFileUtils.purgeDirectory(summaryDir)
-
-    val organisationDF = loadData(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace), None)
-
-    val activeRootOrganisationDF = organisationDF
-      .select(col("id"), col("channel"))
-      .where(col("isrootorg") && col("status").=== (1))
-      .as[RootOrgData]
-    JobLogger.log(s"Active root org count = ${activeRootOrganisationDF.count()}")
-
-    // iterating through all active rootOrg and fetching all active suborg for a particular rootOrg
-    activeRootOrganisationDF.foreach(rootOrgData => {
-      val rootOrgId = rootOrgData.id
-      val channelName = rootOrgData.channel
-      JobLogger.log(s"RootOrg id found = $rootOrgId and channel = $channelName")
-
-      // fetching all suborg for a particular rootOrg
-      val schoolCountDf = organisationDF
-        .where(col("status").equalTo(1) && not(col("isrootorg"))
-          && col("rootorgid").equalTo(rootOrgId))
-
-      // getting count of suborg , that will provide me school count.
-      val schoolCount = schoolCountDf.count()
-
-      val locationExplodedSchoolDF = schoolCountDf
-        .withColumn("exploded_location", explode(array("locationids")))
-
-      // collecting District Details and count from organisation and location table
-      val districtDF = locationExplodedSchoolDF
-        .join(locationDF,
-          col("exploded_location").cast("string")
-            .contains(col("locid"))
-           && locationDF.col("type") === "district")
-      // collecting district count
-      val districtCount = districtDF.count()
-
-      // collecting block count and details.
-      val blockDetailsDF = locationExplodedSchoolDF
-        .join(locationDF,
-          col("exploded_location").cast("string").contains(col("locid"))
-            && locationDF.col("type") === "block")
-
-      //collecting block count
-      val blockCount = blockDetailsDF.count()
-
-      val geoDetailsDF = districtDF.union(blockDetailsDF)
-      //geoDetailsDF.show(false)
-
-      val geoSummary = GeoSummary(districtCount, blockCount, schoolCount)
-      val jsonStr = JSONUtils.serialize(geoSummary)
-      val rdd = spark.sparkContext.parallelize(Seq(jsonStr))
-      val summaryDF = spark.read.json(rdd)
-
-      saveGeoDetailsReport(geoDetailsDF, s"$detailDir/channel=$channelName")
-      saveSummaryReport(summaryDF, s"$summaryDir/channel=$channelName")
-    })
-
-    fSFileUtils.renameReport(detailDir, renamedDir, ".csv", "geo-detail")
-    fSFileUtils.renameReport(summaryDir, renamedDir, ".json", "geo-summary")
-
-    // Purge the directories after copying to the upload staging area
-    fSFileUtils.purgeDirectory(detailDir)
-    fSFileUtils.purgeDirectory(summaryDir)
-
-    JobLogger.log("Finished with generateReport")
-
-    shadowUserDF.toDF()
   }
 
+  private def generateGeoSummaryReport()(implicit sparkSession: SparkSession) {
+    import sparkSession.implicits._
+    val sunbirdKeyspace = AppConf.getConfig("course.metrics.cassandra.sunbirdKeyspace")
+    val tempDir = AppConf.getConfig("course.metrics.temp.dir")
+    val renamedDir = s"$tempDir/renamed"
+
+    val fSFileUtils = new HDFSFileUtils(className, JobLogger)
+
+    val detailDir = s"$tempDir/detail"
+    val summaryDir = s"$tempDir/summary"
+
+    val locationDF = loadData(sparkSession, Map("table" -> "location", "keyspace" -> sunbirdKeyspace), None).select(
+      col("id").as("locid"),
+      col("code").as("code"),
+      col("name").as("name"),
+      col("parentid").as("parentid"),
+      col("type").as("loctype"))
+
+    val organisationDF = loadData(sparkSession, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace), None).select(
+      col("id").as("id"),
+      col("isrootorg").as("isrootorg"),
+      col("rootorgid").as("rootorgid"),
+      col("channel").as("channel"),
+      col("status").as("status"),
+      col("locationid").as("locationid"),
+      col("locationids").as("locationids")).cache();
+
+    val rootOrgs = organisationDF.select(col("id").as("rootorgjoinid"), col("channel").as("rootorgchannel")).where(col("isrootorg") && col("status").===(1)).collect();
+    val rootOrgRDD = sparkSession.sparkContext.parallelize(rootOrgs.toSeq);
+    val rootOrgEncoder = Encoders.product[RootOrgData].schema
+    val rootOrgDF = sparkSession.createDataFrame(rootOrgRDD, rootOrgEncoder);
+
+    val subOrgDF = organisationDF
+      .withColumn("exploded_location", explode(when(size(col("locationids")).equalTo(0), array(lit(null).cast("string")))
+        .otherwise(when(col("locationids").isNotNull, col("locationids"))
+          .otherwise(array(lit(null).cast("string"))))))
+
+    val subOrgJoinedDF = subOrgDF
+      .join(locationDF, subOrgDF.col("exploded_location") === locationDF.col("locid"), "left")
+      .join(rootOrgDF, subOrgDF.col("rootorgid") === rootOrgDF.col("rootorgjoinid")).as[SubOrgRow]
+
+    subOrgJoinedDF
+      .groupBy("channel")
+      .agg(countDistinct("id").as("school"), count(col("locType").equalTo("district")).as("districts"), 
+          count(col("locType").equalTo("block")).as("blocks"))
+      .coalesce(1)
+      .write
+      .partitionBy("channel")
+      .mode("overwrite")
+      .json(s"$summaryDir")
+
+    fSFileUtils.renameReport(summaryDir, renamedDir, ".json", "geo-summary")
+  }
 
   def generateSummaryData(shadowUserDF: Dataset[ShadowUserData])(implicit spark: SparkSession): DataFrame = {
     import spark.implicits._
     def transformClaimedStatusValue()(ds: Dataset[ShadowUserData]) = {
-      ds.withColumn("claim_status",
+      ds.withColumn(
+        "claim_status",
         when($"claimstatus" === UnclaimedStatus.id, lit(UnclaimedStatus.status))
           .when($"claimstatus" === ClaimedStatus.id, lit(ClaimedStatus.status))
           .when($"claimstatus" === FailedStatus.id, lit(FailedStatus.status))
@@ -214,12 +173,12 @@ object StateAdminReportJob extends optional.Application with IJob with AdminRepo
   }
 
   /**
-    * Saves the raw data as a .csv.
-    * Appends /detail to the URL to prevent overwrites.
-    * Check function definition for the exact column ordering.
-    * @param reportDF
-    * @param url
-    */
+   * Saves the raw data as a .csv.
+   * Appends /detail to the URL to prevent overwrites.
+   * Check function definition for the exact column ordering.
+   * @param reportDF
+   * @param url
+   */
   def saveUserDetailsReport(reportDF: DataFrame, url: String): Unit = {
     // List of fields available
     //channel,userextid,addedby,claimedon,claimstatus,createdon,email,name,orgextid,phone,processid,updatedon,userid,userids,userstatus
@@ -235,8 +194,7 @@ object StateAdminReportJob extends optional.Application with IJob with AdminRepo
         col("orgextid").as("School external id"),
         col("claimstatus").as("Claimed status"),
         col("createdon").as("Created on"),
-        col("updatedon").as("Last updated on")
-      )
+        col("updatedon").as("Last updated on"))
       .write
       .partitionBy("channel")
       .mode("overwrite")
@@ -256,8 +214,7 @@ object StateAdminReportJob extends optional.Application with IJob with AdminRepo
         col("locid").as("Location id"),
         col("name").as("Location name"),
         col("parentid").as("Parent location id"),
-        col("type").as("type")
-      )
+        col("type").as("type"))
       .write
       .mode("overwrite")
       .option("header", "true")
@@ -267,13 +224,13 @@ object StateAdminReportJob extends optional.Application with IJob with AdminRepo
   }
 
   /**
-    * Saves the raw data as a .json.
-    * Appends /summary to the URL to prevent overwrites.
-    * Check function definition for the exact column ordering.
-    * * If we don't partition, the reports get subsequently updated and we dont want so
-    * @param reportDF
-    * @param url
-    */
+   * Saves the raw data as a .json.
+   * Appends /summary to the URL to prevent overwrites.
+   * Check function definition for the exact column ordering.
+   * * If we don't partition, the reports get subsequently updated and we dont want so
+   * @param reportDF
+   * @param url
+   */
   def saveSummaryReport(reportDF: DataFrame, url: String): Unit = {
     reportDF.coalesce(1)
       .write
@@ -285,12 +242,12 @@ object StateAdminReportJob extends optional.Application with IJob with AdminRepo
     println(s"StateAdminReportJob: uploadedSuccess nRecords = ${reportDF.count()} and ${url}")
   }
 
-
   def saveUserSummaryReport(reportDF: DataFrame, url: String): Unit = {
     val dfColumns = reportDF.columns.toSet
 
     // Get claim status not in the current dataframe to add them.
-    val columns: Seq[String] = Seq(UnclaimedStatus.status,
+    val columns: Seq[String] = Seq(
+      UnclaimedStatus.status,
       ClaimedStatus.status,
       RejectedStatus.status,
       FailedStatus.status,
@@ -309,10 +266,10 @@ object StateAdminReportJob extends optional.Application with IJob with AdminRepo
         when(col(RejectedStatus.status).isNull, 0).otherwise(col(RejectedStatus.status)).as("accounts_rejected"),
         when(col(FailedStatus.status).isNull, 0).otherwise(col(FailedStatus.status)).as(FailedStatus.status),
         when(col(MultiMatchStatus.status).isNull, 0).otherwise(col(MultiMatchStatus.status)).as(MultiMatchStatus.status),
-        when(col(OrgExtIdMismatch.status).isNull, 0).otherwise(col(OrgExtIdMismatch.status)).as(OrgExtIdMismatch.status)
-      )
-      .withColumn("accounts_failed",
-          col(FailedStatus.status) + col(MultiMatchStatus.status) + col(OrgExtIdMismatch.status))
+        when(col(OrgExtIdMismatch.status).isNull, 0).otherwise(col(OrgExtIdMismatch.status)).as(OrgExtIdMismatch.status))
+      .withColumn(
+        "accounts_failed",
+        col(FailedStatus.status) + col(MultiMatchStatus.status) + col(OrgExtIdMismatch.status))
       .write
       .partitionBy("channel")
       .mode("overwrite")
@@ -330,3 +287,9 @@ object StateAdminReportJob extends optional.Application with IJob with AdminRepo
   }
 }
 
+object StateAdminReportJobTest {
+
+  def main(args: Array[String]): Unit = {
+    StateAdminReportJob.main("""{"model":"Test"}""");
+  }
+}

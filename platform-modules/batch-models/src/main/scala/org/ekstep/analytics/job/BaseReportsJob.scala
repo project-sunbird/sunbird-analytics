@@ -1,14 +1,28 @@
 package org.ekstep.analytics.job
 
 import org.apache.spark.SparkContext
+import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.types.StructType
 import org.ekstep.analytics.framework.JobConfig
-import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.JobContext
+import org.ekstep.analytics.framework.util.CommonUtil
 import org.sunbird.cloud.storage.BaseStorageService
 import org.sunbird.cloud.storage.conf.AppConf
-import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
+import org.sunbird.cloud.storage.factory.StorageConfig
+import org.sunbird.cloud.storage.factory.StorageServiceFactory
 
 trait BaseReportsJob {
+
+  def loadData(spark: SparkSession, settings: Map[String, String], schema: Option[StructType] = None): DataFrame = {
+    val dataFrameReader = spark.read.format("org.apache.spark.sql.cassandra").options(settings)
+    if (schema.nonEmpty) {
+      schema.map(schema => dataFrameReader.schema(schema)).getOrElse(dataFrameReader).load()
+    } else {
+      dataFrameReader.load()
+    }
+
+  }
 
   def getReportingSparkContext(config: JobConfig)(implicit sc: Option[SparkContext] = None): SparkContext = {
 
@@ -25,6 +39,22 @@ trait BaseReportsJob {
     setReportsStorageConfiguration(sparkContext)
     sparkContext;
 
+  }
+
+  def openSparkSession(config: JobConfig): SparkSession = {
+
+    val sparkCassandraConnectionHost = config.modelParams.getOrElse(Map[String, Option[AnyRef]]()).get("sparkCassandraConnectionHost")
+    val sparkElasticsearchConnectionHost = config.modelParams.getOrElse(Map[String, Option[AnyRef]]()).get("sparkElasticsearchConnectionHost")
+
+    val readConsistencyLevel = AppConf.getConfig("course.metrics.cassandra.input.consistency")
+    val sparkSession = CommonUtil.getSparkSession(JobContext.parallelization, config.appName.getOrElse(config.model), sparkCassandraConnectionHost, sparkElasticsearchConnectionHost, Option(readConsistencyLevel))
+    setReportsStorageConfiguration(sparkSession.sparkContext)
+    sparkSession;
+
+  }
+
+  def closeSparkSession()(implicit sparkSession: SparkSession) {
+    sparkSession.stop();
   }
 
   def setReportsStorageConfiguration(sc: SparkContext) {
