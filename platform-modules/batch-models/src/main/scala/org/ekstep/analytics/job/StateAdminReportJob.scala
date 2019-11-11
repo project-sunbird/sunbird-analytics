@@ -153,9 +153,17 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
     val blockDF = subOrgJoinedDF.where(col("loctype").equalTo("block")).select(col("id").as("schooljoinid"), col("locid").as("blockid"), col("locname").as("blockname"));
     
     blockDF.join(districtDF, blockDF.col("schooljoinid").equalTo(districtDF.col("schoolid")), "left").drop(col("schooljoinid")).coalesce(1)
+      .select(col("schoolid").as("School id"),
+        col("schoolname").as("School name"),
+        col("channel").as("Channel"),
+        col("districtid").as("District id"),
+        col("districtname").as("District name"),
+        col("blockid").as("Block id"),
+        col("blockname").as("Block name"))
       .write
       .partitionBy("channel")
       .mode("overwrite")
+      .option("header", "true")
       .csv(s"$detailDir")
       
     fSFileUtils.renameReport(summaryDir, renamedDir, ".json", "geo-summary")
