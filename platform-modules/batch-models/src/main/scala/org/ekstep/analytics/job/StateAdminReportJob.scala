@@ -26,11 +26,8 @@ case class RootOrgData(rootorgjoinid: String, rootorgchannel: String)
 // Shadow user summary in the json will have this POJO
 case class UserSummary(accounts_validated: Long, accounts_rejected: Long, accounts_unclaimed: Long, accounts_failed: Long)
 
-// Geo user summary in the json will have this POJO
-case class GeoSummary(channel: String, districts: Long, blocks: Long, school: Long)
-
-case class SubOrgRow(id: String, isrootorg: Boolean, rootorgid: String, channel: String, status: String, locationid: String, locationids: Seq[String],
-                     exploded_location: String, locid: String, code: String, name: String, parentid: String, loctype: String, rootorgjoinid: String, rootorgchannel: String)
+case class SubOrgRow(id: String, isrootorg: Boolean, rootorgid: String, channel: String, status: String, locationid: String, locationids: Seq[String], orgname: String,
+                     exploded_location: String, locid: String, loccode: String, locname: String, locparentid: String, loctype: String, rootorgjoinid: String, rootorgchannel: String)
 
 object StateAdminReportJob extends optional.Application with IJob with BaseReportsJob {
 
@@ -110,11 +107,11 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
 
     val locationDF = loadData(sparkSession, Map("table" -> "location", "keyspace" -> sunbirdKeyspace), None).select(
       col("id").as("locid"),
-      col("code").as("code"),
-      col("name").as("name"),
-      col("parentid").as("parentid"),
+      col("code").as("loccode"),
+      col("name").as("locname"),
+      col("parentid").as("locparentid"),
       col("type").as("loctype"))
-
+      
     val organisationDF = loadData(sparkSession, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace), None).select(
       col("id").as("id"),
       col("isrootorg").as("isrootorg"),
@@ -122,6 +119,7 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
       col("channel").as("channel"),
       col("status").as("status"),
       col("locationid").as("locationid"),
+      col("orgname").as("orgname"),
       col("locationids").as("locationids")).cache();
 
     val rootOrgs = organisationDF.select(col("id").as("rootorgjoinid"), col("channel").as("rootorgchannel")).where(col("isrootorg") && col("status").===(1)).collect();
@@ -135,12 +133,13 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
           .otherwise(array(lit(null).cast("string"))))))
 
     val subOrgJoinedDF = subOrgDF
+      .where(col("status").equalTo(1) && not(col("isrootorg")))
       .join(locationDF, subOrgDF.col("exploded_location") === locationDF.col("locid"), "left")
       .join(rootOrgDF, subOrgDF.col("rootorgid") === rootOrgDF.col("rootorgjoinid")).as[SubOrgRow]
 
     subOrgJoinedDF
       .groupBy("channel")
-      .agg(countDistinct("id").as("school"), count(col("locType").equalTo("district")).as("districts"), 
+      .agg(countDistinct("id").as("schools"), count(col("locType").equalTo("district")).as("districts"), 
           count(col("locType").equalTo("block")).as("blocks"))
       .coalesce(1)
       .write
@@ -148,7 +147,20 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
       .mode("overwrite")
       .json(s"$summaryDir")
 
+      
+    val districtDF = subOrgJoinedDF.where(col("loctype").equalTo("district")).select(col("channel").as("channel"), col("id").as("schoolid"), col("orgname").as("schoolname"), col("locid").as("districtid"), col("locname").as("districtname"));
+    val blockDF = subOrgJoinedDF.where(col("loctype").equalTo("block")).select(col("id").as("schooljoinid"), col("locid").as("blockid"), col("locname").as("blockname"));
+    
+    blockDF.join(districtDF, blockDF.col("schooljoinid").equalTo(districtDF.col("schoolid")), "left").drop(col("schooljoinid")).coalesce(1)
+      .write
+      .partitionBy("channel")
+      .mode("overwrite")
+      .csv(s"$detailDir")
+      
     fSFileUtils.renameReport(summaryDir, renamedDir, ".json", "geo-summary")
+    fSFileUtils.renameReport(detailDir, renamedDir, ".csv", "geo-detail")
+    fSFileUtils.purgeDirectory(detailDir)
+    fSFileUtils.purgeDirectory(summaryDir)
   }
 
   def generateSummaryData(shadowUserDF: Dataset[ShadowUserData])(implicit spark: SparkSession): DataFrame = {
@@ -168,7 +180,6 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
     val shadowDataSummary = shadowUserDF.transform(transformClaimedStatusValue()).groupBy("channel")
       .pivot("claim_status").agg(count("claim_status")).na.fill(0)
 
-    shadowDataSummary.show(10, false)
     shadowDataSummary
   }
 
@@ -284,6 +295,7 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
     val objectKey = AppConf.getConfig("admin.metrics.cloud.objectKey")
 
     reportStorageService.upload(container, sourcePath, objectKey, isDirectory = Option(true))
+    // TODO: Purge the files after uploaded to blob store
   }
 }
 
