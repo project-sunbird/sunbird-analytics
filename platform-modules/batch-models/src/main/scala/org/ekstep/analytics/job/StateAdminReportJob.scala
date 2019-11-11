@@ -55,7 +55,7 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
 
   private def execute(config: JobConfig)(implicit sparkSession: SparkSession) = {
 
-    val tempDir = AppConf.getConfig("course.metrics.temp.dir")
+    val tempDir = AppConf.getConfig("admin.metrics.temp.dir")
     val renamedDir = s"$tempDir/renamed"
 
     generateReport()
@@ -75,7 +75,7 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
 
     import sparkSession.implicits._
     val sunbirdKeyspace = AppConf.getConfig("course.metrics.cassandra.sunbirdKeyspace")
-    val tempDir = AppConf.getConfig("course.metrics.temp.dir")
+    val tempDir = AppConf.getConfig("admin.metrics.temp.dir")
     val renamedDir = s"$tempDir/renamed"
     val fSFileUtils = new HDFSFileUtils(className, JobLogger)
     val detailDir = s"$tempDir/detail"
@@ -100,7 +100,7 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
   private def generateGeoSummaryReport()(implicit sparkSession: SparkSession) {
     import sparkSession.implicits._
     val sunbirdKeyspace = AppConf.getConfig("course.metrics.cassandra.sunbirdKeyspace")
-    val tempDir = AppConf.getConfig("course.metrics.temp.dir")
+    val tempDir = AppConf.getConfig("admin.metrics.temp.dir")
     val renamedDir = s"$tempDir/renamed"
 
     val fSFileUtils = new HDFSFileUtils(className, JobLogger)
