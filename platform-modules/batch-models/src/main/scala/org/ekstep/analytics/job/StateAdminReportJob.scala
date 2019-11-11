@@ -47,7 +47,8 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
 
     implicit val sparkSession: SparkSession = openSparkSession(jobConfig);
     execute(jobConfig)
-    closeSparkSession();
+    closeSparkSession()
+    System.exit(0)
   }
 
   private def execute(config: JobConfig)(implicit sparkSession: SparkSession) = {
