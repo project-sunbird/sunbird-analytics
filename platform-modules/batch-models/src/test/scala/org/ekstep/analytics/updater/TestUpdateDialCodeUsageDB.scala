@@ -2,7 +2,7 @@ package org.ekstep.analytics.updater
 
 import com.datastax.spark.connector._
 import com.datastax.spark.connector.cql.CassandraConnector
-import org.ekstep.analytics.framework.DerivedEvent
+import org.ekstep.analytics.framework.{DerivedEvent, GraphUpdateEvent}
 import org.ekstep.analytics.model.SparkSpec
 import org.ekstep.analytics.util.Constants
 
