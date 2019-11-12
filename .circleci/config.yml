@@ -33,7 +33,7 @@ jobs:
           command: |
             srcBranch=$(curl -s https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/pulls/$CIRCLE_PR_NUMBER | jq .head.ref -r)
             tarBranch=$(curl -s https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/pulls/$CIRCLE_PR_NUMBER | jq .base.ref -r)
-            mvn verify -DskipTests=true sonar:sonar -Dsonar.projectKey=project-sunbird_sunbird-analytics -Dsonar.organization=project-sunbird -Dsonar.host.url=https://sonarcloud.io -Dsonar.pullrequest.branch=$srcbranch -Dsonar.pullrequest.key=$prnumber -Dsonar.pullrequest.base=$tarbranch
+            mvn verify -DskipTests=true sonar:sonar -Dsonar.projectKey=project-sunbird_sunbird-analytics -Dsonar.organization=project-sunbird -Dsonar.host.url=https://sonarcloud.io -Dsonar.pullrequest.branch=$srcbranch -Dsonar.pullrequest.key=$CIRCLE_PR_NUMBER -Dsonar.pullrequest.base=$tarbranch
 
           
           
