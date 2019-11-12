@@ -46,9 +46,12 @@ class HDFSFileUtils(classNameStr: String, jobLogger: JobLogger.type ) {
       val value = regex.findFirstIn(file.getPath).getOrElse("")
       if (value.length > 1) {
         val partitionFieldName = value.substring(1, value.length() - 1)
-        var filePath = s"${out.getPath}/$partitionFieldName-$fileNameSuffix$fileExt"
+        val filePath = new File(s"${out.getPath}/$partitionFieldName/$fileNameSuffix$fileExt")
+        if (!filePath.exists()) {
+          filePath.mkdirs();
+        }
 
-        Files.copy(file.toPath, new File(s"${filePath}").toPath(), StandardCopyOption.REPLACE_EXISTING)
+        Files.copy(file.toPath, filePath.toPath(), StandardCopyOption.REPLACE_EXISTING)
         jobLogger.log(s"${partitionFieldName} Copied from ${file.toPath.toAbsolutePath()} to ${filePath}" )
 
       }
