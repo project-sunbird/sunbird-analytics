@@ -8,7 +8,7 @@ class TestJobExecutor extends BaseSpec {
 
     "JobExecutor" should "execute job when model code is passed" in {
         a[JsonMappingException] should be thrownBy {
-            JobExecutor.main("ss", "");
+            JobExecutor.main("wfs", "");
         }
 
         the[JobNotFoundException] thrownBy {

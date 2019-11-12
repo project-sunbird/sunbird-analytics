@@ -11,7 +11,6 @@ import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.framework.util.JobLogger
-import org.ekstep.analytics.adapter.ContentAdapter
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework._
 

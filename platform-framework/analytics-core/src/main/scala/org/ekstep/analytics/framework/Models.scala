@@ -264,3 +264,11 @@ case class PipelineMetric (`cache-hit-count`: Double = 0d, `db-hit-count`: Doubl
 // Experiment Models
 @scala.beans.BeanInfo
 case class DeviceProfileModel(device_id: Option[String], state: Option[String], city: Option[String], first_access: Option[Date])
+
+case class GraphUpdateEvent(ets: Long, nodeUniqueId: String, transactionData: Map[String, Map[String, Map[String, Any]]], objectType: String, operationType: String = "UPDATE", nodeType: String = "DATA_NODE", graphId: String = "domain", nodeGraphId: Int = 0) extends AlgoOutput with Output
+
+// WFS Models
+case class ItemResponse(itemId: String, itype: Option[AnyRef], ilevel: Option[AnyRef], timeSpent: Option[Double], exTimeSpent: Option[AnyRef], res: Option[Array[String]], resValues: Option[Array[AnyRef]], exRes: Option[AnyRef], incRes: Option[AnyRef], mc: Option[AnyRef], mmc: Option[AnyRef], score: Int, time_stamp: Long, maxScore: Option[AnyRef], domain: Option[AnyRef], pass: String, qtitle: Option[String], qdesc: Option[String]);
+case class EventSummary(id: String, count: Int)
+case class EnvSummary(env: String, time_spent: Double, count: Long)
+case class PageSummary(id: String, `type`: String, env: String, time_spent: Double, visit_count: Long)

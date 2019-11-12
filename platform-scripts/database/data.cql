@@ -420,7 +420,7 @@ CREATE TABLE IF NOT EXISTS local_device_db.device_profile (
     producer_id text,
     api_last_updated_on timestamp,
     user_declared_state text,
-    user_declared_district text
+    user_declared_district text,
     PRIMARY KEY (device_id)
 );
 

@@ -1,6 +1,0 @@
-#!/bin/bash
-echo "libFM"
-
-echo 'Dummy Model.' > "${26}"
-echo 'Dummy log.' > "${22}"
-echo 'Dummy output.' > "${24}"

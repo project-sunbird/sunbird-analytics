@@ -88,16 +88,6 @@ object ContentAdapter extends BaseAdapter with ContentFetcher {
         Content(content.get("identifier").get.asInstanceOf[String], content.filterNot(p => relations.contains(p._1)), CommonUtil.getTags(content), mc);
     }
 
-    def getContentItems(contentId: String, apiVersion: String = "v2"): Array[Item] = {
-        val cr = RestUtil.get[Response](Constants.getContentItems(apiVersion, contentId));
-        checkResponse(cr);
-        val items = cr.result.items.getOrElse(null);
-
-        items.map(f => {
-            getItemWrapper(f);
-        })
-    }
-
     def getTextbookContents(lastUpdatedOnMin: String, lastUpdatedOnMax: String): Array[Map[String, AnyRef]] = {
 
         def _searchTextbook(offset: Int, limit: Int): ContentResult = {

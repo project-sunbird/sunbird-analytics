@@ -62,9 +62,7 @@ object CommonUtil {
             conf.set("spark.cassandra.connection.host", AppConf.getConfig("spark.cassandra.connection.host"))
         if (embeddedCassandraMode)
             conf.set("spark.cassandra.connection.port", AppConf.getConfig("cassandra.service.embedded.connection.port"))
-        if (!conf.contains("reactiveinflux.url")) {
-            conf.set("reactiveinflux.url", AppConf.getConfig("reactiveinflux.url"))
-        }
+
         if (sparkCassandraConnectionHost.nonEmpty) {
             conf.set("spark.cassandra.connection.host", sparkCassandraConnectionHost.get.asInstanceOf[String])
             println("setting spark.cassandra.connection.host to lp-cassandra", conf.get("spark.cassandra.connection.host"))
@@ -103,9 +101,7 @@ object CommonUtil {
             conf.set("spark.cassandra.connection.host", AppConf.getConfig("spark.cassandra.connection.host"))
         if (embeddedCassandraMode)
             conf.set("spark.cassandra.connection.port", AppConf.getConfig("cassandra.service.embedded.connection.port"))
-        if (!conf.contains("reactiveinflux.url")) {
-            conf.set("reactiveinflux.url", AppConf.getConfig("reactiveinflux.url"))
-        }
+
         if (sparkCassandraConnectionHost.nonEmpty) {
             conf.set("spark.cassandra.connection.host", sparkCassandraConnectionHost.get.asInstanceOf[String])
             if(readConsistencyLevel.nonEmpty) {
