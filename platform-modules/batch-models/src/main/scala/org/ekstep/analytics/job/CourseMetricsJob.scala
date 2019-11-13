@@ -45,6 +45,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
 
     implicit val sparkContext: SparkContext = getReportingSparkContext(jobConfig);
     execute(jobConfig)
+    System.exit(0)
   }
 
   private def execute(config: JobConfig)(implicit sc: SparkContext) = {
