@@ -37,6 +37,7 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
 
   private val DETAIL_STR = "detail"
   private val SUMMARY_STR = "summary"
+  private var organisationDF: DataFrame = null
 
   def main(config: String)(implicit sc: Option[SparkContext] = None) {
 
@@ -113,7 +114,7 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
       col("parentid").as("locparentid"),
       col("type").as("loctype"))
       
-    val organisationDF = loadData(sparkSession, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace), None).select(
+    organisationDF = loadData(sparkSession, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace), None).select(
       col("id").as("id"),
       col("isrootorg").as("isrootorg"),
       col("rootorgid").as("rootorgid"),
@@ -121,7 +122,8 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
       col("status").as("status"),
       col("locationid").as("locationid"),
       col("orgname").as("orgname"),
-      col("locationids").as("locationids")).cache();
+      col("locationids").as("locationids"),
+      col("slug").as("slug")).cache();
 
     val rootOrgs = organisationDF.select(col("id").as("rootorgjoinid"), col("channel").as("rootorgchannel")).where(col("isrootorg") && col("status").===(1)).collect();
     val rootOrgRDD = sparkSession.sparkContext.parallelize(rootOrgs.toSeq);
@@ -297,11 +299,31 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
 
     JobLogger.log(s"StateAdminReportJob: uploadedSuccess nRecords = ${reportDF.count()}")
   }
+  
+  
+  private def changeChannelToSlug(sourcePath: String) = {
+    val rootOrgs = organisationDF.select(col("channel"), col("slug")).where(col("isrootorg") && col("status").===(1)).collect().groupBy(f => f.get(0)).mapValues(f => f.head.get(1));
+    val fsFileUtils = new HDFSFileUtils(className, JobLogger)
+    val files = fsFileUtils.getSubdirectories(sourcePath)
+    files.map { oneChannelDir =>
+      val name = oneChannelDir.getName()
+      val slugName = rootOrgs.get(name);
+      if(slugName.nonEmpty) {
+        println(s"name = ${name} and slugname = ${slugName}")
+        val newDirName = oneChannelDir.getParent() + "/" + slugName.get.asInstanceOf[String]
+        fsFileUtils.renameDirectory(oneChannelDir.getAbsolutePath(), newDirName)  
+      } else {
+        println("Slug not found for - " + name);
+      }
+    }
+  }
 
   def uploadReport(sourcePath: String) = {
     // Container name can be generic - we dont want to create as many container as many reports
     val container = AppConf.getConfig("cloud.container.reports")
     val objectKey = AppConf.getConfig("admin.metrics.cloud.objectKey")
+    
+    changeChannelToSlug(sourcePath)
 
     reportStorageService.upload(container, sourcePath, objectKey, isDirectory = Option(true))
     // TODO: Purge the files after uploaded to blob store
