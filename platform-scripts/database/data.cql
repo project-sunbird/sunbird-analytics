@@ -751,3 +751,120 @@ CREATE TABLE IF NOT EXISTS local_platform_db.experiment_definition (
     updated_on timestamp,
     PRIMARY KEY(exp_id)
 );
+
+CREATE KEYSPACE IF NOT EXISTS dev_hierarchy_store WITH replication = {
+  'class': 'SimpleStrategy',
+  'replication_factor': '1'
+};
+
+CREATE TABLE IF NOT EXISTS dev_hierarchy_store.content_hierarchy (
+    identifier text PRIMARY KEY,
+    hierarchy text
+) WITH bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
+
+CREATE KEYSPACE IF NOT EXISTS sunbird WITH replication = {
+  'class': 'SimpleStrategy',
+  'replication_factor': '1'
+};
+
+CREATE TABLE sunbird.shadow_user (
+    channel text,
+    userextid text,
+    addedby text,
+    claimedon timestamp,
+    claimstatus int,
+    createdon timestamp,
+    email text,
+    name text,
+    orgextid text,
+    phone text,
+    processid text,
+    updatedon timestamp,
+    userid text,
+    userids list<text>,
+    userstatus int,
+    PRIMARY KEY (channel, userextid)
+) WITH CLUSTERING ORDER BY (userextid ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
+
+CREATE TABLE sunbird.organisation (
+    id text PRIMARY KEY,
+    addressid text,
+    approvedby text,
+    approveddate text,
+    channel text,
+    communityid text,
+    contactdetail text,
+    createdby text,
+    createddate text,
+    datetime timestamp,
+    description text,
+    email text,
+    externalid text,
+    hashtagid text,
+    homeurl text,
+    imgurl text,
+    isapproved boolean,
+    isdefault boolean,
+    isrootorg boolean,
+    isssoenabled boolean,
+    keys map<text, frozen<list<text>>>,
+    locationid text,
+    locationids list<text>,
+    noofmembers int,
+    orgcode text,
+    orgname text,
+    orgtype text,
+    orgtypeid text,
+    parentorgid text,
+    preferredlanguage text,
+    provider text,
+    rootorgid text,
+    slug text,
+    status int,
+    theme text,
+    thumbnail text,
+    updatedby text,
+    updateddate text
+) WITH bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
+
+

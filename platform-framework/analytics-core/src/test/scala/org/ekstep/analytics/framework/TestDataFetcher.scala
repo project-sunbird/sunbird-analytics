@@ -16,7 +16,7 @@ case class TimeSeriesData(time: String, count: Int)
 class TestDataFetcher extends SparkSpec {
 
 //    implicit val decoder  = null
-    "DataFetcher" should "fetch the batch events matching query" in {
+    ignore should "fetch the batch events matching query" in {
         
         val queries = Option(Array(
             Query(Option("ekstep-dev-data-store"), Option("testUpload/"), Option("2016-01-01"), Option("2016-01-01"))
@@ -59,7 +59,7 @@ class TestDataFetcher extends SparkSpec {
         rdd1.count should be (0)
     }
     
-    it should "fetch no file from S3 and return an empty RDD" in {
+    ignore should "fetch no file from S3 and return an empty RDD" in {
         val queries = Option(Array(
             Query(Option("ekstep-dev-data-store"), Option("abc/"), Option("2012-01-01"), Option("2012-02-01"))
         ));
@@ -99,7 +99,7 @@ class TestDataFetcher extends SparkSpec {
 //        rdd1.count should be (0)
     }
 
-    it should "fetch the data from druid" in {
+    ignore should "fetch the data from druid" in {
 
         val groupByQuery = DruidQueryModel("groupBy", "telemetry-events", "LastWeek", Option("all"), Option(List(Aggregation(Option("count"), "count", ""),Aggregation(Option("total_duration"), "doubleSum", "edata_duration"))), Option(List(DruidDimension("context_pdata_id", Option("producer_id")), DruidDimension("context_pdata_pid", Option("producer_pid")))), Option(List(DruidFilter("equals", "context_pdata_id", Option("staging.diksha.app")),DruidFilter("in", "context_pdata_pid", None, Option(List("sunbird.app.contentplayer", "sunbird.app"))))))
         val rdd1 = DataFetcher.fetchBatchData[GroupByPid](Fetcher("druid", None, None, Option(groupByQuery)));

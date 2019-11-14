@@ -171,8 +171,14 @@ object CommonUtil {
 
     def deleteDirectory(dir: String) {
         val path = get(dir);
-        JobLogger.log("Deleting directory", Option(path.toString()))
-        Files.walkFileTree(path, new Visitor());
+        val directory = new File(dir)
+        if(directory.exists()) {
+            JobLogger.log("Deleting directory", Option(path.toString()))
+            Files.walkFileTree(path, new Visitor());
+        }
+        else {
+            JobLogger.log("Directory not exists", Option(path.toString()))
+        }
     }
 
     def createDirectory(dir: String) {

@@ -1,4 +1,4 @@
-package org.ekstep.analytics.job
+package org.ekstep.analytics.job.summarizer
 
 import org.apache.spark.SparkContext
 import org.ekstep.analytics.framework.util.JobLogger

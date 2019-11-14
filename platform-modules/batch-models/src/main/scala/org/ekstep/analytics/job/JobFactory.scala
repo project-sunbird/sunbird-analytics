@@ -27,16 +27,14 @@ object JobFactory {
                 DeviceProfileUpdater
             case "video-streaming" =>
                 VideoStreamingJob
-            case "dialcode-usage-summary" =>
-                DialcodeUsageSummarizer
             case "etb-coverage-summary" =>
                 ETBCoverageSummarizer
             case "portal-metrics" =>
                 PortalMetricsUpdater
             case "workflow-usage-metrics" =>
                 WorkFlowUsageMetricsUpdater
-            case "dialcode-usage-updater" =>
-                DialcodeUsageUpdater
+            case "data-exhaust" =>
+                DataExhaustJob
             case "course-dashboard-metrics" =>
                 CourseMetricsJob
             case "telemetry-replay" =>
@@ -53,12 +51,6 @@ object JobFactory {
                 AssessmentMetricsJob
             case "druid-query-processor" =>
                 DruidQueryProcessor
-            case "pipeline-failed-events-audit" =>
-                AuditComputationJob
-            case "pipeline-druid-events-audit" =>
-                AuditComputationJob
-            case "pipeline-audit" =>
-                AuditComputationJob
             case "admin-user-reports" =>
                 StateAdminReportJob
             case _ =>

@@ -12,9 +12,7 @@ case class ContentResponse(id: String, ver: String, ts: String, params: Params, 
 
 
 trait ContentFetcher {
-    def getAllContent: Array[Content]
     def search(offset: Int, limit: Int, contents: Array[Map[String, AnyRef]], action: (Int, Int) => ContentResult): Array[Map[String, AnyRef]]
-    def getPublishedContent: Array[Map[String, AnyRef]]
     def getPublishedContentList: ContentResult
     def getTextbookContents(lastUpdatedOnMin: String, lastUpdatedOnMax: String): Array[Map[String, AnyRef]]
 }
@@ -27,15 +25,6 @@ object ContentAdapter extends BaseAdapter with ContentFetcher {
 
     implicit val className = "org.ekstep.analytics.adapter.ContentAdapter"
 
-    def getAllContent(): Array[Content] = {
-        val cr = RestUtil.get[Response](Constants.getContentList);
-        checkResponse(cr);
-        val contents = cr.result.contents.getOrElse(null);
-        contents.map(f => {
-            getContentWrapper(f);
-        })
-    }
-
     @tailrec
     def search(offset: Int, limit: Int, contents: Array[Map[String, AnyRef]], action: (Int, Int) => ContentResult): Array[Map[String, AnyRef]] = {
         val result = action(offset, limit)
@@ -46,24 +35,6 @@ object ContentAdapter extends BaseAdapter with ContentFetcher {
             c
         }
     }
-
-
-    def getPublishedContent(): Array[Map[String, AnyRef]] = {
-        def _searchContent(offset: Int, limit: Int): ContentResult = {
-            val searchUrl = Constants.COMPOSITE_SEARCH_URL
-            val request = Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Story", "Worksheet", "Collection", "Game"), "status" -> List("Draft", "Review", "Redraft", "Flagged", "Live", "Retired", "Mock", "Processing", "FlagDraft", "FlagReview")), "exists" -> List("lastPublishedOn", "downloadUrl"), "offset" -> offset, "limit" -> limit));
-            val resp = RestUtil.post[ContentResponse](searchUrl, JSONUtils.serialize(request));
-            resp.result;
-        }
-
-        search(0, 200, Array[Map[String, AnyRef]](), _searchContent);
-    }
-
-    def getPublishedContentForRE(): Array[ContentModel] = {
-        val contents = getPublishedContent();
-        contents.map(f => ContentModel(f.getOrElse("identifier", "").asInstanceOf[String], f.getOrElse("domain", List("literacy")).asInstanceOf[List[String]], f.getOrElse("contentType", "").asInstanceOf[String], f.getOrElse("language", List[String]()).asInstanceOf[List[String]], f.getOrElse("gradeLevel", List[String]()).asInstanceOf[List[String]]))
-    }
-
     /**
       * Which is used to get the total published contents list
       * @return ContentResult
@@ -81,11 +52,6 @@ object ContentAdapter extends BaseAdapter with ContentFetcher {
                |}
              """.stripMargin
         RestUtil.post[ContentResponse](Constants.COMPOSITE_SEARCH_URL, request).result
-    }
-
-    def getContentWrapper(content: Map[String, AnyRef]): Content = {
-        val mc = content.getOrElse("concepts", List[String]()).asInstanceOf[List[String]].toArray;
-        Content(content.get("identifier").get.asInstanceOf[String], content.filterNot(p => relations.contains(p._1)), CommonUtil.getTags(content), mc);
     }
 
     def getTextbookContents(lastUpdatedOnMin: String, lastUpdatedOnMax: String): Array[Map[String, AnyRef]] = {
@@ -112,11 +78,6 @@ object ContentAdapter extends BaseAdapter with ContentFetcher {
         }
 
         search(0, 200, Array[Map[String, AnyRef]](), _searchTextbook)
-    }
-
-    def getItemWrapper(item: Map[String, AnyRef]): Item = {
-        val mc = item.getOrElse("concepts", List[String]()).asInstanceOf[List[String]].toArray;
-        Item(item.get("identifier").get.asInstanceOf[String], item.filterNot(p => relations.contains(p._1)), CommonUtil.getTags(item), Option(mc), None);
     }
 
 }

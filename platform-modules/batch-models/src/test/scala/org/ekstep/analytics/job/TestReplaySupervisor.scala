@@ -14,8 +14,8 @@ import org.ekstep.analytics.framework.exception.JobNotFoundException
 class TestReplaySupervisor extends BaseSpec {
 
     it should " Run WFS from local data " in {
-        val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/replay-supervisor/test_data_telemetry-__endDate__*"))))), null, null, "org.ekstep.analytics.model.WorkflowSummary", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestReplaySupervisor"), Option(true))
-        ReplaySupervisor.main("wfs", "2016-03-10", "2016-03-11", JSONUtils.serialize(config));
+        val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/replay-supervisor/test_data___endDate__*"))))), null, null, "org.ekstep.analytics.model.WorkflowSummary", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestReplaySupervisor"), Option(true))
+        ReplaySupervisor.main("wfs", "2019-11-12", "2019-11-12", JSONUtils.serialize(config));
     }
 
     the[JobNotFoundException] thrownBy {
