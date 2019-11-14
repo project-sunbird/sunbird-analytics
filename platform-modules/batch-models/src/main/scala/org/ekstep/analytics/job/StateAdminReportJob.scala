@@ -37,7 +37,6 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
 
   private val DETAIL_STR = "detail"
   private val SUMMARY_STR = "summary"
-  private var organisationDF: DataFrame = null
 
   def main(config: String)(implicit sc: Option[SparkContext] = None) {
 
@@ -57,20 +56,22 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
     val tempDir = AppConf.getConfig("admin.metrics.temp.dir")
     val renamedDir = s"$tempDir/renamed"
 
-    generateReport()
+    val channelSlugMap: Map[String, String] = generateReport()
+    renameChannelDirsToSlug(renamedDir, channelSlugMap)
     uploadReport(renamedDir)
     JobLogger.end("StateAdminReportJob completed successfully!", "SUCCESS", Option(Map("config" -> config, "model" -> name)))
   }
 
-  def generateReport()(implicit sparkSession: SparkSession) {
+  def generateReport()(implicit sparkSession: SparkSession): Map[String, String] = {
 
     generateShadowDBReport();
-    generateGeoSummaryReport();
+    val channelSlugMap: Map[String, String] = generateGeoSummaryReport();
 
     JobLogger.log("Finished with generateReport")
+    channelSlugMap
   }
 
-  private def generateShadowDBReport()(implicit sparkSession: SparkSession) {
+  private def generateShadowDBReport()(implicit sparkSession: SparkSession) = {
 
     import sparkSession.implicits._
     val sunbirdKeyspace = AppConf.getConfig("course.metrics.cassandra.sunbirdKeyspace")
@@ -96,7 +97,7 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
     fSFileUtils.purgeDirectory(summaryDir)
   }
 
-  private def generateGeoSummaryReport()(implicit sparkSession: SparkSession) {
+  private def generateGeoSummaryReport()(implicit sparkSession: SparkSession): Map[String, String] = {
     import sparkSession.implicits._
     val sunbirdKeyspace = AppConf.getConfig("course.metrics.cassandra.sunbirdKeyspace")
     val tempDir = AppConf.getConfig("admin.metrics.temp.dir")
@@ -114,7 +115,7 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
       col("parentid").as("locparentid"),
       col("type").as("loctype"))
       
-    organisationDF = loadData(sparkSession, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace), None).select(
+    val organisationDF = loadData(sparkSession, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace), None).select(
       col("id").as("id"),
       col("isrootorg").as("isrootorg"),
       col("rootorgid").as("rootorgid"),
@@ -172,6 +173,9 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
     fSFileUtils.renameReport(detailDir, renamedDir, ".csv", "geo-detail")
     fSFileUtils.purgeDirectory(detailDir)
     fSFileUtils.purgeDirectory(summaryDir)
+    
+    val channelSlugMap: Map[String, String] = organisationDF.select(col("channel"), col("slug")).where(col("isrootorg") && col("status").===(1)).collect().groupBy(f => f.get(0).asInstanceOf[String]).mapValues(f => f.head.get(1).asInstanceOf[String]);
+    return channelSlugMap
   }
 
   def generateSummaryData(shadowUserDF: Dataset[ShadowUserData])(implicit spark: SparkSession): DataFrame = {
@@ -301,13 +305,12 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
   }
   
   
-  private def changeChannelToSlug(sourcePath: String) = {
-    val rootOrgs = organisationDF.select(col("channel"), col("slug")).where(col("isrootorg") && col("status").===(1)).collect().groupBy(f => f.get(0)).mapValues(f => f.head.get(1));
+  private def renameChannelDirsToSlug(sourcePath: String, channelSlugMap: Map[String, String]) = {
     val fsFileUtils = new HDFSFileUtils(className, JobLogger)
     val files = fsFileUtils.getSubdirectories(sourcePath)
     files.map { oneChannelDir =>
       val name = oneChannelDir.getName()
-      val slugName = rootOrgs.get(name);
+      val slugName = channelSlugMap.get(name);
       if(slugName.nonEmpty) {
         println(s"name = ${name} and slugname = ${slugName}")
         val newDirName = oneChannelDir.getParent() + "/" + slugName.get.asInstanceOf[String]
@@ -322,9 +325,7 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
     // Container name can be generic - we dont want to create as many container as many reports
     val container = AppConf.getConfig("cloud.container.reports")
     val objectKey = AppConf.getConfig("admin.metrics.cloud.objectKey")
-    
-    changeChannelToSlug(sourcePath)
-
+  
     reportStorageService.upload(container, sourcePath, objectKey, isDirectory = Option(true))
     // TODO: Purge the files after uploaded to blob store
   }
