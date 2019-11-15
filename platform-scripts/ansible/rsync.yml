@@ -1,4 +1,0 @@
-- hosts: rsync
-  become: yes
-  roles:
-        - rsync 

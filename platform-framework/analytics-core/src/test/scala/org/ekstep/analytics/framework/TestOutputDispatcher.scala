@@ -132,13 +132,29 @@ class TestOutputDispatcher extends SparkSpec("src/test/resources/sample_telemetr
         CommonUtil.deleteFile("src/test/resources/test_output.log");
     }
 
-    ignore should "dispatch output to azure" in {
+    it should "dispatch output to azure" in {
         val date = System.currentTimeMillis()
         val output1 = Dispatcher("azure", Map[String, AnyRef]("bucket" -> "dev-data-store", "key" -> s"output/test-dispatcher1-$date.json", "zip" -> true.asInstanceOf[AnyRef]));
         val output2 = Dispatcher("azure", Map[String, AnyRef]("bucket" -> "dev-data-store", "key" -> s"output/test-dispatcher2-$date.json", "filePath" -> "src/test/resources/sample_telemetry.log"));
         noException should be thrownBy {
             OutputDispatcher.dispatch(output1, events);
             OutputDispatcher.dispatch(output2, events);
+        }
+    }
+
+    it should "dispatch output to elastic-search" in {
+        val eventsInString = events.map{x => JSONUtils.serialize(x)}
+        val output1 = Dispatcher("elasticsearch", Map[String, AnyRef]("index" -> "test_index"));
+        noException should be thrownBy {
+            OutputDispatcher.dispatch(output1, eventsInString);
+        }
+    }
+
+    it should "throw exception while dispatching output to elastic-search" in {
+        val eventsInString = events.map{x => JSONUtils.serialize(x)}
+        val output1 = Dispatcher("elasticsearch", Map[String, AnyRef]());
+        a[DispatcherException] should be thrownBy {
+            OutputDispatcher.dispatch(output1, eventsInString);
         }
     }
     

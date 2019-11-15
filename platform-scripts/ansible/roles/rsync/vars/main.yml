@@ -1,4 +1,0 @@
-# vars file for rsync-sync
----
-rsync_sync_dependencies:
-  - rsync
