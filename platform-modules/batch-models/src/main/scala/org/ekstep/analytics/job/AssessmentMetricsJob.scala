@@ -151,15 +151,11 @@ object AssessmentMetricsJob extends optional.Application with IJob with BaseRepo
     val resDF = assessmentDF
       .withColumn("agg_score", sum("total_score") over assessmentAggDf)
       .withColumn("agg_max_score", sum("total_max_score") over assessmentAggDf)
-      // To avoid converting numeric field to date format in the spread sheet, We enclosing score with double quotes.
-      // Example: 2/3 => '2/3'. Since google spread sheet will consider 2/3 as date format column.
-      .withColumn("total_sum_score", concat(lit("'"), col("agg_score"), lit("/"), col("agg_max_score"), lit("'")))
-
-    val aggregatedDF = resDF.withColumn("grand_score", concat(lit("'"), col("grand_total"), lit("'")))
+      .withColumn("total_sum_score", concat(col("agg_score"), lit("/"), col("agg_max_score")))
     /**
      * Filter only valid enrolled userid for the specific courseid
      */
-    val userAssessmentResolvedDF = userLocationResolvedDF.join(aggregatedDF, userLocationResolvedDF.col("userid") === aggregatedDF.col("user_id") && userLocationResolvedDF.col("batchid") === aggregatedDF.col("batch_id") && userLocationResolvedDF.col("courseid") === aggregatedDF.col("course_id"), "right_outer")
+    val userAssessmentResolvedDF = userLocationResolvedDF.join(resDF, userLocationResolvedDF.col("userid") === resDF.col("user_id") && userLocationResolvedDF.col("batchid") === resDF.col("batch_id") && userLocationResolvedDF.col("courseid") === resDF.col("course_id"), "right_outer")
     val resolvedExternalIdDF = userAssessmentResolvedDF.join(externalIdMapDF, Seq("userid"), "left_outer")
 
     /*
@@ -199,7 +195,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with BaseRepo
       .select(
         col("name").as("content_name"),
         col("total_sum_score"), report.col("userid"), report.col("courseid"), report.col("batchid"),
-        col("grand_score"), report.col("maskedemail"), report.col("district_name"), report.col("maskedphone"),
+        col("grand_total"), report.col("maskedemail"), report.col("district_name"), report.col("maskedphone"),
         report.col("orgname_resolved"), report.col("externalid"), report.col("schoolname_resolved"), report.col("username"))
   }
 
@@ -243,7 +239,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with BaseRepo
    */
   def transposeDF(reportDF: DataFrame): DataFrame = {
     // Re-shape the dataFrame (Convert the content name from the row to column)
-    val reshapedDF = reportDF.groupBy("courseid", "batchid", "userid").pivot("content_name").agg(first("grand_score"))
+    val reshapedDF = reportDF.groupBy("courseid", "batchid", "userid").pivot("content_name").agg(first("grand_total"))
     reshapedDF.join(reportDF, Seq("courseid", "batchid", "userid"), "inner").
       select(
         reportDF.col("externalid").as("External ID"),
@@ -292,7 +288,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with BaseRepo
       col("username").as("userName"),
       col("courseid").as("courseId"),
       col("batchid").as("batchId"),
-      col("grand_score").as("score"),
+      col("grand_total").as("score"),
       col("maskedemail").as("maskedEmail"),
       col("maskedphone").as("maskedPhone"),
       col("district_name").as("districtName"),
