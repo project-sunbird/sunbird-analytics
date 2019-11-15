@@ -19,6 +19,7 @@ class TestModels extends BaseSpec {
         OtherStage.values.size should be(5)
         TestDataExStage.values.size should be(9)
         TestJobStageStatus.values.size should be(2)
+        ExperimentStatus.values.size should be(4)
     }
 
 }

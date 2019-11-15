@@ -11,6 +11,8 @@ class TestAppConf extends BaseSpec {
         
         AppConf.getConfig("default.parallelization") should be ("10");
         AppConf.getConfig("xyz") should be ("");
+        AppConf.getAwsKey() should be ("");
+        AppConf.getAwsSecret() should be ("");
     }
   
 }

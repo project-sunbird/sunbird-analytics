@@ -1,3 +1,0 @@
-- hosts: data-products
-  roles:
-    - replay-dps

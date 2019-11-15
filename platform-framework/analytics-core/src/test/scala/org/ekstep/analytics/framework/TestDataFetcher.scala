@@ -116,4 +116,9 @@ class TestDataFetcher extends SparkSpec {
         println(rdd3.count())
         rdd3.foreach(f => println(JSONUtils.serialize(f)))
     }
+
+    it should "fetch no data for none fetcher type" in {
+        val rdd = DataFetcher.fetchBatchData[Event](Fetcher("none", None, None));
+        rdd.isEmpty() should be (true)
+    }
 }

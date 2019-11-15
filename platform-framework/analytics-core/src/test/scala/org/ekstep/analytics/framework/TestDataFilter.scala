@@ -1,5 +1,7 @@
 package org.ekstep.analytics.framework
 
+import java.text.SimpleDateFormat
+
 import org.scalatest._
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.framework.util.CommonUtil
@@ -10,13 +12,16 @@ import com.fasterxml.jackson.core.JsonParseException
 import org.ekstep.analytics.framework.exception.DataFilterException
 import org.apache.spark.SparkException
 import org.ekstep.analytics.framework.util.JSONUtils
+
 import scala.collection.mutable.Buffer
+import java.util.Date
+
 import org.joda.time.DateTime
 
 @scala.beans.BeanInfo
 case class Test(id: String, value: Option[String], optValue: Option[String]);
 @scala.beans.BeanInfo
-case class TestLessThan(id: String, intCol: Int, longCol: Long, doubleCol: Double)
+case class TestLessThan(id: String, intCol: Int, longCol: Long, doubleCol: Double, dateCol: Date)
 
 /**
  * @author Santhosh
@@ -288,12 +293,14 @@ class TestDataFilter extends SparkSpec {
     }
 
     it should "check for less than filter" in {
-        val data = List(Map("id" -> "0", "intCol" -> 4, "longCol" -> 10L, "doubleCol" -> 1.0),Map("id" -> "1", "intCol" -> 5, "longCol" -> 20L, "doubleCol" -> 2.0),Map("id" -> "2", "intCol" -> 6, "longCol" -> 30L, "doubleCol" -> 5.0))
+        val sdf = new SimpleDateFormat("yyyy-MM-dd")
+        val data = List(Map("id" -> "0", "intCol" -> 4, "longCol" -> 10L, "doubleCol" -> 1.0, "dateCol" -> sdf.parse("2019-11-11")),Map("id" -> "1", "intCol" -> 5, "longCol" -> 20L, "doubleCol" -> 2.0, "dateCol" -> sdf.parse("2019-11-11")),Map("id" -> "2", "intCol" -> 6, "longCol" -> 30L, "doubleCol" -> 5.0, "dateCol" -> sdf.parse("2019-11-11")))
         val testData = data.map(f => JSONUtils.deserialize[TestLessThan](JSONUtils.serialize(f)))
-        testData.foreach(f => println(f))
         val rddData = sc.parallelize(testData)
         val filters = Array[Filter](
-            Filter("intCol", "LT", Option(5.asInstanceOf[AnyRef])), Filter("doubleCol", "LT", Option(2.0.asInstanceOf[AnyRef])), Filter("longCol", "LT", Option(10L.asInstanceOf[AnyRef]))
+            Filter("intCol", "LT", Option(5.asInstanceOf[AnyRef])), Filter("doubleCol", "LT", Option(2.0.asInstanceOf[AnyRef])),
+            Filter("longCol", "LT", Option(20L.asInstanceOf[AnyRef])), Filter("dateCol", "LT", Option("2019-11-15".asInstanceOf[AnyRef])),
+            Filter("id", "LT", None)
         );
         val filteredEvents = DataFilter.filter(rddData, filters);
         filteredEvents.count() should be (0);

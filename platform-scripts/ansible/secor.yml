@@ -1,4 +1,0 @@
----
-- hosts: secor
-  roles:
-    - secor
