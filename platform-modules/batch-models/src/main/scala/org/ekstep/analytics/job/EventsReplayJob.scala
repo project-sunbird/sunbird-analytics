@@ -13,9 +13,10 @@ object EventsReplayJob extends optional.Application with IJob {
 
   def name(): String = "EventsReplayJob"
 
-  override def main(config: String)(implicit sc: Option[SparkContext]): Unit = {
+  override def main(config: String)(implicit sc: Option[SparkContext] = None): Unit = {
 
     val jobConfig = JSONUtils.deserialize[JobConfig](config)
+    implicit val sparkContext = if (sc.isEmpty) CommonUtil.getSparkContext(JobContext.parallelization, jobConfig.appName.getOrElse(jobConfig.model)) else sc.get
     val jobName = jobConfig.appName.getOrElse(name)
     JobLogger.init(jobName)
     JobLogger.start(jobName + " Started executing", Option(Map("config" -> config, "model" -> name)))
@@ -27,17 +28,12 @@ object EventsReplayJob extends optional.Application with IJob {
     DataFetcher.fetchBatchData[String](config.search).cache()
   }
 
-  def getSparkContext(jobConfig: JobConfig)(implicit sc: Option[SparkContext]): SparkContext = {
-    sc.getOrElse(CommonUtil.getSparkContext(JobContext.parallelization, jobConfig.appName.getOrElse(jobConfig.model)))
-  }
-
   def dispatchData(jobConfig: JobConfig, data: RDD[String])(implicit sc: SparkContext): Long = {
     OutputDispatcher.dispatch(jobConfig.output, data)
   }
 
-  def process(jobConfig: JobConfig)(implicit sc: Option[SparkContext]): Long = {
+  def process(jobConfig: JobConfig)(implicit sc: SparkContext): Long = {
 
-    implicit val sparkContext = getSparkContext(jobConfig)(sc)
     val data = getInputData(jobConfig)
     dispatchData(jobConfig, data)
   }

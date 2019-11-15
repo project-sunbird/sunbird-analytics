@@ -17,20 +17,4 @@ trait BaseAdapter {
             throw new DataAdapterException(resp.responseCode);
         }
     }
-    
-    @throws(classOf[DataAdapterException])
-    def checkResponse(resp: ContentResponse) = {
-        
-        if (!resp.responseCode.equals("OK")) {
-            throw new DataAdapterException(resp.responseCode);
-        }
-    }
-    
-    def checkResponse(resp: DomainResponse) = {
-        
-        if (!resp.responseCode.equals("OK")) {
-            throw new DataAdapterException(resp.responseCode);
-        }
-    }
-
 }

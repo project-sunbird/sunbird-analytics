@@ -33,7 +33,7 @@ class TestOutputDispatcher extends SparkSpec("src/test/resources/sample_telemetr
         }
     }
     
-    it should "dispatch output to s3" in {
+    ignore should "dispatch output to s3" in {
         val output1 = Dispatcher("s3file", Map[String, AnyRef]("bucket" -> "ekstep-dev-data-store", "key" -> "output/test-log1.json", "zip" -> true.asInstanceOf[AnyRef]));
         val output2 = Dispatcher("s3file", Map[String, AnyRef]("bucket" -> "ekstep-dev-data-store", "key" -> "output/test-log2.json", "filePath" -> "src/test/resources/sample_telemetry.log"));
         noException should be thrownBy {
@@ -132,9 +132,10 @@ class TestOutputDispatcher extends SparkSpec("src/test/resources/sample_telemetr
         CommonUtil.deleteFile("src/test/resources/test_output.log");
     }
 
-    it should "dispatch output to azure" in {
-        val output1 = Dispatcher("azure", Map[String, AnyRef]("bucket" -> "dev-data-store", "key" -> "output/test-dispatcher1.json", "zip" -> true.asInstanceOf[AnyRef]));
-        val output2 = Dispatcher("azure", Map[String, AnyRef]("bucket" -> "dev-data-store", "key" -> "output/test-dispatcher2.json", "filePath" -> "src/test/resources/sample_telemetry.log"));
+    ignore should "dispatch output to azure" in {
+        val date = System.currentTimeMillis()
+        val output1 = Dispatcher("azure", Map[String, AnyRef]("bucket" -> "dev-data-store", "key" -> s"output/test-dispatcher1-$date.json", "zip" -> true.asInstanceOf[AnyRef]));
+        val output2 = Dispatcher("azure", Map[String, AnyRef]("bucket" -> "dev-data-store", "key" -> s"output/test-dispatcher2-$date.json", "filePath" -> "src/test/resources/sample_telemetry.log"));
         noException should be thrownBy {
             OutputDispatcher.dispatch(output1, events);
             OutputDispatcher.dispatch(output2, events);

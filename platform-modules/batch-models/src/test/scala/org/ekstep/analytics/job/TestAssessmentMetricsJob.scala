@@ -108,14 +108,13 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
     assert(AppConf.getConfig("assessment.metrics.content.index").isEmpty === false)
     assert(AppConf.getConfig("assessment.metrics.cassandra.input.consistency").isEmpty === false)
     assert(AppConf.getConfig("assessment.metrics.cloud.objectKey").isEmpty === false)
-    assert(AppConf.getConfig("assessment.metrics.cloud.provider").isEmpty === false)
     assert(AppConf.getConfig("cloud.container.reports").isEmpty === false)
     assert(AppConf.getConfig("assessment.metrics.temp.dir").isEmpty === false)
     assert(AppConf.getConfig("course.upload.reports.enabled").isEmpty === false)
     assert(AppConf.getConfig("course.es.index.enabled").isEmpty === false)
   }
 
-  "TestAssessmentMetricsJob" should "Ensure CSV Report Should have all proper columns names and required columns values" in {
+  ignore should "Ensure CSV Report Should have all proper columns names and required columns values" in {
     (reporterMock.loadData _)
       .expects(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace))
       .returning(courseBatchDF)
@@ -285,7 +284,7 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
     assert(df.count() === 1)
   }
 
-  "TestAssessmentMetricsJob" should "fetch the content names from the elastic search" in {
+  ignore should "fetch the content names from the elastic search" in {
     val contentESIndex = AppConf.getConfig("assessment.metrics.content.index")
     assert(contentESIndex.isEmpty === false)
     val contentList = List("do_112835336280596480151", "do_112835336960000000152")
@@ -294,7 +293,7 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
   }
 
 
-  "TestAssessmentMetricsJob" should "have computed total score for the specific userid, batch, course" in {
+  ignore should "have computed total score for the specific userid, batch, course" in {
     (reporterMock.loadData _)
       .expects(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace))
       .returning(courseBatchDF)
@@ -343,7 +342,7 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
 
   }
 
-  "TestAssessmentMetricsJob" should "valid score in the assessment content for the specific course" in {
+  ignore should "valid score in the assessment content for the specific course" in {
     (reporterMock.loadData _)
       .expects(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace))
       .returning(courseBatchDF)

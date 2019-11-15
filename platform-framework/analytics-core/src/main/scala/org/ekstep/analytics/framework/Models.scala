@@ -249,18 +249,14 @@ class V3Event(val eid: String, val ets: Long, val `@timestamp`: String, val ver:
 @scala.beans.BeanInfo
 case class V3DerivedEvent(eid: String, ets: Long, `@timestamp`: String, ver: String, mid: String, actor: Actor, context: V3Context, `object`: Option[V3Object], edata: AnyRef, tags: List[AnyRef] = null)
 
-@scala.beans.BeanInfo
-case class PipelineMetric (`cache-hit-count`: Double = 0d, `db-hit-count`: Double = 0d, `success-message-count`: Double = 0d,
-                           `user-db-hit-count`: Double = 0d, `cache-empty-ues-count`: Double = 0d, `user-db-error-count`: Double = 0d,
-                           `failed-message-count`: Double = 0d, `unprocessed-message-count`: Double = 0d, `expired-event-count`: Double = 0d,
-                           `duplicate-event-count`: Double = 0d, partition: Double = 0d, `processed-message-count`: Double = 0d,
-                           `cache-miss-count`: Double = 0d, `cache-expired-count`: Double = 0d, `device-db-error-count`: Double = 0d,
-                           `job-name`: String, `cache-error-count`: Double = 0d, `error-message-count`: Double = 0d, `user-cache-hit-count`: Double = 0d,
-                           `skipped-message-count`: Double = 0d, metricts: Double = 0d, `consumer-lag`: Double = 0d,
-                           `device-db-hit-count`: Double = 0d, `db-error-count`: Double = 0d, `device-cache-hit-count`: Double = 0d,
-                           `batch-success-count`: Double = 0d, `batch-error-count`: Double = 0d,
-                           `primary-route-success-count`: Double = 0d, `secondary-route-success-count`: Double = 0d) extends CaseClassConversions
-
 // Experiment Models
 @scala.beans.BeanInfo
 case class DeviceProfileModel(device_id: Option[String], state: Option[String], city: Option[String], first_access: Option[Date])
+
+case class GraphUpdateEvent(ets: Long, nodeUniqueId: String, transactionData: Map[String, Map[String, Map[String, Any]]], objectType: String, operationType: String = "UPDATE", nodeType: String = "DATA_NODE", graphId: String = "domain", nodeGraphId: Int = 0) extends AlgoOutput with Output
+
+// WFS Models
+case class ItemResponse(itemId: String, itype: Option[AnyRef], ilevel: Option[AnyRef], timeSpent: Option[Double], exTimeSpent: Option[AnyRef], res: Option[Array[String]], resValues: Option[Array[AnyRef]], exRes: Option[AnyRef], incRes: Option[AnyRef], mc: Option[AnyRef], mmc: Option[AnyRef], score: Int, time_stamp: Long, maxScore: Option[AnyRef], domain: Option[AnyRef], pass: String, qtitle: Option[String], qdesc: Option[String]);
+case class EventSummary(id: String, count: Int)
+case class EnvSummary(env: String, time_spent: Double, count: Long)
+case class PageSummary(id: String, `type`: String, env: String, time_spent: Double, visit_count: Long)

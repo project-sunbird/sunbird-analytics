@@ -3,8 +3,6 @@ package org.ekstep.analytics.model
 import org.apache.spark.HashPartitioner
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.ekstep.analytics.creation.model.CreationEData
-import org.ekstep.analytics.creation.model.CreationEks
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.AlgoInput
 import org.ekstep.analytics.framework.DtRange

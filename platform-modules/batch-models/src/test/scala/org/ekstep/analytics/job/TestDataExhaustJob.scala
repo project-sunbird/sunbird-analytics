@@ -81,7 +81,7 @@ class TestDataExhaustJob extends SparkSpec(null) {
         rmLocalDir(AppConf.getConfig("data_exhaust.save_config.prefix"))
         val requests = Array(
             JobRequest("partner1", "test_raw", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2016-11-19", "2016-11-20", Option(List("becb887fe82f24c644482eb30041da6d88bd8150")), Option(List("INTERACT")), None, None), output_format = Option("csv"))),
-                None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, None));
+                None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, None, Option("DATA_EXHAUST")));
 
         sc.makeRDD(requests).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
         val config = """{"search":{"type":"local","queries":[{"file":"src/test/resources/data-exhaust/creation-raw/*"}]},"model":"org.ekstep.analytics.model.DataExhaustJobModel", "parallelization":8,"appName":"Data Exhaust","deviceMapping":false,"modelParams":{},"exhaustConfig":{"eks-consumption-raw":{"events":["DEFAULT"],"eventConfig":{"DEFAULT":{"eventType":"ConsumptionRaw","searchType":"local","fetchConfig":{"params":{"file":"src/test/resources/data-exhaust/consumption-raw/*"}},"csvConfig":{"auto_extract_column_names":true,"columnMappings":{"edata.failedatmpts":{"to":"FAILED_ATTEMPTS"},"edata.dspec.cpu":{"hidden":true},"edata.dspec.os":{"hidden":true}, "ets":{"mapFunc": "timestampToDateTime"},"did":{"hidden":true}}},"filterMapping":{"tags":{"name":"tags","operator":"IN"}}}}}}}"""
@@ -99,7 +99,7 @@ class TestDataExhaustJob extends SparkSpec(null) {
         rmLocalDir(AppConf.getConfig("data_exhaust.save_config.prefix"))
         val requests = Array(
             JobRequest("partner1", "test_raw", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2016-11-19", "2016-11-20", Option(List("becb887fe82f24c644482eb30041da6d88bd8150")), Option(List("INTERACT")), None, None), output_format = Option("csv"))),
-                None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, None));
+                None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, None, Option("DATA_EXHAUST")));
 
         sc.makeRDD(requests).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
 
@@ -116,7 +116,7 @@ class TestDataExhaustJob extends SparkSpec(null) {
         rmLocalDir(AppConf.getConfig("data_exhaust.save_config.prefix"))
         val requests = Array(
             JobRequest("client-key1", "requestID1", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2017-06-18", "2017-06-18", Option(List()), Option(List("ME_SESSION_SUMMARY")), None, None), Option("eks-consumption-summary"))),
-                None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, None))
+                None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, Option("DATA_EXHAUST")))
 
         sc.makeRDD(requests).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
         val config = """{"search":{"type":"local","queries":[{"file":"src/test/resources/data-exhaust/consumption-summ/*"}]},"model":"org.ekstep.analytics.model.DataExhaustJobModel","parallelization":8,"appName":"Data Exhaust","deviceMapping":false, "modelParams":{}, "exhaustConfig":{"eks-consumption-summary":{"events":["ME_SESSION_SUMMARY"],"eventConfig":{"ME_SESSION_SUMMARY":{"eventType":"Summary","searchType":"local","fetchConfig":{"params":{"file":"src/test/resources/data-exhaust/consumption-summ/*"}},"filterMapping":{"tags":{"name":"genieTag","operator":"IN"}}}}}}}"""
@@ -129,7 +129,7 @@ class TestDataExhaustJob extends SparkSpec(null) {
         rmLocalDir(AppConf.getConfig("data_exhaust.save_config.prefix"))
         val requests = Array(
             JobRequest("client-key2", "requestID2", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2017-06-22", "2017-06-22", None, Option(List("IMPRESSION")), None, None), Option("eks-creation-raw"))),
-                None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, None))
+                None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, Option("DATA_EXHAUST")))
 
         sc.makeRDD(requests).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
         val config = """{"search":{"type":"local","queries":[{"file":"src/test/resources/data-exhaust/creation-raw/*"}]},"model":"org.ekstep.analytics.model.DataExhaustJobModel","parallelization":8,"appName":"Data Exhaust","deviceMapping":false, "modelParams":{}, "exhaustConfig":{"eks-creation-raw":{"events":["DEFAULT"],"eventConfig":{"DEFAULT":{"eventType":"CreationRaw","searchType":"local","fetchConfig":{"params":{"file":"src/test/resources/data-exhaust/creation-raw/*"}},"filterMapping":{"tags":{"name":"tags","operator":"IN"}}}}}}}"""
