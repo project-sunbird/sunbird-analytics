@@ -14,26 +14,26 @@ object LessThanMatcher extends IMatcher {
 
 
     if (value1.isInstanceOf[Long]) {
-      if (value1.asInstanceOf[Long] < value2.asInstanceOf[Long]) {
+      if (value1.asInstanceOf[Long] < value2.getOrElse(0L).asInstanceOf[Long]) {
         return true;
       }
     }
 
     if (value1.isInstanceOf[Double]) {
-      if (value1.asInstanceOf[Double] < value2.asInstanceOf[Double]) {
+      if (value1.asInstanceOf[Double] < value2.getOrElse(0.0).asInstanceOf[Double]) {
         return true;
       }
     }
 
     if (value1.isInstanceOf[Int]) {
-      if (value1.asInstanceOf[Int] < value2.asInstanceOf[Int]) {
+      if (value1.asInstanceOf[Int] < value2.getOrElse(0).asInstanceOf[Int]) {
         return true;
       }
     }
 
     if (value1.isInstanceOf[Date]) {
       val sdf = new SimpleDateFormat("yyyy-MM-dd")
-      if (value1.asInstanceOf[Date].before(sdf.parse(value2.asInstanceOf[String]))) {
+      if (value1.asInstanceOf[Date].before(sdf.parse(value2.getOrElse("").asInstanceOf[String]))) {
         return true;
       }
     }

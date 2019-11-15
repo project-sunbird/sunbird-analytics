@@ -15,6 +15,8 @@ import org.joda.time.DateTime
 
 @scala.beans.BeanInfo
 case class Test(id: String, value: Option[String], optValue: Option[String]);
+@scala.beans.BeanInfo
+case class TestLessThan(id: String, intCol: Int, longCol: Long, doubleCol: Double)
 
 /**
  * @author Santhosh
@@ -283,6 +285,18 @@ class TestDataFilter extends SparkSpec {
         DataFilter.matches(inputEvent.first(), emptyFilter) should be(true)
         val emptyFilters: Array[Filter] = null
         DataFilter.matches(inputEvent.first(), emptyFilters) should be(true)
+    }
+
+    it should "check for less than filter" in {
+        val data = List(Map("id" -> "0", "intCol" -> 4, "longCol" -> 10L, "doubleCol" -> 1.0),Map("id" -> "1", "intCol" -> 5, "longCol" -> 20L, "doubleCol" -> 2.0),Map("id" -> "2", "intCol" -> 6, "longCol" -> 30L, "doubleCol" -> 5.0))
+        val testData = data.map(f => JSONUtils.deserialize[TestLessThan](JSONUtils.serialize(f)))
+        testData.foreach(f => println(f))
+        val rddData = sc.parallelize(testData)
+        val filters = Array[Filter](
+            Filter("intCol", "LT", Option(5.asInstanceOf[AnyRef])), Filter("doubleCol", "LT", Option(2.0.asInstanceOf[AnyRef])), Filter("longCol", "LT", Option(10L.asInstanceOf[AnyRef]))
+        );
+        val filteredEvents = DataFilter.filter(rddData, filters);
+        filteredEvents.count() should be (0);
     }
     
 }

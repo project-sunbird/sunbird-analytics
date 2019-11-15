@@ -17,8 +17,8 @@ class TestJobFactory extends BaseSpec {
         jobs(1) should be(WorkFlowSummarizer)
         jobs(1).isInstanceOf[IJob] should be(true)
 
-        jobs(12) should be(DataExhaustJob)
-        jobs(12).isInstanceOf[IJob] should be(true)
+        jobs(10) should be(DataExhaustJob)
+        jobs(10).isInstanceOf[IJob] should be(true)
 
         jobs(3) should be(WorkFlowUsageUpdater)
         jobs(3).isInstanceOf[IJob] should be(true)

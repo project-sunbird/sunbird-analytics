@@ -21,17 +21,6 @@ object JobLogger {
         System.setProperty("logFilename", jobName.toLowerCase());
         val ctx = LogManager.getContext(false).asInstanceOf[LoggerContext];
         ctx.reconfigure();
-        if (StringUtils.equalsIgnoreCase(AppConf.getConfig("log4j.appender.kafka.enable"), "true")) {
-            val config = ctx.getConfiguration();
-            val property = Property.createProperty("bootstrap.servers", AppConf.getConfig("log4j.appender.kafka.broker_host"));
-            val layout = PatternLayout.createLayout(PatternLayout.DEFAULT_CONVERSION_PATTERN, null, config, null, Charset.defaultCharset(), false, false, null, null)
-            val kafkaAppender = KafkaAppender.createAppender(layout, null, "KafkaAppender", false, AppConf.getConfig("log4j.appender.kafka.topic"), Array(property));
-            kafkaAppender.start();
-            config.addAppender(kafkaAppender);
-            val loggerConfig = config.getLoggers.get("org.ekstep.analytics");
-            loggerConfig.addAppender(kafkaAppender, null, null)
-            ctx.updateLoggers();
-        }
         JobContext.jobName = jobName;
     }
 
