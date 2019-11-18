@@ -69,21 +69,6 @@ object JobLogger {
         }
     }
 
-    private def getMeasuredEvent(eid: String, level: String, msg: String, data: Option[AnyRef], status: Option[String] = None)(implicit className: String): MeasuredEvent = {
-        val measures = Map(
-            "class" -> className,
-            "level" -> level,
-            "message" -> msg,
-            "status" -> status,
-            "data" -> data);
-        val ts = new DateTime().getMillis
-        val mid = CommonUtil.getMessageId(eid, level, ts, None, None);
-        MeasuredEvent(eid, System.currentTimeMillis(), System.currentTimeMillis(), "1.0", mid, "", "", None, None,
-            Context(PData("AnalyticsDataPipeline", "1.0", Option(JobContext.jobName)), None, "EVENT", null),
-            null,
-            MEEdata(measures));
-    }
-
     private def getV3JobEvent(eid: String, level: String, msg: String, data: Option[AnyRef], status: Option[String] = None, pdata_id: String = "AnalyticsDataPipeline", pdata_pid: String = JobContext.jobName)(implicit className: String): V3DerivedEvent = {
         val measures = Map(
             "class" -> className,

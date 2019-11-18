@@ -111,10 +111,15 @@ class TestDataFetcher extends SparkSpec {
         println(rdd2.count())
         rdd2.foreach(f => println(JSONUtils.serialize(f)))
 
-        val tsQuery = DruidQueryModel("timeSeries", "telemetry-events", "LastWeek", Option("day"), Option(List(Aggregation(Option("count"), "count", ""))), None, Option(List(DruidFilter("in", "eid", None, Option(List("START", "END"))))))
+        val tsQuery = DruidQueryModel("timeSeries", "telemetry-events", "LastWeek", Option("day"), None, None, Option(List(DruidFilter("in", "eid", None, Option(List("START", "END"))))))
         val rdd3 = DataFetcher.fetchBatchData[TimeSeriesData](Fetcher("druid", None, None, Option(tsQuery)));
         println(rdd3.count())
         rdd3.foreach(f => println(JSONUtils.serialize(f)))
+
+        val unknownQuery = DruidQueryModel("scan", "telemetry-events", "LastWeek", Option("day"), None, None, Option(List(DruidFilter("in", "eid", None, Option(List("START", "END"))))))
+        the[DataFetcherException] thrownBy {
+            DataFetcher.fetchBatchData[TimeSeriesData](Fetcher("druid", None, None, Option(unknownQuery)));
+        } should have message "Unknown druid query type found"
     }
 
     it should "fetch no data for none fetcher type" in {
