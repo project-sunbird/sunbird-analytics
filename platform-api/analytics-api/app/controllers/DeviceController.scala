@@ -3,13 +3,13 @@ package controllers
 import akka.actor._
 import akka.pattern.ask
 import com.google.inject.Inject
-import javax.inject.Named
 import org.ekstep.analytics.api.service.experiment.{ExperimentData, ExperimentRequest}
 import org.ekstep.analytics.api.service.{DeviceProfile, GetDeviceProfile, RegisterDevice}
-import org.ekstep.analytics.api.util.{APILogger, CommonUtil, JSONUtils}
+import org.ekstep.analytics.api.util.{APILogger, CacheUtil, CommonUtil, JSONUtils}
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{AnyContent, ControllerComponents, Request, Result}
 import play.api.{Configuration, Environment}
+import javax.inject._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -43,6 +43,8 @@ class DeviceController @Inject()(
     val dspec: Option[String] = (body \ "request" \ "dspec").toOption.map {
       value => Json.stringify(value)
     }
+    val userDefinedState = (body \ "request" \ "userDeclaredLocation" \ "state").asOpt[String]
+    val userDefinedDistrict = (body \ "request" \ "userDeclaredLocation" \ "district").asOpt[String]
 
     val extMap: Option[Map[String, String]] = (body \ "request" \ "ext").toOption.map {
       value => {
@@ -54,7 +56,7 @@ class DeviceController @Inject()(
       }
     }
 
-    deviceRegisterActor.tell(RegisterDevice(deviceId, headerIP, ipAddr, fcmToken, producer, dspec, uaspec, firstAccess), ActorRef.noSender)
+    deviceRegisterActor.tell(RegisterDevice(deviceId, headerIP, ipAddr, fcmToken, producer, dspec, uaspec, firstAccess, userDefinedState, userDefinedDistrict), ActorRef.noSender)
 
     if (isExperimentEnabled) {
       sendExperimentData(Some(deviceId), extMap.getOrElse(Map()).get("userId"), extMap.getOrElse(Map()).get("url"), producer)

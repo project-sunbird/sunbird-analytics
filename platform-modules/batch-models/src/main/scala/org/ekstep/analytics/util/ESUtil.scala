@@ -114,10 +114,10 @@ object ESUtil extends ESService {
     }
   }
 
-  def getContentNames(spark: SparkSession, content: List[String], esIndex: String): DataFrame = {
+  def getAssessmentNames(spark: SparkSession, content: List[String], esIndex: String, contentType: String): DataFrame = {
     case class content_identifiers(identifiers: List[String])
     val contentList = JSONUtils.serialize(content_identifiers(content).identifiers)
-    JobLogger.log(s"Total number of unique content identifiers are ${contentList.length}")
+    JobLogger.log(s"Total number of unique content identifiers are ${content.length}", None, INFO)
     val request =
       s"""
          {
@@ -133,7 +133,8 @@ object ESUtil extends ESService {
          |          "terms": {
          |            "identifier.raw": $contentList
          |          }
-         |        }
+         |        },
+         |        { "match": { "contentType":  "$contentType" }}
          |      ]
          |    }
          |  }
@@ -142,11 +143,20 @@ object ESUtil extends ESService {
     spark.read.format("org.elasticsearch.spark.sql")
       .option("query", request)
       .option("pushdown", "true")
-      .load(esIndex+"/cs")
+      .option("es.nodes", AppConf.getConfig("es.composite.host"))
+      .option("es.port", AppConf.getConfig("es.port"))
+      .option("es.scroll.size", AppConf.getConfig("es.scroll.size"))
+      .load(esIndex + "/cs")
       .select("name", "identifier") // Fields need to capture from the elastic search
+
   }
 
   def saveToIndex(data: DataFrame, index: String): Unit = {
-    data.saveToEs(s"$index/_doc")
+    try {
+      data.saveToEs(s"$index/_doc")
+    }
+    catch {
+      case e: Exception => JobLogger.log("Indexing of data into es is failed: " + e.getMessage, None, ERROR)
+    }
   }
 }

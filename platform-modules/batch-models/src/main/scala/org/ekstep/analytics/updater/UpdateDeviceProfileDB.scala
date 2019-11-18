@@ -10,7 +10,7 @@ import org.ekstep.analytics.util.Constants
 import scala.collection.mutable.Buffer
 case class DeviceProfileKey(device_id: String)
 case class DeviceProfileInput(index: DeviceProfileKey, currentData: Buffer[DerivedEvent], previousData: Option[DeviceProfileOutput]) extends AlgoInput
-case class DeviceProfileOutput(device_id: String, first_access: Option[Long], last_access: Option[Long], total_ts: Option[Double], total_launches: Option[Long], avg_ts: Option[Double], device_spec: Option[Map[String, AnyRef]], uaspec: Option[Map[String, String]], state: Option[String], city: Option[String], country: Option[String], country_code:Option[String], state_code:Option[String], state_custom: Option[String], state_code_custom: Option[String], district_custom: Option[String], fcm_token: Option[String], producer_id: Option[String], updated_date: Option[Long] = Option(System.currentTimeMillis())) extends AlgoOutput
+case class DeviceProfileOutput(device_id: String, first_access: Option[Long], last_access: Option[Long], total_ts: Option[Double], total_launches: Option[Long], avg_ts: Option[Double], device_spec: Option[Map[String, AnyRef]], uaspec: Option[Map[String, String]], state: Option[String], city: Option[String], country: Option[String], country_code:Option[String], state_code:Option[String], state_custom: Option[String], state_code_custom: Option[String], district_custom: Option[String], fcm_token: Option[String], producer_id: Option[String], user_declared_state: Option[String], user_declared_district: Option[String], api_last_updated_on:Option[Long], updated_date: Option[Long] = Option(System.currentTimeMillis())) extends AlgoOutput
 
 object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DeviceProfileInput, DeviceProfileOutput, Empty] with Serializable {
 
@@ -32,7 +32,7 @@ object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DevicePro
         data.map { events =>
             val eventsSortedByFromDate = events.currentData.sortBy { x => x.context.date_range.from };
             val eventsSortedByToDate = events.currentData.sortBy { x => x.context.date_range.to };
-            val prevProfileData = events.previousData.getOrElse(DeviceProfileOutput(events.index.device_id, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None));
+            val prevProfileData = events.previousData.getOrElse(DeviceProfileOutput(events.index.device_id, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None));
             val eventStartTime = eventsSortedByFromDate.head.context.date_range.from
             val first_access = if (prevProfileData.first_access.isEmpty) eventStartTime else if (eventStartTime > prevProfileData.first_access.get) prevProfileData.first_access.get else eventStartTime;
             val eventEndTime = eventsSortedByToDate.last.context.date_range.to
@@ -46,7 +46,7 @@ object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DevicePro
             }.sum
             val total_launches = if (prevProfileData.total_launches.isEmpty) current_launches else current_launches + prevProfileData.total_launches.get
             val avg_ts = if (total_launches == 0) total_ts else CommonUtil.roundDouble(total_ts / total_launches, 2)
-            DeviceProfileOutput(events.index.device_id, Option(first_access), Option(last_access), Option(total_ts), Option(total_launches), Option(avg_ts), prevProfileData.device_spec, prevProfileData.uaspec, prevProfileData.state, prevProfileData.city, prevProfileData.country, prevProfileData.country_code, prevProfileData.state_code, prevProfileData.state_custom, prevProfileData.state_code_custom, prevProfileData.district_custom, prevProfileData.fcm_token, prevProfileData.producer_id)
+            DeviceProfileOutput(events.index.device_id, Option(first_access), Option(last_access), Option(total_ts), Option(total_launches), Option(avg_ts), prevProfileData.device_spec, prevProfileData.uaspec, prevProfileData.state, prevProfileData.city, prevProfileData.country, prevProfileData.country_code, prevProfileData.state_code, prevProfileData.state_custom, prevProfileData.state_code_custom, prevProfileData.district_custom, prevProfileData.fcm_token, prevProfileData.producer_id, prevProfileData.user_declared_state, prevProfileData.user_declared_district, prevProfileData.api_last_updated_on)
         }
     }
 

@@ -106,14 +106,16 @@ class JobController @Inject() (
     }
   }
 
-  def refreshCache(cacheType: String) = Action { request: Request[AnyContent] =>
-    cacheType match {
-      case "ConsumerChannel" =>
-        cacheUtil.initConsumerChannelCache()
-      case _ =>
-        cacheUtil.initCache()
-    }
-    result("OK", JSONUtils.serialize(CommonUtil.OK(APIIds.CHANNEL_TELEMETRY_EXHAUST, Map("msg" -> s"$cacheType cache refresed successfully"))))
+  def refreshCache(cacheType: String) = Action { implicit request =>
+      cacheType match {
+          case "ConsumerChannel" =>
+            cacheUtil.initConsumerChannelCache()
+          case "DeviceLocation" =>
+            cacheUtil.initDeviceLocationCache()
+          case _ =>
+            cacheUtil.initCache()
+      }
+      result("OK", JSONUtils.serialize(CommonUtil.OK(APIIds.CHANNEL_TELEMETRY_EXHAUST, Map("msg" -> s"$cacheType cache refreshed successfully"))))
   }
 
   def authorizeDataExhaustRequest(consumerId: String, channelId: String): Boolean = {

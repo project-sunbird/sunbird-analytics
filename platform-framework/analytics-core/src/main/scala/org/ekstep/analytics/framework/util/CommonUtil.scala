@@ -86,7 +86,7 @@ object CommonUtil {
     }
 
     def getSparkSession(parallelization: Int, appName: String, sparkCassandraConnectionHost: Option[AnyRef] = None,
-                        sparkElasticsearchConnectionHost: Option[AnyRef] = None): SparkSession = {
+                        sparkElasticsearchConnectionHost: Option[AnyRef] = None, readConsistencyLevel: Option[String] = None): SparkSession = {
         JobLogger.log("Initializing SparkSession")
         val conf = new SparkConf().setAppName(appName).set("spark.default.parallelism", parallelization.toString)
           .set("spark.driver.memory", AppConf.getConfig("spark.driver_memory"))
@@ -108,6 +108,9 @@ object CommonUtil {
         }
         if (sparkCassandraConnectionHost.nonEmpty) {
             conf.set("spark.cassandra.connection.host", sparkCassandraConnectionHost.get.asInstanceOf[String])
+            if(readConsistencyLevel.nonEmpty) {
+              conf.set("spark.cassandra.input.consistency.level", readConsistencyLevel.get);
+            }
             println("setting spark.cassandra.connection.host to lp-cassandra", conf.get("spark.cassandra.connection.host"))
         }
 
@@ -116,6 +119,8 @@ object CommonUtil {
             conf.set("es.port", "9200")
             conf.set("es.write.rest.error.handler.log.logger.name", "org.ekstep.es.dispatcher")
             conf.set("es.write.rest.error.handler.log.logger.level", "INFO")
+            conf.set("es.write.operation", "upsert")
+      
         }
 
         // $COVERAGE-ON$

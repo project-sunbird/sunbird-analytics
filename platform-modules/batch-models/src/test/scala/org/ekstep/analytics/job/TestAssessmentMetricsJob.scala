@@ -1,18 +1,16 @@
 package org.ekstep.analytics.job
 
 import org.apache.spark.sql.{DataFrame, SparkSession}
-import org.ekstep.analytics.job.AssessmentMetricsJob.saveReport
 import org.ekstep.analytics.model.SparkSpec
-import org.ekstep.analytics.util.{AssessmentReportUtil, ESUtil}
+import org.ekstep.analytics.util.ESUtil
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.cloud.storage.conf.AppConf
 
 import scala.collection.Map
 
 
-
 class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
-  var spark: SparkSession = _
+  implicit var spark: SparkSession = _
   var courseBatchDF: DataFrame = _
   var userCoursesDF: DataFrame = _
   var userDF: DataFrame = _
@@ -111,7 +109,7 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
     assert(AppConf.getConfig("assessment.metrics.cassandra.input.consistency").isEmpty === false)
     assert(AppConf.getConfig("assessment.metrics.cloud.objectKey").isEmpty === false)
     assert(AppConf.getConfig("assessment.metrics.cloud.provider").isEmpty === false)
-    assert(AppConf.getConfig("course.metrics.cloud.container").isEmpty === false)
+    assert(AppConf.getConfig("cloud.container.reports").isEmpty === false)
     assert(AppConf.getConfig("assessment.metrics.temp.dir").isEmpty === false)
     assert(AppConf.getConfig("course.upload.reports.enabled").isEmpty === false)
     assert(AppConf.getConfig("course.es.index.enabled").isEmpty === false)
@@ -153,46 +151,46 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
     val reportDF = AssessmentMetricsJob
       .prepareReport(spark, reporterMock.loadData)
       .cache()
-    val denormedDF = AssessmentMetricsJob.denormAssessment(spark, reportDF)
-    val finalReport = AssessmentMetricsJob.transposeDF(denormedDF,"do_2123101488779837441168","1001")
-    val column_names =  finalReport.columns
+    val denormedDF = AssessmentMetricsJob.denormAssessment(reportDF)
+    val finalReport = AssessmentMetricsJob.transposeDF(denormedDF)
+    val column_names = finalReport.columns
     // Validate the column names are proper or not.
-    assert( column_names.contains("External ID") === true)
-    assert( column_names.contains("User ID") === true)
-    assert( column_names.contains("User Name") === true)
-    assert( column_names.contains("Email ID") === true)
-    assert( column_names.contains("Mobile Number") === true)
-    assert( column_names.contains("Organisation Name") === true)
-    assert( column_names.contains("District Name") === true)
-    assert( column_names.contains("School Name") === true)
-    assert( column_names.contains("Playingwithnumbers") === true)
-    assert( column_names.contains("Whole Numbers") === true)
-    assert( column_names.contains("Total Score") === true)
-    assert( column_names.contains("Total Score") === true)
+    assert(column_names.contains("External ID") === true)
+    assert(column_names.contains("User ID") === true)
+    assert(column_names.contains("User Name") === true)
+    assert(column_names.contains("Email ID") === true)
+    assert(column_names.contains("Mobile Number") === true)
+    assert(column_names.contains("Organisation Name") === true)
+    assert(column_names.contains("District Name") === true)
+    assert(column_names.contains("School Name") === true)
+    //assert(column_names.contains("Playingwithnumbers") === true)
+    assert(column_names.contains("Whole Numbers") === true)
+    assert(column_names.contains("Total Score") === true)
+    assert(column_names.contains("Total Score") === true)
 
     // Check the proper total score is persent or not.
-//    val total_scoreList = finalReport.select("Total Score").collect().map(_(0)).toList
-//    assert(total_scoreList(0) === "“14.0/15.0”")
+    //    val total_scoreList = finalReport.select("Total Score").collect().map(_(0)).toList
+    //    assert(total_scoreList(0) === "“14.0/15.0”")
 
     // check the proper score is present or not for the each worksheet.
-    val worksheet_score = finalReport.select("Playingwithnumbers").collect().map(_(0)).toList
+    val worksheet_score = finalReport.select("Playingwithnumbers").collect().map(_ (0)).toList
     //assert(worksheet_score(0) === "10")
     // check the proper school name or not
 
-    val school_name = finalReport.select("School Name").collect().map(_(0)).toList
+    val school_name = finalReport.select("School Name").collect().map(_ (0)).toList
     assert(school_name(0) === "SACRED HEART(B)PS,TIRUVARANGAM")
 
     // check the proper district name ro not
-    val district_name = finalReport.select("District Name").collect().map(_(0)).toList
+    val district_name = finalReport.select("District Name").collect().map(_ (0)).toList
     assert(district_name(0) === "GULBARGA")
 
     // check the proper User Name or not.
-    val user_name = finalReport.select("User Name").collect().map(_(0)).toList
-    assert(user_name(0) === "Gourav Verma")
+    val user_name = finalReport.select("User Name").collect().map(_ (0)).toList
+    assert(user_name(0) === "Rayulu Verma")
 
     // check the proper userid or not.
-    val user_id = finalReport.select("User ID").collect().map(_(0)).toList
-    assert(user_id(0) === "user021")
+    val user_id = finalReport.select("User ID").collect().map(_ (0)).toList
+    assert(user_id(0) === "user015")
 
   }
 
@@ -235,8 +233,9 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
 
     val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
     val renamedDir = s"$tempDir/renamed"
-    val denormedDF = AssessmentMetricsJob.denormAssessment(spark, reportDF)
-    AssessmentMetricsJob.saveReport(denormedDF, tempDir, spark)
+    val denormedDF = AssessmentMetricsJob.denormAssessment(reportDF)
+    println(denormedDF.show(false))
+    AssessmentMetricsJob.saveReport(denormedDF, tempDir)
     assert(denormedDF.count == 7)
   }
 
@@ -279,7 +278,7 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
 
     val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
     val renamedDir = s"$tempDir/renamed"
-    val denormedDF = AssessmentMetricsJob.denormAssessment(spark, reportDF)
+    val denormedDF = AssessmentMetricsJob.denormAssessment(reportDF)
     val denormedDFCount = denormedDF.groupBy("courseid", "batchid")
     denormedDF.createOrReplaceTempView("course_batch")
     val df = spark.sql("select * from course_batch where batchid ='1001' and courseid='do_2123101488779837441168' and content_name='Whole Numbers' and userid='user021' ")
@@ -290,7 +289,7 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
     val contentESIndex = AppConf.getConfig("assessment.metrics.content.index")
     assert(contentESIndex.isEmpty === false)
     val contentList = List("do_112835336280596480151", "do_112835336960000000152")
-    val contentDF = ESUtil.getContentNames(spark, contentList, AppConf.getConfig("assessment.metrics.content.index"))
+    val contentDF = ESUtil.getAssessmentNames(spark, contentList, AppConf.getConfig("assessment.metrics.content.index"), AppConf.getConfig("assessment.metrics.supported.contenttype"))
     assert(contentDF.count() === 2)
   }
 
@@ -334,13 +333,13 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
 
     val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
     val renamedDir = s"$tempDir/renamed"
-    val denormedDF = AssessmentMetricsJob.denormAssessment(spark, reportDF)
+    val denormedDF = AssessmentMetricsJob.denormAssessment(reportDF)
     val denormedDFCount = denormedDF.groupBy("courseid", "batchid")
     denormedDF.createOrReplaceTempView("course_batch")
     val df = spark.sql("select * from course_batch where batchid =1006 and courseid='do_1126458775024025601296' and  userid='user026' ")
     assert(df.count() === 1)
-    val total_sum_scoreList = df.select("total_sum_score").collect().map(_(0)).toList
-    assert(total_sum_scoreList(0) === "“10.0/30.0”")
+    val total_sum_scoreList = df.select("total_sum_score").collect().map(_ (0)).toList
+    assert(total_sum_scoreList(0) === "'10.0/30.0'")
 
   }
 
@@ -383,13 +382,13 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
 
     val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
     val renamedDir = s"$tempDir/renamed"
-    val denormedDF = AssessmentMetricsJob.denormAssessment(spark, reportDF)
+    val denormedDF = AssessmentMetricsJob.denormAssessment(reportDF)
     val denormedDFCount = denormedDF.groupBy("courseid", "batchid")
     denormedDF.createOrReplaceTempView("course_batch")
     val df = spark.sql("select * from course_batch where batchid ='1005' and courseid='do_112695422838472704115' and content_name ='TEST'")
     assert(df.count() === 1)
-    val total_scoreList = df.select("grand_score").collect().map(_(0)).toList
-    assert(total_scoreList(0) === "“4/4”")
+    val total_scoreList = df.select("grand_score").collect().map(_ (0)).toList
+    assert(total_scoreList(0) === "'4/4'")
   }
 
   "TestAssessmentMetricsJob" should "confirm all required column names are present or not" in {
@@ -431,7 +430,7 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
 
     val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
     val renamedDir = s"$tempDir/renamed"
-    val denormedDF = AssessmentMetricsJob.denormAssessment(spark, reportDF)
+    val denormedDF = AssessmentMetricsJob.denormAssessment(reportDF)
     assert(denormedDF.columns.contains("content_name") === true)
     assert(denormedDF.columns.contains("grand_score") === true)
     assert(denormedDF.columns.contains("courseid") === true)
@@ -445,6 +444,56 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
     assert(denormedDF.columns.contains("externalid") === true)
     assert(denormedDF.columns.contains("schoolname_resolved") === true)
     assert(denormedDF.columns.contains("username") === true)
+  }
+
+  "TestAssessMentMetricsJob" should "generate reports for the best score" in {
+
+    assessmentProfileDF = spark
+      .read
+      .format("com.databricks.spark.csv")
+      .option("header", "true")
+      .load("src/test/resources/assessment-metrics-updater/assessment_best_score.csv")
+      .cache()
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace))
+      .returning(courseBatchDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user_courses", "keyspace" -> sunbirdCoursesKeyspace))
+      .returning(userCoursesDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user", "keyspace" -> sunbirdKeyspace))
+      .returning(userDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user_org", "keyspace" -> sunbirdKeyspace))
+      .returning(userOrgDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace))
+      .returning(orgDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "location", "keyspace" -> sunbirdKeyspace))
+      .returning(locationDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "usr_external_identity", "keyspace" -> sunbirdKeyspace))
+      .returning(externalIdentityDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "assessment_aggregator", "keyspace" -> sunbirdCoursesKeyspace))
+      .returning(assessmentProfileDF)
+
+    val reportDF = AssessmentMetricsJob
+      .prepareReport(spark, reporterMock.loadData)
+      .cache()
+    reportDF.createOrReplaceTempView("best_attempt")
+    val df = spark.sql("select * from best_attempt where batchid ='1010' and courseid='do_1125559882615357441175' and content_id='do_112835335135993856149' and userid ='user030'")
+    val best_attempt_score = df.select("total_score").collect().map(_ (0)).toList
+    assert(best_attempt_score.head === "50")
   }
 
 }
