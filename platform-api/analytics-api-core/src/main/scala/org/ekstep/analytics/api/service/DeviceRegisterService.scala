@@ -68,7 +68,6 @@ class DeviceRegisterService @Inject()(
             }
         case deviceProfile: GetDeviceProfile =>
           try {
-            println("got message to the Actor!")
             val result = getDeviceProfile(deviceProfile)
             val reply = sender()
             result.onComplete {
@@ -124,7 +123,6 @@ class DeviceRegisterService @Inject()(
     }
 
     def getDeviceProfile(getProfileDetails: GetDeviceProfile): Future[Option[DeviceProfile]] = {
-      println("calling getDeviceProfile")
       if(getProfileDetails.headerIP.nonEmpty) {
         val ipLocationFromH2 = resolveLocationFromH2(getProfileDetails.headerIP)
 
@@ -176,7 +174,6 @@ class DeviceRegisterService @Inject()(
     }
 
     def resolveLocationFromH2(ipAddress: String): DeviceStateDistrict = {
-      println("calling resolveLocationFromH2")
       val ipAddressInt: Long = UnsignedInts.toLong(InetAddresses.coerceToInteger(InetAddresses.forString(ipAddress)))
 
       val query =

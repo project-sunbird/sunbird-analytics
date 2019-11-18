@@ -36,7 +36,6 @@ class Application @Inject() (cc: ControllerComponents, futures: Futures, system:
 	}
 
 	def checkAPIhealth() = Action.async { request: Request[AnyContent] =>
-		println("Health check API")
     val result = ask(healthCheckAPIActor, GetHealthStatus).mapTo[String]
     result.map { x =>
       Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
