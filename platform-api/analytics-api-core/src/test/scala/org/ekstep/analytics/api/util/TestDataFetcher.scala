@@ -10,7 +10,7 @@ class TestDataFetcher extends BaseSpec {
       result.length should be (533)
   }
 
-  it should "fetch file from S3 and return data" in {
+  ignore should "fetch file from S3 and return data" in {
     val queries = Option(Array(
       Query(Option("dev-data-store"), Option("derived/wfs/"), Option("2019-01-03"), Option("2019-01-04"))
     ))

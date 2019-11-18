@@ -169,8 +169,8 @@ class TestDeviceRegisterService extends BaseSpec {
 //    }
 
     val deviceLocation = redisUtilMock.getAllByKey("test-device")
-    deviceLocation.get.get("user_declared_state") should be("Karnataka")
-    deviceLocation.get.get("user_declared_district") should be("BANGALORE")
+    deviceLocation.get.get("user_declared_state").getOrElse() should be("Karnataka")
+    deviceLocation.get.get("user_declared_district").getOrElse() should be("BANGALORE")
   }
 
   "Resolve user declared location for get device profile" should "return empty location declared location is not found" in {
