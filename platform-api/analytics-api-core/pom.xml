@@ -86,7 +86,7 @@
 		<dependency>
 			<groupId>org.scalatest</groupId>
 			<artifactId>scalatest_${scala.maj.version}</artifactId>
-			<version>2.2.4</version>
+			<version>3.0.6</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -165,6 +165,12 @@
 			<groupId>com.typesafe.akka</groupId>
 			<artifactId>akka-actor_${scala.maj.version}</artifactId>
 			<version>${akka.version}</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<version>1.4.200</version>
 		</dependency>
 	</dependencies>
 

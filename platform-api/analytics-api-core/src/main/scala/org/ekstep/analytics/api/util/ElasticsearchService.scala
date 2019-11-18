@@ -7,11 +7,13 @@ import com.sksamuel.elastic4s.searches.queries.funcscorer.ScoreFunctionDefinitio
 import com.typesafe.config.{Config, ConfigFactory}
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import org.ekstep.analytics.api.service.experiment.ExperimentData
+import javax.inject._
 
 trait ESsearch {
     def searchExperiment(fields: Map[String, String]): Future[Option[ExperimentData]]
 }
 
+@Singleton
 class ElasticsearchService extends ESsearch {
 
     implicit val className = "org.ekstep.analytics.api.util.ElasticsearchService"

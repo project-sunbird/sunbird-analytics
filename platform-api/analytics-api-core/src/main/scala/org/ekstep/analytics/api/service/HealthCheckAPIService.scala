@@ -4,10 +4,13 @@ import akka.actor.Actor
 import org.ekstep.analytics.api.util._
 
 case class ServiceHealthReport(name: String, healthy: Boolean, message: Option[String] = None)
+case class GetHealthStatus()
 
-object HealthCheckAPIService {
-  
-    case class GetHealthStatus()
+class HealthCheckAPIService extends Actor {
+
+    def receive = {
+        case GetHealthStatus => sender() ! getHealthStatus();
+    }
   
     def getHealthStatus(): String = {
 
@@ -38,7 +41,10 @@ object HealthCheckAPIService {
         redis.checkConnection
     }
 
-    private def checkPostgresConnection(): Boolean = PostgresDBUtil.checkConnection
+    private def checkPostgresConnection(): Boolean = {
+        val postgresDB = new PostgresDBUtil()
+        postgresDB.checkConnection
+    }
 
     private def checkElasticsearchConnection(): Boolean = {
         val es = new ElasticsearchService()
@@ -66,12 +72,4 @@ object HealthCheckAPIService {
 //        implicit val sc = CommonUtil.getSparkContext(10, "Test");
 //        println(getHealthStatus);
 //    }
-}
-
-class HealthCheckAPIService extends Actor {
-	import HealthCheckAPIService._;
-
-	def receive = {
-		case GetHealthStatus => sender() ! getHealthStatus();
-	}
 }

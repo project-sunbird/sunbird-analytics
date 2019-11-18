@@ -2,13 +2,10 @@ package org.ekstep.analytics.api.service.experiment
 
 import akka.actor.ActorSystem
 import akka.testkit.TestActorRef
-import com.sksamuel.elastic4s.http.{ElasticError, RequestFailure, RequestSuccess}
-import com.sksamuel.elastic4s.http.search.SearchResponse
 import org.ekstep.analytics.api.BaseSpec
 import org.ekstep.analytics.api.service.experiment.Resolver.ModulusResolver
 import org.ekstep.analytics.api.util.{ElasticsearchService, JSONUtils, RedisUtil}
 import org.mockito.Mockito._
-import redis.clients.jedis.Jedis
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -113,6 +110,37 @@ class TestExperimentService extends BaseSpec {
       case Failure(exception) => exception.printStackTrace()
     }
   }
+
+  it should "evaluate 'modulus' type experiment and return response" in {
+    reset(elasticsearchServiceMock)
+    reset(redisUtilMock)
+    // no experiment defined for this input
+    val deviceId = "device3"
+    val key = experimentService.keyGen(Some(deviceId), None, None, None)
+    val fields = experimentService.getFieldsMap(Some(deviceId), None, None, None)
+    val experimentData = JSONUtils.deserialize[ExperimentData](Constants.MODULUS_EXPERIMENT_WITHOUT_USER_DATA)
+
+    when(elasticsearchServiceMock.searchExperiment(fields))
+      .thenReturn(Future(Some(experimentData)))
+    when(redisUtilMock.getKey(key)).thenReturn(None)
+
+    val result = experimentService.getExperiment(Some(deviceId), None, None, None)
+    result onComplete {
+      case Success(data) => data match {
+        case Some(value) => {
+          value.userId should be(null)
+          value.key should be("modulus-exp-key-2")
+          value.expType should be("modulus")
+          value.id should be("modulus-exp-2")
+          value.name should be("modulus-exp-2")
+
+          verify(redisUtilMock, times(1)).addCache(key, JSONUtils.serialize(value))
+        }
+      }
+      case Failure(exception) => exception.printStackTrace()
+    }
+  }
+
 
   it should "should evaluate 'modulus' type experiment and return none if modulus is false" in {
     reset(elasticsearchServiceMock)

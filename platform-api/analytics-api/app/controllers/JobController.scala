@@ -21,7 +21,8 @@ import scala.concurrent.{ExecutionContext, Future}
 class JobController @Inject() (
                                 system: ActorSystem,
                                 configuration: Configuration,
-                                cc: ControllerComponents
+                                cc: ControllerComponents,
+                                cacheUtil: CacheUtil
                               )(implicit ec: ExecutionContext) extends BaseController(cc, configuration) {
 
   val jobAPIActor = system.actorOf(Props[JobAPIService].withRouter(FromConfig()), name = "jobApiActor")
@@ -108,10 +109,25 @@ class JobController @Inject() (
   def refreshCache(cacheType: String) = Action { request: Request[AnyContent] =>
     cacheType match {
       case "ConsumerChannel" =>
-        CacheUtil.initConsumerChannelCache()
+        cacheUtil.initConsumerChannelCache()
       case _ =>
-        CacheUtil.initCache()
+        cacheUtil.initCache()
     }
     result("OK", JSONUtils.serialize(CommonUtil.OK(APIIds.CHANNEL_TELEMETRY_EXHAUST, Map("msg" -> s"$cacheType cache refresed successfully"))))
+  }
+
+  def authorizeDataExhaustRequest(consumerId: String, channelId: String): Boolean = {
+    APILogger.log(s"Authorizing $consumerId and $channelId")
+    val status = Option(cacheUtil.getConsumerChannlTable().get(consumerId, channelId))
+    if (status.getOrElse(0) == 1) true else false
+  }
+
+  def authorizeDataExhaustRequest(request: Request[AnyContent] ): Boolean = {
+    val authorizationCheck = config.getBoolean("dataexhaust.authorization_check")
+    if(!authorizationCheck) return true
+
+    val consumerId = request.headers.get("X-Consumer-ID").getOrElse("")
+    val channelId = request.headers.get("X-Channel-ID").getOrElse("")
+    authorizeDataExhaustRequest(consumerId, channelId)
   }
 }

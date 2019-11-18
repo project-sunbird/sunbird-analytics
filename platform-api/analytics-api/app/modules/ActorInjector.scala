@@ -1,8 +1,8 @@
 package modules
 
 import com.google.inject.AbstractModule
-import org.ekstep.analytics.api.service.{DeviceRegisterService, ExperimentAPIService, SaveMetricsActor}
-import org.ekstep.analytics.api.util.{APILogger, ElasticsearchService, RedisUtil}
+import org.ekstep.analytics.api.service.{CacheRefreshActor, DeviceRegisterService, ExperimentAPIService, SaveMetricsActor}
+import org.ekstep.analytics.api.util.APILogger
 import play.api.libs.concurrent.AkkaGuiceSupport
 
 class ActorInjector extends AbstractModule with AkkaGuiceSupport {
@@ -11,10 +11,9 @@ class ActorInjector extends AbstractModule with AkkaGuiceSupport {
     bindActor[DeviceRegisterService]("device-register-actor")
     bindActor[ExperimentAPIService]("experiment-actor")
     bindActor[SaveMetricsActor]("save-metrics-actor")
+    bindActor[CacheRefreshActor]("cache-refresh-actor")
 
     // Services
-    bind(classOf[ElasticsearchService]).asEagerSingleton()
-    bind(classOf[RedisUtil]).asEagerSingleton()
 
     APILogger.init("org.ekstep.analytics-api")
   }

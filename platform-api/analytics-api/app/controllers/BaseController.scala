@@ -1,9 +1,10 @@
 package controllers
 
+import akka.actor.{ActorRef, Props}
 import akka.util.Timeout
 import akka.util.Timeout.durationToTimeout
 import com.typesafe.config.Config
-import org.ekstep.analytics.api.util.{APILogger, CacheUtil}
+import org.ekstep.analytics.api.service.CacheRefreshActor
 import play.api.Configuration
 import play.api.mvc._
 
@@ -38,19 +39,4 @@ class BaseController(cc: ControllerComponents, configuration: Configuration) ext
         }
         resultObj.withHeaders(CONTENT_TYPE -> "application/json")
     }
-
-    def authorizeDataExhaustRequest(consumerId: String, channelId: String): Boolean = {
-        APILogger.log(s"Authorizing $consumerId and $channelId")
-        val status = Option(CacheUtil.getConsumerChannlTable().get(consumerId, channelId))
-        if (status.getOrElse(0) == 1) true else false
-    }
-
-  def authorizeDataExhaustRequest(request: Request[AnyContent] ): Boolean = {
-    val authorizationCheck = config.getBoolean("dataexhaust.authorization_check")
-    if(!authorizationCheck) return true
-
-    val consumerId = request.headers.get("X-Consumer-ID").getOrElse("")
-    val channelId = request.headers.get("X-Channel-ID").getOrElse("")
-    authorizeDataExhaustRequest(consumerId, channelId)
-  }
 }

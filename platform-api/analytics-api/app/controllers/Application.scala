@@ -4,8 +4,7 @@ import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.pattern._
 import akka.routing.FromConfig
 import javax.inject.Inject
-import org.ekstep.analytics.api.service.HealthCheckAPIService.GetHealthStatus
-import org.ekstep.analytics.api.service.{DruidHealthCheckService, _}
+import org.ekstep.analytics.api.service.{CacheRefreshActor, DruidHealthCheckService, _}
 import org.ekstep.analytics.api.util._
 import org.ekstep.analytics.api.{APIIds, ResponseCode}
 import org.ekstep.analytics.framework.util.RestUtil
@@ -20,12 +19,13 @@ import scala.concurrent.{ExecutionContext, Future}
  * @author mahesh
  */
 
-class Application @Inject() (cc: ControllerComponents, futures: Futures, system: ActorSystem, configuration: Configuration)(implicit ec: ExecutionContext) extends BaseController(cc, configuration) {
+class Application @Inject() (cc: ControllerComponents, futures: Futures, system: ActorSystem, configuration: Configuration, cacheUtil: CacheUtil)(implicit ec: ExecutionContext) extends BaseController(cc, configuration) {
 
 	implicit override val className = "controllers.Application"
 	val healthCheckAPIActor = system.actorOf(Props[HealthCheckAPIService].withRouter(FromConfig()), name = "healthCheckAPIActor")
 	val clientLogAPIActor = system.actorOf(Props[ClientLogsAPIService].withRouter(FromConfig()), name = "clientLogAPIActor")
 	val druidHealthActor = system.actorOf(Props(new DruidHealthCheckService(RestUtil)), "druidHealthActor")
+	val locationCacheRefreshActor: ActorRef = system.actorOf(Props(new CacheRefreshActor(cacheUtil)), "cacheRefreshActor")
 	val logger: Logger = Logger(this.getClass())
 
 	def getDruidHealthStatus() = Action.async { request: Request[AnyContent] =>
@@ -36,6 +36,7 @@ class Application @Inject() (cc: ControllerComponents, futures: Futures, system:
 	}
 
 	def checkAPIhealth() = Action.async { request: Request[AnyContent] =>
+		println("Health check API")
     val result = ask(healthCheckAPIActor, GetHealthStatus).mapTo[String]
     result.map { x =>
       Ok(x).withHeaders(CONTENT_TYPE -> "application/json");

@@ -150,6 +150,7 @@ object JobAPIService {
         val endDate = filter.get.end_date.get
         val startDate = filter.get.start_date.get
         val days = CommonUtil.getDaysBetween(startDate, endDate)
+        println("CommonUtil.getPeriod(CommonUtil.getToday)", CommonUtil.getPeriod(CommonUtil.getToday))
         if (CommonUtil.getPeriod(endDate) >= CommonUtil.getPeriod(CommonUtil.getToday))
           Map("status" -> "false", "message" -> "end_date should be lesser than today's date..")
         else if (0 > days)

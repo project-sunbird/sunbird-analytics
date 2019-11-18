@@ -4,7 +4,7 @@ import akka.actor.ActorSystem
 import akka.testkit.TestActorRef
 import com.typesafe.config.Config
 import org.ekstep.analytics.api.BaseSpec
-import org.ekstep.analytics.api.util.DeviceLocation
+import org.ekstep.analytics.api.util.{DeviceLocation, H2DBUtil, PostgresDBUtil, RedisUtil}
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.mockito.Mockito._
 
@@ -13,8 +13,11 @@ class TestDeviceRegisterService extends BaseSpec {
   val deviceRegisterServiceMock: DeviceRegisterService = mock[DeviceRegisterService]
   private implicit val system: ActorSystem = ActorSystem("device-register-test-actor-system", config)
   private val configMock = mock[Config]
+  private val redisUtilMock = mock[RedisUtil]
+  private val postgresDB = mock[PostgresDBUtil]
+  private val H2DB = mock[H2DBUtil]
   val saveMetricsActor = TestActorRef(new SaveMetricsActor)
-  private val deviceRegisterService = TestActorRef(new DeviceRegisterService(saveMetricsActor, configMock)).underlyingActor
+  private val deviceRegisterService = TestActorRef(new DeviceRegisterService(saveMetricsActor, configMock, redisUtilMock, postgresDB, H2DB)).underlyingActor
 
   val request: String =
     s"""
@@ -76,7 +79,7 @@ class TestDeviceRegisterService extends BaseSpec {
   }
 
 
-  "Optional fields in the device register request " should " be skipped from the log" in {
+  "Optional fields in request" should " be skipped from the log" in {
 
     val deviceLocation = DeviceLocation("Asia", "IN", "India", "KA", "Karnataka", "", "Bangalore", "KARNATAKA", "29", "BANGALORE")
     val deviceId = "test-device-1"
@@ -89,11 +92,10 @@ class TestDeviceRegisterService extends BaseSpec {
     val deviceProfileLog = DeviceProfileLog(device_id = deviceId, location = deviceLocation, device_spec = Some(deviceSpec), uaspec = Some(uaspec))
     val log = deviceRegisterService.generateDeviceRegistrationLogEvent(deviceProfileLog)
     val outputMap = JSONUtils.deserialize[Map[String, AnyRef]](log)
-
     // All the optional keys not present in the input request should not be written to log
     outputMap.contains("fcm_token") should be (false)
     outputMap.contains("producer_id") should be (false)
-    outputMap.contains("first_access") should be (false)
+    outputMap.contains("first_access") should be (true) // uses current time by default
   }
 
   "Resolve location" should "return location details given an IP address" in {
