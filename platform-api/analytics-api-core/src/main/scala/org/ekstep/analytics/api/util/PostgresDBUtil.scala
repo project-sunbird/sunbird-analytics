@@ -1,9 +1,13 @@
 package org.ekstep.analytics.api.util
 
+import java.sql.Connection
+
 import com.typesafe.config.{Config, ConfigFactory}
 import scalikejdbc._
+import javax.inject._
 
-object PostgresDBUtil {
+@Singleton
+class PostgresDBUtil {
 
     implicit val config: Config = ConfigFactory.load()
     private lazy val db = config.getString("postgres.db")
@@ -19,7 +23,7 @@ object PostgresDBUtil {
     def read(sqlString: String): List[ConsumerChannel] = {
         SQL(sqlString).map(rs => ConsumerChannel(rs)).list().apply()
     }
-    
+
     def readLocation(sqlString: String): List[DeviceLocation] = {
         SQL(sqlString).map(rs => DeviceLocation(rs)).list().apply()
     }
@@ -34,6 +38,21 @@ object PostgresDBUtil {
 
     def executeQuery(sqlString: String) = {
         SQL(sqlString)
+    }
+
+    def checkConnection = {
+        try {
+            val conn = ConnectionPool.borrow()
+            conn match {
+                case c: Connection => {
+                    conn.close()
+                    true
+                }
+                case _ => false
+            }
+        } catch {
+            case ex: Exception => false
+        }
     }
 }
 

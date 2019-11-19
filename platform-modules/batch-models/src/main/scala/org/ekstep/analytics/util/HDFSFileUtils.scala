@@ -25,6 +25,28 @@ class HDFSFileUtils(classNameStr: String, jobLogger: JobLogger.type ) {
     val dir = new File(dirName)
     purgeDirectory(dir)
   }
+  
+  // Gets first level sub-directories
+  def getSubdirectories(dirName: String): List[File] = {
+      val file = new File(dirName)
+      if (file.exists && file.isDirectory) {
+          val files = file.listFiles.filter(_.isDirectory).toList
+          files
+      } else if (file.exists && file.isFile) {
+        List[File](file)
+      } else {
+          List[File]();
+      }
+  }
+  
+  def renameDirectory(oldName: String, newName: String) {
+    val oldDir = new File(oldName)
+    if (oldDir.isDirectory()) {
+      oldDir.renameTo(new File(newName))
+      jobLogger.log(s"Renamed $oldName to $newName")
+      println(s"Renamed $oldName to $newName")
+    }
+  }
 
   def renameReport(tempDir: String, outDir: String, fileExt: String, fileNameSuffix: String = null) = {
     val regex = """\=.*/""".r // example path "somepath/partitionFieldName=12313144/part-0000.csv"

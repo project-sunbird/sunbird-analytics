@@ -1,7 +1,7 @@
 package org.ekstep.analytics.api.service
 
 import akka.actor.Actor
-import com.typesafe.config.Config
+import com.typesafe.config.ConfigFactory
 import org.apache.logging.log4j.LogManager
 import org.ekstep.analytics.api.util.JSONUtils
 
@@ -16,11 +16,12 @@ case object IncrementLogDeviceRegisterSuccessCount
 case object IncrementDeviceDbSaveSuccessCount
 case object IncrementDeviceDbSaveErrorCount
 
-import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
 
-class SaveMetricsActor(config: Config) extends Actor {
+class SaveMetricsActor extends Actor {
 
+  val config = ConfigFactory.load()
   private val logger = LogManager.getLogger("metrics-logger")
 
   private var apiCalls: Int = 0

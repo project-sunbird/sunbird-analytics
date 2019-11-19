@@ -11,7 +11,9 @@ import org.ekstep.analytics.api._
 import scala.annotation.tailrec
 import org.apache.commons.lang3.StringUtils
 import com.google.common.collect._
+import javax.inject.Inject
 import scalikejdbc._
+import javax.inject._
 
 import scala.util.Try
 
@@ -23,8 +25,10 @@ case class LanguageResult(languages: Array[Map[String, AnyRef]])
 
 case class LanguageResponse(id: String, ver: String, ts: String, params: Params, responseCode: String, result: LanguageResult)
 
-// TODO: Need to refactor this file. Reduce case classes, combine objects. Proper error handling. 
-object CacheUtil {
+// TODO: Need to refactor this file. Reduce case classes, combine objects. Proper error handling.
+
+@Singleton
+class CacheUtil @Inject()(postgresDB: PostgresDBUtil, H2DB: H2DBUtil) {
 
   implicit val className = "org.ekstep.analytics.api.util.CacheUtil"
 
@@ -56,7 +60,7 @@ object CacheUtil {
 
     val sql = s"select * from $tableName"
     Try {
-      PostgresDBUtil.read(sql).map {
+      postgresDB.read(sql).map {
         consumerChannel =>
           consumerChannelTable.put(consumerChannel.consumerId, consumerChannel.channel, consumerChannel.status)
       }
@@ -79,38 +83,38 @@ object CacheUtil {
     val createCityTableQuery = s"CREATE TABLE IF NOT EXISTS $geoLocationCityTableName(geoname_id INTEGER UNIQUE, subdivision_1_name VARCHAR(100), subdivision_2_custom_name VARCHAR(100));"
     val createRangeTableQuery = s"CREATE TABLE IF NOT EXISTS $geoLocationCityIpv4TableName(network_start_integer BIGINT, network_last_integer BIGINT, geoname_id INTEGER);"
 
-    H2DBUtil.executeQuery(createCityTableQuery)
-    H2DBUtil.executeQuery(createRangeTableQuery)
-    H2DBUtil.executeQuery(truncateCityTableQuery)
-    H2DBUtil.executeQuery(truncateRangeTableQuery)
+    H2DB.executeQuery(createCityTableQuery)
+    H2DB.executeQuery(createRangeTableQuery)
+    H2DB.executeQuery(truncateCityTableQuery)
+    H2DB.executeQuery(truncateRangeTableQuery)
 
     val cityQuery = s"select geoname_id,subdivision_1_name,subdivision_2_custom_name from $geoLocationCityTableName"
     val rangeQuery = s"select network_start_integer, network_last_integer, geoname_id from $geoLocationCityIpv4TableName"
     Try {
-      val locCityData = PostgresDBUtil.readGeoLocationCity(cityQuery)
+      val locCityData = postgresDB.readGeoLocationCity(cityQuery)
       locCityData.map{
         loc =>
           val insertQuery = s"INSERT INTO $geoLocationCityTableName(geoname_id, subdivision_1_name, subdivision_2_custom_name) VALUES (${loc.geoname_id}, '${loc.subdivision_1_name}', '${loc.subdivision_2_custom_name}')"
-          H2DBUtil.executeQuery(insertQuery)
+          H2DB.executeQuery(insertQuery)
       }
 
-      val locRangeData = PostgresDBUtil.readGeoLocationRange(rangeQuery)
+      val locRangeData = postgresDB.readGeoLocationRange(rangeQuery)
       locRangeData.map{
         loc =>
           val insertQuery = s"INSERT INTO $geoLocationCityIpv4TableName(network_start_integer, network_last_integer, geoname_id) VALUES (${loc.network_start_integer}, ${loc.network_last_integer}, ${loc.geoname_id})"
-          H2DBUtil.executeQuery(insertQuery)
+          H2DB.executeQuery(insertQuery)
       }
 
       // checking row counts in h2 database after refreshing
       val countCityTableQuery = s"Select count(*) AS count from $geoLocationCityTableName"
-      val cityTableCount = H2DBUtil.execute(countCityTableQuery)
+      val cityTableCount = H2DB.execute(countCityTableQuery)
       var h2CityTableCount = 0L
       while (cityTableCount.next()) {
-          h2CityTableCount = cityTableCount.getLong("count")
+        h2CityTableCount = cityTableCount.getLong("count")
       }
 
       val countRangeTableQuery = s"Select count(*) AS count from $geoLocationCityIpv4TableName"
-      val rangeTableCount = H2DBUtil.execute(countRangeTableQuery)
+      val rangeTableCount = H2DB.execute(countRangeTableQuery)
       var h2RangeTableCount = 0L
       while (rangeTableCount.next()) {
         h2RangeTableCount = rangeTableCount.getLong("count")

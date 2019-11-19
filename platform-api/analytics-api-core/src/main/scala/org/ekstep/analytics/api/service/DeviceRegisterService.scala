@@ -1,14 +1,14 @@
 package org.ekstep.analytics.api.service
 
-import org.ekstep.analytics.api.util._
-import org.joda.time.DateTime
-import org.joda.time.DateTimeZone
 import akka.actor.{Actor, ActorRef}
 import com.google.common.net.InetAddresses
-import com.typesafe.config.Config
 import com.google.common.primitives.UnsignedInts
+import com.typesafe.config.Config
 import is.tagomor.woothee.Classifier
+import javax.inject.{Inject, Named}
 import org.apache.logging.log4j.LogManager
+import org.ekstep.analytics.api.util.{DeviceStateDistrict, H2DBUtil, _}
+import org.joda.time.{DateTime, DateTimeZone}
 import org.postgresql.util.PSQLException
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.exceptions.JedisConnectionException
@@ -22,7 +22,13 @@ case class GetDeviceProfile(did: String, headerIP: String)
 case class DeviceProfile(userDeclaredLocation: Option[Location], ipLocation: Option[Location])
 case class Location(state: String, district: String)
 
-class DeviceRegisterService(saveMetricsActor: ActorRef, config: Config, redisUtil: RedisUtil ) extends Actor {
+class DeviceRegisterService @Inject()(
+                                       @Named("save-metrics-actor") saveMetricsActor: ActorRef,
+                                       config: Config,
+                                       redisUtil: RedisUtil,
+                                       postgresDB: PostgresDBUtil,
+                                       H2DB : H2DBUtil
+                                     ) extends Actor {
 
     implicit val ec: ExecutionContext = context.system.dispatchers.lookup("device-register-actor")
     implicit val className: String ="DeviceRegisterService"
@@ -32,6 +38,17 @@ class DeviceRegisterService(saveMetricsActor: ActorRef, config: Config, redisUti
     val deviceDatabaseIndex: Int = config.getInt("redis.deviceIndex")
     implicit val jedisConnection: Jedis = redisUtil.getConnection(deviceDatabaseIndex)
     private val logger = LogManager.getLogger("device-logger")
+
+    override def preStart { println("starting DeviceRegisterService") }
+
+    override def postStop { println("Stopping DeviceRegisterService") }
+
+    override def preRestart(reason: Throwable, message: Option[Any]) {
+      println(s"restarting DeviceRegisterActor: $message")
+      reason.printStackTrace()
+      super.preRestart(reason, message)
+    }
+
 
     def receive = {
         case deviceRegDetails: RegisterDevice =>
@@ -107,7 +124,6 @@ class DeviceRegisterService(saveMetricsActor: ActorRef, config: Config, redisUti
     }
 
     def getDeviceProfile(getProfileDetails: GetDeviceProfile): Future[Option[DeviceProfile]] = {
-
         if(getProfileDetails.headerIP.nonEmpty) {
             val ipLocationFromH2 = resolveLocationFromH2(getProfileDetails.headerIP)
 
@@ -155,7 +171,7 @@ class DeviceRegisterService(saveMetricsActor: ActorRef, config: Config, redisUti
                """.stripMargin
 
         metricsActor.tell(IncrementLocationDbHitCount, ActorRef.noSender)
-        PostgresDBUtil.readLocation(query).headOption.getOrElse(new DeviceLocation())
+        postgresDB.readLocation(query).headOption.getOrElse(new DeviceLocation())
     }
 
     def resolveLocationFromH2(ipAddress: String): DeviceStateDistrict = {
@@ -173,7 +189,7 @@ class DeviceRegisterService(saveMetricsActor: ActorRef, config: Config, redisUti
                |  AND gip.network_last_integer >= $ipAddressInt
                """.stripMargin
 
-        H2DBUtil.readLocation(query)
+      H2DB.readLocation(query)
     }
 
     def isLocationResolved(loc: DeviceLocation): Boolean = {

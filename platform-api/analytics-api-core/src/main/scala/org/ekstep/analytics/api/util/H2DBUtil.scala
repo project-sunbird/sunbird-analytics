@@ -2,10 +2,12 @@ package org.ekstep.analytics.api.util
 
 import java.sql.{Connection, DriverManager, ResultSet, SQLException}
 import scalikejdbc._
+import javax.inject._
 
 case class TestData(ID: String, NAME: String)
 
-object H2DBUtil {
+@Singleton
+class H2DBUtil {
 
     private val DB_DRIVER = "org.h2.Driver"
     private val DB_CONNECTION = "jdbc:h2:mem:test;MODE=MYSQL"

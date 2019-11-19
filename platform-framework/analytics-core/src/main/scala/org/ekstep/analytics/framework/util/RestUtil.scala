@@ -1,15 +1,11 @@
 package org.ekstep.analytics.framework.util
 
-import org.apache.http.NameValuePair
-import org.apache.http.client.entity.UrlEncodedFormEntity
 import org.apache.http.client.methods._
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.HttpClients
-import org.apache.http.message.BasicNameValuePair
 import org.ekstep.analytics.framework.Level._
 
 import scala.io.Source
-
 
 trait HTTPClient {
     def get[T](apiURL: String)(implicit mf: Manifest[T]): T

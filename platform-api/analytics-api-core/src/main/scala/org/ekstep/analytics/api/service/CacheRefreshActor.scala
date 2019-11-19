@@ -1,15 +1,18 @@
 package org.ekstep.analytics.api.service
 
 import akka.actor.Actor
-import com.typesafe.config.Config
+import com.typesafe.config.{Config, ConfigFactory}
+import javax.inject.Inject
 import org.apache.logging.log4j.LogManager
 import org.ekstep.analytics.api.util.{CacheUtil, DeviceLocation}
-import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
 
-class CacheRefreshActor(config: Config) extends Actor {
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
+
+class CacheRefreshActor @Inject()(cacheUtil: CacheUtil) extends Actor {
 
     private val logger = LogManager.getLogger("cache-refresh-logger")
+    implicit val config: Config = ConfigFactory.load()
 
     override def preStart(): Unit = {
         val cacheRefreshInterval: Int = config.getInt("cache.refresh.time.interval.min")
@@ -17,6 +20,6 @@ class CacheRefreshActor(config: Config) extends Actor {
     }
 
     def receive = {
-        case DeviceLocation => CacheUtil.initDeviceLocationCache()(config)
+        case DeviceLocation => cacheUtil.initDeviceLocationCache()
     }
 }

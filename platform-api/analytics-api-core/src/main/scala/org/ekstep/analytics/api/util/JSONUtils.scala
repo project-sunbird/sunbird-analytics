@@ -1,16 +1,11 @@
 package org.ekstep.analytics.api.util
 
-import java.lang.reflect.ParameterizedType
-import java.lang.reflect.Type
-import org.json4s.DefaultFormats
-import org.json4s.Extraction
-import org.json4s.jackson.JsonMethods
-import com.fasterxml.jackson.core.`type`.TypeReference
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.scala.DefaultScalaModule
+import java.lang.reflect.{ParameterizedType, Type}
+
 import com.fasterxml.jackson.annotation.JsonInclude.Include
-import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.core.`type`.TypeReference
+import com.fasterxml.jackson.databind.{DeserializationFeature, ObjectMapper, SerializationFeature}
+import com.fasterxml.jackson.module.scala.DefaultScalaModule
 
 /**
  * @author Santhosh
