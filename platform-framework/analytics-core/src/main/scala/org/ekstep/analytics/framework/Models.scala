@@ -61,18 +61,7 @@ class ProfileData(val eks: ProfileEks, val ext: Ext) extends Serializable {}
 @scala.beans.BeanInfo
 class ProfileEvent(val eid: String, val ts: String, val `@timestamp`: String, val ver: String, val gdata: GData, val sid: String, val uid: String, val did: String, val pdata: Option[PData] = None, val channel: Option[String] = None, val edata: ProfileData) extends Input with AlgoInput with Serializable {}
 
-
-// V3 User profile event models
-@scala.beans.BeanInfo
-//class V3ProfileState(val ueksid: String, val utype: String, val loc: String, val err: String, val attrs: Array[AnyRef], val uid: String, val age: Option[Int], val day: Int, val month: Int, val gender: String, val language: String, val standard: Option[Int], val is_group_user: Option[Boolean], val dspec: Map[String, AnyRef]) extends Serializable {}
-class V3AuditEata(val props: String, val state: AnyRef, val prevstate: String) extends Serializable {}
-@scala.beans.BeanInfo
-class V3ProfileEvent(val eid: String, val ets: Long, val `@timestamp`: String, val ver: String, val mid: String, val actor: Actor, val context: V3Context, val `object`: Option[V3Object], val edata: V3AuditEata, val tags: List[AnyRef] = null) extends Input with AlgoInput with Serializable {}
-// Learner Profile
-case class LearnerProfile(learner_id: String, app_id: String, channel: String, did: String, gender: Option[String], language: Option[String], loc: Option[String], standard: Int, age: Int, year_of_birth: Int, group_user: Boolean, anonymous_user: Boolean, created_date: Option[DateTime], updated_date: Option[DateTime]) extends Output with AlgoOutput;
-
 // User Model
-case class User(name: String, encoded_id: String, ekstep_id: String, gender: String, dob: Date, language_id: Int)
 case class UserProfile(uid: String, gender: String, age: Int)
 
 // Analytics Framework Job Models
@@ -129,33 +118,11 @@ case class ItemConcept(concepts: Array[String], maxScore: Int)
 case class Content(id: String, metadata: Map[String, AnyRef], tags: Option[Array[String]], concepts: Array[String])
 case class Game(identifier: String, code: String, subject: String, objectType: String)
 
-// Domain Models
-case class Concept(id: String, metadata: Map[String, AnyRef], tags: Option[Array[String]])
-case class DomainRelation(startNodeId: String, endNodeId: String, startNodeType: String, endNodeType: String, relationType: String)
-case class DomainMap(concepts: Array[Concept], relations: Array[DomainRelation])
-case class DomainResult(concepts: Array[Map[String, AnyRef]], relations: Array[DomainRelation])
-case class DomainResponse(id: String, ver: String, ts: String, params: Params, responseCode: String, result: DomainResult)
 
 // Common models for all data products
-case class LearnerProfileIndex(learner_id: String, app_id: String, channel: String)
-case class ContentId(content_id: String)
-case class ContentMetrics(id: String, top_k_timespent: Map[String, Double], top_k_sessions: Map[String, Long])
-
 case class Empty() extends Input with AlgoInput with AlgoOutput with Output
-case class UpdaterOutput(msg: String) extends Output
-case class ContentKey(period: Int, app_id: String, channel: String, content_id: String, tag: String)
-case class GenieKey(period: Int, app_id: String, channel: String, tag: String)
-case class ItemKey(period: Int, app_id: String, channel: String, tag: String, content_id: String, item_id: String)
-case class InCorrectRes(resp: String, mmc: List[String], count: Int) extends Input with AlgoInput
-case class Misconception(value: String, count: Int) extends Input with AlgoInput
 case class RegisteredTag(tag_id: String, last_updated: Long, active: Boolean)
 trait CassandraTable extends AnyRef with Serializable
-
-/* Neo4j case classes */
-case class DataNode(identifier: String, metadata: Option[Map[String, AnyRef]] = Option(Map()), labels: Option[List[String]] = Option(List())) extends Serializable
-case class Relation(startNode: DataNode, endNode: DataNode, relation: String, direction: String, metadata: Option[Map[String, AnyRef]] = Option(Map())) extends Serializable
-case class UpdateDataNode(identifier: String, propertyName: String, propertyValue: AnyRef, metadata: Option[Map[String, AnyRef]] = Option(Map()), labels: Option[List[String]] = Option(List())) extends Serializable
-case class Job_Config(category: String, config_key: String, config_value: Map[String, List[String]])
 
 /* Data Exhaust*/
 case class DataSet(events: List[String], eventConfig: Map[String, EventId])
@@ -249,18 +216,14 @@ class V3Event(val eid: String, val ets: Long, val `@timestamp`: String, val ver:
 @scala.beans.BeanInfo
 case class V3DerivedEvent(eid: String, ets: Long, `@timestamp`: String, ver: String, mid: String, actor: Actor, context: V3Context, `object`: Option[V3Object], edata: AnyRef, tags: List[AnyRef] = null)
 
-@scala.beans.BeanInfo
-case class PipelineMetric (`cache-hit-count`: Double = 0d, `db-hit-count`: Double = 0d, `success-message-count`: Double = 0d,
-                           `user-db-hit-count`: Double = 0d, `cache-empty-ues-count`: Double = 0d, `user-db-error-count`: Double = 0d,
-                           `failed-message-count`: Double = 0d, `unprocessed-message-count`: Double = 0d, `expired-event-count`: Double = 0d,
-                           `duplicate-event-count`: Double = 0d, partition: Double = 0d, `processed-message-count`: Double = 0d,
-                           `cache-miss-count`: Double = 0d, `cache-expired-count`: Double = 0d, `device-db-error-count`: Double = 0d,
-                           `job-name`: String, `cache-error-count`: Double = 0d, `error-message-count`: Double = 0d, `user-cache-hit-count`: Double = 0d,
-                           `skipped-message-count`: Double = 0d, metricts: Double = 0d, `consumer-lag`: Double = 0d,
-                           `device-db-hit-count`: Double = 0d, `db-error-count`: Double = 0d, `device-cache-hit-count`: Double = 0d,
-                           `batch-success-count`: Double = 0d, `batch-error-count`: Double = 0d,
-                           `primary-route-success-count`: Double = 0d, `secondary-route-success-count`: Double = 0d) extends CaseClassConversions
-
 // Experiment Models
 @scala.beans.BeanInfo
 case class DeviceProfileModel(device_id: Option[String], state: Option[String], city: Option[String], first_access: Option[Date])
+
+case class GraphUpdateEvent(ets: Long, nodeUniqueId: String, transactionData: Map[String, Map[String, Map[String, Any]]], objectType: String, operationType: String = "UPDATE", nodeType: String = "DATA_NODE", graphId: String = "domain", nodeGraphId: Int = 0) extends AlgoOutput with Output
+
+// WFS Models
+case class ItemResponse(itemId: String, itype: Option[AnyRef], ilevel: Option[AnyRef], timeSpent: Option[Double], exTimeSpent: Option[AnyRef], res: Option[Array[String]], resValues: Option[Array[AnyRef]], exRes: Option[AnyRef], incRes: Option[AnyRef], mc: Option[AnyRef], mmc: Option[AnyRef], score: Int, time_stamp: Long, maxScore: Option[AnyRef], domain: Option[AnyRef], pass: String, qtitle: Option[String], qdesc: Option[String]);
+case class EventSummary(id: String, count: Int)
+case class EnvSummary(env: String, time_spent: Double, count: Long)
+case class PageSummary(id: String, `type`: String, env: String, time_spent: Double, visit_count: Long)

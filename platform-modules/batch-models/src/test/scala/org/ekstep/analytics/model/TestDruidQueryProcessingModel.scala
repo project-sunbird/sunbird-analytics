@@ -6,7 +6,7 @@ import org.ekstep.analytics.framework.util.JSONUtils
 
 class TestDruidQueryProcessingModel extends SparkSpec(null) {
 
-    "DruidQueryProcessingModel" should "execute multiple queries and generate csv reports on multiple dimensions with dynamic interval" in {
+    ignore should "execute multiple queries and generate csv reports on multiple dimensions with dynamic interval" in {
         val scansQuery = DruidQueryModel("groupBy", "telemetry-events", "LastDay", None, Option(List(Aggregation(Option("total_scans"), "count", ""))), Option(List(DruidDimension("device_loc_state", Option("state")), DruidDimension("context_pdata_id", Option("producer_id")))), Option(List(DruidFilter("greaterThan", "edata_size", Option(0.asInstanceOf[AnyRef])),DruidFilter("equals", "eid", Option("SEARCH")))))
         val contentPlaysQuery = DruidQueryModel("groupBy", "summary-events", "LastDay", None, Option(List(Aggregation(Option("total_sessions"), "count", ""),Aggregation(Option("total_ts"), "doubleSum", "edata_time_spent"))), Option(List(DruidDimension("device_loc_state", Option("state")), DruidDimension("dimensions_pdata_id", Option("producer_id")))), Option(List(DruidFilter("in", "dimensions_pdata_id", None, Option(List("prod.diksha.app", "prod.diksha.portal"))),DruidFilter("in", "dimensions_type", None, Option(List("content", "app"))))))
         val reportConfig = ReportConfig("consumption_usage_metrics", "groupBy", QueryDateRange(Option(QueryInterval("2019-08-01", "2019-08-05")), None, Option("day")), List(Metrics("totalSuccessfulScans", "Total Scans", scansQuery), Metrics("totalSessions/totalContentPlays", "Total ContentPlay Sessions", contentPlaysQuery)), Map("state" -> "State", "producer_id" -> "Producer", "total_scans" -> "Number of Successful QR Scans", "total_sessions" -> "Number of Content Plays", "total_ts" -> "Content Play Time"), List(OutputConfig("csv", None, List("total_scans", "total_sessions", "total_ts"), List("state", "producer_id"), List("id", "dims", "date"))))
@@ -33,7 +33,7 @@ class TestDruidQueryProcessingModel extends SparkSpec(null) {
         DruidQueryProcessingModel.execute(sc.emptyRDD, Option(modelParams));
     }
 
-    it should "throw exception if query has different dimensions" in {
+    ignore should "throw exception if query has different dimensions" in {
         val scansQuery = DruidQueryModel("groupBy", "telemetry-events", "LastDay", Option("day"), Option(List(Aggregation(Option("total_scans"), "count", ""))), Option(List(DruidDimension("device_loc_city", Option("city")), DruidDimension("context_pdata_id", Option("producer_id")))), Option(List(DruidFilter("greaterThan", "edata_size", Option(0.asInstanceOf[AnyRef])),DruidFilter("equals", "eid", Option("SEARCH")))))
         val contentPlaysQuery = DruidQueryModel("groupBy", "summary-events", "LastDay", Option("all"), Option(List(Aggregation(Option("total_sessions"), "count", ""),Aggregation(Option("total_ts"), "doubleSum", "edata_time_spent"))), Option(List(DruidDimension("device_loc_state", Option("state")), DruidDimension("dimensions_pdata_id", Option("producer_id")))), Option(List(DruidFilter("in", "dimensions_pdata_id", None, Option(List("prod.diksha.app", "prod.diksha.portal"))),DruidFilter("in", "dimensions_type", None, Option(List("content", "app"))))))
         val reportConfig = ReportConfig("usage_metrics", "groupBy", QueryDateRange(None, Option("LastDay"), Option("all")), List(Metrics("totalSuccessfulScans", "Total Scans", scansQuery), Metrics("totalSessions/totalContentPlays", "Total ContentPlay Sessions", contentPlaysQuery)), Map("state" -> "State", "producer_id" -> "Producer", "total_scans" -> "Number of Successful QR Scans", "total_sessions" -> "Number of Content Plays", "total_ts" -> "Content Play Time"), List(OutputConfig("json", None, List("total_scans", "total_sessions", "total_ts"), List("state", "producer_id"))))
@@ -45,7 +45,7 @@ class TestDruidQueryProcessingModel extends SparkSpec(null) {
         }
     }
 
-    it should "throw exception if query does not have intervals" in {
+    ignore should "throw exception if query does not have intervals" in {
         val scansQuery = DruidQueryModel("groupBy", "telemetry-events", "LastDay", Option("day"), Option(List(Aggregation(Option("total_scans"), "count", ""))), Option(List(DruidDimension("device_loc_state", Option("state")), DruidDimension("context_pdata_id", Option("producer_id")))), Option(List(DruidFilter("greaterThan", "edata_size", Option(0.asInstanceOf[AnyRef])),DruidFilter("equals", "eid", Option("SEARCH")))))
         val contentPlaysQuery = DruidQueryModel("groupBy", "summary-events", "LastDay", Option("all"), Option(List(Aggregation(Option("total_sessions"), "count", ""),Aggregation(Option("total_ts"), "doubleSum", "edata_time_spent"))), Option(List(DruidDimension("device_loc_state", Option("state")), DruidDimension("dimensions_pdata_id", Option("producer_id")))), Option(List(DruidFilter("in", "dimensions_pdata_id", None, Option(List("prod.diksha.app", "prod.diksha.portal"))),DruidFilter("in", "dimensions_type", None, Option(List("content", "app"))))))
         val reportConfig = ReportConfig("usage_metrics", "groupBy", QueryDateRange(None, None, Option("all")), List(Metrics("totalSuccessfulScans", "Total Scans", scansQuery), Metrics("totalSessions/totalContentPlays", "Total ContentPlay Sessions", contentPlaysQuery)), Map("state" -> "State", "producer_id" -> "Producer", "total_scans" -> "Number of Successful QR Scans", "total_sessions" -> "Number of Content Plays", "total_ts" -> "Content Play Time"), List(OutputConfig("json", None, List("total_scans", "total_sessions", "total_ts"), List("state", "producer_id"))))
@@ -79,7 +79,7 @@ class TestDruidQueryProcessingModel extends SparkSpec(null) {
     it should "execute weekly report for successful QR Scans and generate csv reports" in {
 //        val totalQRscansQuery = DruidQueryModel("timeSeries", "telemetry-events", "LastDay", None, Option(List(Aggregation(Option("total_scans"), "count", ""))), None, Option(List(DruidFilter("isnotnull", "edata_filters_dialcodes", None),DruidFilter("equals", "eid", Option("SEARCH")))))
         val totalSuccessfulQRScansQuery = DruidQueryModel("timeSeries", "telemetry-events", "LastDay", None, Option(List(Aggregation(Option("total_successful_scans"), "count", ""))), None, Option(List(DruidFilter("isnotnull", "edata_filters_dialcodes", None),DruidFilter("equals", "eid", Option("SEARCH")), DruidFilter("greaterthan", "edata_size", Option(0.asInstanceOf[AnyRef])))))
-//        val totalFailedQRScansQuery = DruidQueryModel("timeSeries", "telemetry-events", "LastDay", None, Option(List(Aggregation(Option("total_failed_scans"), "count", ""))), None, Option(List(DruidFilter("isnotnull", "edata_filters_dialcodes", None),DruidFilter("equals", "eid", Option("SEARCH")), DruidFilter("equals", "edata_size", Option("0".asInstanceOf[AnyRef])))))
+        val totalFailedQRScansQuery = DruidQueryModel("timeSeries", "telemetry-events", "LastDay", None, Option(List(Aggregation(Option("total_failed_scans"), "count", ""))), None, Option(List(DruidFilter("isnotnull", "edata_filters_dialcodes", None),DruidFilter("equals", "eid", Option("SEARCH")), DruidFilter("equals", "edata_size", Option("0".asInstanceOf[AnyRef])))))
 
         val totalPercentFailedQRScansQuery = DruidQueryModel("timeSeries", "telemetry-events", "LastDay", None, Option(List(Aggregation(Option("total_failed_scans"),"javascript","edata_size",Option("function(current, edata_size) { return current + (edata_size == 0 ? 1 : 0); }"),Option("function(partialA, partialB) { return partialA + partialB; }"),Option("function () { return 0; }")), Aggregation(Option("total_scans"), "count", ""))), None, Option(List(DruidFilter("isnotnull", "edata_filters_dialcodes", None),DruidFilter("equals", "eid", Option("SEARCH")))), None, Option(List(PostAggregation("javascript", "total_percent_failed_scans", PostAggregationFields("total_failed_scans", "total_scans"), "function(total_failed_scans, total_scans) { return (total_failed_scans/total_scans) * 100}"))))
 
@@ -92,8 +92,8 @@ class TestDruidQueryProcessingModel extends SparkSpec(null) {
             List(
 //                Metrics("totalQRScans", "Total Scans", totalQRscansQuery),
                 Metrics("totalSuccessfulScans", "Total Successful QR Scans", totalSuccessfulQRScansQuery),
-//                Metrics("totalFailedScans", "Total Failed QR Scans", totalFailedQRScansQuery),
-                Metrics("totalPercentFailedScans", "Total Percent Failed QR Scans", totalPercentFailedQRScansQuery),
+                Metrics("totalFailedScans", "Total Failed QR Scans", totalFailedQRScansQuery),
+//                Metrics("totalPercentFailedScans", "Total Percent Failed QR Scans", totalPercentFailedQRScansQuery),
                 Metrics("totalContentDownload", "Total Content Download", totalcontentDownloadQuery),
                 Metrics("totalContentPlayed","Total Content Played", contentPlayedQuery),
                 Metrics("totalUniqueDevices","Total Unique Devices", uniqueDevicesQuery),

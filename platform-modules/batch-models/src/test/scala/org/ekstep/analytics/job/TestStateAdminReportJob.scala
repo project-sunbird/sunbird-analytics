@@ -57,7 +57,7 @@ class TestStateAdminReportJob extends SparkSpec(null) with MockitoSugar {
   }
 
 
-  "TestUpdateStateAdminReport" should "generate reports" in {
+  ignore should "generate reports" in {
     val reportDF = StateAdminReportJob.generateReport()(spark)
 
     verify(reporterMock, times(3)).loadData(spark, Map("table" -> "shadow_user", "keyspace" -> sunbirdKeyspace), None)

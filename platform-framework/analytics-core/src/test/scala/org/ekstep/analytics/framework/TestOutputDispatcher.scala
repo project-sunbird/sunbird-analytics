@@ -3,9 +3,12 @@ package org.ekstep.analytics.framework
 import org.ekstep.analytics.framework.exception.DispatcherException
 import org.ekstep.analytics.framework.util.JSONUtils
 import java.io.File
+
 import org.ekstep.analytics.framework.util.CommonUtil
 import java.io.IOException
+
 import org.apache.kafka.common.errors.TimeoutException
+import org.ekstep.analytics.framework.dispatcher.AzureDispatcher
 
 
 /**
@@ -33,7 +36,7 @@ class TestOutputDispatcher extends SparkSpec("src/test/resources/sample_telemetr
         }
     }
     
-    it should "dispatch output to s3" in {
+    ignore should "dispatch output to s3" in {
         val output1 = Dispatcher("s3file", Map[String, AnyRef]("bucket" -> "ekstep-dev-data-store", "key" -> "output/test-log1.json", "zip" -> true.asInstanceOf[AnyRef]));
         val output2 = Dispatcher("s3file", Map[String, AnyRef]("bucket" -> "ekstep-dev-data-store", "key" -> "output/test-log2.json", "filePath" -> "src/test/resources/sample_telemetry.log"));
         noException should be thrownBy {
@@ -133,11 +136,49 @@ class TestOutputDispatcher extends SparkSpec("src/test/resources/sample_telemetr
     }
 
     it should "dispatch output to azure" in {
-        val output1 = Dispatcher("azure", Map[String, AnyRef]("bucket" -> "dev-data-store", "key" -> "output/test-dispatcher1.json", "zip" -> true.asInstanceOf[AnyRef]));
-        val output2 = Dispatcher("azure", Map[String, AnyRef]("bucket" -> "dev-data-store", "key" -> "output/test-dispatcher2.json", "filePath" -> "src/test/resources/sample_telemetry.log"));
+        val date = System.currentTimeMillis()
+        val output1 = Dispatcher("azure", Map[String, AnyRef]("bucket" -> "dev-data-store", "key" -> s"output/test-dispatcher1-$date.json", "zip" -> true.asInstanceOf[AnyRef]));
+        val output2 = Dispatcher("azure", Map[String, AnyRef]("bucket" -> "dev-data-store", "key" -> s"output/test-dispatcher2-$date.json", "filePath" -> "src/test/resources/sample_telemetry.log"));
+        val strData = events.map(f => JSONUtils.serialize(f))
         noException should be thrownBy {
             OutputDispatcher.dispatch(output1, events);
-            OutputDispatcher.dispatch(output2, events);
+            OutputDispatcher.dispatch(output2, strData.collect());
+        }
+    }
+
+    it should "dispatch directory to azure" in {
+        noException should be thrownBy {
+            AzureDispatcher.dispatchDirectory(Map[String, AnyRef]("bucket" -> "dev-data-store", "key" -> s"output/test-directory/", "dirPath" -> "src/test/resources/1234/OE_INTERACT/"));
+        }
+    }
+
+    it should "give DispatcherException if azure config is missing " in {
+        the[DispatcherException] thrownBy {
+            AzureDispatcher.dispatchDirectory(Map[String, AnyRef]("key" -> s"output/test-directory/", "dirPath" -> "src/test/resources/1234/OE_INTERACT/"));
+        } should have message "'local file path', 'bucket' & 'key' parameters are required to upload directory to azure"
+
+        the[DispatcherException] thrownBy {
+            AzureDispatcher.dispatch(Map[String, AnyRef]("key" -> s"output/test-directory/", "dirPath" -> "src/test/resources/1234/OE_INTERACT/"), events.map(f => JSONUtils.serialize(f)));
+        } should have message "'bucket' & 'key' parameters are required to send output to azure"
+
+        the[DispatcherException] thrownBy {
+            AzureDispatcher.dispatch(events.map(f => JSONUtils.serialize(f)).collect(), Map[String, AnyRef]("key" -> s"output/test-directory/", "dirPath" -> "src/test/resources/1234/OE_INTERACT/"));
+        } should have message "'bucket' & 'key' parameters are required to send output to azure"
+    }
+
+    it should "dispatch output to elastic-search" in {
+        val eventsInString = events.map{x => JSONUtils.serialize(x)}
+        val output1 = Dispatcher("elasticsearch", Map[String, AnyRef]("index" -> "test_index"));
+        noException should be thrownBy {
+            OutputDispatcher.dispatch(output1, eventsInString);
+        }
+    }
+
+    it should "throw exception while dispatching output to elastic-search" in {
+        val eventsInString = events.map{x => JSONUtils.serialize(x)}
+        val output1 = Dispatcher("elasticsearch", Map[String, AnyRef]());
+        a[DispatcherException] should be thrownBy {
+            OutputDispatcher.dispatch(output1, eventsInString);
         }
     }
     
