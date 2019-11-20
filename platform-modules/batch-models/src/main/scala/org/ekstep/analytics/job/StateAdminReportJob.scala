@@ -213,8 +213,8 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
       .select(
         col("channel"),
         col("name").as("Name"),
-        col("userextid").as("User external id"),
-        col("orgextid").as("School external id"),
+        col("userextid").as("External ID"),
+        col("orgextid").as("School ID"),
         when(col("userstatus") === 1, "Active")
         .when(col("userstatus") === 0,"Inactive")
         .otherwise("Unknown").as("Input status"),
@@ -222,8 +222,8 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
         .when(col("claimstatus") === 1, "Claimed")
         .when(col("claimstatus") === 2, "Rejected")
         .when(col("claimstatus") === 3, "Failed")
-        .when(col("claimstatus") === 4, "Multiple users match")
-        .when(col("claimstatus") === 5, "School external id mismatch")
+        .when(col("claimstatus") === 4, "Failed - Multiple users match")
+        .when(col("claimstatus") === 5, "Failed - School ID invalid")
         .otherwise("Invalid").as("User Action"))
       .write
       .partitionBy("channel")
