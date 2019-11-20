@@ -41,7 +41,7 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
   def main(config: String)(implicit sc: Option[SparkContext] = None) {
 
     JobLogger.init(name())
-    //JobLogger.start("Started executing", Option(Map("config" -> config, "model" -> name)))
+    JobLogger.start("Started executing", Option(Map("config" -> config, "model" -> name)))
     val jobConfig = JSONUtils.deserialize[JobConfig](config)
     JobContext.parallelization = 10
 
