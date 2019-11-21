@@ -216,6 +216,9 @@ class V3Event(val eid: String, val ets: Long, val `@timestamp`: String, val ver:
 @scala.beans.BeanInfo
 case class V3DerivedEvent(eid: String, ets: Long, `@timestamp`: String, ver: String, mid: String, actor: Actor, context: V3Context, `object`: Option[V3Object], edata: AnyRef, tags: List[AnyRef] = null)
 
+@scala.beans.BeanInfo
+case class V3MetricEdata(metric: String, value: AnyRef, range: Option[AnyRef] = None)
+
 // Experiment Models
 @scala.beans.BeanInfo
 case class DeviceProfileModel(device_id: Option[String], state: Option[String], city: Option[String], first_access: Option[Date])

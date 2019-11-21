@@ -759,4 +759,16 @@ object CommonUtil {
         GranularityType.decode(value).right.getOrElse(GranularityType.All)
     }
 
+    def getMetricEvent(params: Map[String, AnyRef], producerId: String, producerPid: String): V3DerivedEvent = {
+
+        val channel = "data-pipeline"
+        val actorId = "analytics"
+        val env = AppConf.getConfig("application.env")
+        val measures = params;
+        val ts = new DateTime().getMillis
+        val mid = CommonUtil.getMessageId("METRIC", producerId + producerPid, ts, None, None);
+        val context = V3Context(channel, Option(V3PData(producerId, Option("1.0"), Option(producerPid))), env, None, None, None, None)
+        V3DerivedEvent("METRIC", System.currentTimeMillis(), new DateTime().toString(CommonUtil.df3), "3.0", mid, Actor(actorId, "System"), context, None, measures)
+    }
+
 }
