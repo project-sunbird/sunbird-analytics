@@ -29,7 +29,7 @@ class RedisUtil {
     poolConfig
   }
 
-  private var jedisPool = new JedisPool(buildPoolConfig, redis_host, redis_port)
+  protected var jedisPool = new JedisPool(buildPoolConfig, redis_host, redis_port)
 
   def getConnection: Jedis = jedisPool.getResource
 
@@ -68,10 +68,12 @@ class RedisUtil {
     }
   }
 
+  // $COVERAGE-OFF$ cannot test this method because jedisPool cannot be mocked
   def resetConnection(): Unit = {
     jedisPool.close()
     jedisPool = new JedisPool(buildPoolConfig, redis_host, redis_port)
   }
+  // $COVERAGE-ON$
 
   def checkConnection = {
     try {

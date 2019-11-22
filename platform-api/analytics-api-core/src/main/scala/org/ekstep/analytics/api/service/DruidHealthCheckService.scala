@@ -24,11 +24,10 @@ class DruidHealthCheckService(restUtil: HTTPClient) extends Actor {
           .append(data._2).append("\n")
       }
       healthreport.toString()
-    }
-    catch {
+    } catch {
       case ex: Exception =>
         ex.printStackTrace()
-        APILogger.log("",Some("DruidHealthCheckAPI failed due to " + ex.getMessage), "DruidHealthCheck")
+        APILogger.log("DruidHealthCheckAPI failed due to " + ex.getMessage)
         healthreport.toString()
     }
   }
