@@ -225,7 +225,6 @@ class DeviceRegisterService(saveMetricsActor: ActorRef, config: Config, redisUti
 
     def getDeviceProfileMap(registrationDetails: RegisterDevice, deviceLocation: DeviceLocation): Map[String, String] = {
         // skipping firstaccess - handled in samza job
-        println(registrationDetails, deviceLocation)
         val dataMap =
             Map("devicespec" -> registrationDetails.dspec.getOrElse(""),
                 "uaspec" -> registrationDetails.uaspec.getOrElse(""),
