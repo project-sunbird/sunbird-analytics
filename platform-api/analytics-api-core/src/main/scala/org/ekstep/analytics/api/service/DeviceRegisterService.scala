@@ -97,7 +97,7 @@ class DeviceRegisterService(saveMetricsActor: ActorRef, config: Config, redisUti
 
             // Add device profile to redis cache
             val deviceProfileMap = getDeviceProfileMap(registrationDetails, location)
-            redisUtil.setAllByKey(registrationDetails.did, deviceProfileMap)
+            redisUtil.hmset(registrationDetails.did, deviceProfileMap)
             APILogger.log(s"Redis-cache updated for did: ${registrationDetails.did}", None, "registerDevice")
 
             val deviceProfileLog = DeviceProfileLog(registrationDetails.did, location, Option(deviceSpec),
@@ -227,8 +227,7 @@ class DeviceRegisterService(saveMetricsActor: ActorRef, config: Config, redisUti
         // skipping firstaccess - handled in samza job
         println(registrationDetails, deviceLocation)
         val dataMap =
-            Map("device_id" -> registrationDetails.did,
-                "devicespec" -> registrationDetails.dspec.getOrElse(""),
+            Map("devicespec" -> registrationDetails.dspec.getOrElse(""),
                 "uaspec" -> registrationDetails.uaspec.getOrElse(""),
                 "fcm_token" -> registrationDetails.fcmToken.getOrElse(""),
                 "producer" -> registrationDetails.producer.getOrElse(""),

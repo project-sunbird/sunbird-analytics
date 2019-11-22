@@ -65,7 +65,7 @@ class RedisUtil {
       }
   }
 
-  def setAllByKey(key: String, dataMap: Map[String, String])(implicit jedisConnection: Jedis): Unit = {
+  def hmset(key: String, dataMap: Map[String, String])(implicit jedisConnection: Jedis): Unit = {
     try {
       Option(jedisConnection.hmset(key, dataMap.asJava))
     } catch {

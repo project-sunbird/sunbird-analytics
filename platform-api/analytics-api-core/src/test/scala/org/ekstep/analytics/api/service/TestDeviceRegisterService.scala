@@ -189,7 +189,6 @@ class TestDeviceRegisterService extends BaseSpec {
       .thenReturn(dataMap)
 
     val deviceDataMap = deviceRegisterServiceMock.getDeviceProfileMap(register, location)
-    deviceDataMap.get("device_id").get should be("test-device")
     deviceDataMap.get("user_declared_state").get should be("Karnataka")
     deviceDataMap.get("user_declared_district").get should be("BANGALORE")
     deviceDataMap.get("devicespec").isEmpty should be(true)
