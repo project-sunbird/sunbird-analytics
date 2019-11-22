@@ -180,4 +180,18 @@ class TestDeviceRegisterService extends BaseSpec {
     val deviceLocation = redisUtil.getAllByKey("test-device")
     deviceLocation.isEmpty should be(true)
   }
+
+  "Device Register" should "get device profile map which will be saved to redis" in {
+    val register = RegisterDevice("test-device", "106.51.74.185", None, None, None, Option(""), None, None, Option("Karnataka"), Option("BANGALORE"))
+    val location = new DeviceLocation()
+    val dataMap = Map("device_id" -> "test-device", "devicespec" -> "", "user_declared_state" -> "Karnataka", "user_declared_district" -> "BANGALORE").filter(f => (f._2.nonEmpty))
+    when(deviceRegisterServiceMock.getDeviceProfileMap(register, location))
+      .thenReturn(dataMap)
+
+    val deviceDataMap = deviceRegisterServiceMock.getDeviceProfileMap(register, location)
+    deviceDataMap.get("device_id").get should be("test-device")
+    deviceDataMap.get("user_declared_state").get should be("Karnataka")
+    deviceDataMap.get("user_declared_district").get should be("BANGALORE")
+    deviceDataMap.get("devicespec").isEmpty should be(true)
+  }
 }

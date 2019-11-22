@@ -95,6 +95,11 @@ class DeviceRegisterService(saveMetricsActor: ActorRef, config: Config, redisUti
                 case None => Map()
             }
 
+            // Add device profile to redis cache
+            val deviceProfileMap = getDeviceProfileMap(registrationDetails, location)
+            redisUtil.setAllByKey(registrationDetails.did, deviceProfileMap)
+            APILogger.log(s"Redis-cache updated for did: ${registrationDetails.did}", None, "registerDevice")
+
             val deviceProfileLog = DeviceProfileLog(registrationDetails.did, location, Option(deviceSpec),
               registrationDetails.uaspec, registrationDetails.fcmToken, registrationDetails.producer, registrationDetails.first_access,
               registrationDetails.user_declared_state, registrationDetails.user_declared_district)
@@ -216,6 +221,21 @@ class DeviceRegisterService(saveMetricsActor: ActorRef, config: Config, redisUti
             "user_declared_district" -> result.user_declared_district
           )
         JSONUtils.serialize(deviceProfile)
+    }
+
+    def getDeviceProfileMap(registrationDetails: RegisterDevice, deviceLocation: DeviceLocation): Map[String, String] = {
+        // skipping firstaccess - handled in samza job
+        println(registrationDetails, deviceLocation)
+        val dataMap =
+            Map("device_id" -> registrationDetails.did,
+                "devicespec" -> registrationDetails.dspec.getOrElse(""),
+                "uaspec" -> registrationDetails.uaspec.getOrElse(""),
+                "fcm_token" -> registrationDetails.fcmToken.getOrElse(""),
+                "producer" -> registrationDetails.producer.getOrElse(""),
+                "user_declared_state" -> registrationDetails.user_declared_state.getOrElse(""),
+                "user_declared_district" -> registrationDetails.user_declared_district.getOrElse(""))
+
+        (dataMap ++ deviceLocation.toMap()).filter(f => (f._2.nonEmpty))
     }
 
 }
