@@ -41,6 +41,11 @@ case class DeviceLocation(continentName: String, countryCode: String, countryNam
                           state: String, subDivsion2: String, city: String,
                           stateCustom: String, stateCodeCustom: String, districtCustom: String) {
     def this() = this("", "", "", "", "", "", "","","","")
+
+    def toMap() = Map("continent_name" -> continentName,
+        "country_code" -> countryCode, "country_name" -> countryName, "state_code" -> stateCode,
+        "state" -> state, "city" -> city, "state_custom" -> stateCustom, "state_code_custom" -> stateCodeCustom,
+        "district_custom" -> districtCustom)
 }
 
 object DeviceLocation extends SQLSyntaxSupport[DeviceLocation] {
