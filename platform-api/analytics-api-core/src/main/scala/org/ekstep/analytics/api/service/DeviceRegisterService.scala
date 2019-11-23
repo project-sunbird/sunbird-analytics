@@ -11,14 +11,11 @@ import is.tagomor.woothee.Classifier
 import org.apache.logging.log4j.LogManager
 import org.postgresql.util.PSQLException
 import redis.clients.jedis.Jedis
-import redis.clients.jedis.exceptions.JedisConnectionException
 
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
+import scala.concurrent.ExecutionContext
 
 case class RegisterDevice(did: String, headerIP: String, ip_addr: Option[String] = None, fcmToken: Option[String] = None, producer: Option[String] = None, dspec: Option[String] = None, uaspec: Option[String] = None, first_access: Option[Long]= None, user_declared_state: Option[String] = None, user_declared_district: Option[String] = None)
 case class DeviceProfileLog(device_id: String, location: DeviceLocation, device_spec: Option[Map[String, AnyRef]] = None, uaspec: Option[String] = None, fcm_token: Option[String] = None, producer_id: Option[String] = None, first_access: Option[Long] = None, user_declared_state: Option[String] = None, user_declared_district: Option[String] = None)
-case class GetDeviceProfile(did: String, headerIP: String)
 case class DeviceProfile(userDeclaredLocation: Option[Location], ipLocation: Option[Location])
 case class Location(state: String, district: String)
 
@@ -37,7 +34,6 @@ class DeviceRegisterService(saveMetricsActor: ActorRef, config: Config, redisUti
         case deviceRegDetails: RegisterDevice =>
             try {
                 metricsActor.tell(IncrementApiCalls, ActorRef.noSender)
-                // registerDevice(registrationDetails.did, registrationDetails.headerIP, registrationDetails.ip_addr, registrationDetails.fcmToken, registrationDetails.producer, registrationDetails.dspec, registrationDetails.uaspec)
                 registerDevice(deviceRegDetails)
             } catch {
                 case ex: PSQLException =>
@@ -48,30 +44,6 @@ class DeviceRegisterService(saveMetricsActor: ActorRef, config: Config, redisUti
                         "params" -> List(Map("status" -> 500, "method" -> "POST",
                             "rid" -> "registerDevice", "title" -> "registerDevice")), "data" -> errorMessage)),
                         "registerDevice")
-            }
-        case deviceProfile: GetDeviceProfile =>
-            try {
-                val result = getDeviceProfile(deviceProfile)
-                val reply = sender()
-                result.onComplete {
-                    case Success(value) => reply ! value
-                    case Failure(error) => reply ! None
-                }
-            } catch {
-                case ex: JedisConnectionException =>
-                    ex.printStackTrace()
-                    val errorMessage = "Get DeviceProfileAPI failed due to " + ex.getMessage
-                    APILogger.log("", Option(Map("type" -> "api_access",
-                        "params" -> List(Map("status" -> 500, "method" -> "POST",
-                            "rid" -> "getDeviceProfile", "title" -> "getDeviceProfile")), "data" -> errorMessage)),
-                        "getDeviceProfile")
-                case ex: Exception =>
-                    ex.printStackTrace()
-                    val errorMessage = "Get DeviceProfileAPI failed due to " + ex.getMessage
-                    APILogger.log("", Option(Map("type" -> "api_access",
-                        "params" -> List(Map("status" -> 500, "method" -> "POST",
-                            "rid" -> "getDeviceProfile", "title" -> "getDeviceProfile")), "data" -> errorMessage)),
-                        "getDeviceProfile")
             }
     }
 
@@ -111,30 +83,6 @@ class DeviceRegisterService(saveMetricsActor: ActorRef, config: Config, redisUti
 
     }
 
-    def getDeviceProfile(getProfileDetails: GetDeviceProfile): Future[Option[DeviceProfile]] = {
-
-        if(getProfileDetails.headerIP.nonEmpty) {
-            val ipLocationFromH2 = resolveLocationFromH2(getProfileDetails.headerIP)
-
-            // logging resolved location details
-            if(ipLocationFromH2.state.nonEmpty && ipLocationFromH2.districtCustom.nonEmpty) {
-                println(s"For IP: ${getProfileDetails.headerIP}, Location resolved for ${getProfileDetails.did} to state: ${ipLocationFromH2.state}, district: ${ipLocationFromH2.districtCustom}")
-                APILogger.log("", Option(Map("comments" -> s"Location resolved for ${getProfileDetails.did} to state: ${ipLocationFromH2.state}, district: ${ipLocationFromH2.districtCustom}")), "getDeviceProfile")
-            } else {
-                println(s"For IP: ${getProfileDetails.headerIP}, Location is not resolved for ${getProfileDetails.did}")
-                APILogger.log("", Option(Map("comments" -> s"Location is not resolved for ${getProfileDetails.did}")), "getDeviceProfile")
-            }
-
-            val deviceLocation = redisUtil.getAllByKey(getProfileDetails.did)
-            val userDeclaredLoc = if (deviceLocation.nonEmpty && deviceLocation.get.getOrElse("user_declared_state", "").nonEmpty) Option(Location(deviceLocation.get("user_declared_state"), deviceLocation.get("user_declared_district"))) else None
-
-            Future(Some(DeviceProfile(userDeclaredLoc, Option(Location(ipLocationFromH2.state, ipLocationFromH2.districtCustom)))))
-        }
-        else {
-            Future(None)
-        }
-    }
-
     def resolveLocation(ipAddress: String): DeviceLocation = {
         val ipAddressInt: Long = UnsignedInts.toLong(InetAddresses.coerceToInteger(InetAddresses.forString(ipAddress)))
 
@@ -161,24 +109,6 @@ class DeviceRegisterService(saveMetricsActor: ActorRef, config: Config, redisUti
 
         metricsActor.tell(IncrementLocationDbHitCount, ActorRef.noSender)
         PostgresDBUtil.readLocation(query).headOption.getOrElse(new DeviceLocation())
-    }
-
-    def resolveLocationFromH2(ipAddress: String): DeviceStateDistrict = {
-        val ipAddressInt: Long = UnsignedInts.toLong(InetAddresses.coerceToInteger(InetAddresses.forString(ipAddress)))
-
-        val query =
-            s"""
-               |SELECT
-               |  glc.subdivision_1_name state,
-               |  glc.subdivision_2_custom_name district_custom
-               |FROM $geoLocationCityIpv4TableName gip,
-               |  $geoLocationCityTableName glc
-               |WHERE gip.geoname_id = glc.geoname_id
-               |  AND gip.network_start_integer <= $ipAddressInt
-               |  AND gip.network_last_integer >= $ipAddressInt
-               """.stripMargin
-
-        H2DBUtil.readLocation(query)
     }
 
     def isLocationResolved(loc: DeviceLocation): Boolean = {
@@ -233,7 +163,7 @@ class DeviceRegisterService(saveMetricsActor: ActorRef, config: Config, redisUti
                 "user_declared_state" -> registrationDetails.user_declared_state.getOrElse(""),
                 "user_declared_district" -> registrationDetails.user_declared_district.getOrElse(""))
 
-        (dataMap ++ deviceLocation.toMap()).filter(f => (f._2.nonEmpty))
+        (dataMap ++ deviceLocation.toMap()).filter(f => f._2.nonEmpty)
     }
 
 }
