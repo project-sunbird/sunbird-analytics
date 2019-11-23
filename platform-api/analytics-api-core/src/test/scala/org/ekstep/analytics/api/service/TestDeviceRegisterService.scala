@@ -4,10 +4,9 @@ import akka.actor.ActorSystem
 import akka.testkit.TestActorRef
 import com.typesafe.config.Config
 import org.ekstep.analytics.api.BaseSpec
-import org.ekstep.analytics.api.util.{DeviceLocation, DeviceStateDistrict, RedisUtil}
+import org.ekstep.analytics.api.util.{DeviceLocation, RedisUtil}
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.mockito.Mockito._
-import scala.util.{Failure, Success}
 
 class TestDeviceRegisterService extends BaseSpec {
 
@@ -135,6 +134,7 @@ class TestDeviceRegisterService extends BaseSpec {
     uaspecResult should be (None)
   }
 
+  /*
   "Resolve location for get device profile" should "return location details given an IP address" in {
     when(deviceRegisterServiceMock.resolveLocationFromH2(ipAddress = "106.51.74.185"))
       .thenReturn(DeviceStateDistrict("Karnataka", "BANGALORE"))
@@ -150,6 +150,7 @@ class TestDeviceRegisterService extends BaseSpec {
     deviceLocation.state should be("")
     deviceLocation.districtCustom should be("")
   }
+  */
 
   "Resolve declared location for get device profile" should "return declared location details" in {
     when(redisUtil.getAllByKey("test-device"))
