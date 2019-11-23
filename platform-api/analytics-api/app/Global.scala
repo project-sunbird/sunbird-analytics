@@ -6,9 +6,8 @@ import play.api.mvc._
 import filter.RequestInterceptor
 import org.ekstep.analytics.api.service.experiment.{ExperimentResolver, ExperimentService}
 import org.ekstep.analytics.api.service.experiment.Resolver.ModulusResolver
-import org.ekstep.analytics.api.service.{CacheRefreshActor, DeviceRegisterService, SaveMetricsActor}
-import org.ekstep.analytics.api.util.{APILogger, CacheUtil, ElasticsearchService, RedisUtil}
-import com.typesafe.config.Config
+import org.ekstep.analytics.api.service.{CacheRefreshActor, DeviceProfileService, DeviceRegisterService, SaveMetricsActor}
+import org.ekstep.analytics.api.util.{APILogger, ElasticsearchService, RedisUtil}
 
 object Global extends WithFilters(RequestInterceptor) {
 
@@ -20,15 +19,22 @@ object Global extends WithFilters(RequestInterceptor) {
         Logger.info("Application has started...")
         val config = ConfigFactory.load()
 
-        val redisUtil = new RedisUtil()
+        val deviceRegisterRedisUtil = new RedisUtil()
+        val deviceProfileRedisUtil = new RedisUtil()
         val metricsActor: ActorRef = app.actorSystem.actorOf(Props(new SaveMetricsActor(config)))
-        val deviceRegsiterActor = app.actorSystem.actorOf(Props(new DeviceRegisterService(metricsActor, config, redisUtil)), "deviceRegisterServiceAPIActor")
+
+        val deviceRegsiterActor = app.actorSystem
+          .actorOf(Props(new DeviceRegisterService(metricsActor, config, deviceRegisterRedisUtil)), "deviceRegisterServiceAPIActor")
         AppConf.setActorRef("deviceRegisterService", deviceRegsiterActor)
+
+        val deviceProfileActor = app.actorSystem
+          .actorOf(Props(new DeviceProfileService(metricsActor, config, deviceProfileRedisUtil)), "deviceProfileServiceAPIActor")
+        AppConf.setActorRef("deviceProfileService", deviceProfileActor)
 
         // experiment Service
         ExperimentResolver.register(new ModulusResolver())
         val elasticsearchService = new ElasticsearchService()
-        val experimentActor = app.actorSystem.actorOf(Props(new ExperimentService(redisUtil, elasticsearchService)), "experimentActor")
+        val experimentActor = app.actorSystem.actorOf(Props(new ExperimentService(deviceRegisterRedisUtil, elasticsearchService)), "experimentActor")
         AppConf.setActorRef("experimentService", experimentActor)
 
         //location cache refresh Actor

@@ -3,7 +3,7 @@ package controllers
 import akka.actor._
 import appconf.AppConf
 import com.google.inject.Inject
-import org.ekstep.analytics.api.service.{DeviceProfile, GetDeviceProfile, RegisterDevice}
+import org.ekstep.analytics.api.service.{DeviceProfile, DeviceProfileRequest, RegisterDevice}
 import org.ekstep.analytics.api.util.{APILogger, CacheUtil, CommonUtil, JSONUtils}
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, Result}
@@ -105,43 +105,41 @@ class DeviceController @Inject()(system: ActorSystem) extends BaseController {
   }
 
   def getDeviceProfile(deviceId: String) = Action.async { implicit request =>
-    val deviceRegisterServiceAPIActor: ActorRef = AppConf.getActorRef("deviceRegisterService")
+    val deviceProfileServiceAPIActor: ActorRef = AppConf.getActorRef("deviceProfileService")
 
     // The X-Forwarded-For header from Azure is in the format '61.12.65.222:33740, 61.12.65.222'
     val ip = request.headers.get("X-Forwarded-For").map {
-      x =>
-        val ipArray = x.split(",")
+      headers =>
+        val ipArray = headers.split(",")
         if (ipArray.length == 2) ipArray(1).trim else ipArray(0).trim
     }
     val headerIP = ip.getOrElse("")
-    val result = (deviceRegisterServiceAPIActor ? GetDeviceProfile(deviceId, headerIP)).mapTo[Option[DeviceProfile]]
+    val result = (deviceProfileServiceAPIActor ? DeviceProfileRequest(deviceId, headerIP)).mapTo[Option[DeviceProfile]]
     result.map {
-          deviceData =>
-          if (deviceData.nonEmpty)
-          {
-              APILogger.log("", Option(Map("type" -> "api_access", "params" -> List(Map("userDeclaredLocation" -> deviceData.get.userDeclaredLocation, "ipLocation" -> deviceData.get.ipLocation) ++ Map("status" -> 200, "method" -> "POST",
-                  "rid" -> "getDeviceProfile", "title" -> "getDeviceProfile")))), "getDeviceProfile")
+      deviceData =>
+        if (deviceData.nonEmpty) {
+          APILogger.log("", Option(Map("type" -> "api_access", "params" -> List(Map("userDeclaredLocation" -> deviceData.get.userDeclaredLocation, "ipLocation" -> deviceData.get.ipLocation) ++ Map("status" -> 200, "method" -> "POST",
+            "rid" -> "getDeviceProfile", "title" -> "getDeviceProfile")))), "getDeviceProfile")
 
-              Ok(JSONUtils.serialize(CommonUtil.OK("analytics.device-profile",
-                  Map("userDeclaredLocation" -> deviceData.get.userDeclaredLocation, "ipLocation" -> deviceData.get.ipLocation))))
-                .withHeaders(CONTENT_TYPE -> "application/json")
-          }
-          else {
-            InternalServerError(
-              JSONUtils.serialize(CommonUtil.errorResponse("analytics.device-profile", "IP is missing in the header", "ERROR"))
-            ).withHeaders(CONTENT_TYPE -> "application/json")
-          }
+          Ok(JSONUtils.serialize(CommonUtil.OK("analytics.device-profile",
+            Map("userDeclaredLocation" -> deviceData.get.userDeclaredLocation, "ipLocation" -> deviceData.get.ipLocation))))
+            .withHeaders(CONTENT_TYPE -> "application/json")
+        } else {
+          InternalServerError(
+            JSONUtils.serialize(CommonUtil.errorResponse("analytics.device-profile", "IP is missing in the header", "ERROR"))
+          ).withHeaders(CONTENT_TYPE -> "application/json")
+        }
 
     }.recover {
-          case ex: Exception => {
-              ex.printStackTrace()
-              APILogger.log("", Option(Map("type" -> "api_access", "params" -> List(Map("status" -> 500, "method" -> "POST",
-                  "rid" -> "getDeviceProfile", "title" -> "getDeviceProfile")), "data" -> ex.getMessage)), "getDeviceProfile")
+      case ex: Exception => {
+        ex.printStackTrace()
+        APILogger.log("", Option(Map("type" -> "api_access", "params" -> List(Map("status" -> 500, "method" -> "POST",
+          "rid" -> "getDeviceProfile", "title" -> "getDeviceProfile")), "data" -> ex.getMessage)), "getDeviceProfile")
 
-              InternalServerError(
-                  JSONUtils.serialize(CommonUtil.errorResponse("analytics.device-profile", ex.getMessage, "ERROR"))
-              ).withHeaders(CONTENT_TYPE -> "application/json")
-          }
+        InternalServerError(
+          JSONUtils.serialize(CommonUtil.errorResponse("analytics.device-profile", ex.getMessage, "ERROR"))
+        ).withHeaders(CONTENT_TYPE -> "application/json")
       }
+    }
   }
 }
