@@ -4,7 +4,10 @@ import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.framework.Level._
 import org.ekstep.analytics.framework._
-import org.ekstep.analytics.framework.util.{CommonUtil, JobLogger}
+import org.ekstep.analytics.framework.conf.AppConf
+import org.ekstep.analytics.framework.dispatcher.KafkaDispatcher
+import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, JobLogger}
+import org.joda.time.DateTime
 
 /**
  * @author Santhosh
@@ -50,6 +53,15 @@ object BatchJobDriver {
             JobLogger.start("Started processing of " + model.name, Option(Map("config" -> config, "model" -> model.name, "date" -> endDate)));
             try {
                 val result = _processModel(config, data, model);
+
+                // generate metric event and push it to kafka topic
+                val date = if (endDate.isEmpty) new DateTime().toString(CommonUtil.dateFormat) else endDate.get
+                val metrics = List(V3MetricEdata("date", date.asInstanceOf[AnyRef]), V3MetricEdata("inputEvents", count.asInstanceOf[AnyRef]),
+                    V3MetricEdata("outputEvents", result._2.asInstanceOf[AnyRef]), V3MetricEdata("timeTakenSecs", Double.box(result._1 / 1000).asInstanceOf[AnyRef]))
+                val metricEvent = CommonUtil.getMetricEvent(Map("system" -> "DataProduct", "subsystem" -> model.name, "metrics" -> metrics), AppConf.getConfig("metric.producer.id"), AppConf.getConfig("metric.producer.pid"))
+                if (AppConf.getConfig("push.metrics.kafka").toBoolean)
+                    KafkaDispatcher.dispatch(Array(JSONUtils.serialize(metricEvent)), Map("topic" -> AppConf.getConfig("metric.kafka.topic"), "brokerList" -> AppConf.getConfig("metric.kafka.broker")))
+
                 JobLogger.end(model.name + " processing complete", "SUCCESS", Option(Map("model" -> model.name, "date" -> endDate, "inputEvents" -> count, "outputEvents" -> result._2, "timeTaken" -> Double.box(result._1 / 1000))));
             } catch {
                 case ex: Exception =>
