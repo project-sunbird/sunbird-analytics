@@ -4,7 +4,6 @@ package org.ekstep.analytics.model
  */
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.framework.DerivedEvent
-import org.ekstep.analytics.util.SessionBatchModel
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.V3Event
 

@@ -1,16 +1,10 @@
 package org.ekstep.analytics.api.util
 
-import org.ekstep.analytics.framework.exception.DataFetcherException
 import org.ekstep.analytics.framework._
-import org.ekstep.analytics.framework.fetcher.{AzureDataFetcher, S3DataFetcher}
+import org.ekstep.analytics.framework.exception.DataFetcherException
 import org.ekstep.analytics.framework.util.JobLogger
-import org.apache.spark.SparkContext
-import org.apache.spark.rdd.RDD
-import org.ekstep.analytics.framework.util.S3Util
 import org.sunbird.cloud.storage.conf.AppConf
 import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
-
-import scala.collection.mutable.Buffer
 
 object DataFetcher {
 	  implicit val className = "org.ekstep.analytics.api.util.DataFetcher"

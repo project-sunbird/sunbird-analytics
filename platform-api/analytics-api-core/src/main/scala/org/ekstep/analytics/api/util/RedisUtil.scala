@@ -4,7 +4,10 @@ import java.time.Duration
 
 import com.typesafe.config.{Config, ConfigFactory}
 import redis.clients.jedis.{Jedis, JedisPool, JedisPoolConfig}
+import scala.collection.JavaConverters._
+import javax.inject._
 
+@Singleton
 class RedisUtil {
   implicit val className = "org.ekstep.analytics.api.util.RedisUtil"
   private val config: Config = ConfigFactory.load()
@@ -55,8 +58,33 @@ class RedisUtil {
     }
   }
 
+  def getAllByKey(key: String)(implicit jedisConnection: Jedis): Option[Map[String, String]] = {
+    try {
+      Option(jedisConnection.hgetAll(key).asScala.toMap)
+    } catch {
+      case ex: Exception =>
+        APILogger.log("", Option(Map("comments" -> s"Redis connection exception!  ${ex.getMessage}")), "RedisUtil")
+        None
+    }
+  }
+
   def resetConnection(): Unit = {
     jedisPool.close()
     jedisPool = new JedisPool(buildPoolConfig, redis_host, redis_port)
+  }
+
+  def checkConnection = {
+    try {
+      val conn = getConnection
+      conn match {
+        case j: Jedis => {
+          conn.close()
+          true
+        }
+        case _ => false
+      }
+    } catch {
+      case ex: Exception => false
+    }
   }
 }

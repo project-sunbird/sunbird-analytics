@@ -4,17 +4,17 @@ import java.io.File
 import java.nio.file.{Files, StandardCopyOption}
 
 import org.apache.spark.SparkContext
+import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions.{col, unix_timestamp, _}
 import org.apache.spark.sql.types.DataTypes
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.ekstep.analytics.framework.Level._
 import org.ekstep.analytics.framework._
-import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, JobLogger}
+import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger}
 import org.ekstep.analytics.util.ESUtil
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import org.sunbird.cloud.storage.conf.AppConf
-import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
 
 import scala.collection.{Map, _}
 
@@ -30,7 +30,7 @@ trait ReportGenerator {
 
 case class ESIndexResponse(isOldIndexDeleted: Boolean, isIndexLinkedToAlias: Boolean)
 
-object CourseMetricsJob extends optional.Application with IJob with ReportGenerator {
+object CourseMetricsJob extends optional.Application with IJob with ReportGenerator with BaseReportsJob {
 
   implicit val className = "org.ekstep.analytics.job.CourseMetricsJob"
 
@@ -43,38 +43,9 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     val jobConfig = JSONUtils.deserialize[JobConfig](config)
     JobContext.parallelization = 10
 
-    def runJob(sc: SparkContext): Unit = {
-      try {
-        execute(jobConfig)(sc)
-      } catch {
-        case e: Exception => JobLogger.log("Course Metrics Exception is" + e.getMessage, None, INFO)
-      }
-      finally {
-        CommonUtil.closeSparkContext()(sc)
-        // Adding system exit since Job is not exiting from the spark-submit task.
-        // TODO: Need to exit the job from the spark-submit, Once the job task is finished.
-        JobLogger.log("course metrics exit is invoked", None, INFO)
-        System.exit(0)
-
-      }
-    }
-
-    sc match {
-      case Some(value) => {
-        implicit val sparkContext: SparkContext = value
-        runJob(value)
-      }
-      case None => {
-        val sparkCassandraConnectionHost =
-          jobConfig.modelParams.getOrElse(Map[String, Option[AnyRef]]()).get("sparkCassandraConnectionHost")
-        val sparkElasticsearchConnectionHost =
-          jobConfig.modelParams.getOrElse(Map[String, Option[AnyRef]]()).get("sparkElasticsearchConnectionHost")
-        implicit val sparkContext: SparkContext =
-          CommonUtil.getSparkContext(JobContext.parallelization,
-            jobConfig.appName.getOrElse(jobConfig.model), sparkCassandraConnectionHost, sparkElasticsearchConnectionHost)
-        runJob(sparkContext)
-      }
-    }
+    implicit val sparkContext: SparkContext = getReportingSparkContext(jobConfig);
+    execute(jobConfig)
+    System.exit(0)
   }
 
   private def execute(config: JobConfig)(implicit sc: SparkContext) = {
@@ -114,14 +85,14 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     val locationDF = loadData(spark, Map("table" -> "location", "keyspace" -> sunbirdKeyspace))
     val externalIdentityDF = loadData(spark, Map("table" -> "usr_external_identity", "keyspace" -> sunbirdKeyspace))
 
-
     /*
     * courseBatchDF has details about the course and batch details for which we have to prepare the report
     * courseBatchDF is the primary source for the report
     * userCourseDF has details about the user details enrolled for a particular course/batch
     * */
     val userCourseDenormDF = courseBatchDF.join(userCoursesDF, userCoursesDF.col("batchid") === courseBatchDF.col("batchid") && lower(userCoursesDF.col("active")).equalTo("true"), "inner")
-      .select(userCoursesDF.col("batchid"),
+      .select(
+        userCoursesDF.col("batchid"),
         col("userid"),
         col("completionpercentage"),
         col("enddate"),
@@ -147,8 +118,8 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
         col("userid"),
         col("locationids"))
     /**
-      * externalIdMapDF - Filter out the external id by idType and provider and Mapping userId and externalId
-      */
+     * externalIdMapDF - Filter out the external id by idType and provider and Mapping userId and externalId
+     */
     val externalIdMapDF = userDF.join(externalIdentityDF, externalIdentityDF.col("idtype") === userDF.col("channel") && externalIdentityDF.col("provider") === userDF.col("channel") && externalIdentityDF.col("userid") === userDF.col("userid"), "inner")
       .select(externalIdentityDF.col("externalid"), externalIdentityDF.col("userid"))
 
@@ -176,8 +147,8 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
       .select(col("name").as("district_name"), col("userid"))
 
     /**
-      * Resolve the block name by filtering location type = "BLOCK" for the locationids
-      */
+     * Resolve the block name by filtering location type = "BLOCK" for the locationids
+     */
     val blockDenormDF = userOrgDenormDF
       .withColumn("exploded_location", explode(col("locationids")))
       .join(locationDF, col("exploded_location") === locationDF.col("id") && locationDF.col("type") === "block")
@@ -188,43 +159,66 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
       .join(locationDenormDF, Seq("userid"), "left_outer")
 
     val userBlockResolvedDF = userLocationResolvedDF.join(blockDenormDF, Seq("userid"), "left_outer")
-
     val resolvedExternalIdDF = userBlockResolvedDF.join(externalIdMapDF, Seq("userid"), "left_outer")
-
 
     /*
     * Resolve organisation name from `rootorgid`
     * */
+
     val resolvedOrgNameDF = resolvedExternalIdDF
       .join(organisationDF, organisationDF.col("id") === resolvedExternalIdDF.col("rootorgid"), "left_outer")
+      .select(resolvedExternalIdDF.col("userid"), resolvedExternalIdDF.col("rootorgid"), col("orgname").as("orgname_resolved"))
       .dropDuplicates(Seq("userid"))
-      .select(resolvedExternalIdDF.col("userid"), col("orgname").as("orgname_resolved"))
-
 
     /*
     * Resolve school name from `orgid`
     * */
-    val resolvedSchoolNameDF = resolvedExternalIdDF
+    val schoolNameDF = resolvedExternalIdDF
       .join(organisationDF, organisationDF.col("id") === resolvedExternalIdDF.col("organisationid"), "left_outer")
-      .dropDuplicates(Seq("userid"))
-      .select(resolvedExternalIdDF.col("userid"), col("orgname").as("schoolname_resolved"))
+      .select(resolvedExternalIdDF.col("userid"), resolvedExternalIdDF.col("organisationid"), col("orgname").as("schoolname_resolved"), resolvedExternalIdDF.col("batchid"))
 
+    /**
+     *  If the user present in the multiple organisation, then zip all the org names.
+     *  Example:
+     * FROM:
+     * +-------+------------------------------------+
+     * |userid |orgname                             |
+     * +-------+------------------------------------+
+     * |user030|SACRED HEART(B)PS,TIRUVARANGAM      |
+     * |user030| MPPS BAYYARAM                     |
+     * |user001| MPPS BAYYARAM                     |
+     * +-------+------------------------------------+
+     * TO:
+     * +-------+-------------------------------------------------------+
+     * |userid |orgname                                                |
+     * +-------+-------------------------------------------------------+
+     * |user030|[ SACRED HEART(B)PS,TIRUVARANGAM, MPPS BAYYARAM ]      |
+     * |user001| MPPS BAYYARAM                                         |
+     * +-------+-------------------------------------------------------+
+     * Zipping the orgnames of particular userid
+     *
+     *
+     */
+    val schoolNameIndexDF = schoolNameDF.withColumn("index", count("userid").over(Window.partitionBy("userid", "batchid").orderBy("userid")).cast("int"))
 
+    val resolvedSchoolNameDF = schoolNameIndexDF.selectExpr("*").filter(col("index") === 1).drop("organisationid", "index", "batchid")
+      .union(schoolNameIndexDF.filter(col("index") =!= 1).groupBy("userid").agg(collect_list("schoolname_resolved").cast("string").as("schoolname_resolved")))
 
     /*
     * merge orgName and schoolName based on `userid` and calculate the course progress percentage from `progress` column which is no of content visited/read
     * */
-
     resolvedExternalIdDF
       .join(resolvedSchoolNameDF, Seq("userid"), "left_outer")
-      .join(resolvedOrgNameDF, Seq("userid"), "left_outer")
-      .withColumn("course_completion",
+      .join(resolvedOrgNameDF, Seq("userid", "rootorgid"), "left_outer")
+      .withColumn(
+        "course_completion",
         when(col("completionpercentage").isNull, 0)
           .when(col("completionpercentage") > 100, 100)
           .otherwise(col("completionpercentage")).cast("int"))
       .withColumn("generatedOn", date_format(from_utc_timestamp(current_timestamp.cast(DataTypes.TimestampType), "Asia/Kolkata"), "yyyy-MM-dd'T'HH:mm:ss'Z'"))
-  }
+      .dropDuplicates("userid", "batchid")
 
+  }
 
   def saveReportES(reportDF: DataFrame): Unit = {
     import org.elasticsearch.spark.sql._
@@ -262,8 +256,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
         col("district_name").as("districtName"),
         col("block_name").as("blockName"),
         col("externalid").as("externalId"),
-        from_unixtime(unix_timestamp(col("enrolleddate"), "yyyy-MM-dd HH:mm:ss:SSSZ"), "yyyy-MM-dd'T'HH:mm:ss'Z'").as("enrolledOn")
-      )
+        from_unixtime(unix_timestamp(col("enrolleddate"), "yyyy-MM-dd HH:mm:ss:SSSZ"), "yyyy-MM-dd'T'HH:mm:ss'Z'").as("enrolledOn"))
 
     val batchDetailsDF = participantsCountPerBatchDF
       .join(courseCompletionCountPerBatchDF, Seq("batchid"), "left_outer")
@@ -272,8 +265,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
         col("batchid").as("id"),
         col("generatedOn").as("reportUpdatedOn"),
         when(col("courseCompletionCountPerBatch").isNull, 0).otherwise(col("courseCompletionCountPerBatch")).as("completedCount"),
-        when(col("participantsCountPerBatch").isNull, 0).otherwise(col("participantsCountPerBatch")).as("participantCount")
-      )
+        when(col("participantsCountPerBatch").isNull, 0).otherwise(col("participantsCountPerBatch")).as("participantCount"))
       .distinct()
 
     val cBatchIndex = AppConf.getConfig("course.metrics.es.index.cbatch")
@@ -326,10 +318,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
         concat(col("course_completion").cast("string"), lit("%"))
           .as("Course Progress"),
         col("completedon").as("Completion Date"),
-        col("batchid")
-
-      )
-      .coalesce(1)
+        col("batchid")).coalesce(1)
       .write
       .partitionBy("batchid")
       .mode("overwrite")
@@ -343,13 +332,9 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
   }
 
   def uploadReport(sourcePath: String) = {
-    val provider = AppConf.getConfig("course.metrics.cloud.provider")
-    val container = AppConf.getConfig("course.metrics.cloud.container")
+    val container = AppConf.getConfig("cloud.container.reports")
     val objectKey = AppConf.getConfig("course.metrics.cloud.objectKey")
-
-    val storageService = StorageServiceFactory
-      .getStorageService(StorageConfig(provider, AppConf.getStorageKey(provider), AppConf.getStorageSecret(provider)))
-    storageService.upload(container, sourcePath, objectKey, isDirectory = Option(true))
+    reportStorageService.upload(container, sourcePath, objectKey, isDirectory = Option(true))
   }
 
   private def recursiveListFiles(file: File, ext: String): Array[File] = {

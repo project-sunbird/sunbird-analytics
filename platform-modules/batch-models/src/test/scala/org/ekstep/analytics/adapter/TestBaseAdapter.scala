@@ -1,37 +1,27 @@
 package org.ekstep.analytics.adapter
 
-import org.ekstep.analytics.model.BaseSpec
-import org.ekstep.analytics.framework.Response
 import org.ekstep.analytics.framework.exception.DataAdapterException
-import org.ekstep.analytics.framework.DomainResponse
+import org.ekstep.analytics.framework.{EventId, Response}
+import org.ekstep.analytics.framework.util.JSONUtils
+import org.ekstep.analytics.model.SparkSpec
 
-/**
- * @author Santhosh
- */
+class TestBaseAdapter extends SparkSpec {
 
-object SampleBaseAdapter extends BaseAdapter {
-    
-}
+    "BaseAdapter" should "pass all test cases" in {
+        val respStr = "{\"id\":\"analytics.device-profile\",\"ver\":\"1.0\",\"ts\":\"2019-11-12T07:28:10.555+00:00\",\"params\":{\"resmsgid\":\"e7f845ae-88f9-40b5-9cf3-1b2efc722879\",\"status\":\"successful\",\"client_key\":null},\"responseCode\":\"OK\",\"result\":{\"userDeclaredLocation\":{\"state\":\"Karnataka\",\"district\":\"KOPPAL\"},\"ipLocation\":{\"state\":\"Karnataka\",\"district\":\"BENGALURU URBAN SOUTH\"}}}"
+        val response = JSONUtils.deserialize[Response](respStr)
+        ContentAdapter.checkResponse(response)
 
-class TestBaseAdapter extends BaseSpec {
-    
-    "BaseAdapter" should "test all the methods" in {
-        
-        val resp = Response(null, null, null, null, "ERROR", null)
-        a[DataAdapterException] should be thrownBy {
-            SampleBaseAdapter.checkResponse(resp)
-        }
-        
-        val domainResp = DomainResponse(null, null, null, null, "ERROR", null)
-        a[DataAdapterException] should be thrownBy {
-            SampleBaseAdapter.checkResponse(domainResp)
-        }
-        
-        val contentResp = ContentResponse(null, null, null, null, "ERROR", null)
-        a[DataAdapterException] should be thrownBy {
-            SampleBaseAdapter.checkResponse(contentResp)
-        }
-        
     }
-  
+
+    it should "throw DataAdapterException" in {
+        val respStr = "{\"id\":\"analytics.device-profile\",\"ver\":\"1.0\",\"ts\":\"2019-11-12T07:28:10.555+00:00\",\"params\":{\"resmsgid\":\"e7f845ae-88f9-40b5-9cf3-1b2efc722879\",\"status\":\"Failed\",\"client_key\":null},\"responseCode\":\"400 Not Found\",\"result\":{\"userDeclaredLocation\":{\"state\":\"Karnataka\",\"district\":\"KOPPAL\"},\"ipLocation\":{\"state\":\"Karnataka\",\"district\":\"BENGALURU URBAN SOUTH\"}}}"
+        val response = JSONUtils.deserialize[Response](respStr)
+
+        the[DataAdapterException] thrownBy {
+            ContentAdapter.checkResponse(response)
+        }
+
+    }
+
 }

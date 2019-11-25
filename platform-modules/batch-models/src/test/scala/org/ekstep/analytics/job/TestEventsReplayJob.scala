@@ -17,6 +17,8 @@ class TestEventsReplayJob extends SparkSpec(null) {
     val output = EventsReplayJob.dispatchData(jobConfig, input)
     output should be(37)
 
+    EventsReplayJob.main(config)(Option(sc))
+
   }
 
 }

@@ -1,6 +1,6 @@
 package org.ekstep.analytics.api.service
 
-import akka.actor.{Actor, ActorRef}
+import akka.actor.Actor
 import org.apache.logging.log4j.LogManager
 import org.ekstep.analytics.api.util.JSONUtils
 
@@ -82,6 +82,7 @@ case class ClientLogRequest(request: Option[ClientRequestBody]) extends validato
   }
 }
 
+// $COVERAGE-OFF$
 class ClientLogsAPIService extends Actor {
   private val logger = LogManager.getLogger("crash-logger")
   override def receive: Receive = {
@@ -94,3 +95,4 @@ class ClientLogsAPIService extends Actor {
     }
   }
 }
+// $COVERAGE-ON$

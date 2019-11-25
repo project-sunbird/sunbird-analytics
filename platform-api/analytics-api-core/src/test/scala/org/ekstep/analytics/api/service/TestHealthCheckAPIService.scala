@@ -1,11 +1,15 @@
 package org.ekstep.analytics.api.service
 
-import org.ekstep.analytics.api.BaseSpec
-import org.ekstep.analytics.api.Response
+import akka.actor.ActorSystem
+import akka.testkit.TestActorRef
+import org.ekstep.analytics.api.{BaseSpec, Response}
 import org.ekstep.analytics.api.util.JSONUtils
 
 class TestHealthCheckAPIService extends BaseSpec {
-    
+
+    private implicit val system: ActorSystem = ActorSystem("health-check-test-actor-system", config)
+    val healthCheckService = TestActorRef(new HealthCheckAPIService()).underlyingActor
+
     override def beforeAll() {
         super.beforeAll();
     }
@@ -13,9 +17,10 @@ class TestHealthCheckAPIService extends BaseSpec {
     override def afterAll() {
         super.afterAll();
     }
+
     
     "HealthCheckAPIService" should "return health statusof APIs" in {
-        val response = HealthCheckAPIService.getHealthStatus
+        val response = healthCheckService.getHealthStatus()
         val resp = JSONUtils.deserialize[Response](response)
         
         resp.id should be ("ekstep.analytics-api.health");
@@ -23,6 +28,6 @@ class TestHealthCheckAPIService extends BaseSpec {
         
         val result = resp.result.get;
         result.get("name").get should be ("analytics-platform-api")
-        result.get("checks").get.asInstanceOf[List[AnyRef]].length should be (2)
+        result.get("checks").get.asInstanceOf[List[AnyRef]].length should be (5)
     }
 }

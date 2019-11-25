@@ -4,50 +4,31 @@ import org.ekstep.analytics.model.BaseSpec
 import org.ekstep.analytics.job.summarizer._
 import org.ekstep.analytics.job.updater._
 import org.ekstep.analytics.framework.IJob
-import org.ekstep.analytics.job.consolidated._
-import org.ekstep.analytics.views.PrecomputedViewsJob
-import org.ekstep.analytics.vidyavaani.job._
+import org.ekstep.analytics.framework.exception.JobNotFoundException
 
 class TestJobFactory extends BaseSpec {
 
     it should "return a Model class for a model code" in {
 
-        val jobIds = List("as", "ss", "las", "lp", "ls", "lcas", "lcr", "cus", "cps", "cpu", "cuu", "gss", "gls",
-            "dus", "css", "lpu", "cmu", "dsu", "is", "dcus", "csv", "ctv", "device-recos-training",
-            "device-recos-scoring", "raw-telemetry-jobs", "ss-jobs", "raw-telemetry-updaters", "sts",
-            "genie-launch-summ", "genie-launch-metrics", "item-usage-summ", "item-usage-metrics", "gsts", "gfs",
-            "gfa", "data-exhaust", "precomp-views", "content-recos", "content-own-rel", "content-lang-rel",
-            "content-asset-rel", "concept-lan-rel", "vidyavaani-jobs", "consumption-metrics", "creation-metrics",
-            "eocfs", "re-enrichment-model", "creation-reco", "content-snapshot", "concept-snapshot", "asset-snapshot",
-            "asset-snapshot-updater", "content-snapshot-updater", "concept-snapshot-updater", "ce-ss", "ce-usage",
-            "ce-usage-updater", "content-creation-metrics", "textbook-snapshot-updater", "app-ss", "obj-cache-updater",
-            "textbook-ss", "textbook-usage", "textbook-usage-updater", "author-usage-summary", "author-usage-updater",
-            "app-usage", "app-usage-updater", "publish-pipeline-summ", "app-raw-telemetry-jobs", "app-raw-telemetry-updaters",
-            "publish-pipeline-updater")
+        val jobIds = List("monitor-job-summ", "wfs", "wfus", "wfu", "ds", "dpu", "video-streaming", "etb-coverage-summary", "portal-metrics", "workflow-usage-metrics", "data-exhaust", "course-dashboard-metrics", "telemetry-replay", "summary-replay", "content-rating-updater", "experiment", "daily-metrics-consumption-reports", "assessment-dashboard-metrics", "druid-query-processor", "admin-user-reports")
 
         val jobs = jobIds.map { f => JobFactory.getJob(f) }
 
-        jobs(0) should be(AserScreenSummarizer)
-        jobs(0).isInstanceOf[IJob] should be(true)
-
-        jobs(22) should be(DeviceRecommendationTrainingJob)
-        jobs(22).isInstanceOf[IJob] should be(true)
-
-        jobs(71) should be(PublishPipelineUpdater)
-        jobs(71).isInstanceOf[IJob] should be(true)
-    }
-    
-    it should "return a Model class for a v1 model code" in {
-
-        val jobIds = List("gls-v1", "app-ss-v1")
-
-        val jobs = jobIds.map { f => JobFactory.getJob(f) }
-
-        jobs(0) should be(GenieLaunchV1Summarizer)
-        jobs(0).isInstanceOf[IJob] should be(true)
-
-        jobs(1) should be(AppSessionV1Summarizer)
+        jobs(1) should be(WorkFlowSummarizer)
         jobs(1).isInstanceOf[IJob] should be(true)
-        
+
+        jobs(10) should be(DataExhaustJob)
+        jobs(10).isInstanceOf[IJob] should be(true)
+
+        jobs(3) should be(WorkFlowUsageUpdater)
+        jobs(3).isInstanceOf[IJob] should be(true)
     }
+
+    it should "return JobNotFoundException" in {
+
+        the[JobNotFoundException] thrownBy {
+            JobFactory.getJob("test-model")
+        } should have message "Unknown job type found"
+    }
+
 }

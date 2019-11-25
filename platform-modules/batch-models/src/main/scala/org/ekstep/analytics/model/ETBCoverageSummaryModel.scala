@@ -6,12 +6,10 @@ import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.adapter.{ContentAdapter, ContentFetcher}
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, JobLogger}
-import org.ekstep.analytics.updater.GraphUpdateEvent
 import org.ekstep.analytics.util.Constants
 import org.joda.time.DateTime
 
 import scala.util.{Failure, Try}
-
 
 case class ContentFlatList(contentId: String, metric: List[Map[String, Any]])
 

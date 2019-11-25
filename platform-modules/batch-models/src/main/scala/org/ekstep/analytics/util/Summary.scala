@@ -2,7 +2,6 @@ package org.ekstep.analytics.util
 
 import org.ekstep.analytics.framework._
 import scala.collection.mutable.Buffer
-import org.ekstep.analytics.model.{EnvSummary, EventSummary, ItemResponse, PageSummary}
 import org.apache.commons.lang3.StringUtils
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.util.CommonUtil
@@ -149,7 +148,7 @@ class Summary(val firstEvent: V3Event) {
             val resValues = if (null == event.edata.resvalues) Option(Array[Map[String, AnyRef]]().map(f => f.asInstanceOf[AnyRef])) else Option(event.edata.resvalues.map(f => f.asInstanceOf[AnyRef]))
             val res = if (null == event.edata.resvalues) Option(Array[String]()); else Option(event.edata.resvalues.flatten.map { x => (x._1 + ":" + x._2.toString) });
             val item = event.edata.item
-            this.itemResponses += Item(item.id, Option(event.edata.duration), res, resValues, Option(item.mc), Option(item.mmc), event.edata.score, event.ets, Option(item.maxscore.asInstanceOf[AnyRef]), event.edata.pass, Option(item.title), Option(item.desc));
+            this.itemResponses += org.ekstep.analytics.util.Item(item.id, Option(event.edata.duration), res, resValues, Option(item.mc), Option(item.mmc), event.edata.score, event.ets, Option(item.maxscore.asInstanceOf[AnyRef]), event.edata.pass, Option(item.title), Option(item.desc));
         }
 
         if(this.PARENT != null) this.PARENT.add(event, idleTime)

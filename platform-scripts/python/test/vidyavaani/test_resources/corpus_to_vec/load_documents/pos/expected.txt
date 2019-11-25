@@ -1,2 +1,0 @@
-[TaggedDocument(words=[u'sample', u'story', u'check', u'version', u'upgrade', u'side', u'loaded', u'genie'], tags=['/Users/ajitbarik/Ilimi/github/Learning-Platform-Analytics/platform-scripts/python/test/vidyavaani/test_resources/corpus_to_vec/load_documents/pos/en1']),
- TaggedDocument(words=[u'bk', u'test'], tags=['/Users/ajitbarik/Ilimi/github/Learning-Platform-Analytics/platform-scripts/python/test/vidyavaani/test_resources/corpus_to_vec/load_documents/pos/en2'])]

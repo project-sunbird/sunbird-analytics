@@ -62,9 +62,7 @@ object CommonUtil {
             conf.set("spark.cassandra.connection.host", AppConf.getConfig("spark.cassandra.connection.host"))
         if (embeddedCassandraMode)
             conf.set("spark.cassandra.connection.port", AppConf.getConfig("cassandra.service.embedded.connection.port"))
-        if (!conf.contains("reactiveinflux.url")) {
-            conf.set("reactiveinflux.url", AppConf.getConfig("reactiveinflux.url"))
-        }
+
         if (sparkCassandraConnectionHost.nonEmpty) {
             conf.set("spark.cassandra.connection.host", sparkCassandraConnectionHost.get.asInstanceOf[String])
             println("setting spark.cassandra.connection.host to lp-cassandra", conf.get("spark.cassandra.connection.host"))
@@ -86,7 +84,7 @@ object CommonUtil {
     }
 
     def getSparkSession(parallelization: Int, appName: String, sparkCassandraConnectionHost: Option[AnyRef] = None,
-                        sparkElasticsearchConnectionHost: Option[AnyRef] = None): SparkSession = {
+                        sparkElasticsearchConnectionHost: Option[AnyRef] = None, readConsistencyLevel: Option[String] = None): SparkSession = {
         JobLogger.log("Initializing SparkSession")
         val conf = new SparkConf().setAppName(appName).set("spark.default.parallelism", parallelization.toString)
           .set("spark.driver.memory", AppConf.getConfig("spark.driver_memory"))
@@ -103,11 +101,12 @@ object CommonUtil {
             conf.set("spark.cassandra.connection.host", AppConf.getConfig("spark.cassandra.connection.host"))
         if (embeddedCassandraMode)
             conf.set("spark.cassandra.connection.port", AppConf.getConfig("cassandra.service.embedded.connection.port"))
-        if (!conf.contains("reactiveinflux.url")) {
-            conf.set("reactiveinflux.url", AppConf.getConfig("reactiveinflux.url"))
-        }
+
         if (sparkCassandraConnectionHost.nonEmpty) {
             conf.set("spark.cassandra.connection.host", sparkCassandraConnectionHost.get.asInstanceOf[String])
+            if(readConsistencyLevel.nonEmpty) {
+              conf.set("spark.cassandra.input.consistency.level", readConsistencyLevel.get);
+            }
             println("setting spark.cassandra.connection.host to lp-cassandra", conf.get("spark.cassandra.connection.host"))
         }
 
@@ -116,6 +115,8 @@ object CommonUtil {
             conf.set("es.port", "9200")
             conf.set("es.write.rest.error.handler.log.logger.name", "org.ekstep.es.dispatcher")
             conf.set("es.write.rest.error.handler.log.logger.level", "INFO")
+            conf.set("es.write.operation", "upsert")
+      
         }
 
         // $COVERAGE-ON$
@@ -170,8 +171,14 @@ object CommonUtil {
 
     def deleteDirectory(dir: String) {
         val path = get(dir);
-        JobLogger.log("Deleting directory", Option(path.toString()))
-        Files.walkFileTree(path, new Visitor());
+        val directory = new File(dir)
+        if(directory.exists()) {
+            JobLogger.log("Deleting directory", Option(path.toString()))
+            Files.walkFileTree(path, new Visitor());
+        }
+        else {
+            JobLogger.log("Directory not exists", Option(path.toString()))
+        }
     }
 
     def createDirectory(dir: String) {
@@ -750,6 +757,18 @@ object CommonUtil {
 
     def getGranularity(value: String): Granularity = {
         GranularityType.decode(value).right.getOrElse(GranularityType.All)
+    }
+
+    def getMetricEvent(params: Map[String, AnyRef], producerId: String, producerPid: String): V3DerivedEvent = {
+
+        val channel = "data-pipeline"
+        val actorId = "analytics"
+        val env = AppConf.getConfig("application.env")
+        val measures = params;
+        val ts = new DateTime().getMillis
+        val mid = CommonUtil.getMessageId("METRIC", producerId + producerPid, ts, None, None);
+        val context = V3Context(channel, Option(V3PData(producerId, Option("1.0"), Option(producerPid))), env, None, None, None, None)
+        V3DerivedEvent("METRIC", System.currentTimeMillis(), new DateTime().toString(CommonUtil.df3), "3.0", mid, Actor(actorId, "System"), context, None, measures)
     }
 
 }

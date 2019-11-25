@@ -1,19 +1,16 @@
 package org.ekstep.analytics.framework.util
 
-import org.ekstep.analytics.framework.BaseSpec
+import org.ekstep.analytics.framework._
 import org.joda.time.LocalDate
 import java.io.File
+
 import org.joda.time.DateTime
 import java.util.Date
 import java.text.SimpleDateFormat
+
 import scala.collection.mutable.ListBuffer
 import org.joda.time.format.DateTimeFormat
-import org.ekstep.analytics.framework.JobConfig
-import org.ekstep.analytics.framework.DtRange
-import org.ekstep.analytics.framework.Event
-import org.ekstep.analytics.framework.DerivedEvent
 import org.ekstep.analytics.framework.Period._
-import org.ekstep.analytics.framework.ProfileEvent
 
 class TestCommonUtil extends BaseSpec {
 
@@ -218,7 +215,7 @@ class TestCommonUtil extends BaseSpec {
         new File("src/test/resources/test.zip").isFile() should be(true)
         CommonUtil.deleteFile("src/test/resources/test.zip");
         //zip folder
-        CommonUtil.zipFolder("src/test/resources/zipFolderTest.zip", "src/test/resources/session-batch-model")
+        CommonUtil.zipFolder("src/test/resources/zipFolderTest.zip", "src/test/resources/1234/OE_INTERACT")
         new File("src/test/resources/zipFolderTest.zip").isFile() should be(true)
         CommonUtil.deleteFile("src/test/resources/zipFolderTest.zip");
 
@@ -267,5 +264,10 @@ class TestCommonUtil extends BaseSpec {
         // getWeeksBetween
         val getWeeksBetween = CommonUtil.getWeeksBetween(1499904L, 1451759399L)
         getWeeksBetween should be(2)
+
+        // getMetricEvent
+        val metricEvent = CommonUtil.getMetricEvent(Map("system" -> "DataProduct", "subsystem" -> "test", "metrics" -> List(V3MetricEdata("count", "100".asInstanceOf[AnyRef]))), "pipeline-monitoring", "dataproduct-metric")
+        metricEvent.context.pdata.get.id should be("pipeline-monitoring")
+        metricEvent.context.pdata.get.pid.get should be("dataproduct-metric")
     }
 }

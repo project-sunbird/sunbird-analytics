@@ -16,7 +16,7 @@ case class TimeSeriesData(time: String, count: Int)
 class TestDataFetcher extends SparkSpec {
 
 //    implicit val decoder  = null
-    "DataFetcher" should "fetch the batch events matching query" in {
+    ignore should "fetch the batch events matching query" in {
         
         val queries = Option(Array(
             Query(Option("ekstep-dev-data-store"), Option("testUpload/"), Option("2016-01-01"), Option("2016-01-01"))
@@ -59,7 +59,7 @@ class TestDataFetcher extends SparkSpec {
         rdd1.count should be (0)
     }
     
-    it should "fetch no file from S3 and return an empty RDD" in {
+    ignore should "fetch no file from S3 and return an empty RDD" in {
         val queries = Option(Array(
             Query(Option("ekstep-dev-data-store"), Option("abc/"), Option("2012-01-01"), Option("2012-02-01"))
         ));
@@ -101,19 +101,29 @@ class TestDataFetcher extends SparkSpec {
 
     it should "fetch the data from druid" in {
 
-        val groupByQuery = DruidQueryModel("groupBy", "telemetry-events", "LastWeek", Option("all"), Option(List(Aggregation(Option("count"), "count", ""),Aggregation(Option("total_duration"), "doubleSum", "edata_duration"))), Option(List(DruidDimension("context_pdata_id", Option("producer_id")), DruidDimension("context_pdata_pid", Option("producer_pid")))), Option(List(DruidFilter("equals", "context_pdata_id", Option("staging.diksha.app")),DruidFilter("in", "context_pdata_pid", None, Option(List("sunbird.app.contentplayer", "sunbird.app"))))))
+        val groupByQuery = DruidQueryModel("groupBy", "telemetry-events", "LastWeek", Option("all"), Option(List(Aggregation(Option("count"), "count", ""),Aggregation(Option("total_duration"), "doubleSum", "edata_duration"))), Option(List(DruidDimension("context_pdata_id", Option("producer_id")), DruidDimension("context_pdata_pid", Option("producer_pid")))), Option(List(DruidFilter("in", "eid", None, Option(List("START", "END"))))))
         val rdd1 = DataFetcher.fetchBatchData[GroupByPid](Fetcher("druid", None, None, Option(groupByQuery)));
         println(rdd1.count())
         rdd1.foreach(f => println(JSONUtils.serialize(f)))
 
-        val topNQuery = DruidQueryModel("topN", "telemetry-events", "LastWeek", Option("day"), Option(List(Aggregation(Option("count"), "count", ""))), Option(List(DruidDimension("context_pdata_id", Option("producer_id")))))
+        val topNQuery = DruidQueryModel("topN", "telemetry-events", "LastWeek", Option("day"), Option(List(Aggregation(Option("count"), "count", ""))), Option(List(DruidDimension("context_pdata_id", Option("producer_id")))), Option(List(DruidFilter("in", "eid", None, Option(List("START", "END"))))))
         val rdd2 = DataFetcher.fetchBatchData[GroupByPid](Fetcher("druid", None, None, Option(topNQuery)));
         println(rdd2.count())
         rdd2.foreach(f => println(JSONUtils.serialize(f)))
 
-        val tsQuery = DruidQueryModel("timeSeries", "telemetry-events", "LastWeek", Option("day"), Option(List(Aggregation(Option("count"), "count", ""))))
+        val tsQuery = DruidQueryModel("timeSeries", "telemetry-events", "LastWeek", Option("day"), None, None, Option(List(DruidFilter("in", "eid", None, Option(List("START", "END"))))))
         val rdd3 = DataFetcher.fetchBatchData[TimeSeriesData](Fetcher("druid", None, None, Option(tsQuery)));
         println(rdd3.count())
         rdd3.foreach(f => println(JSONUtils.serialize(f)))
+
+        val unknownQuery = DruidQueryModel("scan", "telemetry-events", "LastWeek", Option("day"), None, None, Option(List(DruidFilter("in", "eid", None, Option(List("START", "END"))))))
+        the[DataFetcherException] thrownBy {
+            DataFetcher.fetchBatchData[TimeSeriesData](Fetcher("druid", None, None, Option(unknownQuery)));
+        } should have message "Unknown druid query type found"
+    }
+
+    it should "fetch no data for none fetcher type" in {
+        val rdd = DataFetcher.fetchBatchData[Event](Fetcher("none", None, None));
+        rdd.isEmpty() should be (true)
     }
 }

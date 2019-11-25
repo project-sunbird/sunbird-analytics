@@ -13,7 +13,6 @@ import org.joda.time.DateTime
 /**
   * @author Manjunath Davanam <manjunathd@ilimi.in>
   */
-case class TestPortalMetrics(noOfUniqueDevices: Long, totalContentPlaySessions: Double, totalTimeSpent: Double, totalContentPublished: Long)
 
 class TestUpdatePortalMetrics extends SparkSpec(null) {
 
@@ -44,12 +43,11 @@ class TestUpdatePortalMetrics extends SparkSpec(null) {
   "UpdateDashboardModel" should "Should find the unique device count,totalContentPublished,totalTimeSpent,totalContentPlayTime and should filter when d_time>0(Cumulative)" in {
     val rdd = executeDataProduct()
     val out = rdd.collect()
-    println(JSONUtils.serialize(out.head))
-    val dashboardSummary = JSONUtils.deserialize[TestPortalMetrics](JSONUtils.serialize(out.head.metrics_summary))
-    dashboardSummary.totalContentPublished should be(0)
+    val dashboardSummary = JSONUtils.deserialize[WorkFlowUsageMetrics](JSONUtils.serialize(out.head.metrics_summary))
+    dashboardSummary.totalContentPublished.language_publisher_breakdown.length should be(0)
     dashboardSummary.noOfUniqueDevices should be(3)
-    dashboardSummary.totalTimeSpent should be(108.9)
-    dashboardSummary.totalContentPlaySessions should be(624)
+    dashboardSummary.totalTimeSpent should be(0.0)
+    dashboardSummary.totalContentPlaySessions should be(0)
   }
 
 }

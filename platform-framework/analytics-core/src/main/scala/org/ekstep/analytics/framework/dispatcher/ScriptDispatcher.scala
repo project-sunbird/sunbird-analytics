@@ -56,13 +56,6 @@ object ScriptDispatcher extends IDispatcher {
         script.!
     }
 
-    def dispatch(script: ProcessBuilder, logger: ProcessLogger): Int = {
-        if (null == script) {
-            throw new DispatcherException("script cannot be null")
-        }
-        script.!(logger)
-    }
-
     def dispatch(script: ProcessBuilder): Int = {
         if (null == script) {
             throw new DispatcherException("script cannot be null")

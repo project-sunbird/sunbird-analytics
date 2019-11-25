@@ -7,12 +7,6 @@ jobs:
       - restore_cache:
           key: dp-dependency-cache-{{ checksum "pom.xml" }}
       - run:
-          name: scruid-build
-          command: |
-            git clone https://github.com/ing-bank/scruid.git
-            cd scruid && sed -i 's/scalaVersion in ThisBuild := "2.12.8"/scalaVersion in ThisBuild := "2.11.8"/g' build.sbt
-            sbt compile && sbt package && sbt publishM2
-      - run:
           name: analytics-framework-build
           command: cd platform-framework && mvn clean install -DskipTests=true
       - run:
@@ -33,6 +27,14 @@ jobs:
       - store_artifacts:
           path: temp
           destination: temp/
+
+      - run:
+          name: sonar
+          command: |
+            srcBranch=$(curl -s https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/pulls/$CIRCLE_PR_NUMBER | jq .head.ref -r)
+            tarBranch=$(curl -s https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/pulls/$CIRCLE_PR_NUMBER | jq .base.ref -r)
+            mvn verify -DskipTests=true sonar:sonar -Dsonar.projectKey=project-sunbird_sunbird-analytics -Dsonar.organization=project-sunbird -Dsonar.host.url=https://sonarcloud.io -Dsonar.pullrequest.branch=$srcbranch -Dsonar.pullrequest.key=$CIRCLE_PR_NUMBER -Dsonar.pullrequest.base=$tarbranch
+
           
           
 workflows:

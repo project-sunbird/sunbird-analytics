@@ -1,16 +1,18 @@
 #!/usr/bin/env bash
 
-#export SPARK_HOME=/Users/santhosh/ekStep/spark-1.5.0-bin-hadoop2.3
-#export PROJECT_HOME=/Users/santhosh/ekStep/github-repos/Learning-Platform-Analytics
-
-export content2vec_scripts_path=$PROJECT_HOME/platform-scripts/python/main/vidyavaani
-export KAFKA_HOME=/Users/santhosh/ekStep/kafka_2.11-0.10.0.1
+#export SPARK_HOME=<add spark-installtion-directory>/spark-1.5.0-bin-hadoop2.3
+#export PROJECT_HOME=<add repo directory>/sunbird-analytics
+#export DP_LOGS=$PROJECT_HOME/platform-scripts/shell/local/logs
 
 ## Job to run daily
 cd $PROJECT_HOME/platform-scripts/shell/local
 source model-config.sh
 today=$(date "+%Y-%m-%d")
 
-if [ -z "$job_config" ]; then job_config=$(config $1); fi
+if [ -z "$2" ]; then job_config=$(config $1); else job_config="$2"; fi
 
-echo '{"model":"'$1'", "config": '$job_config'}' | $KAFKA_HOME/bin/kafka-console-producer.sh --broker-list localhost:9092 --topic local.analytics.job_queue
+echo "Starting the job - $1" >> "$DP_LOGS/$today-job-execution.log"
+
+nohup $SPARK_HOME/bin/spark-submit --master local[*] --jars $PROJECT_HOME/platform-framework/analytics-job-driver/target/analytics-framework-1.0.jar --class org.ekstep.analytics.job.JobExecutor $PROJECT_HOME/platform-modules/batch-models/target/batch-models-1.0.jar --model "$1" --config "$job_config" >> "$DP_LOGS/$today-job-execution.log" 2>&1
+
+echo "Job execution completed - $1" >> "$DP_LOGS/$today-job-execution.log"

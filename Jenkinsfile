@@ -31,21 +31,11 @@ node('build-slave') {
                 sed -i "s/cassandra.service.embedded.enable=false/cassandra.service.embedded.enable=true/g" platform-api/analytics-api/conf/application.conf
                 sed -i "s/cassandra.service.embedded.enable=false/cassandra.service.embedded.enable=true/g" platform-api/analytics-api-core/src/test/resources/application.conf
                 #sed -i "s/'replication_factor': '2'/'replication_factor': '1'/g" platform-scripts/database/data.cql
-                rm -rf script
-                mkdir script
-                cp -r platform-scripts/python/main/BusinessMetrics script
-                cp -r platform-scripts/python/main/vidyavaani script
-                cp -r platform-scripts/VidyaVani/GenieSearch script
-                cp -r platform-scripts/VidyaVani/VidyavaniCnQ script
-                zip -r script.zip script
-                git clone https://github.com/ing-bank/scruid.git
-                cd scruid && sed -i 's/scalaVersion in ThisBuild := "2.12.8"/scalaVersion in ThisBuild := "2.11.8"/g' build.sbt
                 '''
         }
         stage('Build') {
             sh '''
-                cd scruid && sbt compile && sbt package && sbt publishM2
-                cd ../platform-framework && mvn clean install -DskipTests=true
+                cd platform-framework && mvn clean install -DskipTests=true
                 cd ../platform-modules && mvn clean install -DskipTests
                 cd job-manager && mvn clean package
                 cd ../../platform-api && mvn clean install -DskipTests=true
@@ -59,7 +49,6 @@ node('build-slave') {
                         cp platform-modules/batch-models/target/batch-models-1.0.jar lpa_artifacts
                         cp platform-modules/job-manager/target/job-manager-1.0-distribution.tar.gz lpa_artifacts
                         cp platform-api/analytics-api/target/analytics-api-1.0-dist.zip lpa_artifacts
-                        cp script.zip lpa_artifacts
                         zip -j lpa_artifacts.zip:${artifact_version} lpa_artifacts/*
                     """
             archiveArtifacts artifacts: "lpa_artifacts.zip:${artifact_version}", fingerprint: true, onlyIfSuccessful: true

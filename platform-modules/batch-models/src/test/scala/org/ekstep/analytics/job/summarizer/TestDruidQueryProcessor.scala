@@ -4,6 +4,7 @@ import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.fetcher.DruidDataFetcher
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.model._
+import org.ekstep.analytics.model.SparkSpec
 
 class TestDruidQueryProcessor extends SparkSpec(null) {
 

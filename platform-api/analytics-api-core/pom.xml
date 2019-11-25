@@ -26,24 +26,57 @@
 
 	<properties>
 		<elastic4sVersion>6.2.10</elastic4sVersion>
+		<akka.version>2.5.22</akka.version>
+		<jackson.version>2.9.8</jackson.version>
 	</properties>
-
 	<dependencies>
+		<dependency>
+			<groupId>com.fasterxml.jackson.module</groupId>
+			<artifactId>jackson-module-scala_${scala.maj.version}</artifactId>
+			<version>${jackson.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-core</artifactId>
+			<version>${jackson.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-annotations</artifactId>
+			<version>${jackson.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>${jackson.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>org.ekstep</groupId>
 			<artifactId>analytics-core</artifactId>
 			<version>1.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.typesafe.play</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>joda-time</groupId>
 			<artifactId>joda-time</artifactId>
 			<version>2.8.1</version>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/com.datastax.cassandra/cassandra-driver-core -->
 		<dependency>
 			<groupId>com.datastax.cassandra</groupId>
 			<artifactId>cassandra-driver-core</artifactId>
-			<version>3.1.0</version>
+			<version>3.7.0</version>
+			<classifier>shaded</classifier>
+			<exclusions>
+				<exclusion>
+					<groupId>io.netty</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>net.java.dev.jets3t</groupId>
@@ -53,7 +86,7 @@
 		<dependency>
 			<groupId>org.scalatest</groupId>
 			<artifactId>scalatest_${scala.maj.version}</artifactId>
-			<version>2.2.4</version>
+			<version>3.0.6</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -68,80 +101,29 @@
 			<version>4.5.1</version>
 		</dependency>
 		<dependency>
-			<groupId>com.fasterxml.jackson.module</groupId>
-			<artifactId>jackson-module-scala_${scala.maj.version}</artifactId>
-			<version>2.7.8</version>
-		</dependency>
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-core</artifactId>
-			<version>2.7.8</version>
-		</dependency>
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-annotations</artifactId>
-			<version>2.7.8</version>
-		</dependency>
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-databind</artifactId>
-			<version>2.7.8</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.hadoop</groupId>
-			<artifactId>hadoop-client</artifactId>
-			<version>2.7.3</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.hadoop</groupId>
-			<artifactId>hadoop-common</artifactId>
-			<version>2.7.3</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.hadoop</groupId>
-			<artifactId>hadoop-aws</artifactId>
-			<version>2.7.3</version>
-<!-- 			<exclusions> -->
-<!-- 				<exclusion> -->
-<!-- 					<groupId>com.fasterxml.jackson.core</groupId> -->
-<!-- 					<artifactId>jackson-annotations</artifactId> -->
-<!-- 				</exclusion> -->
-<!-- 				<exclusion> -->
-<!-- 					<groupId>com.fasterxml.jackson.core</groupId> -->
-<!-- 					<artifactId>jackson-databind</artifactId> -->
-<!-- 				</exclusion> -->
-<!-- 			</exclusions> -->
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.apache.kafka/kafka_2.10 -->
-		<dependency>
-			<groupId>org.apache.kafka</groupId>
-			<artifactId>kafka_2.11</artifactId>
-			<version>0.10.1.0</version>
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.apache.kafka/kafka-clients -->
-		<dependency>
-			<groupId>org.apache.kafka</groupId>
-			<artifactId>kafka-clients</artifactId>
-			<version>0.10.1.0</version>
-		</dependency>
-		<dependency>
 			<groupId>org.cassandraunit</groupId>
 			<artifactId>cassandra-unit</artifactId>
 			<version>3.1.1.0</version>
 			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>io.netty</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.github.thurstonsand</groupId>
 			<artifactId>scala-cass_${scala.maj.version}</artifactId>
 			<version>2.1.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId>io.netty</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
-		<!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
-		<dependency>
-			<groupId>com.google.guava</groupId>
-			<artifactId>guava</artifactId>
-			<version>19.0</version>
-		</dependency>
 		<dependency>
 			<groupId>org.scalikejdbc</groupId>
 			<artifactId>scalikejdbc_2.11</artifactId>
@@ -157,18 +139,6 @@
 		    <artifactId>woothee-java</artifactId>
 		    <version>1.8.0</version>
 		</dependency>
-		<!-- <dependency>
-			<groupId>org.sunbird</groupId>
-			<artifactId>sunbird-cloud-store-sdk</artifactId>
-			<version>1.0</version>
-			<scope>provided</scope>
-		</dependency> -->
-		<!-- <dependency>
-		    <groupId>org.sunbird</groupId>
-		    <artifactId>cloud-store-sdk</artifactId>
-		    <version>1.0</version>
-		    <scope>provided</scope>
-		</dependency> -->
 		<dependency>
 			<groupId>redis.clients</groupId>
 			<artifactId>jedis</artifactId>
@@ -187,8 +157,20 @@
 		<dependency>
 			<groupId>com.typesafe.akka</groupId>
 			<artifactId>akka-testkit_2.11</artifactId>
-			<version>2.4.6</version>
+			<version>${akka.version}</version>
 			<scope>test</scope>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.typesafe.akka/akka-actor_2.11 -->
+		<dependency>
+			<groupId>com.typesafe.akka</groupId>
+			<artifactId>akka-actor_${scala.maj.version}</artifactId>
+			<version>${akka.version}</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<version>1.4.200</version>
 		</dependency>
 	</dependencies>
 

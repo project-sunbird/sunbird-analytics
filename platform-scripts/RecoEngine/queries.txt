@@ -1,4 +1,0 @@
-TRUNCATE learnercontentsummary;
-TRUNCATE learnerproficiency;
-TRUNCATE learnerconceptrelevance;
-TRUNCATE learnersnapshot;

@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-now=$(date "+%Y-%m-%d-%H-%M")
-/usr/local/bin/cassandra-snapshotter --s3-bucket-name={{ cassandra_backup_bucket }} --s3-bucket-region={{ s3_bucket_region }} --s3-base-path={{ s3_base_path }} --aws-access-key-id=$aws_key --aws-secret-access-key=$aws_secret backup --hosts {{ cassandra_backup_host }} --new-snapshot --keyspaces {{cassandra_backup_keyspaces}} --cassandra-conf-path={{ cassandra_conf_path }} --cassandra-bin-dir={{ cassandra_bin_path }}  --user={{ cassandra_backup_user }} --sshkey={{ cassandra_ssh_key }} > {{cassandra_backup_service_log}}/cassandra-backup-$now.log &
