@@ -5,7 +5,6 @@ import akka.pattern.pipe
 import com.google.common.net.InetAddresses
 import com.google.common.primitives.UnsignedInts
 import com.typesafe.config.Config
-import org.apache.logging.log4j.LogManager
 import org.ekstep.analytics.api.util.{APILogger, DeviceStateDistrict, H2DBUtil, RedisUtil}
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.exceptions.JedisConnectionException
@@ -23,12 +22,11 @@ class DeviceProfileService(saveMetricsActor: ActorRef, config: Config, redisUtil
   val geoLocationCityTableName: String = config.getString("postgres.table.geo_location_city.name")
   val geoLocationCityIpv4TableName: String = config.getString("postgres.table.geo_location_city_ipv4.name")
   implicit val jedisConnection: Jedis = redisUtil.getConnection(deviceDatabaseIndex)
-  private val logger = LogManager.getLogger("device-logger")
 
   def receive = {
     case deviceProfile: DeviceProfileRequest =>
       try {
-        logger.info("DeviceProfile API Updater for device id " + deviceProfile.did)
+        println("DeviceProfile API Updater for device id " + deviceProfile.did)
         val senderActor = sender()
         val result = getDeviceProfile(deviceProfile)
         result.pipeTo(senderActor)

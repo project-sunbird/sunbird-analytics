@@ -11,6 +11,7 @@ import is.tagomor.woothee.Classifier
 import org.apache.logging.log4j.LogManager
 import org.postgresql.util.PSQLException
 import redis.clients.jedis.Jedis
+import redis.clients.jedis.exceptions.JedisConnectionException
 
 import scala.concurrent.ExecutionContext
 
@@ -40,6 +41,13 @@ class DeviceRegisterService(saveMetricsActor: ActorRef, config: Config, redisUti
                     ex.printStackTrace()
                     val errorMessage = "DeviceRegisterAPI failed due to " + ex.getMessage
                     metricsActor.tell(IncrementLocationDbErrorCount, ActorRef.noSender)
+                    APILogger.log("", Option(Map("type" -> "api_access",
+                        "params" -> List(Map("status" -> 500, "method" -> "POST",
+                            "rid" -> "registerDevice", "title" -> "registerDevice")), "data" -> errorMessage)),
+                        "registerDevice")
+                case ex: JedisConnectionException =>
+                    ex.printStackTrace()
+                    val errorMessage = "DeviceRegisterAPI failed due to " + ex.getMessage
                     APILogger.log("", Option(Map("type" -> "api_access",
                         "params" -> List(Map("status" -> 500, "method" -> "POST",
                             "rid" -> "registerDevice", "title" -> "registerDevice")), "data" -> errorMessage)),

@@ -23,9 +23,9 @@ object Global extends WithFilters(RequestInterceptor) {
         val deviceProfileRedisUtil = new RedisUtil()
         val metricsActor: ActorRef = app.actorSystem.actorOf(Props(new SaveMetricsActor(config)))
 
-        val deviceRegsiterActor = app.actorSystem
+        val deviceRegisterActor = app.actorSystem
           .actorOf(Props(new DeviceRegisterService(metricsActor, config, deviceRegisterRedisUtil)), "deviceRegisterServiceAPIActor")
-        AppConf.setActorRef("deviceRegisterService", deviceRegsiterActor)
+        AppConf.setActorRef("deviceRegisterService", deviceRegisterActor)
 
         val deviceProfileActor = app.actorSystem
           .actorOf(Props(new DeviceProfileService(metricsActor, config, deviceProfileRedisUtil)), "deviceProfileServiceAPIActor")
