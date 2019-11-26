@@ -30,11 +30,11 @@ class DeviceRegisterService(saveMetricsActor: ActorRef, config: Config, redisUti
     val deviceDatabaseIndex: Int = config.getInt("redis.deviceIndex")
     implicit val jedisConnection: Jedis = redisUtil.getConnection(deviceDatabaseIndex)
     private val logger = LogManager.getLogger("device-logger")
+    private val enableDebugLogging = config.getBoolean("device.api.enable.debug.log")
 
     def receive = {
         case deviceRegDetails: RegisterDevice =>
             try {
-                println(s"DeviceRegisterService: Registering did ${deviceRegDetails.did} using IP address ${deviceRegDetails.headerIP}")
                 metricsActor.tell(IncrementApiCalls, ActorRef.noSender)
                 registerDevice(deviceRegDetails)
             } catch {
@@ -71,11 +71,15 @@ class DeviceRegisterService(saveMetricsActor: ActorRef, config: Config, redisUti
 
             // logging metrics
             if(isLocationResolved(location)) {
-                println(s"DeviceRegisterService.registerDevice: Location resolved - { did: ${registrationDetails.did}, ip_address: $validIp, state: ${location.state}, city: ${location.city}, district: ${location.districtCustom} }")
+                if (enableDebugLogging) {
+                    println(s"DeviceRegisterService.registerDevice: Location resolved - { did: ${registrationDetails.did}, ip_address: $validIp, state: ${location.state}, city: ${location.city}, district: ${location.districtCustom} }")
+                }
                 APILogger.log("", Option(Map("comments" -> s"Location resolved for ${registrationDetails.did} to state: ${location.state}, city: ${location.city}, district: ${location.districtCustom}")), "registerDevice")
                 metricsActor.tell(IncrementLocationDbSuccessCount, ActorRef.noSender)
             } else {
-                println(s"DeviceRegisterService.registerDevice: Location not resolved - { did: ${registrationDetails.did}, ip_address: $validIp }")
+                if (enableDebugLogging) {
+                    println(s"DeviceRegisterService.registerDevice: Location not resolved - { did: ${registrationDetails.did}, ip_address: $validIp }")
+                }
                 APILogger.log("", Option(Map("comments" -> s"Location is not resolved for ${registrationDetails.did}")), "registerDevice")
                 metricsActor.tell(IncrementLocationDbMissCount, ActorRef.noSender)
             }
@@ -88,7 +92,9 @@ class DeviceRegisterService(saveMetricsActor: ActorRef, config: Config, redisUti
             // Add device profile to redis cache
             val deviceProfileMap = getDeviceProfileMap(registrationDetails, location)
             redisUtil.hmset(registrationDetails.did, deviceProfileMap)
-            println(s"Redis-cache updated for did: ${registrationDetails.did}")
+            if (enableDebugLogging) {
+                println(s"Redis-cache updated for did: ${registrationDetails.did}")
+            }
             APILogger.log(s"Redis-cache updated for did: ${registrationDetails.did}", None, "registerDevice")
 
             val deviceProfileLog = DeviceProfileLog(registrationDetails.did, location, Option(deviceSpec),
@@ -96,7 +102,6 @@ class DeviceRegisterService(saveMetricsActor: ActorRef, config: Config, redisUti
               registrationDetails.user_declared_state, registrationDetails.user_declared_district)
 
             val deviceRegisterLogEvent = generateDeviceRegistrationLogEvent(deviceProfileLog)
-            println(s"DeviceRegisterLogEvent: $deviceRegisterLogEvent")
             logger.info(deviceRegisterLogEvent)
             metricsActor.tell(IncrementLogDeviceRegisterSuccessCount, ActorRef.noSender)
         }
