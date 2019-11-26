@@ -27,7 +27,6 @@ class DeviceProfileService(saveMetricsActor: ActorRef, config: Config, redisUtil
   def receive = {
     case deviceProfile: DeviceProfileRequest =>
       try {
-        println("DeviceProfile API Updater for device id " + deviceProfile.did)
         val senderActor = sender()
         val result = getDeviceProfile(deviceProfile)
         result.pipeTo(senderActor)
