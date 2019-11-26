@@ -52,20 +52,26 @@ class DeviceProfileService(saveMetricsActor: ActorRef, config: Config, redisUtil
 
     if (deviceProfileRequest.headerIP.nonEmpty) {
       val ipLocationFromH2 = resolveLocationFromH2(deviceProfileRequest.headerIP)
+      val did = deviceProfileRequest.did
 
       // logging resolved location details
-      if (ipLocationFromH2.state.nonEmpty && ipLocationFromH2.districtCustom.nonEmpty) {
-        println(s"For IP: ${deviceProfileRequest.headerIP}, Location resolved for ${deviceProfileRequest.did} to state: ${ipLocationFromH2.state}, district: ${ipLocationFromH2.districtCustom}")
-        APILogger.log("", Option(Map("comments" -> s"Location resolved for ${deviceProfileRequest.did} to state: ${ipLocationFromH2.state}, district: ${ipLocationFromH2.districtCustom}")), "getDeviceProfile")
+      if (ipLocationFromH2.state.nonEmpty) {
+        println(s"For IP: ${deviceProfileRequest.headerIP}, Location resolved for $did to state: ${ipLocationFromH2.state}, district: ${ipLocationFromH2.districtCustom}")
+        APILogger.log("", Option(Map("comments" -> s"Location resolved for $did to state: ${ipLocationFromH2.state}, district: ${ipLocationFromH2.districtCustom}")), "getDeviceProfile")
       } else {
-        println(s"For IP: ${deviceProfileRequest.headerIP}, Location is not resolved for ${deviceProfileRequest.did}")
-        APILogger.log("", Option(Map("comments" -> s"Location is not resolved for ${deviceProfileRequest.did}")), "getDeviceProfile")
+        println(s"For IP: ${deviceProfileRequest.headerIP}, Location is not resolved for $did")
+        APILogger.log("", Option(Map("comments" -> s"Location is not resolved for $did")), "getDeviceProfile")
       }
 
-      val deviceLocation = redisUtil.getAllByKey(deviceProfileRequest.did)
+      val deviceLocation = redisUtil.getAllByKey(did)
       val userDeclaredLoc = if (deviceLocation.nonEmpty && deviceLocation.get.getOrElse("user_declared_state", "").nonEmpty) {
         Option(Location(deviceLocation.get("user_declared_state"), deviceLocation.get("user_declared_district")))
       } else None
+
+      userDeclaredLoc.foreach {
+        declaredLocation =>
+        println(s"[did: $did, user_declared_state: ${declaredLocation.state}, user_declared_district: ${declaredLocation.district}")
+      }
 
       Future(Some(DeviceProfile(userDeclaredLoc, Option(Location(ipLocationFromH2.state, ipLocationFromH2.districtCustom)))))
     } else {
