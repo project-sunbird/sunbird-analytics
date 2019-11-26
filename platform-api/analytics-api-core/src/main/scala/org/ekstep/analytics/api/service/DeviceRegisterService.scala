@@ -52,6 +52,13 @@ class DeviceRegisterService(saveMetricsActor: ActorRef, config: Config, redisUti
                         "params" -> List(Map("status" -> 500, "method" -> "POST",
                             "rid" -> "registerDevice", "title" -> "registerDevice")), "data" -> errorMessage)),
                         "registerDevice")
+                case ex: Exception =>
+                    ex.printStackTrace()
+                    val errorMessage = "DeviceRegisterAPI failed due to " + ex.getMessage
+                    APILogger.log("", Option(Map("type" -> "api_access",
+                        "params" -> List(Map("status" -> 500, "method" -> "POST",
+                            "rid" -> "registerDevice", "title" -> "registerDevice")), "data" -> errorMessage)),
+                        "registerDevice")
             }
     }
 
@@ -171,7 +178,7 @@ class DeviceRegisterService(saveMetricsActor: ActorRef, config: Config, redisUti
                 "user_declared_state" -> registrationDetails.user_declared_state.getOrElse(""),
                 "user_declared_district" -> registrationDetails.user_declared_district.getOrElse(""))
 
-        (dataMap ++ deviceLocation.toMap()).filter(f => f._2.nonEmpty)
+        (dataMap ++ deviceLocation.toMap()).filter(data => data != null && data._2.nonEmpty)
     }
 
 }
