@@ -9,7 +9,7 @@ import scala.collection.JavaConverters.mapAsJavaMapConverter
 
 object AppConf {
 
-  var actors = scala.collection.mutable.Map[String, ActorRef]()
+  val actors = scala.collection.mutable.Map[String, ActorRef]()
 
   val config: Config = play.Play.application.configuration.underlying()
     .withFallback(ConfigFactory.parseMap(Map("content2vec.scripts_path" -> "",

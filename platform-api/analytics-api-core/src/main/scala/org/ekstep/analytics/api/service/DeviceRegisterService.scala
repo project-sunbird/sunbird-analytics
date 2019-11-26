@@ -11,6 +11,7 @@ import is.tagomor.woothee.Classifier
 import org.apache.logging.log4j.LogManager
 import org.postgresql.util.PSQLException
 import redis.clients.jedis.Jedis
+import redis.clients.jedis.exceptions.JedisConnectionException
 
 import scala.concurrent.ExecutionContext
 
@@ -29,6 +30,7 @@ class DeviceRegisterService(saveMetricsActor: ActorRef, config: Config, redisUti
     val deviceDatabaseIndex: Int = config.getInt("redis.deviceIndex")
     implicit val jedisConnection: Jedis = redisUtil.getConnection(deviceDatabaseIndex)
     private val logger = LogManager.getLogger("device-logger")
+    private val enableDebugLogging = config.getBoolean("device.api.enable.debug.log")
 
     def receive = {
         case deviceRegDetails: RegisterDevice =>
@@ -44,6 +46,20 @@ class DeviceRegisterService(saveMetricsActor: ActorRef, config: Config, redisUti
                         "params" -> List(Map("status" -> 500, "method" -> "POST",
                             "rid" -> "registerDevice", "title" -> "registerDevice")), "data" -> errorMessage)),
                         "registerDevice")
+                case ex: JedisConnectionException =>
+                    ex.printStackTrace()
+                    val errorMessage = "DeviceRegisterAPI failed due to " + ex.getMessage
+                    APILogger.log("", Option(Map("type" -> "api_access",
+                        "params" -> List(Map("status" -> 500, "method" -> "POST",
+                            "rid" -> "registerDevice", "title" -> "registerDevice")), "data" -> errorMessage)),
+                        "registerDevice")
+                case ex: Exception =>
+                    ex.printStackTrace()
+                    val errorMessage = "DeviceRegisterAPI failed due to " + ex.getMessage
+                    APILogger.log("", Option(Map("type" -> "api_access",
+                        "params" -> List(Map("status" -> 500, "method" -> "POST",
+                            "rid" -> "registerDevice", "title" -> "registerDevice")), "data" -> errorMessage)),
+                        "registerDevice")
             }
     }
 
@@ -55,9 +71,15 @@ class DeviceRegisterService(saveMetricsActor: ActorRef, config: Config, redisUti
 
             // logging metrics
             if(isLocationResolved(location)) {
+                if (enableDebugLogging) {
+                    println(s"DeviceRegisterService.registerDevice: Location resolved - { did: ${registrationDetails.did}, ip_address: $validIp, state: ${location.state}, city: ${location.city}, district: ${location.districtCustom} }")
+                }
                 APILogger.log("", Option(Map("comments" -> s"Location resolved for ${registrationDetails.did} to state: ${location.state}, city: ${location.city}, district: ${location.districtCustom}")), "registerDevice")
                 metricsActor.tell(IncrementLocationDbSuccessCount, ActorRef.noSender)
             } else {
+                if (enableDebugLogging) {
+                    println(s"DeviceRegisterService.registerDevice: Location not resolved - { did: ${registrationDetails.did}, ip_address: $validIp }")
+                }
                 APILogger.log("", Option(Map("comments" -> s"Location is not resolved for ${registrationDetails.did}")), "registerDevice")
                 metricsActor.tell(IncrementLocationDbMissCount, ActorRef.noSender)
             }
@@ -70,6 +92,9 @@ class DeviceRegisterService(saveMetricsActor: ActorRef, config: Config, redisUti
             // Add device profile to redis cache
             val deviceProfileMap = getDeviceProfileMap(registrationDetails, location)
             redisUtil.hmset(registrationDetails.did, deviceProfileMap)
+            if (enableDebugLogging) {
+                println(s"Redis-cache updated for did: ${registrationDetails.did}")
+            }
             APILogger.log(s"Redis-cache updated for did: ${registrationDetails.did}", None, "registerDevice")
 
             val deviceProfileLog = DeviceProfileLog(registrationDetails.did, location, Option(deviceSpec),
@@ -163,7 +188,7 @@ class DeviceRegisterService(saveMetricsActor: ActorRef, config: Config, redisUti
                 "user_declared_state" -> registrationDetails.user_declared_state.getOrElse(""),
                 "user_declared_district" -> registrationDetails.user_declared_district.getOrElse(""))
 
-        (dataMap ++ deviceLocation.toMap()).filter(f => f._2.nonEmpty)
+        (dataMap ++ deviceLocation.toMap()).filter(data => data._2 != null && data._2.nonEmpty)
     }
 
 }

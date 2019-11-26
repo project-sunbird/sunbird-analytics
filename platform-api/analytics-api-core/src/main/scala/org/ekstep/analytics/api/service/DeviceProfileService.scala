@@ -5,7 +5,6 @@ import akka.pattern.pipe
 import com.google.common.net.InetAddresses
 import com.google.common.primitives.UnsignedInts
 import com.typesafe.config.Config
-import org.apache.logging.log4j.LogManager
 import org.ekstep.analytics.api.util.{APILogger, DeviceStateDistrict, H2DBUtil, RedisUtil}
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.exceptions.JedisConnectionException
@@ -23,12 +22,11 @@ class DeviceProfileService(saveMetricsActor: ActorRef, config: Config, redisUtil
   val geoLocationCityTableName: String = config.getString("postgres.table.geo_location_city.name")
   val geoLocationCityIpv4TableName: String = config.getString("postgres.table.geo_location_city_ipv4.name")
   implicit val jedisConnection: Jedis = redisUtil.getConnection(deviceDatabaseIndex)
-  private val logger = LogManager.getLogger("device-logger")
+  private val enableDebugLogging = config.getBoolean("device.api.enable.debug.log")
 
   def receive = {
     case deviceProfile: DeviceProfileRequest =>
       try {
-        logger.info("DeviceProfile API Updater for device id " + deviceProfile.did)
         val senderActor = sender()
         val result = getDeviceProfile(deviceProfile)
         result.pipeTo(senderActor)
@@ -54,20 +52,29 @@ class DeviceProfileService(saveMetricsActor: ActorRef, config: Config, redisUtil
 
     if (deviceProfileRequest.headerIP.nonEmpty) {
       val ipLocationFromH2 = resolveLocationFromH2(deviceProfileRequest.headerIP)
+      val did = deviceProfileRequest.did
 
       // logging resolved location details
-      if (ipLocationFromH2.state.nonEmpty && ipLocationFromH2.districtCustom.nonEmpty) {
-        println(s"For IP: ${deviceProfileRequest.headerIP}, Location resolved for ${deviceProfileRequest.did} to state: ${ipLocationFromH2.state}, district: ${ipLocationFromH2.districtCustom}")
-        APILogger.log("", Option(Map("comments" -> s"Location resolved for ${deviceProfileRequest.did} to state: ${ipLocationFromH2.state}, district: ${ipLocationFromH2.districtCustom}")), "getDeviceProfile")
+      if (ipLocationFromH2.state.nonEmpty) {
+        if (enableDebugLogging) {
+          println(s"For IP: ${deviceProfileRequest.headerIP}, Location resolved for $did to state: ${ipLocationFromH2.state}, district: ${ipLocationFromH2.districtCustom}")
+        }
+        APILogger.log("", Option(Map("comments" -> s"Location resolved for $did to state: ${ipLocationFromH2.state}, district: ${ipLocationFromH2.districtCustom}")), "getDeviceProfile")
       } else {
-        println(s"For IP: ${deviceProfileRequest.headerIP}, Location is not resolved for ${deviceProfileRequest.did}")
-        APILogger.log("", Option(Map("comments" -> s"Location is not resolved for ${deviceProfileRequest.did}")), "getDeviceProfile")
+        if (enableDebugLogging) {
+          println(s"For IP: ${deviceProfileRequest.headerIP}, Location is not resolved for $did")
+        }
+        APILogger.log("", Option(Map("comments" -> s"Location is not resolved for $did")), "getDeviceProfile")
       }
 
-      val deviceLocation = redisUtil.getAllByKey(deviceProfileRequest.did)
+      val deviceLocation = redisUtil.getAllByKey(did)
       val userDeclaredLoc = if (deviceLocation.nonEmpty && deviceLocation.get.getOrElse("user_declared_state", "").nonEmpty) {
         Option(Location(deviceLocation.get("user_declared_state"), deviceLocation.get("user_declared_district")))
       } else None
+
+      if (enableDebugLogging) {
+        userDeclaredLoc.foreach { declaredLocation => println(s"[did: $did, user_declared_state: ${declaredLocation.state}, user_declared_district: ${declaredLocation.district}") }
+      }
 
       Future(Some(DeviceProfile(userDeclaredLoc, Option(Location(ipLocationFromH2.state, ipLocationFromH2.districtCustom)))))
     } else {
