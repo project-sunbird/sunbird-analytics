@@ -57,7 +57,7 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
     JobLogger.end("StateAdminReportJob completed successfully!", "SUCCESS", Option(Map("config" -> config, "model" -> name)))
   }
 
-  private def generateReport()(implicit sparkSession: SparkSession) = {
+   def generateReport()(implicit sparkSession: SparkSession) = {
 
     import sparkSession.implicits._
     val renamedDir = s"$tempDir/renamed"
