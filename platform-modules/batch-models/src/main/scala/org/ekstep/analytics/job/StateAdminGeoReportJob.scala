@@ -119,6 +119,8 @@ object StateAdminGeoReportJob extends optional.Application with IJob with BaseRe
     fSFileUtils.renameReport(detailDir, renamedDir, ".csv", "geo-detail")
     fSFileUtils.purgeDirectory(detailDir)
     fSFileUtils.purgeDirectory(summaryDir)
+
+     blockDF.distinct()
   }
 
   def saveGeoDetailsReport(reportDF: DataFrame, url: String): Unit = {

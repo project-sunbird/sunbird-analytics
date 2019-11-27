@@ -2,9 +2,9 @@ package org.ekstep.analytics.job
 
 import org.apache.spark.SparkContext
 import org.apache.spark.sql._
-import org.apache.spark.sql.functions.{ col, lit, _ }
+import org.apache.spark.sql.functions.{col, lit, _}
 import org.ekstep.analytics.framework._
-import org.ekstep.analytics.framework.util.{ JSONUtils, JobLogger }
+import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger}
 import org.ekstep.analytics.util.HDFSFileUtils
 import org.sunbird.cloud.storage.conf.AppConf
 
@@ -79,6 +79,8 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
     // Purge the directories after copying to the upload staging area
     fSFileUtils.purgeDirectory(detailDir)
     fSFileUtils.purgeDirectory(summaryDir)
+
+    shadowUserDF.distinct()
   }
 
   private def getChannelSlugMap()(implicit sparkSession: SparkSession): Map[String, String] = {
