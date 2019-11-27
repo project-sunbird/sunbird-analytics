@@ -19,9 +19,6 @@ object StateAdminGeoReportJob extends optional.Application with IJob with BaseRe
 
   def name(): String = "StateAdminGeoReportJob"
 
-  private val DETAIL_STR = "detail"
-  private val SUMMARY_STR = "summary"
-
   def main(config: String)(implicit sc: Option[SparkContext] = None) {
 
     JobLogger.init(name())
@@ -89,8 +86,6 @@ object StateAdminGeoReportJob extends optional.Application with IJob with BaseRe
       .join(locationDF, subOrgDF.col("exploded_location") === locationDF.col("locid"), "left")
       .join(rootOrgDF, subOrgDF.col("rootorgid") === rootOrgDF.col("rootorgjoinid")).as[SubOrgRow]
 
-    println("geo summary dataframe")
-    subOrgJoinedDF.show(10, false)
     subOrgJoinedDF
       .groupBy("slug")
       .agg(countDistinct("id").as("schools"), count(col("locType").equalTo("district")).as("districts"),
@@ -119,9 +114,6 @@ object StateAdminGeoReportJob extends optional.Application with IJob with BaseRe
       .mode("overwrite")
       .option("header", "true")
       .csv(s"$detailDir")
-
-    println("geo details dataframe")
-    blockDF.show(10, false)
 
     fSFileUtils.renameReport(summaryDir, renamedDir, ".json", "geo-summary")
     fSFileUtils.renameReport(detailDir, renamedDir, ".csv", "geo-detail")

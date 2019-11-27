@@ -67,7 +67,6 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
 
     val shadowDataEncoder = Encoders.product[ShadowUserData].schema
     val shadowUserDF = loadData(sparkSession, Map("table" -> "shadow_user", "keyspace" -> sunbirdKeyspace), Some(shadowDataEncoder)).as[ShadowUserData]
-    shadowUserDF.show(10, false)
 
     val shadowDataSummary = generateSummaryData(shadowUserDF)
 
