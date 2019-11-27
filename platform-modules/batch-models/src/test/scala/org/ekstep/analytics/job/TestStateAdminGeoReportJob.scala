@@ -10,7 +10,7 @@ import org.mockito.Mockito.verify
 import org.mockito.Mockito.when
 import org.scalatest.mockito.MockitoSugar
 
-class TestStateAdminReportJob extends SparkSpec(null) with MockitoSugar {
+class TestStateAdminGeoReportJob extends SparkSpec(null) with MockitoSugar {
 
   var spark: SparkSession = _
   var shadowUserDF: DataFrame = _
@@ -58,7 +58,7 @@ class TestStateAdminReportJob extends SparkSpec(null) with MockitoSugar {
 
 
   ignore should "generate reports" in {
-    val reportDF = StateAdminReportJob.generateReport()(spark)
+    val reportDF = StateAdminGeoReportJob.generateGeoSummaryReport()(spark)
 
     verify(reporterMock, times(3)).loadData(spark, Map("table" -> "shadow_user", "keyspace" -> sunbirdKeyspace), None)
 
