@@ -9,7 +9,6 @@ import javax.inject.{Inject, Named}
 import org.apache.logging.log4j.LogManager
 import org.ekstep.analytics.api.util.{DeviceStateDistrict, H2DBUtil, _}
 import org.joda.time.{DateTime, DateTimeZone}
-import org.postgresql.util.PSQLException
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.exceptions.JedisConnectionException
 
@@ -57,7 +56,7 @@ class DeviceRegisterService @Inject()(
                 // registerDevice(registrationDetails.did, registrationDetails.headerIP, registrationDetails.ip_addr, registrationDetails.fcmToken, registrationDetails.producer, registrationDetails.dspec, registrationDetails.uaspec)
                 registerDevice(deviceRegDetails)
             } catch {
-                case ex: PSQLException =>
+                case ex: Exception =>
                     ex.printStackTrace()
                     val errorMessage = "DeviceRegisterAPI failed due to " + ex.getMessage
                     metricsActor.tell(IncrementLocationDbErrorCount, ActorRef.noSender)
@@ -137,7 +136,7 @@ class DeviceRegisterService @Inject()(
             }
 
             val deviceLocation = redisUtil.getAllByKey(getProfileDetails.did)
-            val userDeclaredLoc = if (deviceLocation.nonEmpty && deviceLocation.get.getOrElse("user_declared_state", "").nonEmpty) Option(Location(deviceLocation.get("user_declared_state"), deviceLocation.get("user_declared_district"))) else None
+            val userDeclaredLoc = if (deviceLocation != null && deviceLocation.nonEmpty && deviceLocation.get.getOrElse("user_declared_state", "").nonEmpty) Option(Location(deviceLocation.get("user_declared_state"), deviceLocation.get("user_declared_district"))) else None
 
             Future(Some(DeviceProfile(userDeclaredLoc, Option(Location(ipLocationFromH2.state, ipLocationFromH2.districtCustom)))))
         }

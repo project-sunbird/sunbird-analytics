@@ -2,22 +2,12 @@ package org.ekstep.analytics.api.util
 
 import java.util.UUID
 
-import org.apache.spark.SparkConf
-import org.apache.spark.SparkContext
-import org.ekstep.analytics.api.{ExperimentBodyResponse, ExperimentParams, Params, Range, Response, ResponseCode}
-import org.ekstep.analytics.framework.Period._
-import org.ekstep.analytics.framework.conf.AppConf
-import org.joda.time.DateTime
-import org.joda.time.DateTimeZone
-import org.joda.time.Days
-import org.joda.time.Duration
-import org.joda.time.LocalDate
-import org.joda.time.Weeks
-import org.joda.time.format.DateTimeFormat
-import org.joda.time.format.DateTimeFormatter
 import org.apache.commons.lang3.StringUtils
-import com.typesafe.config.Config
-import com.typesafe.config.ConfigFactory
+import org.apache.spark.{SparkConf, SparkContext}
+import org.ekstep.analytics.api.{ExperimentBodyResponse, ExperimentParams, Params, Range, Response, ResponseCode}
+import org.ekstep.analytics.framework.conf.AppConf
+import org.joda.time._
+import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 
 
 /**
@@ -44,9 +34,9 @@ object CommonUtil {
         }
         if(embeddedCassandraMode)
           conf.set("spark.cassandra.connection.port", AppConf.getConfig("cassandra.service.embedded.connection.port"))
-   
-        // $COVERAGE-ON$
+
         new SparkContext(conf);
+        // $COVERAGE-ON$
     }
     
     private def embeddedCassandraMode() : Boolean = {
@@ -80,21 +70,6 @@ object CommonUtil {
         Range(monthPeriod.print(startDate).toInt, monthPeriod.print(endDate).toInt)
     }
 
-    def getWeekRange(count: Int): Range = {
-        val endDate = DateTime.now(DateTimeZone.UTC);
-        val startDate = endDate.minusDays(count * 7);
-        Range(getWeekNumber(startDate.getWeekyear, startDate.getWeekOfWeekyear), getWeekNumber(endDate.getWeekyear, endDate.getWeekOfWeekyear))
-    }
-
-    private def getWeekNumber(year: Int, weekOfWeekyear: Int): Int = {
-
-        if (weekOfWeekyear < 10) {
-            (year + "70" + weekOfWeekyear).toInt
-        } else {
-            (year + "7" + weekOfWeekyear).toInt
-        }
-    }
-
     def errorResponse(apiId: String, err: String, responseCode: String): Response = {
         Response(apiId, "1.0", df.print(System.currentTimeMillis()),
             Params(UUID.randomUUID().toString, null, responseCode, "failed", err),
@@ -124,38 +99,6 @@ object CommonUtil {
         new Duration(now, now.plusDays(1).withTimeAtStartOfDay()).getStandardHours;
     }
 
-    def getPeriodLabel(period: Period, date: Int)(implicit config: Config): String = {
-        val formatter = DateTimeFormat.forPattern("YYYYMMdd").withZone(DateTimeZone.forOffsetHoursMinutes(5, 30));
-        period match {
-            case MONTH =>
-                val format = config.getString("metrics.period.format.month");
-                formatter.parseDateTime(date + "01").toString(DateTimeFormat.forPattern(format))
-            case WEEK =>
-                val datestr = Integer.toString(date);
-                getWeekPeriodLabel(datestr);
-            case DAY =>
-                val format = config.getString("metrics.period.format.day")
-                formatter.parseDateTime(date.toString()).toString(DateTimeFormat.forPattern(format))
-            case _ => date.toString();
-        }
-    }
-    
-    def getWeekPeriodLabel(date: String): String = {
-    	val week = date.substring(0,4)+"-"+date.substring(5,date.length);
-    	val firstDay = weekPeriodLabel.parseDateTime(week);
-        val lastDay = firstDay.plusDays(6);
-        val first = firstDay.toString(DateTimeFormat.forPattern("MMM dd"));
-        val last = if (firstDay.getMonthOfYear == lastDay.getMonthOfYear) 
-        	lastDay.toString(DateTimeFormat.forPattern("dd"))
-        else
-        	lastDay.toString(DateTimeFormat.forPattern("MMM dd"))
-        s"$first - $last";
-    }
-    
-    def getMillis(): Long = {
-    	DateTime.now(DateTimeZone.UTC).getMillis
-    }
-    
     def getToday(): String = {
         dateFormat.print(new DateTime)
     }

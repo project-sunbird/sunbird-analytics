@@ -1,12 +1,15 @@
 package org.ekstep.analytics.api.service
 
-import akka.actor.ActorSystem
-import akka.testkit.TestActorRef
+import akka.actor.{ActorRef, ActorSystem}
+import akka.testkit.{TestActorRef, TestProbe}
+import akka.util.Timeout
 import com.typesafe.config.Config
 import org.ekstep.analytics.api.BaseSpec
-import org.ekstep.analytics.api.util.{DeviceLocation, DeviceStateDistrict, H2DBUtil, PostgresDBUtil, RedisUtil}
+import org.ekstep.analytics.api.util._
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.mockito.Mockito._
+
+import scala.concurrent.duration._
 
 class TestDeviceRegisterService extends BaseSpec {
 
@@ -14,13 +17,20 @@ class TestDeviceRegisterService extends BaseSpec {
   private implicit val system: ActorSystem = ActorSystem("device-register-test-actor-system", config)
   private val configMock = mock[Config]
   private val redisUtilMock = mock[RedisUtil]
-  private val postgresDB = mock[PostgresDBUtil]
-  private val H2DB = mock[H2DBUtil]
+  private val postgresDBMock = mock[PostgresDBUtil]
+  private val H2DBMock = mock[H2DBUtil]
   implicit val executor =  scala.concurrent.ExecutionContext.global
   implicit val jedisConnection = redisUtilMock.getConnection(redisIndex)
   val redisIndex: Int = config.getInt("redis.deviceIndex")
   val saveMetricsActor = TestActorRef(new SaveMetricsActor)
-  private val deviceRegisterService = TestActorRef(new DeviceRegisterService(saveMetricsActor, configMock, redisUtilMock, postgresDB, H2DB)).underlyingActor
+  val metricsActorProbe = TestProbe()
+  private val deviceRegisterService = TestActorRef(new DeviceRegisterService(saveMetricsActor, configMock, redisUtilMock, postgresDBMock, H2DBMock)).underlyingActor
+  private val deviceRegisterActorRef = TestActorRef(new DeviceRegisterService(saveMetricsActor, config, redisUtilMock, postgresDBMock, H2DBMock){
+    override val metricsActor = metricsActorProbe.ref
+  })
+
+  val geoLocationCityIpv4TableName = config.getString("postgres.table.geo_location_city_ipv4.name")
+  val geoLocationCityTableName = config.getString("postgres.table.geo_location_city.name")
 
   val request: String =
     s"""
@@ -179,5 +189,68 @@ class TestDeviceRegisterService extends BaseSpec {
 
     val deviceLocation = redisUtilMock.getAllByKey("test-device")
     deviceLocation.isEmpty should be(true)
+  }
+
+  "register device message" should "resolve location write to logger" in {
+    val deviceSpec = "{\"cpu\":\"abi:  armeabi-v7a  ARMv7 Processor rev 4 (v7l)\",\"make\":\"Micromax Micromax A065\",\"os\":\"Android 4.4.2\"}"
+    val uaspec = s"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36"
+
+    val query =
+      s"""
+         |SELECT
+         |  glc.continent_name,
+         |  glc.country_iso_code country_code,
+         |  glc.country_name,
+         |  glc.subdivision_1_iso_code state_code,
+         |  glc.subdivision_1_name state,
+         |  glc.subdivision_2_name sub_div_2,
+         |  glc.city_name city,
+         |  glc.subdivision_1_custom_name state_custom,
+         |  glc.subdivision_1_custom_code state_code_custom,
+         |  glc.subdivision_2_custom_name district_custom
+         |FROM $geoLocationCityIpv4TableName gip,
+         |  $geoLocationCityTableName glc
+         |WHERE glc.country_iso_code = 'IN'
+         |  AND gip.geoname_id = glc.geoname_id
+         |  AND gip.network_start_integer <= 1935923652
+         |  AND gip.network_last_integer >= 1935923652
+               """.stripMargin
+
+    when(postgresDBMock.readLocation(query)).thenReturn(List(DeviceLocation(continentName = "Asia", countryCode = "IN", countryName = "India", stateCode = "KA",
+      state = "Karnataka", subDivsion2 = null, city = "Bangalore",
+      stateCustom = "Karnataka", stateCodeCustom = "29", districtCustom = null)))
+
+    deviceRegisterActorRef.tell(RegisterDevice(did = "device-001", headerIP = "115.99.217.196", ip_addr = Option("115.99.217.196"), fcmToken = Option("some-token"), producer = Option("prod.diksha.app"), dspec = Option(deviceSpec), uaspec = Option(uaspec), first_access = Option(123456789), user_declared_state = Option("Karnataka"), user_declared_district = Option("Hassan")), ActorRef.noSender)
+    verify(postgresDBMock, times(1)).readLocation(query)
+
+    metricsActorProbe.expectMsg(IncrementApiCalls)
+    metricsActorProbe.expectMsg(IncrementLocationDbHitCount)
+    metricsActorProbe.expectMsg(IncrementLocationDbSuccessCount)
+    metricsActorProbe.expectMsg(IncrementLogDeviceRegisterSuccessCount)
+
+  }
+
+
+  "Device profile actor" should "get device profile for particular device ID" in {
+    import akka.pattern.ask
+    implicit val timeout: Timeout = 20 seconds
+    val query =
+      s"""
+         |SELECT
+         |  glc.subdivision_1_name state,
+         |  glc.subdivision_2_custom_name district_custom
+         |FROM $geoLocationCityIpv4TableName gip,
+         |  $geoLocationCityTableName glc
+         |WHERE gip.geoname_id = glc.geoname_id
+         |  AND gip.network_start_integer <= 1935923652
+         |  AND gip.network_last_integer >= 1935923652
+               """.stripMargin
+
+    when(H2DBMock.readLocation(query)).thenReturn(DeviceStateDistrict("Karnataka", "KA"))
+
+    val response = (deviceRegisterActorRef ? GetDeviceProfile(did = "Device-2", headerIP = "115.99.217.196")).mapTo[Option[DeviceProfile]]
+    response.map { deviceData =>
+      deviceData.get.ipLocation.getOrElse(None) should be eq(Location("Karnataka", "KA"))
+    }
   }
 }

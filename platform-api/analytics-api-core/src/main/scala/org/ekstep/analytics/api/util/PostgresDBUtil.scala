@@ -20,6 +20,7 @@ class PostgresDBUtil {
 
     implicit val session: AutoSession = AutoSession
 
+    // $COVERAGE-OFF$ cannot be covered since it is dependent on client library
     def read(sqlString: String): List[ConsumerChannel] = {
         SQL(sqlString).map(rs => ConsumerChannel(rs)).list().apply()
     }
@@ -100,3 +101,4 @@ object GeoLocationRange extends SQLSyntaxSupport[GeoLocationRange] {
         rs.int("geoname_id")
     )
 }
+// $COVERAGE-ON$
