@@ -10,6 +10,8 @@ import org.ekstep.analytics.framework._
 import java.lang.Double
 
 object ProcessFailedEvents extends optional.Application {
+  
+    implicit val fc = new FrameworkContext();
 
     def main(topic: String, brokerList: String, fromDate: String, toDate: String)(implicit sc: SparkContext = null) {
 
