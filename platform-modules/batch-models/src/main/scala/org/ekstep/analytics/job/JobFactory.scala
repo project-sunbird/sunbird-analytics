@@ -2,6 +2,7 @@ package org.ekstep.analytics.job
 
 import org.ekstep.analytics.framework.exception.JobNotFoundException
 import org.ekstep.analytics.framework._
+import org.ekstep.analytics.job.Metrics.MetricsAuditJob
 import org.ekstep.analytics.job.summarizer._
 import org.ekstep.analytics.job.updater._
 
@@ -53,6 +54,8 @@ object JobFactory {
                 DruidQueryProcessor
             case "admin-user-reports" =>
                 StateAdminReportJob
+            case "audit-metrics-report" =>
+                MetricsAuditJob
             case _ =>
                 throw new JobNotFoundException("Unknown job type found")
         }

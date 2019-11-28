@@ -28,7 +28,6 @@ object MetricsAuditModel extends IBatchModelTemplate[Empty, Empty, V3DerivedEven
         case "druid" =>
           computeDruidMetrics(models.get("druid").get.asInstanceOf[Map[String, AnyRef]])
         case "azure" =>
-          println("in azure")
           SecorMetricUtil.getSecorMetrics(models.get("azure").get.asInstanceOf[Map[String,AnyRef]])
       }
     }
@@ -44,8 +43,8 @@ object MetricsAuditModel extends IBatchModelTemplate[Empty, Empty, V3DerivedEven
     val druidModel = druidConfig("models").asInstanceOf[Map[String, AnyRef]]
 
     val apiURL = AppConf.getConfig("druid.sql.host")
-    val startDate = new DateTime().minusDays(1).toString("yyyy-MM-dd")
-    val endDate = new DateTime().toString("yyyy-MM-dd")
+    val startDate = new DateTime().minusDays(1).toString("yyyy-MM-dd HH:mm:ss")
+    val endDate = new DateTime().toString("yyyy-MM-dd HH:mm:ss")
 
     val metrics = druidModel.map(model => {
       model._1 match {
@@ -58,8 +57,8 @@ object MetricsAuditModel extends IBatchModelTemplate[Empty, Empty, V3DerivedEven
     (metrics.toList)
   }
 
-    def computeTelemetryCount(apiURL: String, query: String, StartDate: String, endDate: String): V3DerivedEvent = {
-      val requestQuery = AppConf.getConfig(query)
+    def computeTelemetryCount(apiURL: String, query: String, startDate: String, endDate: String): V3DerivedEvent = {
+      val requestQuery = AppConf.getConfig(query).format(startDate, endDate)
       val response = RestUtil.post[List[Map[String, String]]](apiURL, requestQuery).headOption
       val responseMetrics = response.map(f => V3MetricEdata("telemetryCount", f.get("total").get.asInstanceOf[String])).toList
       val metricsEvent = CommonUtil.getMetricEvent(Map("system" -> "DruidCount", "subsystem" -> "druidTelemetryCount", "metrics" -> responseMetrics), AppConf.getConfig("metric.producer.id"), AppConf.getConfig("metric.producer.pid"))
@@ -67,7 +66,7 @@ object MetricsAuditModel extends IBatchModelTemplate[Empty, Empty, V3DerivedEven
     }
 
     def computeSummaryCount(apiURL: String, query: String, startDate: String, endDate: String): V3DerivedEvent = {
-      val requestQuery = AppConf.getConfig(query)
+      val requestQuery = AppConf.getConfig(query).format(startDate, endDate)
       val response = RestUtil.post[List[Map[String, String]]](apiURL, requestQuery).headOption
       val responseMetrics = response.map(f => V3MetricEdata("summaryCount", f.get("total").get.asInstanceOf[String])).toList
       val metricsEvent = CommonUtil.getMetricEvent(Map("system" -> "DruidCount", "subsystem" -> "druidSummaryCount", "metrics" -> responseMetrics), AppConf.getConfig("metric.producer.id"), AppConf.getConfig("metric.producer.pid"))
