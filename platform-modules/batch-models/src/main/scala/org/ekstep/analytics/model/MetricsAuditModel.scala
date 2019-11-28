@@ -27,11 +27,10 @@ object MetricsAuditModel extends IBatchModelTemplate[Empty, Empty, V3DerivedEven
       queryType match {
         case "druid" =>
           computeDruidMetrics(models.get("druid").get.asInstanceOf[Map[String, AnyRef]])
-        case "azure" =>
-          SecorMetricUtil.getSecorMetrics(models.get("azure").get.asInstanceOf[Map[String,AnyRef]])
+        case "secor" =>
+          SecorMetricUtil.getSecorMetrics(models.get("secor").get.asInstanceOf[Map[String,AnyRef]])
       }
     }
-    println("final metrics", metrics)
     sc.parallelize(metrics.toList.flatten)
   }
 
