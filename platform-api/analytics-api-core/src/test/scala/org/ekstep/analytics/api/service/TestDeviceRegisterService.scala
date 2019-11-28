@@ -23,8 +23,12 @@ class TestDeviceRegisterService extends BaseSpec {
   val redisIndex: Int = config.getInt("redis.deviceIndex")
   val saveMetricsActor = TestActorRef(new SaveMetricsActor)
   val metricsActorProbe = TestProbe()
+
+  when(configMock.getString("postgres.table.geo_location_city.name")).thenReturn("geo_location_city")
+  when(configMock.getString("postgres.table.geo_location_city_ipv4.name")).thenReturn("geo_location_city_ipv4")
+
   private val deviceRegisterService = TestActorRef(new DeviceRegisterService(saveMetricsActor, configMock, redisUtilMock, postgresDBMock, H2DBMock)).underlyingActor
-  private val deviceRegisterActorRef = TestActorRef(new DeviceRegisterService(saveMetricsActor, config, redisUtilMock, postgresDBMock, H2DBMock){
+  private val deviceRegisterActorRef = TestActorRef(new DeviceRegisterService(saveMetricsActor, configMock, redisUtilMock, postgresDBMock, H2DBMock){
     override val metricsActor = metricsActorProbe.ref
   })
 
