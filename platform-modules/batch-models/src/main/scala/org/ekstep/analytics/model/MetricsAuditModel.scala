@@ -22,7 +22,8 @@ object MetricsAuditModel extends IBatchModelTemplate[Empty, Empty, V3DerivedEven
 
     val auditConfig = config.get("auditConfig")
     val models = auditConfig.get.asInstanceOf[Map[String, AnyRef]]
-    val metrics = models.map{f =>
+
+    val metrics = models.flatMap{f =>
       val queryType = f._1
       queryType match {
         case "druid" =>
@@ -31,7 +32,7 @@ object MetricsAuditModel extends IBatchModelTemplate[Empty, Empty, V3DerivedEven
           SecorMetricUtil.getSecorMetrics(models.get("secor").get.asInstanceOf[Map[String,AnyRef]])
       }
     }
-    sc.parallelize(metrics.toList.flatten)
+    sc.parallelize(metrics.toList)
   }
 
   override def postProcess(events: RDD[V3DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[V3DerivedEvent] = {
@@ -46,29 +47,16 @@ object MetricsAuditModel extends IBatchModelTemplate[Empty, Empty, V3DerivedEven
     val endDate = new DateTime().toString("yyyy-MM-dd HH:mm:ss")
 
     val metrics = druidModel.map(model => {
-      model._1 match {
-        case "telemetry-events" =>
-          computeTelemetryCount(apiURL, model._2.asInstanceOf[Map[String, String]]("query"), startDate, endDate)
-        case  "summary-events" =>
-          computeSummaryCount(apiURL, model._2.asInstanceOf[Map[String, String]]("query"),startDate, endDate)
-      }
+      computeDruidSourceCount(apiURL, model._2.asInstanceOf[Map[String, String]]("query"), startDate, endDate, model._1)
     })
     (metrics.toList)
   }
 
-    def computeTelemetryCount(apiURL: String, query: String, startDate: String, endDate: String): V3DerivedEvent = {
-      val requestQuery = AppConf.getConfig(query).format(startDate, endDate)
-      val response = RestUtil.post[List[Map[String, String]]](apiURL, requestQuery).headOption
-      val responseMetrics = response.map(f => V3MetricEdata("telemetryCount", f.get("total").get.asInstanceOf[String])).toList
-      val metricsEvent = CommonUtil.getMetricEvent(Map("system" -> "DruidCount", "subsystem" -> "druidTelemetryCount", "metrics" -> responseMetrics), AppConf.getConfig("metric.producer.id"), AppConf.getConfig("metric.producer.pid"))
-      metricsEvent
-    }
-
-    def computeSummaryCount(apiURL: String, query: String, startDate: String, endDate: String): V3DerivedEvent = {
-      val requestQuery = AppConf.getConfig(query).format(startDate, endDate)
-      val response = RestUtil.post[List[Map[String, String]]](apiURL, requestQuery).headOption
-      val responseMetrics = response.map(f => V3MetricEdata("summaryCount", f.get("total").get.asInstanceOf[String])).toList
-      val metricsEvent = CommonUtil.getMetricEvent(Map("system" -> "DruidCount", "subsystem" -> "druidSummaryCount", "metrics" -> responseMetrics), AppConf.getConfig("metric.producer.id"), AppConf.getConfig("metric.producer.pid"))
-      metricsEvent
-    }
+  def computeDruidSourceCount(apiURL: String, query: String, startDate: String, endDate: String, systemName: String): V3DerivedEvent = {
+    val requestQuery = AppConf.getConfig(query).format(startDate, endDate)
+    val response = RestUtil.post[List[Map[String, String]]](apiURL, requestQuery).headOption
+    val responseMetrics = response.map(f => V3MetricEdata("telemetryCount", f.get("total").get.asInstanceOf[String])).toList
+    val metricsEvent = CommonUtil.getMetricEvent(Map("system" -> "DruidCount", "subsystem" -> systemName, "metrics" -> responseMetrics), AppConf.getConfig("metric.producer.id"), AppConf.getConfig("metric.producer.pid"))
+    metricsEvent
+  }
 }
