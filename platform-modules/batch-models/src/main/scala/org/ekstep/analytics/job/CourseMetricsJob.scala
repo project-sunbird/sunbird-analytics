@@ -314,7 +314,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
         col("district_name").as("District Name"),
         col("schoolname_resolved").as("School Name"),
         col("block_name").as("Block Name"),
-        col("enrolleddate").as("Enrollment Date"),
+        col("enrolleddate").as("Enrolment Date"),
         concat(col("course_completion").cast("string"), lit("%"))
           .as("Course Progress"),
         col("completedon").as("Completion Date"),

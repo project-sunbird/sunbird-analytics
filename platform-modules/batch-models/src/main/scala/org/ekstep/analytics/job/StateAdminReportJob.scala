@@ -65,7 +65,7 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
   def generateReport()(implicit sparkSession: SparkSession): Map[String, String] = {
 
     generateShadowDBReport();
-    val channelSlugMap: Map[String, String] = generateGeoSummaryReport();
+    val channelSlugMap: Map[String, String] = generateGeoReport();
 
     JobLogger.log("Finished with generateReport")
     channelSlugMap
@@ -97,7 +97,7 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
     fSFileUtils.purgeDirectory(summaryDir)
   }
 
-  private def generateGeoSummaryReport()(implicit sparkSession: SparkSession): Map[String, String] = {
+  private def generateGeoReport()(implicit sparkSession: SparkSession): Map[String, String] = {
     import sparkSession.implicits._
     val sunbirdKeyspace = AppConf.getConfig("course.metrics.cassandra.sunbirdKeyspace")
     val tempDir = AppConf.getConfig("admin.metrics.temp.dir")
@@ -208,19 +208,23 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
   def saveUserDetailsReport(reportDF: DataFrame, url: String): Unit = {
     // List of fields available
     //channel,userextid,addedby,claimedon,claimstatus,createdon,email,name,orgextid,phone,processid,updatedon,userid,userids,userstatus
-
+    
     reportDF.coalesce(1)
       .select(
         col("channel"),
-        col("userextid").as("User external id"),
-        col("userstatus").as("User account status"),
-        col("userid").as("User id"),
-        concat_ws(",", col("userids")).as("Matching User ids"),
-        col("claimedon").as("Claimed on"),
-        col("orgextid").as("School external id"),
-        col("claimstatus").as("Claimed status"),
-        col("createdon").as("Created on"),
-        col("updatedon").as("Last updated on"))
+        col("name").as("Name"),
+        col("userextid").as("External ID"),
+        col("orgextid").as("School ID"),
+        when(col("userstatus") === 1, "Active")
+        .when(col("userstatus") === 0,"Inactive")
+        .otherwise("Unknown").as("Input status"),
+        when(col("claimstatus") === 0, "Unclaimed")
+        .when(col("claimstatus") === 1, "Claimed")
+        .when(col("claimstatus") === 2, "Rejected")
+        .when(col("claimstatus") === 3, "Failed")
+        .when(col("claimstatus") === 4, "Failed - Multiple users match")
+        .when(col("claimstatus") === 5, "Failed - School ID invalid")
+        .otherwise("Invalid").as("User Action"))
       .write
       .partitionBy("channel")
       .mode("overwrite")
@@ -228,44 +232,6 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
       .csv(url)
 
     JobLogger.log(s"StateAdminReportJob: uploadedSuccess nRecords = ${reportDF.count()}")
-  }
-
-  def saveGeoDetailsReport(reportDF: DataFrame, url: String): Unit = {
-    reportDF.coalesce(1)
-      .select(
-        col("id").as("School id"),
-        col("orgname").as("School name"),
-        col("channel").as("Channel"),
-        col("status").as("Status"),
-        col("locid").as("Location id"),
-        col("name").as("Location name"),
-        col("parentid").as("Parent location id"),
-        col("type").as("type"))
-      .write
-      .mode("overwrite")
-      .option("header", "true")
-      .csv(url)
-
-    JobLogger.log(s"StateAdminReportJob: uploadedSuccess nRecords = ${reportDF.count()}")
-  }
-
-  /**
-   * Saves the raw data as a .json.
-   * Appends /summary to the URL to prevent overwrites.
-   * Check function definition for the exact column ordering.
-   * * If we don't partition, the reports get subsequently updated and we dont want so
-   * @param reportDF
-   * @param url
-   */
-  def saveSummaryReport(reportDF: DataFrame, url: String): Unit = {
-    reportDF.coalesce(1)
-      .write
-      .partitionBy("channel")
-      .mode("overwrite")
-      .json(url)
-
-    JobLogger.log(s"StateAdminReportJob: uploadedSuccess nRecords = ${reportDF.count()}")
-    println(s"StateAdminReportJob: uploadedSuccess nRecords = ${reportDF.count()} and ${url}")
   }
 
   def saveUserSummaryReport(reportDF: DataFrame, url: String): Unit = {
@@ -334,6 +300,29 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
 object StateAdminReportJobTest {
 
   def main(args: Array[String]): Unit = {
-    StateAdminReportJob.main("""{"model":"Test"}""");
+    StateAdminReportJob.main(
+      """
+        |{
+        |    "search": {
+        |      "type": "none"
+        |    },
+        |    "model": "org.ekstep.analytics.job.StateAdminReportJob",
+        |    "modelParams": {
+        |      "sparkCassandraConnectionHost": "localhost",
+        |      "sparkElasticsearchConnectionHost": "localhost"
+        |    },
+        |    "output": [
+        |      {
+        |        "to": "console",
+        |        "params": {
+        |          "printEvent": false
+        |        }
+        |      }
+        |    ],
+        |    "parallelization": 8,
+        |    "appName": "Admin User Reports",
+        |    "deviceMapping": false
+        |  }
+      """.stripMargin)
   }
 }
