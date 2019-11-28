@@ -3,9 +3,12 @@ import org.ekstep.analytics.framework.Fetcher
 import org.ekstep.analytics.framework.Query
 import org.ekstep.analytics.framework.V3Event
 import org.ekstep.analytics.framework.util.CommonUtil
+import org.ekstep.analytics.framework.FrameworkContext
 
 object S3CheckPointAnalysis extends optional.Application {
 
+    implicit val fc = new FrameworkContext();
+    
     def main(bucket: String, prefix: String, date: String) {
 
         val execTime = CommonUtil.time({

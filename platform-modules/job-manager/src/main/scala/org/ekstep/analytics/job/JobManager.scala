@@ -18,7 +18,6 @@ import com.google.common.eventbus.Subscribe
 import org.ekstep.analytics.framework.MeasuredEvent
 import org.ekstep.analytics.framework.OutputDispatcher
 import org.ekstep.analytics.framework.Dispatcher
-import org.ekstep.analytics.framework.util.S3Util
 import org.apache.commons.lang3.StringUtils
 import org.ekstep.analytics.framework.JobConfig
 import org.sunbird.cloud.storage.conf.AppConf

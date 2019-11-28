@@ -6,6 +6,7 @@ import org.ekstep.analytics.framework.V3DerivedEvent
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.OutputDispatcher
 import org.ekstep.analytics.framework.util.EventBusUtil
+import org.ekstep.analytics.framework.FrameworkContext
 
 object JobMonitor {
     
@@ -43,6 +44,7 @@ object JobMonitor {
 class JobEventListener(channel: String, userName: String) {
     
     private val dispatcher = Dispatcher("slack", Map("channel" -> channel, "userName" -> userName));
+    implicit val fc = new FrameworkContext();
     
     @Subscribe def onMessage(event: String) {
         val meEvent = JSONUtils.deserialize[V3DerivedEvent](event);
