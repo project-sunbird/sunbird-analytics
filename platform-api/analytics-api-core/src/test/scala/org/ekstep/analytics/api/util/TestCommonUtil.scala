@@ -34,7 +34,6 @@ class TestCommonUtil extends BaseSpec {
         CommonUtil.getDayRange(7) should be(Range(dateInt -7, dateInt))
         CommonUtil.getMonthRange(2) should be(Range(monthYear-2,  monthYear))
         CommonUtil.getRemainingHours() should be(remainingTime)
-        //CommonUtil.getWeekRange(5) should be(Range(2015753, 2016705));
         CommonUtil.getWeeksBetween(1451650400000L, 1454650400000L) should be(5);
         
     }
