@@ -4,7 +4,7 @@ import akka.actor.ActorSystem
 import akka.testkit.TestActorRef
 import com.typesafe.config.Config
 import org.ekstep.analytics.api.BaseSpec
-import org.ekstep.analytics.api.util.{DeviceStateDistrict, RedisUtil}
+import org.ekstep.analytics.api.util.{DeviceStateDistrict, H2DBUtil, RedisUtil}
 import org.mockito.Mockito.when
 import redis.clients.jedis.Jedis
 
@@ -16,11 +16,11 @@ class TestDeviceProfileService extends BaseSpec {
   private implicit val system: ActorSystem = ActorSystem("device-profile-test-actor-system", config)
   private val configMock = mock[Config]
   val redisUtil: RedisUtil = mock[RedisUtil]
-  val saveMetricsActor = TestActorRef(new SaveMetricsActor(configMock))
+  val h2DBUtil: H2DBUtil = mock[H2DBUtil]
   val redisIndex: Int = config.getInt("redis.deviceIndex")
   implicit val executor: ExecutionContext =  scala.concurrent.ExecutionContext.global
   implicit val jedisConnection: Jedis = redisUtil.getConnection(redisIndex)
-  private val deviceProfileService = TestActorRef(new DeviceProfileService(saveMetricsActor, configMock, redisUtil)).underlyingActor
+  private val deviceProfileService = TestActorRef(new DeviceProfileService(configMock, redisUtil, h2DBUtil)).underlyingActor
 
   override def beforeAll() {
     super.beforeAll()
