@@ -6,6 +6,7 @@ import org.ekstep.analytics.framework.exception.DispatcherException
 import sys.process._
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
+import org.ekstep.analytics.framework.FrameworkContext
 
 /**
  * @author Santhosh
@@ -16,7 +17,7 @@ object ScriptDispatcher extends IDispatcher {
 
     @deprecated
     @throws(classOf[DispatcherException])
-    def dispatch(events: Array[String], config: Map[String, AnyRef]): Array[String] = {
+    def dispatch(events: Array[String], config: Map[String, AnyRef])(implicit fc: FrameworkContext): Array[String] = {
         val script = config.getOrElse("script", null).asInstanceOf[String];
         if (null == script) {
             throw new DispatcherException("'script' parameter is required to send output to file")
@@ -45,7 +46,7 @@ object ScriptDispatcher extends IDispatcher {
         outputLines.toArray;
     }
     
-    def dispatch(config: Map[String, AnyRef], events: RDD[String])(implicit sc: SparkContext) = {
+    def dispatch(config: Map[String, AnyRef], events: RDD[String])(implicit sc: SparkContext, fc: FrameworkContext) = {
         dispatch(events.collect(), config);
     }
 

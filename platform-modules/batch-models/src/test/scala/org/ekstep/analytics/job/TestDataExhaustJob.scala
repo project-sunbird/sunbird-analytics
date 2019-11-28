@@ -11,7 +11,6 @@ import org.ekstep.analytics.framework.util.CommonUtil
 import org.joda.time.DateTime
 import org.ekstep.analytics.util.Constants
 import com.datastax.spark.connector.cql.CassandraConnector
-import org.ekstep.analytics.framework.util.S3Util
 import java.io.File
 import org.ekstep.analytics.util.RequestFilter
 import org.ekstep.analytics.util.RequestConfig

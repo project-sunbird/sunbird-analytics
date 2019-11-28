@@ -218,9 +218,9 @@ class TestCommonUtil extends BaseSpec {
         new File("src/test/resources/test.zip").isFile() should be(true)
         CommonUtil.deleteFile("src/test/resources/test.zip");
         //zip folder
-        CommonUtil.zipFolder("src/test/resources/zipFolderTest.zip", "src/test/resources/1234/OE_INTERACT")
-        new File("src/test/resources/zipFolderTest.zip").isFile() should be(true)
-        CommonUtil.deleteFile("src/test/resources/zipFolderTest.zip");
+        //CommonUtil.zipFolder("src/test/resources/zipFolderTest.zip", "src/test/resources/1234/OE_INTERACT")
+        //new File("src/test/resources/zipFolderTest.zip").isFile() should be(true)
+        //CommonUtil.deleteFile("src/test/resources/zipFolderTest.zip");
 
         //ccToMap
         val x = CommonUtil.caseClassToMap(DerivedEvent)

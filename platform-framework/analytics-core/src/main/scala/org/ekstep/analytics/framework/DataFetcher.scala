@@ -16,7 +16,7 @@ object DataFetcher {
 
     implicit val className = "org.ekstep.analytics.framework.DataFetcher"
     @throws(classOf[DataFetcherException])
-    def fetchBatchData[T](search: Fetcher)(implicit mf: Manifest[T], sc: SparkContext): RDD[T] = {
+    def fetchBatchData[T](search: Fetcher)(implicit mf: Manifest[T], sc: SparkContext, fc: FrameworkContext): RDD[T] = {
 
         JobLogger.log("Fetching data", Option(Map("query" -> search)))
         if (search.queries.isEmpty && search.druidQuery.isEmpty) {

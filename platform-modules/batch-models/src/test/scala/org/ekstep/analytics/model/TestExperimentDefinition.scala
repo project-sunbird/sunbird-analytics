@@ -7,6 +7,7 @@ import org.scalamock.scalatest.MockFactory
 
 import scala.collection.mutable.ListBuffer
 import scala.io.Source
+import org.ekstep.analytics.framework.FrameworkContext
 
 
 class TestExperimentDefinition  extends SparkSpec(null) with MockFactory {
@@ -14,6 +15,7 @@ class TestExperimentDefinition  extends SparkSpec(null) with MockFactory {
   var schema: ListBuffer[ExperimentDefinitionMetadata] = ListBuffer()
 
   implicit var util = mock[ExperimentDataUtils]
+  implicit val fc = new FrameworkContext();
 
   it should " map userid to experiement id  with criteria" in {
 
