@@ -2,22 +2,28 @@ package org.ekstep.analytics.framework
 
 import org.ekstep.analytics.framework.exception.DispatcherException
 import org.ekstep.analytics.framework.util.JSONUtils
-import java.io.File
-
-import org.ekstep.analytics.framework.util.CommonUtil
+import org.scalamock.scalatest.MockFactory
+import org.scalatest.Matchers
+import org.sunbird.cloud.storage.BaseStorageService
 import java.io.IOException
-
-import org.apache.kafka.common.errors.TimeoutException
+import java.io.File
+import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.dispatcher.AzureDispatcher
-
+import org.jclouds.http.HttpResponseException
+import org.apache.spark.rdd.RDD
+import org.apache.hadoop.fs.azure.AzureException
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import org.elasticsearch.hadoop.EsHadoopIllegalArgumentException
 
 /**
  * @author Santhosh
  */
-class TestOutputDispatcher extends SparkSpec("src/test/resources/sample_telemetry_2.log") {
+class TestOutputDispatcher extends SparkSpec("src/test/resources/sample_telemetry_2.log") with Matchers with MockFactory {
   
     "OutputDispatcher" should "dispatch output to console" in {
-        
+
+        implicit val fc = new FrameworkContext();
         val outputs = Option(Array(
             Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef]))        
         ))
@@ -36,17 +42,37 @@ class TestOutputDispatcher extends SparkSpec("src/test/resources/sample_telemetr
         }
     }
     
-    ignore should "dispatch output to s3" in {
-        val output1 = Dispatcher("s3file", Map[String, AnyRef]("bucket" -> "ekstep-dev-data-store", "key" -> "output/test-log1.json", "zip" -> true.asInstanceOf[AnyRef]));
-        val output2 = Dispatcher("s3file", Map[String, AnyRef]("bucket" -> "ekstep-dev-data-store", "key" -> "output/test-log2.json", "filePath" -> "src/test/resources/sample_telemetry.log"));
+    it should "dispatch output to s3" in {
+        
+        implicit val mockFc = mock[FrameworkContext];
+        val mockStorageService = mock[BaseStorageService]
+        (mockFc.getStorageService _).expects("aws").returns(mockStorageService).anyNumberOfTimes();
+        (mockStorageService.upload _).expects("dev-data-store", *, *, Option(false), None, None, None).returns(null).anyNumberOfTimes();
+        (mockStorageService.closeContext _).expects().returns().anyNumberOfTimes()
+        val output1 = Dispatcher("s3file", Map[String, AnyRef]("bucket" -> "dev-data-store", "key" -> "output/test-log1.json", "filePath" -> "src/test/resources/sample_telemetry.log", "zip" -> true.asInstanceOf[AnyRef]));
+        val output2 = Dispatcher("s3file", Map[String, AnyRef]("bucket" -> "dev-data-store", "key" -> "output/test-log1.json", "filePath" -> "src/test/resources/sample_telemetry.log.gz"));
+        val output3 = Dispatcher("s3file", Map[String, AnyRef]("bucket" -> "dev-data-store", "key" -> "output/test-log2.json"));
         noException should be thrownBy {
             OutputDispatcher.dispatch(output1, events);
             OutputDispatcher.dispatch(output2, events);
+            OutputDispatcher.dispatch(output3, events);
         }
+        
+        val output4 = Dispatcher("s3", Map[String, AnyRef]("bucket" -> "dev-data-store", "key" -> "output/test-log1.json", "filePath" -> "src/test/resources/sample_telemetry.log", "zip" -> true.asInstanceOf[AnyRef]));
+        val output5 = Dispatcher("s3", Map[String, AnyRef]("bucket" -> "dev-data-store", "key" -> "output/test-log1.json", "filePath" -> "src/test/resources/sample_telemetry.log.gz"));
+        val output6 = Dispatcher("s3", Map[String, AnyRef]("bucket" -> "dev-data-store", "key" -> "output/test-log2.json"));
+        val eventRDDString = events.map(f =>JSONUtils.serialize(f)).collect();
+        //noException should be thrownBy {
+            OutputDispatcher.dispatch(output4, eventRDDString);
+            OutputDispatcher.dispatch(output5, eventRDDString);
+            OutputDispatcher.dispatch(output6, eventRDDString);
+        //}
+        
     }
     
     it should "throw dispatcher exceptions" in {
         
+        implicit val fc = new FrameworkContext();
         // Unknown Dispatcher
         a[DispatcherException] should be thrownBy {
             OutputDispatcher.dispatch(Dispatcher("xyz", Map[String, AnyRef]()), events);
@@ -61,9 +87,6 @@ class TestOutputDispatcher extends SparkSpec("src/test/resources/sample_telemetr
         a[DispatcherException] should be thrownBy {
             OutputDispatcher.dispatch(Dispatcher("kafka", Map("brokerList" -> "localhost:9092")), events);
         }
-        
-        // Invoke kafka dispatcher without starting kafka
-//        OutputDispatcher.dispatch(Dispatcher("kafka", Map("brokerList" -> "localhost:9092", "topic" -> "test")), events);	
         
         // Invoke script dispatcher without required fields ('script')     
         a[DispatcherException] should be thrownBy {
@@ -87,6 +110,9 @@ class TestOutputDispatcher extends SparkSpec("src/test/resources/sample_telemetr
         // Invoke S3 dispatcher without required fields ('bucket','key')
         a[DispatcherException] should be thrownBy {
             OutputDispatcher.dispatch(Dispatcher("s3", Map[String, AnyRef]("zip" -> true.asInstanceOf[AnyRef])), events);
+            OutputDispatcher.dispatch(Dispatcher("s3", Map[String, AnyRef]("bucket" -> Option("test"))), events);
+            OutputDispatcher.dispatch(Dispatcher("s3File", Map[String, AnyRef]("zip" -> true.asInstanceOf[AnyRef])), events);
+            OutputDispatcher.dispatch(Dispatcher("s3File", Map[String, AnyRef]("bucket" -> Option("test"))), events);
         }
         
         // Invoke dispatch with null dispatcher
@@ -107,20 +133,21 @@ class TestOutputDispatcher extends SparkSpec("src/test/resources/sample_telemetr
         val noEvents = sc.parallelize(Array[Event]());
         
         // Invoke dispatch with Empty events
-        //a[DispatcherException] should be thrownBy {
+        noException should be thrownBy {
             OutputDispatcher.dispatch(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])), noEvents);
-        //}
+        }
         
         // Invoke dispatch with Empty events
-        //a[DispatcherException] should be thrownBy {
+        noException should be thrownBy {
             OutputDispatcher.dispatch(Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), noEvents);
-        //}
+        }
             
         OutputDispatcher.dispatch(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])), Array[String]());
     }
     
     it should "execute test cases related to script dispatcher" in {
         
+        implicit val fc = new FrameworkContext();
         val result = OutputDispatcher.dispatch(Dispatcher("script", Map("script" -> "src/test/resources/simpleScript.sh")), events);
         //result(0) should endWith ("analytics-core");
         //result(1) should include ("7436");
@@ -129,6 +156,7 @@ class TestOutputDispatcher extends SparkSpec("src/test/resources/sample_telemetr
     
     it should "dispatch output to a file" in {
         
+        implicit val fc = new FrameworkContext();
         OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> "src/test/resources/test_output.log")), events);
         val f = new File("src/test/resources/test_output.log");
         f.exists() should be (true)
@@ -136,23 +164,41 @@ class TestOutputDispatcher extends SparkSpec("src/test/resources/sample_telemetr
     }
 
     it should "dispatch output to azure" in {
+      
+        implicit val mockFc = mock[FrameworkContext];
+        val mockStorageService = mock[BaseStorageService]
+        (mockFc.getStorageService _).expects("azure").returns(mockStorageService).anyNumberOfTimes();
+        (mockStorageService.upload _).expects("dev-data-store", *, *, Option(false), None, None, None).returns(null).anyNumberOfTimes();
+        (mockStorageService.closeContext _).expects().returns().anyNumberOfTimes()
         val date = System.currentTimeMillis()
         val output1 = Dispatcher("azure", Map[String, AnyRef]("bucket" -> "dev-data-store", "key" -> s"output/test-dispatcher1-$date.json", "zip" -> true.asInstanceOf[AnyRef]));
         val output2 = Dispatcher("azure", Map[String, AnyRef]("bucket" -> "dev-data-store", "key" -> s"output/test-dispatcher2-$date.json", "filePath" -> "src/test/resources/sample_telemetry.log"));
         val strData = events.map(f => JSONUtils.serialize(f))
+        
         noException should be thrownBy {
-            OutputDispatcher.dispatch(output1, events);
             OutputDispatcher.dispatch(output2, strData.collect());
+        }
+        
+        a[AzureException] should be thrownBy {
+          OutputDispatcher.dispatch(output1, events);
         }
     }
 
     it should "dispatch directory to azure" in {
-        noException should be thrownBy {
+      
+        implicit val mockFc = mock[FrameworkContext];
+        val mockStorageService = mock[BaseStorageService]
+        (mockFc.getStorageService _).expects("azure").returns(mockStorageService).anyNumberOfTimes();
+        (mockStorageService.upload _).expects("dev-data-store", *, *, Option(true), *, Option(3), *).returns("").anyNumberOfTimes();
+        (mockStorageService.closeContext _).expects().returns().anyNumberOfTimes()
+        //noException should be thrownBy {
             AzureDispatcher.dispatchDirectory(Map[String, AnyRef]("bucket" -> "dev-data-store", "key" -> s"output/test-directory/", "dirPath" -> "src/test/resources/1234/OE_INTERACT/"));
-        }
+        //}
     }
 
     it should "give DispatcherException if azure config is missing " in {
+      
+        implicit val fc = new FrameworkContext();
         the[DispatcherException] thrownBy {
             AzureDispatcher.dispatchDirectory(Map[String, AnyRef]("key" -> s"output/test-directory/", "dirPath" -> "src/test/resources/1234/OE_INTERACT/"));
         } should have message "'local file path', 'bucket' & 'key' parameters are required to upload directory to azure"
@@ -167,14 +213,18 @@ class TestOutputDispatcher extends SparkSpec("src/test/resources/sample_telemetr
     }
 
     it should "dispatch output to elastic-search" in {
+      
+        implicit val fc = new FrameworkContext();
         val eventsInString = events.map{x => JSONUtils.serialize(x)}
         val output1 = Dispatcher("elasticsearch", Map[String, AnyRef]("index" -> "test_index"));
-        noException should be thrownBy {
+        a[EsHadoopIllegalArgumentException] should be thrownBy {
             OutputDispatcher.dispatch(output1, eventsInString);
         }
     }
 
     it should "throw exception while dispatching output to elastic-search" in {
+      
+        implicit val fc = new FrameworkContext();
         val eventsInString = events.map{x => JSONUtils.serialize(x)}
         val output1 = Dispatcher("elasticsearch", Map[String, AnyRef]());
         a[DispatcherException] should be thrownBy {

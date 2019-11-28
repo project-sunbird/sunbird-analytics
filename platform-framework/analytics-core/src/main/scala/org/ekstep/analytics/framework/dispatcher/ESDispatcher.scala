@@ -4,13 +4,14 @@ import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.framework.exception.DispatcherException
 import org.elasticsearch.spark._
+import org.ekstep.analytics.framework.FrameworkContext
 
 object ESDispatcher extends IDispatcher {
 
     implicit val className = "org.ekstep.analytics.framework.dispatcher.ESDispatcher"
 
     @throws(classOf[DispatcherException])
-    def dispatch(config: Map[String, AnyRef], events: RDD[String])(implicit sc: SparkContext) = {
+    def dispatch(config: Map[String, AnyRef], events: RDD[String])(implicit sc: SparkContext, fc: FrameworkContext) = {
 
         val index = config.getOrElse("index", null).asInstanceOf[String];
         if (null == index) {
@@ -20,7 +21,7 @@ object ESDispatcher extends IDispatcher {
         events
     }
 
-    override def dispatch(events: Array[String], config: Map[String, AnyRef]): Array[String] = {
+    override def dispatch(events: Array[String], config: Map[String, AnyRef])(implicit fc: FrameworkContext): Array[String] = {
         events
     }
 }

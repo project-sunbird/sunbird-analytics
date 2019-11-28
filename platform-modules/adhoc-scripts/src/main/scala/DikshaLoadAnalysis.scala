@@ -12,8 +12,11 @@ import org.ekstep.analytics.framework.V3Event
 import org.ekstep.analytics.framework.DataFilter
 import org.ekstep.analytics.framework.Filter
 import org.apache.spark.rdd.RDD
+import org.ekstep.analytics.framework.FrameworkContext
 
 object DikshaLoadAnalysis extends optional.Application {
+  
+    implicit val fc = new FrameworkContext();
 
     def main(bucket: String, prefix: String, date: String) {
 

@@ -16,7 +16,7 @@ import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.framework.Dispatcher
 import org.ekstep.analytics.framework.OutputDispatcher
 //import org.ekstep.analytics.framework.conf.AppConf
-import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, JobLogger, S3Util}
+import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, JobLogger}
 import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.util.JobRequest
 import org.ekstep.analytics.util.RequestConfig
@@ -28,6 +28,7 @@ import com.google.gson.GsonBuilder
 import com.datastax.spark.connector.SomeColumns
 import org.sunbird.cloud.storage.conf.AppConf
 import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
+import org.ekstep.analytics.framework.FrameworkContext
 
 /**
  * Case class to hold the manifest json
@@ -49,6 +50,8 @@ case class EventData(eventName: String, data: RDD[String]);
 object DataExhaustPackager extends optional.Application {
 
     implicit val className = "org.ekstep.analytics.model.DataExhaustPackager"
+    implicit val fc = new FrameworkContext();
+    
     def name: String = "DataExhaustPackager"
     val storageType = AppConf.getStorageType()
     val storageService = StorageServiceFactory.getStorageService(StorageConfig(storageType, AppConf.getStorageKey(storageType), AppConf.getStorageSecret(storageType)))

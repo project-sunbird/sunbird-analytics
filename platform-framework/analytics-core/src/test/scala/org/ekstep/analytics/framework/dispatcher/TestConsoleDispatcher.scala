@@ -1,11 +1,14 @@
 package org.ekstep.analytics.framework.dispatcher
 
 import org.ekstep.analytics.framework.BaseSpec
+import org.ekstep.analytics.framework.FrameworkContext
 
 /**
  * @author Santhosh
  */
 class TestConsoleDispatcher extends BaseSpec {
+    
+    implicit val fc = new FrameworkContext();
     
     "ConsoleDispatcher" should "send output to console" in {
         

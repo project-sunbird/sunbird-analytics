@@ -41,6 +41,8 @@ case class MonitorMessage(job_name: String, job_id: String, success: Int, number
 object MonitorSummaryModel extends IBatchModelTemplate[V3Event, V3Event, JobMonitor, MeasuredEvent] with Serializable {
 
     implicit val className = "org.ekstep.analytics.model.MonitorSummaryModel"
+    implicit val fc = new FrameworkContext();
+    
     override def name: String = "MonitorSummaryModel"
 
     override def preProcess(data: RDD[V3Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[V3Event] = {
