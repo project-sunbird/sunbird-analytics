@@ -5,7 +5,8 @@ import akka.pattern.pipe
 import com.google.common.net.InetAddresses
 import com.google.common.primitives.UnsignedInts
 import com.typesafe.config.Config
-import org.ekstep.analytics.api.util.{APILogger, DeviceStateDistrict, H2DBUtil, RedisUtil}
+import javax.inject.{Inject, Named}
+import org.ekstep.analytics.api.util._
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.exceptions.JedisConnectionException
 
@@ -13,16 +14,29 @@ import scala.concurrent.{ExecutionContext, Future}
 
 case class DeviceProfileRequest(did: String, headerIP: String)
 
-class DeviceProfileService(saveMetricsActor: ActorRef, config: Config, redisUtil: RedisUtil) extends Actor {
+class DeviceProfileService @Inject()(
+                                      config: Config,
+                                      redisUtil: RedisUtil,
+                                      H2DB : H2DBUtil
+                                    ) extends Actor {
 
   implicit val ec: ExecutionContext = context.system.dispatchers.lookup("device-register-actor")
   implicit val className: String ="DeviceProfileService"
-  val metricsActor: ActorRef = saveMetricsActor
   val deviceDatabaseIndex: Int = config.getInt("redis.deviceIndex")
   val geoLocationCityTableName: String = config.getString("postgres.table.geo_location_city.name")
   val geoLocationCityIpv4TableName: String = config.getString("postgres.table.geo_location_city_ipv4.name")
   implicit val jedisConnection: Jedis = redisUtil.getConnection(deviceDatabaseIndex)
   private val enableDebugLogging = config.getBoolean("device.api.enable.debug.log")
+
+  override def preStart { println("starting DeviceProfileService") }
+
+  override def postStop { println("Stopping DeviceProfileService") }
+
+  override def preRestart(reason: Throwable, message: Option[Any]) {
+    println(s"restarting DeviceProfileActor: $message")
+    reason.printStackTrace()
+    super.preRestart(reason, message)
+  }
 
   def receive = {
     case deviceProfile: DeviceProfileRequest =>
@@ -97,7 +111,7 @@ class DeviceProfileService(saveMetricsActor: ActorRef, config: Config, redisUtil
          |  AND gip.network_last_integer >= $ipAddressInt
                """.stripMargin
 
-    H2DBUtil.readLocation(query)
+    H2DB.readLocation(query)
   }
 
 }
