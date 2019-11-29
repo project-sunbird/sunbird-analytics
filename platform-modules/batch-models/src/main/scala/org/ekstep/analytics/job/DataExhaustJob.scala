@@ -27,6 +27,7 @@ case class DataExhaustExeResult(request_id: String, client_key: String, status: 
 object DataExhaustJob extends optional.Application with IJob {
 
     implicit val className = "org.ekstep.analytics.job.DataExhaustJob"
+    implicit val fc = new FrameworkContext();
     def name: String = "DataExhaustJob"
     val rawDataSetList = List("eks-consumption-raw", "eks-creation-raw")
 

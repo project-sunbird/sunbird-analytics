@@ -15,6 +15,7 @@ import org.apache.kafka.clients.producer.Callback
 import org.apache.kafka.clients.producer.RecordMetadata
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import org.ekstep.analytics.framework.FrameworkContext
 
 /**
  * @author Santhosh
@@ -24,7 +25,7 @@ object KafkaDispatcher extends IDispatcher {
     implicit val className = "org.ekstep.analytics.framework.dispatcher.KafkaDispatcher"
 
     @throws(classOf[DispatcherException])
-    def dispatch(events: Array[String], config: Map[String, AnyRef]): Array[String] = {
+    def dispatch(events: Array[String], config: Map[String, AnyRef])(implicit fc: FrameworkContext): Array[String] = {
         val brokerList = config.getOrElse("brokerList", null).asInstanceOf[String];
         val topic = config.getOrElse("topic", null).asInstanceOf[String];
         if (null == brokerList) {
@@ -37,7 +38,7 @@ object KafkaDispatcher extends IDispatcher {
         events
     }
 
-    def dispatch(config: Map[String, AnyRef], events: RDD[String])(implicit sc: SparkContext) = {
+    def dispatch(config: Map[String, AnyRef], events: RDD[String])(implicit sc: SparkContext, fc: FrameworkContext) = {
         val brokerList = config.getOrElse("brokerList", null).asInstanceOf[String]
         val topic = config.getOrElse("topic", null).asInstanceOf[String]
         if (null == brokerList) {
@@ -54,17 +55,19 @@ object KafkaDispatcher extends IDispatcher {
                     kafkaSink.send(topic, message, new Callback {
                         override def onCompletion(metadata: RecordMetadata, exception: Exception): Unit = {
                             if (null != exception) {
+                                // $COVERAGE-OFF$ Disabling scoverage as the below code cannot be covered as they depend on environment variables
                                 JobLogger.log(exception.getMessage, None, ERROR);
-                            } else {
-                                
+                                // $COVERAGE-ON$
                             }
                         }
                     })
                 }
                 catch {
                     case e: Exception =>
+                        // $COVERAGE-OFF$ Disabling scoverage as the below code cannot be covered as they depend on environment variables
                         Console.println("SerializationException inside kafka dispatcher", e.getMessage);
                         JobLogger.log(e.getMessage, None, ERROR)
+                        // $COVERAGE-ON$
                 }
             };
             kafkaSink.flush();

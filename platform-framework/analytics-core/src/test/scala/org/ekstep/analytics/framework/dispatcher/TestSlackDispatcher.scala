@@ -2,9 +2,12 @@ package org.ekstep.analytics.framework.dispatcher
 
 import org.ekstep.analytics.framework.SparkSpec
 import org.ekstep.analytics.framework.exception.DispatcherException
+import org.ekstep.analytics.framework.FrameworkContext
 
 class TestSlackDispatcher extends SparkSpec {
 
+    implicit val fc = new FrameworkContext();
+    
     "SlackDispatcher" should "send output to slack" in {
 
         SlackDispatcher.dispatch(Map("channel" -> "testing", "userName" -> "test"), sc.parallelize(List("test")));

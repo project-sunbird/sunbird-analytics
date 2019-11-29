@@ -16,6 +16,7 @@ class H2DBUtil {
 
     val connection = getDBConnection();
 
+    // $COVERAGE-OFF$ cannot be tested, it requires actual connection to driver
     def getDBConnection(): Connection = {
         var dbConnection: Connection = null;
         try {
@@ -32,6 +33,7 @@ class H2DBUtil {
         }
         return dbConnection;
     }
+    // $COVERAGE-ON$
 
     def readLocation(sqlString: String): DeviceStateDistrict = {
         val resultSet = connection.prepareStatement(sqlString).executeQuery()
@@ -56,10 +58,11 @@ class H2DBUtil {
 case class DeviceStateDistrict(state: String, districtCustom: String) {
     def this() = this("", "")
 }
-
+// $COVERAGE-OFF$ cannot be covered since it is dependent on client library
 object DeviceStateDistrict extends SQLSyntaxSupport[DeviceStateDistrict] {
     def apply(rs: ResultSet) = new DeviceStateDistrict(
         rs.getString("state"),
         rs.getString("district_custom")
     )
 }
+// $COVERAGE-ON$

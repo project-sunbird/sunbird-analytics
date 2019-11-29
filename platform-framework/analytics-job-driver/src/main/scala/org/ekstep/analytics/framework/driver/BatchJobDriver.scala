@@ -15,6 +15,8 @@ import org.joda.time.DateTime
 object BatchJobDriver {
 
     implicit val className = "org.ekstep.analytics.framework.driver.BatchJobDriver"
+    implicit val fc = new FrameworkContext();
+    
     def process[T, R](config: JobConfig, model: IBatchModel[T, R])(implicit mf: Manifest[T], mfr: Manifest[R], sc: SparkContext) {
         process(config, List(model));
     }
@@ -41,7 +43,7 @@ object BatchJobDriver {
     }
 
     private def _process[T, R](config: JobConfig, models: List[IBatchModel[T, R]])(implicit mf: Manifest[T], mfr: Manifest[R], sc: SparkContext) {
-
+        
         val rdd = DataFetcher.fetchBatchData[T](config.search).cache();
         val count = rdd.count;
         _setDeviceMapping(config, rdd);

@@ -6,6 +6,7 @@ import org.ekstep.analytics.framework.Output
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.exception.DispatcherException
 import org.ekstep.analytics.framework.util.{JSONUtils, RestUtil}
+import org.ekstep.analytics.framework.FrameworkContext
 
 
 case class SlackMessage(channel: String, username: String, text: Option[String] = None, attachments: Option[Array[Attachments]] = None, icon_emoji:String = ":ghost:")
@@ -17,7 +18,7 @@ case class Attachments(mrkdwn_in: String, fallback: String, pretext: String, tit
 object SlackDispatcher extends IDispatcher {
 
     @throws(classOf[DispatcherException])
-    def dispatch(events: Array[String], config: Map[String, AnyRef]): Array[String] = {
+    def dispatch(events: Array[String], config: Map[String, AnyRef])(implicit fc: FrameworkContext): Array[String] = {
         
         val channel = config.getOrElse("channel", null).asInstanceOf[String]
         val userName = config.getOrElse("userName", null).asInstanceOf[String]
@@ -35,7 +36,7 @@ object SlackDispatcher extends IDispatcher {
         events
     }
     
-    def dispatch(config: Map[String, AnyRef], events: RDD[String])(implicit sc: SparkContext) = {
+    def dispatch(config: Map[String, AnyRef], events: RDD[String])(implicit sc: SparkContext, fc: FrameworkContext) = {
         dispatch(events.collect(), config)
     }
     

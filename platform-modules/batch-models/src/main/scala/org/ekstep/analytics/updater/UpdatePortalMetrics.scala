@@ -52,6 +52,7 @@ object UpdatePortalMetrics extends IBatchModelTemplate[DerivedEvent, DerivedEven
   with Serializable {
 
   val className = "org.ekstep.analytics.updater.UpdatePortalMetrics"
+  implicit val fc = new FrameworkContext();
 
   private val EVENT_ID: String = "ME_PORTAL_CUMULATIVE_METRICS"
 

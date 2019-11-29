@@ -2,8 +2,25 @@ package org.ekstep.analytics.framework.fetcher
 
 import ing.wbaa.druid.definitions.{AggregationType, PostAggregationType}
 import org.ekstep.analytics.framework.{PostAggregationFields, SparkSpec}
+import org.ekstep.analytics.framework.DruidFilter
+import org.ekstep.analytics.framework.DruidQueryModel
+import org.ekstep.analytics.framework.Aggregation
+import org.ekstep.analytics.framework.DruidDimension
+import org.ekstep.analytics.framework.FrameworkContext
+import org.ekstep.analytics.framework.GroupByPid
+import org.ekstep.analytics.framework.TimeSeriesData
+import org.scalamock.scalatest.MockFactory
+import org.scalatest.Matchers
+import ing.wbaa.druid.DruidResponse
+import ing.wbaa.druid.QueryType
+import ing.wbaa.druid.DruidResult
+import java.time.ZonedDateTime
+import io.circe._, io.circe.parser._
+import cats.syntax.either._
+import java.time.ZoneId
+import java.time.ZoneOffset
 
-class TestDruidDataFetcher extends SparkSpec {
+class TestDruidDataFetcher extends SparkSpec with Matchers with MockFactory {
 
     it should "check for getAggregationTypes methods" in {
 
@@ -102,5 +119,78 @@ class TestDruidDataFetcher extends SparkSpec {
         divisionExpr.getName.toString should be ("Division")
 
         val javaScriptExpr = DruidDataFetcher.getPostAggregationByType(PostAggregationType.Javascript, "Percentage", PostAggregationFields("fieldA", "fieldB"), "function(a, b) { return (a / b) * 100; }")
+    }
+    
+    it should "fetch the data from druid using groupBy query type" in {
+
+        implicit val fc = new FrameworkContext();
+        val query = DruidQueryModel("groupBy", "telemetry-events", "LastWeek", Option("all"), Option(List(Aggregation(Option("count"), "count", ""),Aggregation(Option("total_duration"), "doubleSum", "edata_duration"))), Option(List(DruidDimension("context_pdata_id", Option("producer_id")), DruidDimension("context_pdata_pid", Option("producer_pid")))), Option(List(DruidFilter("in", "eid", None, Option(List("START", "END"))))))
+        val druidQuery = DruidDataFetcher.getDruidQuery(query);
+        druidQuery.toString() should be ("GroupByQuery(List(CountAggregation(count), DoubleSumAggregation(total_duration,edata_duration)),List(2019-11-18/2019-11-25),Some(AndFilter(List(InFilter(eid,List(START, END),None)))),List(DefaultDimension(context_pdata_id,Some(producer_id),None), DefaultDimension(context_pdata_pid,Some(producer_pid),None)),All,None,None,List(),Map())")
+        
+        val json: String = """
+          {
+              "total_scans" : 9007,
+              "producer_id" : "dev.sunbird.learning.platform"
+          }
+        """
+        val doc: Json = parse(json).getOrElse(Json.Null);
+        val results = List(DruidResult.apply(ZonedDateTime.of(2019, 11, 28, 17, 0, 0, 0, ZoneOffset.UTC), doc));
+        val druidResponse = DruidResponse.apply(results, QueryType.GroupBy)
+        val druidResult = DruidDataFetcher.processResult(query, druidResponse);
+        
+        druidResult.size should be (1)
+        druidResult.head should be ("""{"total_scans":9007.0,"producer_id":"dev.sunbird.learning.platform","date":"2019-11-28"}""")
+    }
+    
+    it should "fetch the data from druid using timeseries query type" in {
+
+        implicit val fc = new FrameworkContext();
+       
+        val query = DruidQueryModel("timeSeries", "telemetry-events", "LastWeek", Option("day"), None, None, Option(List(DruidFilter("in", "eid", None, Option(List("START", "END"))))))
+        val druidQuery = DruidDataFetcher.getDruidQuery(query);
+        druidQuery.toString() should be ("TimeSeriesQuery(List(CountAggregation(count_count)),List(2019-11-18/2019-11-25),Some(AndFilter(List(InFilter(eid,List(START, END),None)))),Day,false,List(),Map())");
+        
+        val json: String = """
+          {
+              "total_scans" : 9007,
+              "producer_id" : "dev.sunbird.learning.platform"
+          }
+        """
+        val doc: Json = parse(json).getOrElse(Json.Null);
+        val results = List(DruidResult.apply(ZonedDateTime.of(2019, 11, 28, 17, 0, 0, 0, ZoneOffset.UTC), doc));
+        val druidResponse = DruidResponse.apply(results, QueryType.Timeseries)
+        val druidResult = DruidDataFetcher.processResult(query, druidResponse);
+        
+        druidResult.size should be (1)
+        druidResult.head should be ("""{"total_scans":9007.0,"producer_id":"dev.sunbird.learning.platform","date":"2019-11-28"}""")
+    }
+    
+    it should "fetch the data from druid using topN query type" in {
+
+        implicit val fc = new FrameworkContext();
+        val query = DruidQueryModel("topN", "telemetry-events", "LastWeek", Option("day"), Option(List(Aggregation(Option("count"), "count", ""))), Option(List(DruidDimension("context_pdata_id", Option("producer_id")))), Option(List(DruidFilter("in", "eid", None, Option(List("START", "END"))))))
+        val druidQuery = DruidDataFetcher.getDruidQuery(query);
+        druidQuery.toString() should be ("TopNQuery(DefaultDimension(context_pdata_id,Some(producer_id),None),100,count,List(CountAggregation(count)),List(2019-11-18/2019-11-25),Day,Some(AndFilter(List(InFilter(eid,List(START, END),None)))),List(),Map())")
+
+        val json: String = """
+          [
+            {
+              "count" : 5,
+              "producer_id" : "dev.sunbird.portal"
+            },
+            {
+              "count" : 1,
+              "producer_id" : "local.sunbird.desktop"
+            }
+          ]
+        """
+        val doc: Json = parse(json).getOrElse(Json.Null);
+        val results = List(DruidResult.apply(ZonedDateTime.now(), doc));
+        val druidResponse = DruidResponse.apply(results, QueryType.TopN)
+        val druidResult = DruidDataFetcher.processResult(query, druidResponse);
+        druidResult.size should be (2)
+        druidResult.head should be ("""{"date":"2019-11-28","count":5,"producer_id":"dev.sunbird.portal"}""")
+        druidResult.last should be ("""{"date":"2019-11-28","count":1,"producer_id":"local.sunbird.desktop"}""")
     }
 }

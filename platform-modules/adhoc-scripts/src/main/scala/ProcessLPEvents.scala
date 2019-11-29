@@ -8,9 +8,12 @@ import org.ekstep.analytics.framework.Dispatcher
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.util.JSONUtils
+import org.ekstep.analytics.framework.FrameworkContext
 
 object ProcessLPEvents extends optional.Application {
 
+    implicit val fc = new FrameworkContext();
+    
     def main(bucket: String, prefix: String, topic: String, brokerList: String) {
 
         val queryConfig = """{"type":"local","queries":[{"file":"/mnt/data/analytics/lp_events/"""+ prefix +""""}]}""";

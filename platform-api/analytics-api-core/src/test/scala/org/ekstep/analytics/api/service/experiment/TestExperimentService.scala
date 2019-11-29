@@ -2,11 +2,12 @@ package org.ekstep.analytics.api.service.experiment
 
 import akka.actor.ActorSystem
 import akka.testkit.TestActorRef
+import akka.util.Timeout
 import org.ekstep.analytics.api.BaseSpec
 import org.ekstep.analytics.api.service.experiment.Resolver.ModulusResolver
 import org.ekstep.analytics.api.util.{ElasticsearchService, JSONUtils, RedisUtil}
 import org.mockito.Mockito._
-
+import scala.concurrent.duration._
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
@@ -16,6 +17,7 @@ class TestExperimentService extends BaseSpec {
   implicit val actorSystem = ActorSystem("testActorSystem", config)
 
   val experimentService = TestActorRef(new ExperimentService(redisUtilMock, elasticsearchServiceMock)).underlyingActor
+  val experimentServiceActorRef = TestActorRef(new ExperimentService(redisUtilMock, elasticsearchServiceMock))
   val redisIndex: Int = config.getInt("redis.experimentIndex")
   val emptyValueExpirySeconds = config.getInt("experimentService.redisEmptyValueExpirySeconds")
   implicit val executor =  scala.concurrent.ExecutionContext.global
@@ -81,8 +83,11 @@ class TestExperimentService extends BaseSpec {
   }
 
   it should "should evaluate 'modulus' type experiment and return response" in {
+    import akka.pattern.ask
     reset(elasticsearchServiceMock)
     reset(redisUtilMock)
+
+    implicit val timeout: Timeout = 20 seconds
     // no experiment defined for this input
     val userId = "user3"
     val deviceId = "device3"
@@ -94,18 +99,15 @@ class TestExperimentService extends BaseSpec {
       .thenReturn(Future(Some(experimentData)))
     when(redisUtilMock.getKey(key)).thenReturn(None)
 
-    val result = experimentService.getExperiment(Some(deviceId), Some(userId), None, None)
-    result onComplete {
-      case Success(data) => data match {
-        case Some(value) => {
-          value.userId should be("user3")
-          value.key should be("modulus-exp-key-2")
-          value.expType should be("modulus")
-          value.id should be("modulus-exp-2")
-          value.name should be("modulus-exp-2")
-
+    val result = experimentServiceActorRef ? ExperimentRequest(Some(deviceId), Some(userId), None, None)
+    result.onComplete {
+      case Success(value: Option[ExperimentData]) => {
+          value.get.userId should be("user3")
+          value.get.key should be("modulus-exp-key-2")
+          value.get.expType should be("modulus")
+          value.get.id should be("modulus-exp-2")
+          value.get.name should be("modulus-exp-2")
           verify(redisUtilMock, times(1)).addCache(key, JSONUtils.serialize(value))
-        }
       }
       case Failure(exception) => exception.printStackTrace()
     }
@@ -195,5 +197,11 @@ class TestExperimentService extends BaseSpec {
       }
       case Failure(exception) => exception.printStackTrace()
     }
+  }
+
+  it should "resolve default experiment if not defined" in {
+    val experimentData = ExperimentData(id = "exp1", name = "experiment1", startDate = "2019-11-21", endDate = "2019-11-22", key = "", expType = "", userId = "", deviceId = "", userIdMod = 0, deviceIdMod = 0)
+    val result = experimentService.resolveExperiment(experimentData)
+    result.getOrElse(None) should be eq(experimentData)
   }
 }

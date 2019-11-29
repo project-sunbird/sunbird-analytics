@@ -16,59 +16,16 @@ import org.ekstep.analytics.framework.{DruidQueryModel, PostAggregationFields}
 import scala.concurrent.Await
 
 object DruidDataFetcher {
-
+  
     @throws(classOf[DataFetcherException])
     def getDruidData(query: DruidQueryModel): List[String] = {
 
-        // TO-DOs for 2.4.0:
-        // add javascript type in getPostAgg methods
-        // accept extraction function for dims
-
-        val request = parseQuery(query)
-        val response = request.execute()
-        val queryWaitTimeInMins = AppConf.getConfig("druid.query.wait.time.mins").toLong
-        val result = Await.result(response, scala.concurrent.duration.Duration.apply(queryWaitTimeInMins, "minute"))
-
-        if(result.results.length > 0) {
-            query.queryType.toLowerCase match {
-                case "timeseries" | "groupby" =>
-                    val series = result.results.map { f =>
-                        f.result.asObject.get.+:("date", Json.fromString(f.timestamp.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))).toMap.map { f =>
-                            if(f._2.isNull)
-                                (f._1 -> "unknown")
-                            else if ("String".equalsIgnoreCase(f._2.name))
-                                (f._1 -> f._2.asString.get)
-                            else if("Number".equalsIgnoreCase(f._2.name))
-                              {
-                                (f._1 -> CommonUtil.roundDouble(f._2.asNumber.get.toDouble, 2))
-                              }
-
-                            else (f._1 -> f._2)
-                        }
-                    }
-                    series.map(f => JSONUtils.serialize(f))
-                case "topn" =>
-                    val timeMap = Map("date" -> result.results.head.timestamp.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
-                    val series = result.results.map(f => f).head.result.asArray.get.map{f =>
-                        val dataMap = f.asObject.get.toMap.map{f =>
-                            if(f._2.isNull)
-                                (f._1 -> "unknown")
-                            else if ("String".equalsIgnoreCase(f._2.name))
-                                (f._1 -> f._2.asString.get)
-                            else if("Number".equalsIgnoreCase(f._2.name))
-                                (f._1 -> f._2.asNumber.get.toBigDecimal.get)
-                            else (f._1 -> f._2)
-                        }
-                        timeMap ++ dataMap
-                    }.toList
-                    series.map(f => JSONUtils.serialize(f))
-            }
-        }
-        else
-            List();
+        val request = getDruidQuery(query)
+        val result = executeDruidQuery(request);
+        processResult(query, result);
     }
 
-    def parseQuery(query: DruidQueryModel): DruidQuery = {
+    def getDruidQuery(query: DruidQueryModel): DruidQuery = {
 
         query.queryType.toLowerCase() match {
             case "groupby" => {
@@ -109,6 +66,52 @@ object DruidDataFetcher {
         }
     }
 
+    def executeDruidQuery(query: DruidQuery) : DruidResponse = {
+        val response = query.execute()
+        val queryWaitTimeInMins = AppConf.getConfig("druid.query.wait.time.mins").toLong
+        Await.result(response, scala.concurrent.duration.Duration.apply(queryWaitTimeInMins, "minute"))
+    }
+    
+    def processResult(query: DruidQueryModel, result: DruidResponse) : List[String] = {
+        if(result.results.length > 0) {
+            query.queryType.toLowerCase match {
+                case "timeseries" | "groupby" =>
+                    val series = result.results.map { f =>
+                        f.result.asObject.get.+:("date", Json.fromString(f.timestamp.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))).toMap.map { f =>
+                            if(f._2.isNull)
+                                (f._1 -> "unknown")
+                            else if ("String".equalsIgnoreCase(f._2.name))
+                                (f._1 -> f._2.asString.get)
+                            else if("Number".equalsIgnoreCase(f._2.name))
+                              {
+                                (f._1 -> CommonUtil.roundDouble(f._2.asNumber.get.toDouble, 2))
+                              }
+
+                            else (f._1 -> f._2)
+                        }
+                    }
+                    series.map(f => JSONUtils.serialize(f))
+                case "topn" =>
+                    val timeMap = Map("date" -> result.results.head.timestamp.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
+                    val series = result.results.map(f => f).head.result.asArray.get.map{f =>
+                        val dataMap = f.asObject.get.toMap.map{f =>
+                            if(f._2.isNull)
+                                (f._1 -> "unknown")
+                            else if ("String".equalsIgnoreCase(f._2.name))
+                                (f._1 -> f._2.asString.get)
+                            else if("Number".equalsIgnoreCase(f._2.name))
+                                (f._1 -> f._2.asNumber.get.toBigDecimal.get)
+                            else (f._1 -> f._2)
+                        }
+                        timeMap ++ dataMap
+                    }.toList
+                    series.map(f => JSONUtils.serialize(f))
+            }
+        }
+        else
+            List();
+    }
+    
     def getAggregation(query: DruidQueryModel): List[AggregationExpression] = {
         query.aggregations.getOrElse(List(org.ekstep.analytics.framework.Aggregation(None, "count", "count"))).map{f =>
             val aggType = AggregationType.decode(f.`type`).right.getOrElse(AggregationType.Count)

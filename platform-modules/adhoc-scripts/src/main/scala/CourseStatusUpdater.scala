@@ -16,6 +16,8 @@ case class ContentConsumption(id: String, batchid: String, contentid: String, co
 case class UserCourses(id: String, batchid: String, courseid: String, progress: Int, status: Int, userid: String)
 
 object CourseStatusUpdater extends optional.Application {
+  
+  implicit val fc = new FrameworkContext();
 
   def main(config: String, isTest: Boolean) {
 

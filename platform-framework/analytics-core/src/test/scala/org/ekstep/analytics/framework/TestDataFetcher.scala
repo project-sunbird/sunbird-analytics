@@ -1,9 +1,10 @@
 package org.ekstep.analytics.framework
 
 import org.ekstep.analytics.framework.exception.DataFetcherException
-import org.ekstep.analytics.framework.fetcher.DruidDataFetcher
 import org.ekstep.analytics.framework.util.JSONUtils
-import io.circe.generic.auto._
+import org.scalamock.scalatest.MockFactory
+import org.scalatest.Matchers
+import org.sunbird.cloud.storage.BaseStorageService
 
 /**
  * @author Santhosh
@@ -13,25 +14,9 @@ import io.circe.generic.auto._
 case class GroupByPid(time: String, producer_id: String, producer_pid: String, total_duration: Double, count: Int)
 case class TimeSeriesData(time: String, count: Int)
 
-class TestDataFetcher extends SparkSpec {
+class TestDataFetcher extends SparkSpec with Matchers with MockFactory {
 
-//    implicit val decoder  = null
-    ignore should "fetch the batch events matching query" in {
-        
-        val queries = Option(Array(
-            Query(Option("ekstep-dev-data-store"), Option("testUpload/"), Option("2016-01-01"), Option("2016-01-01"))
-        ));
-        val rdd = DataFetcher.fetchBatchData[Event](Fetcher("S3", None, queries));
-        rdd.count should be (1701)
-        
-        val queries1 = Option(Array(
-            Query(Option("ekstep-dev-data-store"), Option("testUpload/"), Option("2016-01-01"), Option("2016-01-01"), None, None, None, None, None, None, Option("2016-01-01-20160312.json.gz"))
-        ));
-        val rdd1 = DataFetcher.fetchBatchData[Event](Fetcher("S3", None, queries1));
-        rdd1.count should be (0)
-    }
-    
-    it should "fetch the streaming events matching query" in {
+    "DataFetcher" should "fetch the streaming events matching query" in {
         
         val rdd = DataFetcher.fetchStreamData(null, null);
         rdd should be (null);
@@ -40,6 +25,7 @@ class TestDataFetcher extends SparkSpec {
     
     it should "fetch the events from local file" in {
         
+        implicit val fc = new FrameworkContext();
         val search = Fetcher("local", None, Option(Array(
             Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/sample_telemetry.log"))
         )));
@@ -59,16 +45,23 @@ class TestDataFetcher extends SparkSpec {
         rdd1.count should be (0)
     }
     
-    ignore should "fetch no file from S3 and return an empty RDD" in {
+    it should "fetch no file from S3 and return an empty RDD" in {
+        
+        implicit val mockFc = mock[FrameworkContext];
+        val mockStorageService = mock[BaseStorageService]
+        (mockFc.getStorageService _).expects("aws").returns(mockStorageService);
+        (mockStorageService.searchObjects _).expects("dev-data-store", "abc/", Option("2012-01-01"), Option("2012-02-01"), None, "yyyy-MM-dd").returns(null);
+        (mockStorageService.getPaths _).expects("dev-data-store", null).returns(List("src/test/resources/sample_telemetry_2.log"))
         val queries = Option(Array(
-            Query(Option("ekstep-dev-data-store"), Option("abc/"), Option("2012-01-01"), Option("2012-02-01"))
+            Query(Option("dev-data-store"), Option("abc/"), Option("2012-01-01"), Option("2012-02-01"))
         ));
         val rdd = DataFetcher.fetchBatchData[Event](Fetcher("S3", None, queries));
-        rdd.isEmpty() should be (true)
+        rdd.count should be (19)
     }
     
     it should "throw DataFetcherException" in {
         
+        implicit val fc = new FrameworkContext();
         // Throw unknown fetcher type found
         the[DataFetcherException] thrownBy {
             DataFetcher.fetchBatchData[Event](Fetcher("s3", None, None));    
@@ -84,38 +77,21 @@ class TestDataFetcher extends SparkSpec {
 
     it should "fetch the batch events from azure" in {
 
+        implicit val mockFc = mock[FrameworkContext];
+        val mockStorageService = mock[BaseStorageService]
+        (mockFc.getStorageService _).expects("azure").returns(mockStorageService);
+        (mockStorageService.searchObjects _).expects("dev-data-store", "raw/", Option("2017-08-31"), Option("2017-08-31"), None, "yyyy-MM-dd").returns(null);
+        (mockStorageService.getPaths _).expects("dev-data-store", null).returns(List("src/test/resources/sample_telemetry_2.log"))
         val queries = Option(Array(
             Query(Option("dev-data-store"), Option("raw/"), Option("2017-08-31"), Option("2017-08-31"))
         ));
         val rdd = DataFetcher.fetchBatchData[Event](Fetcher("azure", None, queries));
-        println(rdd.count)
-//        rdd.count should be (227)
-
-        val queries1 = Option(Array(
-            Query(Option("dev-data-store"), Option("raw/"), Option("2018-07-01"), Option("2018-07-01"))
-        ));
-        val rdd1 = DataFetcher.fetchBatchData[Event](Fetcher("azure", None, queries1));
-        println(rdd1.count)
-//        rdd1.count should be (0)
+        rdd.count should be (19)
     }
 
-    it should "fetch the data from druid" in {
+    it should "invoke the druid data fetcher" in {
 
-        val groupByQuery = DruidQueryModel("groupBy", "telemetry-events", "LastWeek", Option("all"), Option(List(Aggregation(Option("count"), "count", ""),Aggregation(Option("total_duration"), "doubleSum", "edata_duration"))), Option(List(DruidDimension("context_pdata_id", Option("producer_id")), DruidDimension("context_pdata_pid", Option("producer_pid")))), Option(List(DruidFilter("in", "eid", None, Option(List("START", "END"))))))
-        val rdd1 = DataFetcher.fetchBatchData[GroupByPid](Fetcher("druid", None, None, Option(groupByQuery)));
-        println(rdd1.count())
-        rdd1.foreach(f => println(JSONUtils.serialize(f)))
-
-        val topNQuery = DruidQueryModel("topN", "telemetry-events", "LastWeek", Option("day"), Option(List(Aggregation(Option("count"), "count", ""))), Option(List(DruidDimension("context_pdata_id", Option("producer_id")))), Option(List(DruidFilter("in", "eid", None, Option(List("START", "END"))))))
-        val rdd2 = DataFetcher.fetchBatchData[GroupByPid](Fetcher("druid", None, None, Option(topNQuery)));
-        println(rdd2.count())
-        rdd2.foreach(f => println(JSONUtils.serialize(f)))
-
-        val tsQuery = DruidQueryModel("timeSeries", "telemetry-events", "LastWeek", Option("day"), None, None, Option(List(DruidFilter("in", "eid", None, Option(List("START", "END"))))))
-        val rdd3 = DataFetcher.fetchBatchData[TimeSeriesData](Fetcher("druid", None, None, Option(tsQuery)));
-        println(rdd3.count())
-        rdd3.foreach(f => println(JSONUtils.serialize(f)))
-
+        implicit val mockFc = mock[FrameworkContext];
         val unknownQuery = DruidQueryModel("scan", "telemetry-events", "LastWeek", Option("day"), None, None, Option(List(DruidFilter("in", "eid", None, Option(List("START", "END"))))))
         the[DataFetcherException] thrownBy {
             DataFetcher.fetchBatchData[TimeSeriesData](Fetcher("druid", None, None, Option(unknownQuery)));
@@ -123,6 +99,8 @@ class TestDataFetcher extends SparkSpec {
     }
 
     it should "fetch no data for none fetcher type" in {
+        implicit val fc = new FrameworkContext();
+        fc.getStorageService("azure") should not be (null)
         val rdd = DataFetcher.fetchBatchData[Event](Fetcher("none", None, None));
         rdd.isEmpty() should be (true)
     }

@@ -5,13 +5,12 @@ import org.ekstep.analytics.framework.Query
 import org.ekstep.analytics.framework.exception.DataFetcherException
 import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
 import org.sunbird.cloud.storage.conf.AppConf
+import org.ekstep.analytics.framework.FrameworkContext
 
 object AzureDataFetcher {
 
-    val storageService = StorageServiceFactory.getStorageService(StorageConfig("azure", AppConf.getStorageKey("azure"), AppConf.getStorageSecret("azure")))
-
     @throws(classOf[DataFetcherException])
-    def getObjectKeys(queries: Array[Query]): Array[String] = {
+    def getObjectKeys(queries: Array[Query])(implicit fc: FrameworkContext): Array[String] = {
 
         val keys = for(query <- queries) yield {
             val paths = if(query.folder.isDefined && query.endDate.isDefined && query.folder.getOrElse("false").equals("true")) {
@@ -28,7 +27,8 @@ object AzureDataFetcher {
         keys.flatMap { x => x.map { x => x } }
     }
 
-    private def getKeys(query: Query) : Array[String] = {
+    private def getKeys(query: Query)(implicit fc: FrameworkContext) : Array[String] = {
+        val storageService = fc.getStorageService("azure");
         val keys = storageService.searchObjects(getBucket(query.bucket), getPrefix(query.prefix), query.startDate, query.endDate, query.delta, query.datePattern.getOrElse("yyyy-MM-dd"))
         storageService.getPaths(getBucket(query.bucket), keys).toArray
     }

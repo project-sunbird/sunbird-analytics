@@ -23,7 +23,6 @@ import org.ekstep.analytics.framework.exception.DataFilterException
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.util.JobLogger
-import org.ekstep.analytics.framework.util.S3Util
 import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.util.JobRequest
 import org.ekstep.analytics.util.JobStage
@@ -45,10 +44,12 @@ import org.ekstep.analytics.util.RequestDetails
 import org.joda.time.DateTime
 import org.sunbird.cloud.storage.conf.AppConf
 import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
+import org.ekstep.analytics.framework.FrameworkContext
 
 object DataExhaustUtils {
 
     implicit val className = "org.ekstep.analytics.dataexhaust.DataExhaustUtils"
+    implicit val fc = new FrameworkContext();
 
     val CONSUMPTION_ENV = List("Genie", "ContentPlayer")
     val storageType = AppConf.getStorageType()
