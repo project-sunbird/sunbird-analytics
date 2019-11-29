@@ -67,6 +67,7 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
 
     val shadowDataEncoder = Encoders.product[ShadowUserData].schema
     val shadowUserDF = loadData(sparkSession, Map("table" -> "shadow_user", "keyspace" -> sunbirdKeyspace), Some(shadowDataEncoder)).as[ShadowUserData]
+     val claimedShadowUserDF = shadowUserDF.where(col("claimstatus")=== ClaimedStatus.id)
 
     val shadowDataSummary = generateSummaryData(shadowUserDF)
 
@@ -79,6 +80,21 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
     // Purge the directories after copying to the upload staging area
     fSFileUtils.purgeDirectory(detailDir)
     fSFileUtils.purgeDirectory(summaryDir)
+
+     // Only claimed used
+     val claimedShadowDataSummaryDF = claimedShadowUserDF.groupBy("channel")
+       .pivot("claimstatus").agg(count("claimstatus")).na.fill(0)
+
+     claimedShadowDataSummaryDF.show(10, false)
+     saveUserValidatedSummaryReport(claimedShadowDataSummaryDF, s"$summaryDir")
+     saveUserDetailsReport(claimedShadowUserDF.toDF(), s"$detailDir")
+
+     fSFileUtils.renameReport(detailDir, renamedDir, ".csv", "validated-user-summary")
+     fSFileUtils.renameReport(summaryDir, renamedDir, ".json", "validated-user-summary")
+
+    // Purge the directories after copying to the upload staging area
+     fSFileUtils.purgeDirectory(detailDir)
+     fSFileUtils.purgeDirectory(summaryDir)
 
     shadowUserDF.distinct()
   }
@@ -178,6 +194,19 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
     JobLogger.log(s"StateAdminReportJob: uploadedSuccess nRecords = ${reportDF.count()}")
   }
 
+  def saveUserValidatedSummaryReport(reportDF: DataFrame, url: String): Unit = {
+    reportDF.coalesce(1)
+      .select(
+        col("channel"),
+        when(col(ClaimedStatus.id.toString).isNull, 0).otherwise(col(ClaimedStatus.id.toString)).as("registered"))
+      .write
+      .partitionBy("channel")
+      .mode("overwrite")
+      .json(url)
+
+    JobLogger.log(s"StateAdminReportJob: uploadedSuccess nRecords = ${reportDF.count()}")
+  }
+
   private def renameChannelDirsToSlug(sourcePath: String, channelSlugMap: Map[String, String]) = {
     val fsFileUtils = new HDFSFileUtils(className, JobLogger)
     val files = fsFileUtils.getSubdirectories(sourcePath)
@@ -185,11 +214,11 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
       val name = oneChannelDir.getName()
       val slugName = channelSlugMap.get(name);
       if(slugName.nonEmpty) {
-        println(s"name = ${name} and slugname = ${slugName}")
+        JobLogger.log("name = ${name} and slugname = ${slugName}")
         val newDirName = oneChannelDir.getParent() + "/" + slugName.get.asInstanceOf[String]
         fsFileUtils.renameDirectory(oneChannelDir.getAbsolutePath(), newDirName)
       } else {
-        println("Slug not found for - " + name);
+        JobLogger.log("Slug not found for - " + name);
       }
     }
   }
