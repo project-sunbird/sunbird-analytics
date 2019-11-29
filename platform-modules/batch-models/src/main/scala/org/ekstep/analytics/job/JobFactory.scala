@@ -5,9 +5,10 @@ import org.ekstep.analytics.framework._
 import org.ekstep.analytics.job.summarizer._
 import org.ekstep.analytics.job.updater._
 import org.ekstep.analytics.job.report.CourseMetricsJob
-import org.ekstep.analytics.job.report.StateAdminReportJob
 import org.ekstep.analytics.job.report.AssessmentMetricsJob
 import org.ekstep.analytics.job.batch.VideoStreamingJob
+import org.ekstep.analytics.job.report.StateAdminGeoReportJob
+import org.ekstep.analytics.job.report.StateAdminReportJob
 
 /**
  * @author Santhosh

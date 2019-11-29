@@ -5,6 +5,9 @@ import org.apache.spark.sql.Encoders
 import org.apache.spark.sql.SparkSession
 import org.ekstep.analytics.model.SparkSpec
 import org.scalamock.scalatest.MockFactory
+import org.ekstep.analytics.job.report.BaseReportsJob
+import org.ekstep.analytics.job.report.StateAdminReportJob
+import org.ekstep.analytics.job.report.ShadowUserData
 
 class TestStateAdminReportJob extends SparkSpec(null) with MockFactory {
 

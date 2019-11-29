@@ -1,4 +1,4 @@
-package org.ekstep.analytics.job
+package org.ekstep.analytics.job.report
 
 import org.apache.spark.SparkContext
 import org.apache.spark.sql._
@@ -7,6 +7,10 @@ import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger}
 import org.ekstep.analytics.util.HDFSFileUtils
 import org.sunbird.cloud.storage.conf.AppConf
+import org.apache.spark.annotation.DeveloperApi
+import org.apache.spark.annotation.Experimental
+import scala.reflect.ManifestFactory.classType
+import scala.reflect.api.materializeTypeTag
 
 case class RootOrgData(rootorgjoinid: String, rootorgchannel: String, rootorgslug: String)
 
@@ -19,7 +23,7 @@ object StateAdminGeoReportJob extends optional.Application with IJob with BaseRe
 
   def name(): String = "StateAdminGeoReportJob"
 
-  def main(config: String)(implicit sc: Option[SparkContext] = None) {
+  def main(config: String)(implicit sc: Option[SparkContext] = None, fc: Option[FrameworkContext] = None) {
 
     JobLogger.init(name())
     JobLogger.start("Started executing", Option(Map("config" -> config, "model" -> name)))
@@ -27,12 +31,13 @@ object StateAdminGeoReportJob extends optional.Application with IJob with BaseRe
     JobContext.parallelization = 10
 
     implicit val sparkSession: SparkSession = openSparkSession(jobConfig);
+    implicit val frameworkContext = getReportingFrameworkContext(); 
     execute(jobConfig)
     closeSparkSession()
     System.exit(0)
   }
 
-  private def execute(config: JobConfig)(implicit sparkSession: SparkSession) = {
+  private def execute(config: JobConfig)(implicit sparkSession: SparkSession, fc: FrameworkContext) = {
 
     val tempDir = AppConf.getConfig("admin.metrics.temp.dir")
     val renamedDir = s"$tempDir/renamed"
@@ -161,12 +166,14 @@ object StateAdminGeoReportJob extends optional.Application with IJob with BaseRe
     println(s"StateAdminGeoReportJob: uploadedSuccess nRecords = ${reportDF.count()} and ${url}")
   }
 
-  def uploadReport(sourcePath: String) = {
+  def uploadReport(sourcePath: String)(implicit fc: FrameworkContext) = {
     // Container name can be generic - we dont want to create as many container as many reports
     val container = AppConf.getConfig("cloud.container.reports")
     val objectKey = AppConf.getConfig("admin.metrics.cloud.objectKey")
 
-    reportStorageService.upload(container, sourcePath, objectKey, isDirectory = Option(true))
+    val storageService = getReportStorageService();
+    storageService.upload(container, sourcePath, objectKey, isDirectory = Option(true))
+    storageService.closeContext();
   }
 }
 

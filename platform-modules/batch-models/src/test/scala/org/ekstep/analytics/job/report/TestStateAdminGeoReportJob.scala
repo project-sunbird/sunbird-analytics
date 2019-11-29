@@ -3,6 +3,8 @@ package org.ekstep.analytics.job
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.ekstep.analytics.model.SparkSpec
 import org.scalamock.scalatest.MockFactory
+import org.ekstep.analytics.job.report.StateAdminGeoReportJob
+import org.ekstep.analytics.job.report.BaseReportsJob
 
 class TestStateAdminGeoReportJob extends SparkSpec(null) with MockFactory {
 
