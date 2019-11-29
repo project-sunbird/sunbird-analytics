@@ -51,8 +51,14 @@ object JobFactory {
                 AssessmentMetricsJob
             case "druid-query-processor" =>
                 DruidQueryProcessor
+            case "district-monthly" =>
+                DruidQueryProcessor
+            case "district-weekly" =>
+                DruidQueryProcessor
             case "admin-user-reports" =>
                 StateAdminReportJob
+            case "admin-geo-reports" =>
+                StateAdminGeoReportJob
             case _ =>
                 throw new JobNotFoundException("Unknown job type found")
         }
