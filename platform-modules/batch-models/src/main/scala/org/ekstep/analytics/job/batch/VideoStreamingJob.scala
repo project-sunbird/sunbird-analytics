@@ -1,19 +1,20 @@
-package org.ekstep.analytics.job
+package org.ekstep.analytics.job.batch
 
 import java.util.UUID
-
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, JobLogger, RestUtil}
 import org.ekstep.analytics.framework.{IJob, JobConfig, JobContext, Level}
 import org.ekstep.analytics.util.{Constants, JobRequest}
-import org.ekstep.analytics.videostream.VideoStreamingUtils
 import com.datastax.spark.connector._
 import org.ekstep.media.common.{MediaRequest, MediaResponse}
 import org.ekstep.media.service.impl.MediaServiceFactory
-
 import scala.collection.immutable.HashMap
+import org.ekstep.analytics.util.JobStage
+import scala.reflect.ManifestFactory.classType
+import scala.reflect.api.materializeTypeTag
+import org.ekstep.analytics.framework.FrameworkContext
 
 object VideoStreamingJob extends optional.Application with IJob {
 
@@ -24,7 +25,7 @@ object VideoStreamingJob extends optional.Application with IJob {
 
   case class StreamingStage(request_id: String, client_key: String, job_id: String, stage: String, stage_status: String, status: String, iteration: Int, err_message: String = "")
 
-  def main(config: String)(implicit sc: Option[SparkContext] = None): Unit = {
+  def main(config: String)(implicit sc: Option[SparkContext] = None, fc: Option[FrameworkContext] = None): Unit = {
     JobLogger.init(name)
     JobLogger.start("VideoStreaming Job Started executing", Option(Map("config" -> config, "model" -> name)))
     val jobConfig = JSONUtils.deserialize[JobConfig](config)
@@ -44,11 +45,25 @@ object VideoStreamingJob extends optional.Application with IJob {
   }
 
   private def execute(config: JobConfig)(implicit sc: SparkContext) = {
-      val requests = VideoStreamingUtils.getAllRequest(10)
+      val requests = getAllRequest(10)
       if (null != requests) {
           executeRequests(requests, config)
       } else {
         JobLogger.end("VideoStreaming Job Completed. But There is no job request in DB", "SUCCESS", Option(Map("model" -> name, "date" -> "", "timeTaken" -> 0)))
+      }
+  }
+  
+  def getAllRequest(maxIterations: Int)(implicit sc: SparkContext): RDD[JobRequest] = {
+      try {
+          val jobReq = sc.cassandraTable[JobRequest](Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST).filter { x => x.job_name.getOrElse("").equals("VIDEO_STREAMING") }.filter{ x => x.status.equals("SUBMITTED") || x.status.equals("PROCESSING") || (x.status.equals("FAILED") && x.iteration.getOrElse(0) < maxIterations)}.cache;
+          if (!jobReq.isEmpty()) {
+            jobReq.map { x => JobStage(x.request_id, x.client_key, "FETCHING_ALL_REQUEST", "COMPLETED", "PROCESSING") }.saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST, SomeColumns("request_id", "client_key", "stage", "stage_status", "status", "err_message", "dt_job_processing"))
+            jobReq;
+          } else {
+            null;
+          }
+      } catch {
+          case t: Throwable => null;
       }
   }
 

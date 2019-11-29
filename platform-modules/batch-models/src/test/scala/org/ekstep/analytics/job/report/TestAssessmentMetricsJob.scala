@@ -1,16 +1,25 @@
 package org.ekstep.analytics.job
 
 import org.apache.spark.sql.{DataFrame, SparkSession}
-import org.ekstep.analytics.model.SparkSpec
 import org.ekstep.analytics.util.ESUtil
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.cloud.storage.conf.AppConf
 
 import scala.collection.Map
+import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormat
+import org.ekstep.analytics.job.report.ReportGenerator
+import org.ekstep.analytics.job.report.AssessmentMetricsJob
+import org.ekstep.analytics.job.report.BaseReportSpec
+import org.ekstep.analytics.util.EmbeddedES
+import scala.collection.mutable.Buffer
+import org.ekstep.analytics.framework.FrameworkContext
+import org.sunbird.cloud.storage.BaseStorageService
 
-
-class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
+class TestAssessmentMetricsJob extends BaseReportSpec with MockFactory {
+  
   implicit var spark: SparkSession = _
+  
   var courseBatchDF: DataFrame = _
   var userCoursesDF: DataFrame = _
   var userDF: DataFrame = _
@@ -25,7 +34,7 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    spark = SparkSession.builder.config(sc.getConf.set("es.nodes", AppConf.getConfig("es.host"))).getOrCreate()
+    spark = getSparkSession();
 
     /*
      * Data created with 31 active batch from batchid = 1000 - 1031
@@ -102,9 +111,16 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
       .option("header", "true")
       .load("src/test/resources/assessment-metrics-updater/userOrgTable.csv")
       .cache()
+      
+     EmbeddedES.loadData("compositesearch", "cs", Buffer(
+         """{"contentType":"SelfAssess","name":"My content 1","identifier":"do_112835335135993856149"}""",
+         """{"contentType":"SelfAssess","name":"My content 2","identifier":"do_112835336280596480151"}""",
+         """{"contentType":"SelfAssess","name":"My content 3","identifier":"do_112832394979106816112"}"""
+     ))
   }
-
-  "TestAssessmentMetricsJob" should "define all the configurations" in {
+  
+  "AssessmentMetricsJob" should "define all the configurations" in {
+    
     assert(AppConf.getConfig("assessment.metrics.content.index").isEmpty === false)
     assert(AppConf.getConfig("assessment.metrics.cassandra.input.consistency").isEmpty === false)
     assert(AppConf.getConfig("assessment.metrics.cloud.objectKey").isEmpty === false)
@@ -193,7 +209,12 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
 
   }
 
-  "TestUpdateAssessmentMetricsJob" should "generate reports" in {
+  it should "generate reports" in {
+    implicit val mockFc = mock[FrameworkContext];
+    val mockStorageService = mock[BaseStorageService]
+    (mockFc.getStorageService(_:String, _:String, _:String)).expects(*, *, *).returns(mockStorageService).anyNumberOfTimes();
+    (mockStorageService.upload _).expects(*, *, *, *, *, *, *).returns("").anyNumberOfTimes();
+    (mockStorageService.closeContext _).expects().returns().anyNumberOfTimes()
     (reporterMock.loadData _)
       .expects(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace))
       .returning(courseBatchDF)
@@ -233,12 +254,11 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
     val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
     val renamedDir = s"$tempDir/renamed"
     val denormedDF = AssessmentMetricsJob.denormAssessment(reportDF)
-    println(denormedDF.show(false))
     AssessmentMetricsJob.saveReport(denormedDF, tempDir)
     assert(denormedDF.count == 7)
   }
 
-  "TestAssessmentMetricsJob" should "presnet 1001 batchid and do_2123101488779837441168 courseid " in {
+  it should "present 1001 batchid and do_2123101488779837441168 courseid " in {
     (reporterMock.loadData _)
       .expects(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace))
       .returning(courseBatchDF)
@@ -280,20 +300,20 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
     val denormedDF = AssessmentMetricsJob.denormAssessment(reportDF)
     val denormedDFCount = denormedDF.groupBy("courseid", "batchid")
     denormedDF.createOrReplaceTempView("course_batch")
-    val df = spark.sql("select * from course_batch where batchid ='1001' and courseid='do_2123101488779837441168' and content_name='Whole Numbers' and userid='user021' ")
-    assert(df.count() === 1)
+    val df = spark.sql("select * from course_batch where batchid ='1001' and courseid='do_2123101488779837441168' and userid='user021' ")
+    assert(df.count() === 2)
   }
 
-  ignore should "fetch the content names from the elastic search" in {
+  it should "fetch the content names from the elastic search" in {
     val contentESIndex = AppConf.getConfig("assessment.metrics.content.index")
     assert(contentESIndex.isEmpty === false)
-    val contentList = List("do_112835336280596480151", "do_112835336960000000152")
+    val contentList = List("do_112835335135993856149", "do_112835336280596480151")
     val contentDF = ESUtil.getAssessmentNames(spark, contentList, AppConf.getConfig("assessment.metrics.content.index"), AppConf.getConfig("assessment.metrics.supported.contenttype"))
     assert(contentDF.count() === 2)
   }
 
 
-  ignore should "have computed total score for the specific userid, batch, course" in {
+  it should "have computed total score for the specific userid, batch, course" in {
     (reporterMock.loadData _)
       .expects(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace))
       .returning(courseBatchDF)
@@ -338,11 +358,11 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
     val df = spark.sql("select * from course_batch where batchid =1006 and courseid='do_1126458775024025601296' and  userid='user026' ")
     assert(df.count() === 1)
     val total_sum_scoreList = df.select("total_sum_score").collect().map(_ (0)).toList
-    assert(total_sum_scoreList(0) === "'10.0/30.0'")
+    assert(total_sum_scoreList(0) === "10.0/30.0")
 
   }
 
-  ignore should "valid score in the assessment content for the specific course" in {
+  it should "valid score in the assessment content for the specific course" in {
     (reporterMock.loadData _)
       .expects(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace))
       .returning(courseBatchDF)
@@ -384,13 +404,13 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
     val denormedDF = AssessmentMetricsJob.denormAssessment(reportDF)
     val denormedDFCount = denormedDF.groupBy("courseid", "batchid")
     denormedDF.createOrReplaceTempView("course_batch")
-    val df = spark.sql("select * from course_batch where batchid ='1005' and courseid='do_112695422838472704115' and content_name ='TEST'")
+    val df = spark.sql("select * from course_batch where batchid ='1005' and courseid='do_112695422838472704115'")
     assert(df.count() === 1)
     val total_scoreList = df.select("grand_total").collect().map(_ (0)).toList
-    assert(total_scoreList(0) === "'4/4'")
+    assert(total_scoreList(0) === "4/4")
   }
 
-  "TestAssessmentMetricsJob" should "confirm all required column names are present or not" in {
+  it should "confirm all required column names are present or not" in {
     (reporterMock.loadData _)
       .expects(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace))
       .returning(courseBatchDF)
@@ -445,7 +465,7 @@ class TestAssessmentMetricsJob extends SparkSpec(null) with MockFactory {
     assert(denormedDF.columns.contains("username") === true)
   }
 
-  "TestAssessMentMetricsJob" should "generate reports for the best score" in {
+  it should "generate reports for the best score" in {
 
     assessmentProfileDF = spark
       .read

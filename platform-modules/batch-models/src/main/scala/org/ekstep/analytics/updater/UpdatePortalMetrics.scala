@@ -11,13 +11,13 @@ import com.datastax.spark.connector._
 import javax.ws.rs.core.HttpHeaders
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.ekstep.analytics.adapter.ContentAdapter
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.dispatcher.AzureDispatcher
 import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, RestUtil}
 import org.ekstep.analytics.util.Constants
 
 import scala.util.Try
+import org.ekstep.analytics.adapter.ContentAdapter
 
 
 case class WorkFlowUsageMetrics(noOfUniqueDevices: Long, totalContentPlaySessions: Long, totalTimeSpent: Double, totalContentPublished: ContentPublishedList) extends AlgoOutput with Output with AlgoInput

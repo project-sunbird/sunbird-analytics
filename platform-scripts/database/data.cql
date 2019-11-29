@@ -99,7 +99,7 @@ CREATE TABLE IF NOT EXISTS local_platform_db.job_request (
 
 CREATE KEYSPACE IF NOT EXISTS local_content_store WITH replication = {
   'class': 'SimpleStrategy',
-  'replication_factor': 1'
+  'replication_factor': '1'
 };
 
 CREATE TABLE IF NOT EXISTS local_content_store.content_data (
@@ -194,7 +194,7 @@ CREATE KEYSPACE IF NOT EXISTS sunbird WITH replication = {
   'replication_factor': '1'
 };
 
-CREATE TABLE sunbird.shadow_user (
+CREATE TABLE IF NOT EXISTS sunbird.shadow_user (
     channel text,
     userextid text,
     addedby text,
@@ -227,7 +227,7 @@ CREATE TABLE sunbird.shadow_user (
     AND read_repair_chance = 0.0
     AND speculative_retry = '99PERCENTILE';
 
-CREATE TABLE sunbird.organisation (
+CREATE TABLE IF NOT EXISTS sunbird.organisation (
     id text PRIMARY KEY,
     addressid text,
     approvedby text,

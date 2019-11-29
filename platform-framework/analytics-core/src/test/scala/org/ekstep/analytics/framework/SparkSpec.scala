@@ -15,11 +15,13 @@ class SparkSpec(val file: String = "src/test/resources/sample_telemetry.log") ex
     implicit var sc: SparkContext = null;
 
     override def beforeAll() {
+        super.beforeAll();
         sc = CommonUtil.getSparkContext(1, "TestAnalyticsCore");
         events = loadFile[Event](file)
     }
 
     override def afterAll() {
+        super.afterAll();
         CommonUtil.closeSparkContext();
     }
 

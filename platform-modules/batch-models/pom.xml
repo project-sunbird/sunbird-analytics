@@ -309,6 +309,14 @@
 			<version>2.3.0</version>
 			<scope>provided</scope>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.elasticsearch/elasticsearch -->
+		<dependency>
+		    <groupId>pl.allegro.tech</groupId>
+		    <artifactId>embedded-elasticsearch</artifactId>
+		    <version>2.10.0</version>
+		    <scope>test</scope>
+		</dependency>
+				
 	</dependencies>
 	<build>
 		<sourceDirectory>src/main/scala</sourceDirectory>

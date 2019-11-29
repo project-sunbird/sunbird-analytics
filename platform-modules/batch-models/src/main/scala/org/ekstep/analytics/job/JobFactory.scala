@@ -4,6 +4,10 @@ import org.ekstep.analytics.framework.exception.JobNotFoundException
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.job.summarizer._
 import org.ekstep.analytics.job.updater._
+import org.ekstep.analytics.job.report.CourseMetricsJob
+import org.ekstep.analytics.job.report.StateAdminReportJob
+import org.ekstep.analytics.job.report.AssessmentMetricsJob
+import org.ekstep.analytics.job.batch.VideoStreamingJob
 
 /**
  * @author Santhosh
@@ -27,8 +31,6 @@ object JobFactory {
                 DeviceProfileUpdater
             case "video-streaming" =>
                 VideoStreamingJob
-            case "etb-coverage-summary" =>
-                ETBCoverageSummarizer
             case "portal-metrics" =>
                 PortalMetricsUpdater
             case "workflow-usage-metrics" =>
@@ -45,8 +47,6 @@ object JobFactory {
                 ContentRatingUpdater
             case "experiment" =>
                 ExperimentDefinitionJob
-            case "daily-metrics-consumption-reports" =>
-                ConsumptionReportsJob
             case "assessment-dashboard-metrics" =>
                 AssessmentMetricsJob
             case "druid-query-processor" =>

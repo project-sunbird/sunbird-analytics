@@ -1,4 +1,4 @@
-package org.ekstep.analytics.job
+package org.ekstep.analytics.job.report
 
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.DataFrame
@@ -11,6 +11,7 @@ import org.sunbird.cloud.storage.BaseStorageService
 import org.sunbird.cloud.storage.conf.AppConf
 import org.sunbird.cloud.storage.factory.StorageConfig
 import org.sunbird.cloud.storage.factory.StorageServiceFactory
+import org.ekstep.analytics.framework.FrameworkContext
 
 trait BaseReportsJob {
 
@@ -22,6 +23,17 @@ trait BaseReportsJob {
       dataFrameReader.load()
     }
 
+  }
+  
+  def getReportingFrameworkContext()(implicit fc: Option[FrameworkContext]): FrameworkContext = {
+    fc match {
+      case Some(value) => {
+        value
+      }
+      case None => {
+        new FrameworkContext();
+      }
+    }
   }
 
   def getReportingSparkContext(config: JobConfig)(implicit sc: Option[SparkContext] = None): SparkContext = {
@@ -66,16 +78,16 @@ trait BaseReportsJob {
     }
   }
 
-  def reportStorageService: BaseStorageService = {
+  def getReportStorageService()(implicit fc: FrameworkContext): BaseStorageService = {
     val reportsStorageAccountKey = AppConf.getConfig("reports_azure_storage_key")
     val reportsStorageAccountSecret = AppConf.getConfig("reports_azure_storage_secret")
     val provider = AppConf.getConfig("cloud_storage_type")
     if (reportsStorageAccountKey != null && !reportsStorageAccountSecret.isEmpty) {
+      fc.getStorageService(provider, AppConf.getConfig("reports_azure_storage_key"), AppConf.getConfig("reports_azure_storage_secret"));
       StorageServiceFactory
         .getStorageService(StorageConfig(provider, AppConf.getConfig("reports_azure_storage_key"), AppConf.getConfig("reports_azure_storage_secret")))
     } else {
-      StorageServiceFactory
-        .getStorageService(StorageConfig(provider, AppConf.getConfig("azure_storage_key"), AppConf.getConfig("azure_storage_secret")))
+      fc.getStorageService(provider, AppConf.getConfig("azure_storage_key"), AppConf.getConfig("azure_storage_secret"));
     }
   }
 

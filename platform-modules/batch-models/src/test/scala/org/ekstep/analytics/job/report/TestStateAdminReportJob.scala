@@ -1,4 +1,4 @@
-package org.ekstep.analytics.job
+package org.ekstep.analytics.job.report
 
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.Encoders
@@ -9,8 +9,9 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.when
 import org.scalatest.mockito.MockitoSugar
+import scala.reflect.api.materializeTypeTag
 
-class TestStateAdminReportJob extends SparkSpec(null) with MockitoSugar {
+class TestStateAdminReportJob extends BaseReportSpec with MockitoSugar {
 
   var spark: SparkSession = _
   var shadowUserDF: DataFrame = _
@@ -21,7 +22,7 @@ class TestStateAdminReportJob extends SparkSpec(null) with MockitoSugar {
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    spark = SparkSession.builder.config(sc.getConf).getOrCreate()
+    spark = getSparkSession()
 
     val shadowUserEncoder = Encoders.product[ShadowUserData].schema
     shadowUserDF = spark
