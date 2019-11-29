@@ -11,7 +11,7 @@ import org.sunbird.cloud.storage.conf.AppConf
 case class RootOrgData(rootorgjoinid: String, rootorgchannel: String, rootorgslug: String)
 
 case class SubOrgRow(id: String, isrootorg: Boolean, rootorgid: String, channel: String, status: String, locationid: String, locationids: Seq[String], orgname: String,
-                     exploded_location: String, locid: String, loccode: String, locname: String, locparentid: String, loctype: String, rootorgjoinid: String, rootorgchannel: String)
+                     explodedlocation: String, locid: String, loccode: String, locname: String, locparentid: String, loctype: String, rootorgjoinid: String, rootorgchannel: String)
 
 object StateAdminGeoReportJob extends optional.Application with IJob with BaseReportsJob {
 
@@ -77,13 +77,13 @@ object StateAdminGeoReportJob extends optional.Application with IJob with BaseRe
     val rootOrgDF = sparkSession.createDataFrame(rootOrgRDD, rootOrgEncoder);
 
     val subOrgDF = organisationDF
-      .withColumn("exploded_location", explode(when(size(col("locationids")).equalTo(0), array(lit(null).cast("string")))
+      .withColumn("explodedlocation", explode(when(size(col("locationids")).equalTo(0), array(lit(null).cast("string")))
         .otherwise(when(col("locationids").isNotNull, col("locationids"))
           .otherwise(array(lit(null).cast("string"))))))
 
     val subOrgJoinedDF = subOrgDF
       .where(col("status").equalTo(1) && not(col("isrootorg")))
-      .join(locationDF, subOrgDF.col("exploded_location") === locationDF.col("locid"), "left")
+      .join(locationDF, subOrgDF.col("explodedlocation") === locationDF.col("locid"), "left")
       .join(rootOrgDF, subOrgDF.col("rootorgid") === rootOrgDF.col("rootorgjoinid")).as[SubOrgRow]
 
     subOrgJoinedDF
@@ -167,7 +167,6 @@ object StateAdminGeoReportJob extends optional.Application with IJob with BaseRe
     val objectKey = AppConf.getConfig("admin.metrics.cloud.objectKey")
 
     reportStorageService.upload(container, sourcePath, objectKey, isDirectory = Option(true))
-    // TODO: Purge the files after uploaded to blob store
   }
 }
 
