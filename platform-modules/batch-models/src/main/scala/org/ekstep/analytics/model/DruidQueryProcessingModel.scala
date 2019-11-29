@@ -12,7 +12,7 @@ import org.ekstep.analytics.framework.fetcher.DruidDataFetcher
 import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger}
 import org.sunbird.cloud.storage.conf.AppConf
 
-case class DruidOutput(date: Option[String], state: Option[String], producer_id: Option[String], total_scans: Option[Integer] = Option(0),
+case class DruidOutput(date: Option[String], state: Option[String], district: Option[String], producer_id: Option[String], total_scans: Option[Integer] = Option(0),
                        total_sessions: Option[Integer] = Option(0), total_ts: Option[Double] = Option(0.0),
                        total_successful_scans: Option[Integer] = Option(0), total_failed_scans: Option[Integer] = Option(0),
                        total_content_download: Option[Integer] = Option(0), total_content_plays: Option[Integer] = Option(0),
