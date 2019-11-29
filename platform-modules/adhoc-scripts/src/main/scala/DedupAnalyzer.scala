@@ -9,6 +9,8 @@ case class BatchEventLite(mid: String, pid: String, params: Option[Params])
 case class V3EventLite(mid: String, eid: String);
 
 object DedupAnalyzer extends optional.Application {
+  
+  implicit val fc = new FrameworkContext();
 
   def main(config: String, isTest: Boolean) {
 

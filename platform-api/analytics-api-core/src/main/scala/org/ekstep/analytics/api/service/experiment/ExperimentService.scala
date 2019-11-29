@@ -62,6 +62,7 @@ class ExperimentService @Inject()(redisUtil: RedisUtil, elasticsearchService :El
 
   def resolveExperiment(data: ExperimentData): Option[ExperimentData] = {
     val typeResolver = ExperimentResolver.getResolver(data.expType)
+    APILogger.log(s"resolving experiment for userID: ${data.userId}, deviceId: ${data.deviceId}, experiment resolver: ${typeResolver.getType}")
     if (typeResolver.resolve(data)) Some(data) else None
   }
 

@@ -82,7 +82,7 @@
 			<exclusions>
 				<exclusion>
 					<groupId>org.apache.kafka</groupId>
-		    		<artifactId>kafka_2.11</artifactId>
+		    			<artifactId>kafka_2.11</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -116,9 +116,17 @@
 		<dependency>
 			<groupId>org.scalatest</groupId>
 			<artifactId>scalatest_${scala.maj.version}</artifactId>
-			<version>2.2.4</version>
+			<version>3.0.5</version>
 			<scope>test</scope>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.scalamock/scalamock -->
+		<dependency>
+			<groupId>org.scalamock</groupId>
+			<artifactId>scalamock_${scala.maj.version}</artifactId>
+			<version>4.1.0</version>
+			<scope>test</scope>
+		</dependency>
+		<!-- -->
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-api</artifactId>
@@ -140,6 +148,12 @@
 			<artifactId>hadoop-common</artifactId>
 			<version>2.7.3</version>
 			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.avro</groupId>
+					<artifactId>avro</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
@@ -170,16 +184,11 @@
 			<version>1.1.4</version>
 			<scope>provided</scope>
 		</dependency>
-		<dependency>
-            <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka-clients</artifactId>
-            <version>0.10.0.1</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.apache.kafka/kafka_2.11 -->
+		<!-- https://mvnrepository.com/artifact/org.apache.kafka/kafka_2.11 -->
 		<dependency>
 		    <groupId>org.apache.kafka</groupId>
-		    <artifactId>kafka_2.11</artifactId>
-		    <version>1.1.0</version>
+		    <artifactId>kafka_${scala.maj.version}</artifactId>
+		    <version>1.0.1</version>
 		    <scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -239,7 +248,7 @@
 		<!-- https://mvnrepository.com/artifact/ing.wbaa.druid/scruid -->
 		<dependency>
 			<groupId>ing.wbaa.druid</groupId>
-			<artifactId>scruid_2.11</artifactId>
+			<artifactId>scruid_${scala.maj.version}</artifactId>
 			<version>2.3.0</version>
 		</dependency>
 		<dependency>
@@ -247,6 +256,14 @@
 			<artifactId>elasticsearch-hadoop</artifactId>
 			<version>6.7.0</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/net.manub/scalatest-embedded-kafka -->
+		<dependency>
+		    <groupId>net.manub</groupId>
+		    <artifactId>scalatest-embedded-kafka_${scala.maj.version}</artifactId>
+		    <version>1.1.0</version>
+		    <scope>test</scope>
+		</dependency>
+				
 	</dependencies>
 
 	<build>

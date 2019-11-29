@@ -29,6 +29,7 @@ object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, Druid
 
     implicit val className: String = "org.ekstep.analytics.model.DruidQueryProcessingModel"
     override def name: String = "DruidQueryProcessingModel"
+    implicit val fc = new FrameworkContext();
 
     override def preProcess(data: RDD[DruidOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DruidOutput] = {
         data

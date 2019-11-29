@@ -26,7 +26,7 @@ class ElasticsearchService extends ESsearch {
     private lazy val searchExperimentIndex = config.getString("elasticsearch.searchExperiment.index")
     implicit val executor =  scala.concurrent.ExecutionContext.global
 
-    private def getConnection = HttpClient(ElasticsearchClientUri(host, port))
+    def getConnection = HttpClient(ElasticsearchClientUri(host, port))
 
     def checkConnection: Boolean = {
         try {
@@ -67,7 +67,6 @@ class ElasticsearchService extends ESsearch {
 
         val client = getConnection
         val response = client.execute(query)
-
         response.map { _ match {
                 case Right(success) => {
                     client.close()
