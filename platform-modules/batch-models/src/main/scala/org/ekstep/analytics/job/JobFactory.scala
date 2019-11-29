@@ -53,6 +53,8 @@ object JobFactory {
                 DruidQueryProcessor
             case "admin-user-reports" =>
                 StateAdminReportJob
+            case "admin-geo-reports" =>
+                StateAdminGeoReportJob
             case _ =>
                 throw new JobNotFoundException("Unknown job type found")
         }
