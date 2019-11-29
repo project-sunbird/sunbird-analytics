@@ -18,6 +18,7 @@ import org.ekstep.analytics.framework.FrameworkContext
 
 object VideoStreamingJob extends optional.Application with IJob {
 
+  // $COVERAGE-OFF$ Disabling scoverage as the below code has no test cases
   implicit val className = "org.ekstep.analytics.job.VideoStreamingJob"
   def name: String = "VideoStreamingJob"
   val mediaService = MediaServiceFactory.getMediaService()
@@ -153,5 +154,5 @@ object VideoStreamingJob extends optional.Application with IJob {
       false
     }
   }
-
+  // $COVERAGE-ON$
 }

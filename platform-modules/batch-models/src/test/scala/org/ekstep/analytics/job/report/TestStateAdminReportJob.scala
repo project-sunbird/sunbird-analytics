@@ -8,6 +8,7 @@ import org.scalamock.scalatest.MockFactory
 import org.ekstep.analytics.job.report.BaseReportsJob
 import org.ekstep.analytics.job.report.StateAdminReportJob
 import org.ekstep.analytics.job.report.ShadowUserData
+import org.ekstep.analytics.util.EmbeddedCassandra
 
 class TestStateAdminReportJob extends SparkSpec(null) with MockFactory {
 
@@ -21,35 +22,14 @@ class TestStateAdminReportJob extends SparkSpec(null) with MockFactory {
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    spark = SparkSession.builder.config(sc.getConf).getOrCreate()
-
-    shadowUserDF = spark
-      .read
-      .format("com.databricks.spark.csv")
-      .option("header", "true")
-      .schema(shadowUserEncoder)
-      .load("src/test/resources/state-admin-report-updater/shadowUserTable.csv")
-      .cache()
-
-    orgDF = spark
-      .read
-      .format("com.databricks.spark.csv")
-      .option("header", "true")
-      .option("inferSchema", "true")
-      .load("src/test/resources/state-admin-report-updater/orgTable.csv")
-      .cache()
-
+    spark = getSparkSession();
+    EmbeddedCassandra.loadData("src/test/resources/reports/reports_test_data.cql"); // Load test data in embedded cassandra server
   }
 
 
-  it should "generate reports" in {
-    (reporterMock.loadData _).expects(spark, Map("table" -> "shadow_user", "keyspace" -> sunbirdKeyspace) , Some(shadowUserEncoder))
-      .returning(shadowUserDF)
-    (reporterMock.loadData _).expects(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace), None)
-      .returning(orgDF)
+  "StateAdminReportJob" should "generate reports" in {
     val reportDF = StateAdminReportJob.generateReport()(spark)
-
     // There are only 2 state information in the test csv
-    assert(reportDF.count == 2)
+    assert(reportDF.count() == 3)
   }
 }

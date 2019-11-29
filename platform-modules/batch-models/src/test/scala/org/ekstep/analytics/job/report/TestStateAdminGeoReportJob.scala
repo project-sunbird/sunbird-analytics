@@ -5,6 +5,7 @@ import org.ekstep.analytics.model.SparkSpec
 import org.scalamock.scalatest.MockFactory
 import org.ekstep.analytics.job.report.StateAdminGeoReportJob
 import org.ekstep.analytics.job.report.BaseReportsJob
+import org.ekstep.analytics.util.EmbeddedCassandra
 
 class TestStateAdminGeoReportJob extends SparkSpec(null) with MockFactory {
 
@@ -17,24 +18,12 @@ class TestStateAdminGeoReportJob extends SparkSpec(null) with MockFactory {
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    spark = SparkSession.builder.config(sc.getConf).getOrCreate()
-
-    orgDF = spark
-      .read
-      .format("com.databricks.spark.csv")
-      .option("header", "true")
-      .option("inferSchema", "true")
-      .load("src/test/resources/state-admin-report-updater/orgTable.csv")
-      .cache()
-
+    spark = getSparkSession()
+    EmbeddedCassandra.loadData("src/test/resources/reports/reports_test_data.cql"); // Load test data in embedded cassandra server
   }
 
-  it should "generate reports" in {
-    (reporterMock.loadData _).expects(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace), None)
-      .returning(orgDF)
+  "StateAdminGeoReportJob" should "generate reports" in {
     val reportDF = StateAdminGeoReportJob.generateGeoSummaryReport()(spark)
-
-    // There are only 5 sub-orgs in the test csv
-    assert(reportDF.count == 5)
+    assert(reportDF.count == 6)
   }
 }

@@ -58,7 +58,7 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
     JobLogger.end("StateAdminReportJob completed successfully!", "SUCCESS", Option(Map("config" -> config, "model" -> name)))
   }
 
-   def generateReport()(implicit sparkSession: SparkSession) = {
+   def generateReport()(implicit sparkSession: SparkSession) : Dataset[ShadowUserData]  = {
 
     import sparkSession.implicits._
     val renamedDir = s"$tempDir/renamed"
@@ -80,7 +80,6 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
     // Purge the directories after copying to the upload staging area
     fSFileUtils.purgeDirectory(detailDir)
     fSFileUtils.purgeDirectory(summaryDir)
-
     shadowUserDF.distinct()
   }
 
@@ -204,12 +203,5 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
     storageService.upload(container, sourcePath, objectKey, isDirectory = Option(true))
     storageService.closeContext();
     // TODO: Purge the files after uploaded to blob store
-  }
-}
-
-object StateAdminReportJobTest {
-
-  def main(args: Array[String]): Unit = {
-    StateAdminReportJob.main("""{"model":"Test"}""");
   }
 }

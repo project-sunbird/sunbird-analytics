@@ -367,12 +367,12 @@
 			<plugin>
 				<groupId>org.scoverage</groupId>
 				<artifactId>scoverage-maven-plugin</artifactId>
-				<version>${scoverage.plugin.version}</version>
+				<version>${scoverage.plugin.version}</version><!--$NO-MVN-MAN-VER$-->
 				<configuration>
 					<scalaVersion>${scala.version}</scalaVersion>
 					<aggregate>true</aggregate>
 					<highlighting>true</highlighting>
-					<excludedFiles>.*LearnerSessionSummaryV2.*</excludedFiles>
+					<excludedFiles>.*VideoStreamingJob.scala</excludedFiles>
 				</configuration>
 			</plugin>
 			<plugin>

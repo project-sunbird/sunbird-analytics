@@ -198,18 +198,23 @@ object UpdatePortalMetrics extends IBatchModelTemplate[DerivedEvent, DerivedEven
        """.stripMargin
     val response = RestUtil.post[ESResponse](apiURL, request)
     val orgResult = orgSearch()
-    response.aggregations.publisher_agg.buckets.map(publisherBucket => {
-      val languages = publisherBucket.language_agg.buckets.map(languageBucket => {
-        Language(languageBucket.key, languageBucket.doc_count)
+    if(null != response) {
+      response.aggregations.publisher_agg.buckets.map(publisherBucket => {
+        val languages = publisherBucket.language_agg.buckets.map(languageBucket => {
+          Language(languageBucket.key, languageBucket.doc_count)
+        })
+        orgResult.result.response.content.map(org => {
+          if (org.hashTagId == publisherBucket.key) {
+            LanguageByPublisher(org.orgName, languages)
+          } else {
+            LanguageByPublisher("", List()) // Return empty publisher list
+          }
+        }).filter(_.publisher.nonEmpty)
       })
-      orgResult.result.response.content.map(org => {
-        if (org.hashTagId == publisherBucket.key) {
-          LanguageByPublisher(org.orgName, languages)
-        } else {
-          LanguageByPublisher("", List()) // Return empty publisher list
-        }
-      }).filter(_.publisher.nonEmpty)
-    })
+    } else {
+      List()
+    }
+    
   }.flatMap(f=>f)
 
   private def orgSearch(): OrgResponse = {
