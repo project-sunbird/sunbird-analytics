@@ -304,6 +304,10 @@ class TestAssessmentMetricsJob extends BaseReportSpec with MockFactory {
     assert(contentESIndex.isEmpty === false)
     val contentList = List("do_112835335135993856149", "do_112835336280596480151")
     val contentDF = ESUtil.getAssessmentNames(spark, contentList, AppConf.getConfig("assessment.metrics.content.index"), AppConf.getConfig("assessment.metrics.supported.contenttype"))
+    contentDF.createOrReplaceTempView("content_metadata")
+    val content_id_df = spark.sql("select * from content_metadata where identifier ='do_112835335135993856149'")
+    val content_name = content_id_df.select("name").collect().map(_ (0)).toList
+    assert(content_name(0) === "My content 1")
     assert(contentDF.count() === 2)
   }
 
@@ -351,6 +355,7 @@ class TestAssessmentMetricsJob extends BaseReportSpec with MockFactory {
     val reportDF = AssessmentMetricsJob
       .prepareReport(spark, reporterMock.loadData)
       .cache()
+
     reportDF.createOrReplaceTempView("best_attempt")
     val df = spark.sql("select * from best_attempt where batchid ='1010' and courseid='do_1125559882615357441175' and content_id='do_112835335135993856149' and userid ='user030'")
     val best_attempt_score = df.select("total_score").collect().map(_ (0)).toList
