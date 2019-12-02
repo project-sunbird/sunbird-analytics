@@ -3,13 +3,10 @@ package org.ekstep.analytics.job
 import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.ekstep.analytics.framework.conf.AppConf
-import org.ekstep.analytics.model.SparkSpec
+import org.ekstep.analytics.job.report.{BaseReportSpec, CourseMetricsJob, ReportGenerator}
 import org.scalamock.scalatest.MockFactory
 
 import scala.collection.Map
-import org.ekstep.analytics.job.report.ReportGenerator
-import org.ekstep.analytics.job.report.CourseMetricsJob
-import org.ekstep.analytics.job.report.BaseReportSpec
 
 
 class TestCourseMetricsJob extends BaseReportSpec with MockFactory {

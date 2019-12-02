@@ -7,6 +7,7 @@ import scala.collection.mutable.Buffer
 import scala.collection.JavaConverters._
 import pl.allegro.tech.embeddedelasticsearch.IndexRequest
 import scala.collection.JavaConverters
+import java.util.concurrent.TimeUnit.MINUTES
 
 case class EsIndex(index: String, indexType: Option[String], mappingSettings: Option[String], aliasSettings: Option[String])
 object EmbeddedES {
@@ -18,7 +19,8 @@ object EmbeddedES {
       .withElasticVersion("6.3.0")
       .withSetting(HTTP_PORT, "9200")
       .withSetting(CLUSTER_NAME, "TestCluster")
-      .withEsJavaOpts("-Xms128m -Xmx512m");
+      .withEsJavaOpts("-Xms128m -Xmx512m")
+     .withStartTimeout(1,MINUTES);
 
     indices.foreach(f => {
       val indexSettingsBuilder = IndexSettings.builder();
