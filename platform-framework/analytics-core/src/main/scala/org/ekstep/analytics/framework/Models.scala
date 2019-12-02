@@ -220,7 +220,7 @@ case class V3MetricEdata(metric: String, value: AnyRef, range: Option[AnyRef] = 
 @scala.beans.BeanInfo
 case class V3Flags(derived_location_retrieved: Boolean, device_data_retrieved: Boolean,
                    user_data_retrieved: Boolean, dialcode_data_retrieved: Boolean,
-                   content_data_retrieved: Boolean)
+                   content_data_retrieved: Boolean, collection_data_retrieved: Boolean)
 
 // Experiment Models
 @scala.beans.BeanInfo
