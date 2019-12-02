@@ -50,6 +50,7 @@
 						<scalaVersion>${scala.version}</scalaVersion>
 						<aggregate>true</aggregate>
 						<highlighting>true</highlighting>
+						<excludedPackages>.*org.ekstep.media.*</excludedPackages>
 					</configuration>
 				</plugin>
 			</plugins>
