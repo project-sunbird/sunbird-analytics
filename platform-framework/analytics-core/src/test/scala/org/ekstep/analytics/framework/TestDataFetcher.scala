@@ -49,7 +49,7 @@ class TestDataFetcher extends SparkSpec with Matchers with MockFactory {
         
         implicit val mockFc = mock[FrameworkContext];
         val mockStorageService = mock[BaseStorageService]
-        (mockFc.getStorageService _).expects("aws").returns(mockStorageService);
+        (mockFc.getStorageService(_:String):BaseStorageService).expects("aws").returns(mockStorageService);
         (mockStorageService.searchObjects _).expects("dev-data-store", "abc/", Option("2012-01-01"), Option("2012-02-01"), None, "yyyy-MM-dd").returns(null);
         (mockStorageService.getPaths _).expects("dev-data-store", null).returns(List("src/test/resources/sample_telemetry_2.log"))
         val queries = Option(Array(
@@ -79,7 +79,7 @@ class TestDataFetcher extends SparkSpec with Matchers with MockFactory {
 
         implicit val mockFc = mock[FrameworkContext];
         val mockStorageService = mock[BaseStorageService]
-        (mockFc.getStorageService _).expects("azure").returns(mockStorageService);
+        (mockFc.getStorageService(_:String):BaseStorageService).expects("azure").returns(mockStorageService);
         (mockStorageService.searchObjects _).expects("dev-data-store", "raw/", Option("2017-08-31"), Option("2017-08-31"), None, "yyyy-MM-dd").returns(null);
         (mockStorageService.getPaths _).expects("dev-data-store", null).returns(List("src/test/resources/sample_telemetry_2.log"))
         val queries = Option(Array(

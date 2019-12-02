@@ -99,7 +99,7 @@ CREATE TABLE IF NOT EXISTS local_platform_db.job_request (
 
 CREATE KEYSPACE IF NOT EXISTS local_content_store WITH replication = {
   'class': 'SimpleStrategy',
-  'replication_factor': 1'
+  'replication_factor': '1'
 };
 
 CREATE TABLE IF NOT EXISTS local_content_store.content_data (
@@ -194,7 +194,7 @@ CREATE KEYSPACE IF NOT EXISTS sunbird WITH replication = {
   'replication_factor': '1'
 };
 
-CREATE TABLE sunbird.shadow_user (
+CREATE TABLE IF NOT EXISTS sunbird.shadow_user (
     channel text,
     userextid text,
     addedby text,
@@ -227,7 +227,7 @@ CREATE TABLE sunbird.shadow_user (
     AND read_repair_chance = 0.0
     AND speculative_retry = '99PERCENTILE';
 
-CREATE TABLE sunbird.organisation (
+CREATE TABLE IF NOT EXISTS sunbird.organisation (
     id text PRIMARY KEY,
     addressid text,
     approvedby text,
@@ -280,3 +280,25 @@ CREATE TABLE sunbird.organisation (
     AND min_index_interval = 128
     AND read_repair_chance = 0.0
     AND speculative_retry = '99PERCENTILE';
+    
+CREATE TABLE IF NOT EXISTS sunbird.location (
+    id text PRIMARY KEY,
+    code text,
+    name text,
+    parentid text,
+    type text
+) WITH bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
+    

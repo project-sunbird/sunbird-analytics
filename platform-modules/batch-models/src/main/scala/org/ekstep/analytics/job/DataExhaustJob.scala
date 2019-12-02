@@ -31,7 +31,7 @@ object DataExhaustJob extends optional.Application with IJob {
     def name: String = "DataExhaustJob"
     val rawDataSetList = List("eks-consumption-raw", "eks-creation-raw")
 
-    def main(config: String)(implicit sc: Option[SparkContext] = None) {
+    def main(config: String)(implicit sc: Option[SparkContext] = None, fc: Option[FrameworkContext] = None) {
 
         JobLogger.init("DataExhaustJob")
         JobLogger.start("DataExhaust Job Started executing", Option(Map("config" -> config, "model" -> name)))

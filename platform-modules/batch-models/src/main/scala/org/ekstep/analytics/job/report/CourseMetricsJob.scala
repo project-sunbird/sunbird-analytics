@@ -1,8 +1,7 @@
-package org.ekstep.analytics.job
+package org.ekstep.analytics.job.report
 
 import java.io.File
 import java.nio.file.{Files, StandardCopyOption}
-
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions.{col, unix_timestamp, _}
@@ -15,8 +14,9 @@ import org.ekstep.analytics.util.ESUtil
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import org.sunbird.cloud.storage.conf.AppConf
-
 import scala.collection.{Map, _}
+import org.elasticsearch.spark.sql.sparkDataFrameFunctions
+import scala.reflect.ManifestFactory.classType
 
 trait ReportGenerator {
   def loadData(spark: SparkSession, settings: Map[String, String]): DataFrame
@@ -36,7 +36,7 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
 
   def name(): String = "CourseMetricsJob"
 
-  def main(config: String)(implicit sc: Option[SparkContext] = None) {
+  def main(config: String)(implicit sc: Option[SparkContext] = None, fc: Option[FrameworkContext] = None) {
 
     JobLogger.init("CourseMetricsJob")
     JobLogger.start("CourseMetrics Job Started executing", Option(Map("config" -> config, "model" -> name)))
@@ -44,11 +44,12 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     JobContext.parallelization = 10
 
     implicit val sparkContext: SparkContext = getReportingSparkContext(jobConfig);
+    implicit val frameworkContext = getReportingFrameworkContext();
     execute(jobConfig)
     System.exit(0)
   }
 
-  private def execute(config: JobConfig)(implicit sc: SparkContext) = {
+  private def execute(config: JobConfig)(implicit sc: SparkContext, fc: FrameworkContext) = {
     val tempDir = AppConf.getConfig("course.metrics.temp.dir")
     val readConsistencyLevel: String = AppConf.getConfig("course.metrics.cassandra.input.consistency")
     val renamedDir = s"$tempDir/renamed"
@@ -331,10 +332,13 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     JobLogger.log(s"CourseMetricsJob: records stats before cloud upload: { perBatchCount: ${JSONUtils.serialize(perBatchCount)}, totalNoOfRecords: $noOfRecords } ", None, INFO)
   }
 
-  def uploadReport(sourcePath: String) = {
+  def uploadReport(sourcePath: String)(implicit fc: FrameworkContext) = {
+    
     val container = AppConf.getConfig("cloud.container.reports")
     val objectKey = AppConf.getConfig("course.metrics.cloud.objectKey")
-    reportStorageService.upload(container, sourcePath, objectKey, isDirectory = Option(true))
+    val storageService = getReportStorageService();
+    storageService.upload(container, sourcePath, objectKey, isDirectory = Option(true))
+    storageService.closeContext();
   }
 
   private def recursiveListFiles(file: File, ext: String): Array[File] = {
