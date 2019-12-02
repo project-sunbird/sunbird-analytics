@@ -5,6 +5,11 @@ import org.ekstep.analytics.framework._
 import org.ekstep.analytics.job.Metrics.MetricsAuditJob
 import org.ekstep.analytics.job.summarizer._
 import org.ekstep.analytics.job.updater._
+import org.ekstep.analytics.job.report.CourseMetricsJob
+import org.ekstep.analytics.job.report.AssessmentMetricsJob
+import org.ekstep.analytics.job.batch.VideoStreamingJob
+import org.ekstep.analytics.job.report.StateAdminGeoReportJob
+import org.ekstep.analytics.job.report.StateAdminReportJob
 
 /**
  * @author Santhosh
@@ -28,8 +33,6 @@ object JobFactory {
                 DeviceProfileUpdater
             case "video-streaming" =>
                 VideoStreamingJob
-            case "etb-coverage-summary" =>
-                ETBCoverageSummarizer
             case "portal-metrics" =>
                 PortalMetricsUpdater
             case "workflow-usage-metrics" =>
@@ -46,16 +49,20 @@ object JobFactory {
                 ContentRatingUpdater
             case "experiment" =>
                 ExperimentDefinitionJob
-            case "daily-metrics-consumption-reports" =>
-                ConsumptionReportsJob
             case "assessment-dashboard-metrics" =>
                 AssessmentMetricsJob
             case "druid-query-processor" =>
+                DruidQueryProcessor
+            case "district-monthly" =>
+                DruidQueryProcessor
+            case "district-weekly" =>
                 DruidQueryProcessor
             case "admin-user-reports" =>
                 StateAdminReportJob
             case "audit-metrics-report" =>
                 MetricsAuditJob
+            case "admin-geo-reports" =>
+                StateAdminGeoReportJob
             case _ =>
                 throw new JobNotFoundException("Unknown job type found")
         }

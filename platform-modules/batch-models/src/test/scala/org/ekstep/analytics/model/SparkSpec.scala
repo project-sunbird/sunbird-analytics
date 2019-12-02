@@ -23,16 +23,16 @@ class SparkSpec(val file: String = "src/test/resources/sample_telemetry.log") ex
     implicit var sc: SparkContext = null;
 
     override def beforeAll() {
-    	super.beforeAll();
+    	    super.beforeAll();
         JobLogger.init("org.ekstep.analytics.test-cases");
-        sc = CommonUtil.getSparkContext(1, "TestAnalyticsCore");
+        sc = getSparkContext();
         events = loadFile[Event](file);
     }
 
     override def afterAll() {
+        super.afterAll()
         JobContext.cleanUpRDDs();
         CommonUtil.closeSparkContext();
-        super.afterAll()
     }
 
     def loadFile[T](file: String)(implicit mf: Manifest[T]): RDD[T] = {

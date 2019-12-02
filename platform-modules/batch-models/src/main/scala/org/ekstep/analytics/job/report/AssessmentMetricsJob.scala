@@ -1,4 +1,4 @@
-package org.ekstep.analytics.job
+package org.ekstep.analytics.job.report
 
 import org.apache.commons.lang3.StringUtils
 import org.apache.spark.SparkContext
@@ -7,13 +7,13 @@ import org.apache.spark.sql.functions.{col, _}
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.ekstep.analytics.framework.Level._
 import org.ekstep.analytics.framework._
-import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, JobLogger}
+import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger}
 import org.ekstep.analytics.util.{ESUtil, FileUtil}
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import org.sunbird.cloud.storage.conf.AppConf
-
 import scala.collection.{Map, _}
+import scala.reflect.ManifestFactory.classType
 
 object AssessmentMetricsJob extends optional.Application with IJob with BaseReportsJob {
 
@@ -24,7 +24,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with BaseRepo
 
   def name(): String = "AssessmentMetricsJob"
 
-  def main(config: String)(implicit sc: Option[SparkContext] = None) {
+  def main(config: String)(implicit sc: Option[SparkContext] = None, fc: Option[FrameworkContext] = None) {
 
     JobLogger.init("Assessment Metrics")
     JobLogger.start("Assessment Job Started executing", Option(Map("config" -> config, "model" -> name)))
@@ -32,11 +32,12 @@ object AssessmentMetricsJob extends optional.Application with IJob with BaseRepo
     JobContext.parallelization = jobConfig.parallelization.getOrElse(10) // Default to 10
 
     implicit val sparkContext: SparkContext = getReportingSparkContext(jobConfig);
+    implicit val frameworkContext: FrameworkContext = getReportingFrameworkContext();
     execute(jobConfig)
     System.exit(0)
   }
 
-  private def execute(config: JobConfig)(implicit sc: SparkContext) = {
+  private def execute(config: JobConfig)(implicit sc: SparkContext, fc: FrameworkContext) = {
     val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
     val readConsistencyLevel: String = AppConf.getConfig("assessment.metrics.cassandra.input.consistency")
     val sparkConf = sc.getConf
@@ -205,7 +206,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with BaseRepo
    * Alias name: cbatch-assessment
    * Index name: cbatch-assessment-24-08-1993-09-30 (dd-mm-yyyy-hh-mm)
    */
-  def saveReport(reportDF: DataFrame, url: String)(implicit spark: SparkSession): Unit = {
+  def saveReport(reportDF: DataFrame, url: String)(implicit spark: SparkSession, fc: FrameworkContext): Unit = {
     // Save the report to azure cloud storage
     val result = reportDF.groupBy("courseid").agg(collect_list("batchid").as("batchid"))
     val uploadToAzure = AppConf.getConfig("course.upload.reports.enabled")
@@ -268,7 +269,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with BaseRepo
     reportDF.withColumn("rownum", row_number.over(df)).where(col("rownum") === 1).drop("rownum")
   }
 
-  def saveToAzure(reportDF: DataFrame, url: String, batchId: String): String = {
+  def saveToAzure(reportDF: DataFrame, url: String, batchId: String)(implicit fc: FrameworkContext) = {
     val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
     val renamedDir = s"$tempDir/renamed"
     val container = AppConf.getConfig("cloud.container.reports")
@@ -279,7 +280,9 @@ object AssessmentMetricsJob extends optional.Application with IJob with BaseRepo
       .option("header", "true")
       .save(url)
     FileUtil.renameReport(tempDir, renamedDir, batchId)
-    reportStorageService.upload(container, renamedDir, objectKey, isDirectory = Option(true))
+    val storageService = getReportStorageService();
+    storageService.upload(container, renamedDir, objectKey, isDirectory = Option(true))
+    storageService.closeContext();
   }
 
   def saveToElastic(index: String, alias: String, reportDF: DataFrame): Unit = {
@@ -308,7 +311,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with BaseRepo
   }
 
 
-  def save(courseBatchList: Array[Map[String, Any]], reportDF: DataFrame, url: String, spark: SparkSession): Unit = {
+  def save(courseBatchList: Array[Map[String, Any]], reportDF: DataFrame, url: String, spark: SparkSession)(implicit fc: FrameworkContext): Unit = {
     val aliasName = AppConf.getConfig("assessment.metrics.es.alias")
     val indexToEs = AppConf.getConfig("course.es.index.enabled")
     courseBatchList.foreach(item => {

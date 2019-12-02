@@ -11,13 +11,13 @@ import com.datastax.spark.connector._
 import javax.ws.rs.core.HttpHeaders
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.ekstep.analytics.adapter.ContentAdapter
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.dispatcher.AzureDispatcher
 import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, RestUtil}
 import org.ekstep.analytics.util.Constants
 
 import scala.util.Try
+import org.ekstep.analytics.adapter.ContentAdapter
 
 
 case class WorkFlowUsageMetrics(noOfUniqueDevices: Long, totalContentPlaySessions: Long, totalTimeSpent: Double, totalContentPublished: ContentPublishedList) extends AlgoOutput with Output with AlgoInput
@@ -198,18 +198,23 @@ object UpdatePortalMetrics extends IBatchModelTemplate[DerivedEvent, DerivedEven
        """.stripMargin
     val response = RestUtil.post[ESResponse](apiURL, request)
     val orgResult = orgSearch()
-    response.aggregations.publisher_agg.buckets.map(publisherBucket => {
-      val languages = publisherBucket.language_agg.buckets.map(languageBucket => {
-        Language(languageBucket.key, languageBucket.doc_count)
+    if(null != response) {
+      response.aggregations.publisher_agg.buckets.map(publisherBucket => {
+        val languages = publisherBucket.language_agg.buckets.map(languageBucket => {
+          Language(languageBucket.key, languageBucket.doc_count)
+        })
+        orgResult.result.response.content.map(org => {
+          if (org.hashTagId == publisherBucket.key) {
+            LanguageByPublisher(org.orgName, languages)
+          } else {
+            LanguageByPublisher("", List()) // Return empty publisher list
+          }
+        }).filter(_.publisher.nonEmpty)
       })
-      orgResult.result.response.content.map(org => {
-        if (org.hashTagId == publisherBucket.key) {
-          LanguageByPublisher(org.orgName, languages)
-        } else {
-          LanguageByPublisher("", List()) // Return empty publisher list
-        }
-      }).filter(_.publisher.nonEmpty)
-    })
+    } else {
+      List()
+    }
+    
   }.flatMap(f=>f)
 
   private def orgSearch(): OrgResponse = {

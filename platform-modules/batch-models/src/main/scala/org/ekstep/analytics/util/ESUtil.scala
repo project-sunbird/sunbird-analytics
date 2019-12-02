@@ -3,7 +3,7 @@ package org.ekstep.analytics.util
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.ekstep.analytics.framework.Level.{ERROR, INFO}
 import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger, RestUtil}
-import org.ekstep.analytics.job.ESIndexResponse
+import org.ekstep.analytics.job.report.ESIndexResponse
 import org.elasticsearch.spark.sql._
 import org.sunbird.cloud.storage.conf.AppConf
 
