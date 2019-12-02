@@ -189,7 +189,6 @@
 		    <groupId>org.apache.kafka</groupId>
 		    <artifactId>kafka_${scala.maj.version}</artifactId>
 		    <version>1.0.1</version>
-		    <scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.neo4j</groupId>

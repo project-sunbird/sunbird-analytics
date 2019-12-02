@@ -3,8 +3,6 @@ package org.ekstep.analytics.framework
 import java.io.Serializable
 import java.util.Date
 
-import org.joda.time.DateTime
-
 class Models extends Serializable {}
 
 @scala.beans.BeanInfo
@@ -75,7 +73,7 @@ case class Dispatcher(to: String, params: Map[String, AnyRef])
 @scala.beans.BeanInfo
 case class Fetcher(`type`: String, query: Option[Query], queries: Option[Array[Query]], druidQuery: Option[DruidQueryModel] = None)
 @scala.beans.BeanInfo
-case class JobConfig(search: Fetcher, filters: Option[Array[Filter]], sort: Option[Sort], model: String, modelParams: Option[Map[String, AnyRef]], output: Option[Array[Dispatcher]], parallelization: Option[Int], appName: Option[String], deviceMapping: Option[Boolean] = Option(false), exhaustConfig: Option[Map[String, DataSet]] = None)
+case class JobConfig(search: Fetcher, filters: Option[Array[Filter]], sort: Option[Sort], model: String, modelParams: Option[Map[String, AnyRef]], output: Option[Array[Dispatcher]], parallelization: Option[Int], appName: Option[String], deviceMapping: Option[Boolean] = Option(false), exhaustConfig: Option[Map[String, DataSet]] = None, name: Option[String] = None)
 
 //Druid Query Models
 @scala.beans.BeanInfo
@@ -211,13 +209,18 @@ class V3EData(val datatype: String, val `type`: String, val dspec: Map[String, A
               val level: String, val message: String, val params: List[Map[String, AnyRef]], val summary: List[Map[String, AnyRef]], val index: Int, val `class`: String, val status: String, val query: String, val data: Option[AnyRef], val sort: Option[AnyRef], val correlationid: Option[String], val topn: List[AnyRef], val filters: Option[AnyRef] = None, val size: Int = 0) extends Serializable {}
 
 @scala.beans.BeanInfo
-class V3Event(val eid: String, val ets: Long, val `@timestamp`: String, val ver: String, val mid: String, val actor: Actor, val context: V3Context, val `object`: Option[V3Object], val edata: V3EData, val tags: List[AnyRef] = null) extends AlgoInput with Input {}
+class V3Event(val eid: String, val ets: Long, val `@timestamp`: String, val ver: String, val mid: String, val actor: Actor, val context: V3Context, val `object`: Option[V3Object], val edata: V3EData, val tags: List[AnyRef] = null, val flags : V3Flags) extends AlgoInput with Input {}
 
 @scala.beans.BeanInfo
-case class V3DerivedEvent(eid: String, ets: Long, `@timestamp`: String, ver: String, mid: String, actor: Actor, context: V3Context, `object`: Option[V3Object], edata: AnyRef, tags: List[AnyRef] = null)
+case class V3DerivedEvent(eid: String, ets: Long, `@timestamp`: String, ver: String, mid: String, actor: Actor, context: V3Context, `object`: Option[V3Object], edata: AnyRef, tags: List[AnyRef] = null) extends AlgoOutput with Output
 
 @scala.beans.BeanInfo
 case class V3MetricEdata(metric: String, value: AnyRef, range: Option[AnyRef] = None)
+
+@scala.beans.BeanInfo
+case class V3Flags(derived_location_retrieved: Boolean, device_data_retrieved: Boolean,
+                   user_data_retrieved: Boolean, dialcode_data_retrieved: Boolean,
+                   content_data_retrieved: Boolean, collection_data_retrieved: Boolean)
 
 // Experiment Models
 @scala.beans.BeanInfo
