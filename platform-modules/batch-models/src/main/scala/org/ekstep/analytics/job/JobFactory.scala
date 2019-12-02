@@ -2,6 +2,7 @@ package org.ekstep.analytics.job
 
 import org.ekstep.analytics.framework.exception.JobNotFoundException
 import org.ekstep.analytics.framework._
+import org.ekstep.analytics.job.Metrics.MetricsAuditJob
 import org.ekstep.analytics.job.summarizer._
 import org.ekstep.analytics.job.updater._
 import org.ekstep.analytics.job.report.CourseMetricsJob
@@ -58,6 +59,8 @@ object JobFactory {
                 DruidQueryProcessor
             case "admin-user-reports" =>
                 StateAdminReportJob
+            case "audit-metrics-report" =>
+                MetricsAuditJob
             case "admin-geo-reports" =>
                 StateAdminGeoReportJob
             case _ =>
