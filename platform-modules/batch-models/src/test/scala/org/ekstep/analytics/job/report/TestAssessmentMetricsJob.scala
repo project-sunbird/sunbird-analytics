@@ -3,7 +3,7 @@ package org.ekstep.analytics.job
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.ekstep.analytics.framework.FrameworkContext
 import org.ekstep.analytics.job.report.{AssessmentMetricsJob, BaseReportSpec, ReportGenerator}
-import org.ekstep.analytics.util.{ESUtil, EmbeddedES}
+import org.ekstep.analytics.util.{ESUtil, EmbeddedES, EsResponse}
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.cloud.storage.BaseStorageService
 import org.sunbird.cloud.storage.conf.AppConf
@@ -26,6 +26,7 @@ class TestAssessmentMetricsJob extends BaseReportSpec with MockFactory {
   var reporterMock: ReportGenerator = mock[ReportGenerator]
   val sunbirdCoursesKeyspace = "sunbird_courses"
   val sunbirdKeyspace = "sunbird"
+  val esIndexName = "cbatch-assessent-report"
 
   override def beforeAll(): Unit = {
     super.beforeAll()
@@ -110,7 +111,8 @@ class TestAssessmentMetricsJob extends BaseReportSpec with MockFactory {
     EmbeddedES.loadData("compositesearch", "cs", Buffer(
       """{"contentType":"SelfAssess","name":"My content 1","identifier":"do_112835335135993856149"}""",
       """{"contentType":"SelfAssess","name":"My content 2","identifier":"do_112835336280596480151"}""",
-      """{"contentType":"SelfAssess","name":"My content 3","identifier":"do_112832394979106816112"}"""
+      """{"contentType":"SelfAssess","name":"My content 3","identifier":"do_112832394979106816112"}""",
+      """{"contentType":"Resource","name":"My content 4","identifier":"do_112832394979106816114"}"""
     ))
   }
 
@@ -299,16 +301,19 @@ class TestAssessmentMetricsJob extends BaseReportSpec with MockFactory {
 
   }
 
-  it should "fetch the content names from the elastic search" in {
+  it should "fetch the only self assess content names from the elastic search" in {
     val contentESIndex = AppConf.getConfig("assessment.metrics.content.index")
     assert(contentESIndex.isEmpty === false)
-    val contentList = List("do_112835335135993856149", "do_112835336280596480151")
+    val contentList = List("do_112835335135993856149", "do_112835336280596480151", "do_112832394979106816114")
     val contentDF = ESUtil.getAssessmentNames(spark, contentList, AppConf.getConfig("assessment.metrics.content.index"), AppConf.getConfig("assessment.metrics.supported.contenttype"))
+    println(contentDF.show(false))
     contentDF.createOrReplaceTempView("content_metadata")
     val content_id_df = spark.sql("select * from content_metadata where identifier ='do_112835335135993856149'")
     val content_name = content_id_df.select("name").collect().map(_ (0)).toList
+    val content_id = content_id_df.select("identifier").collect().map(_ (0)).toList
     assert(content_name(0) === "My content 1")
-    assert(contentDF.count() === 2)
+    assert(content_id(0) === "do_112835335135993856149")
+    assert(contentDF.count() === 2) // Length should be 2, Since 2 contents are self assess and 1 content is resource
   }
 
   it should "generate reports for the best score" in {
@@ -361,5 +366,24 @@ class TestAssessmentMetricsJob extends BaseReportSpec with MockFactory {
     val best_attempt_score = df.select("total_score").collect().map(_ (0)).toList
     assert(best_attempt_score.head === "50")
   }
+
+  it should "Able to create a elastic search index" in {
+    val esResponse:EsResponse = ESUtil.createIndex(AssessmentMetricsJob.getIndexName, "");
+    assert(esResponse.acknowledged === true)
+  }
+
+  it should "Able to add index to alias" in {
+    ESUtil.createIndex(esIndexName, "");
+    val esResponse:EsResponse = ESUtil.addIndexToAlias(esIndexName, "cbatch-assessment");
+    assert(esResponse.acknowledged === true)
+  }
+
+
+  it should "Remove all index from the alias" in {
+    val esResponse:EsResponse = ESUtil.removeAllIndexFromAlias("cbatch-assessment");
+    assert(esResponse.acknowledged === true)
+  }
+
+
 
 }
