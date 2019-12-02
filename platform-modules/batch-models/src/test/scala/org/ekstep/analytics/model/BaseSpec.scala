@@ -10,45 +10,49 @@ import org.ekstep.analytics.framework.conf.AppConf
 import org.apache.spark.SparkConf
 import org.ekstep.analytics.framework.util.JobLogger
 import org.apache.commons.lang3.StringUtils
+import pl.allegro.tech.embeddedelasticsearch.EmbeddedElastic
+import pl.allegro.tech.embeddedelasticsearch.PopularProperties.{ CLUSTER_NAME, HTTP_PORT, TRANSPORT_TCP_PORT }
+import pl.allegro.tech.embeddedelasticsearch.IndexSettings
+import pl.allegro.tech.embeddedelasticsearch.IndexSettings.Builder
+import java.util.concurrent.TimeUnit.MINUTES
+import org.joda.time.DateTimeUtils
+import org.joda.time.DateTime
+import org.apache.spark.SparkContext
+import org.ekstep.analytics.util.EmbeddedCassandra
+import org.apache.spark.sql.SparkSession
 
 /**
  * @author Santhosh
  */
 class BaseSpec extends FlatSpec with Matchers with BeforeAndAfterAll {
-	override def beforeAll() {
-		if (embeddedCassandraMode) {
-			System.setProperty("cassandra.unsafesystem", "true");
-			EmbeddedCassandraServerHelper.startEmbeddedCassandra();
-//			EmbeddedCassandraServerHelper.getCluster.getConfiguration.getSocketOptions.setReadTimeoutMillis(20000)
-			val connector = CassandraConnector(getSparkConf());
-			val session = connector.openSession();
-			val dataLoader = new CQLDataLoader(session);
-			dataLoader.load(new FileCQLDataSet(AppConf.getConfig("cassandra.cql_path"), true, true));
-		}
-	}
 
-	override def afterAll() {
-		if (embeddedCassandraMode) {
-			EmbeddedCassandraServerHelper.cleanEmbeddedCassandra()
-			EmbeddedCassandraServerHelper.stopEmbeddedCassandra()
-		}
-	}
+  def getSparkContext(): SparkContext = {
+    getSparkSession().sparkContext;
+  }
 
-	private def getSparkConf(): SparkConf = {
-		val conf = new SparkConf().setAppName("TestAnalyticsCore");
-		conf.setMaster("local[*]");
-		if (!conf.contains("spark.cassandra.connection.host"))
-			conf.set("spark.cassandra.connection.host", AppConf.getConfig("spark.cassandra.connection.host"))
-		if (embeddedCassandraMode)
-			conf.set("spark.cassandra.connection.port", AppConf.getConfig("cassandra.service.embedded.connection.port"))
-		if (!conf.contains("reactiveinflux.url")) {
-			conf.set("reactiveinflux.url", AppConf.getConfig("reactiveinflux.url"));
-		}
-		conf;
-	}
+  def getSparkConf(): SparkConf = {
+    val conf = new SparkConf().setAppName("AnalyticsTestSuite").set("spark.default.parallelism", "2");
+    conf.set("spark.sql.shuffle.partitions", "2")
+    conf.setMaster("local[*]")
+    conf.set("spark.driver.memory", "1g")
+    conf.set("spark.memory.fraction", "0.3")
+    conf.set("spark.memory.storageFraction", "0.5")
+    conf.set("spark.cassandra.connection.port", AppConf.getConfig("cassandra.service.embedded.connection.port"))
+    conf.set("es.nodes", "http://localhost")
+    conf;
+  }
 
-	private def embeddedCassandraMode(): Boolean = {
-		val isEmbedded = AppConf.getConfig("cassandra.service.embedded.enable");
-		StringUtils.isNotBlank(isEmbedded) && StringUtils.equalsIgnoreCase("true", isEmbedded);
-	}
+  override def beforeAll() {
+
+    EmbeddedCassandra.setup();
+  }
+
+  override def afterAll() {
+    EmbeddedCassandra.close();
+  }
+  
+  def getSparkSession() : SparkSession = {
+    SparkSession.builder.config(getSparkConf()).getOrCreate()
+  }
+
 }

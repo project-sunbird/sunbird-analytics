@@ -14,4 +14,8 @@ class FrameworkContext {
     StorageServiceFactory.getStorageService(StorageConfig(storageType, AppConf.getStorageKey(storageType), AppConf.getStorageSecret(storageType)))
   }
   
+  def getStorageService(storageType: String, storageKey: String, storageSecret: String) : BaseStorageService = {
+    StorageServiceFactory.getStorageService(StorageConfig(storageType, storageKey, storageSecret))
+  }
+  
 }

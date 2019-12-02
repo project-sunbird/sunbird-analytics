@@ -132,38 +132,8 @@ class TestDataExhaustJob extends SparkSpec(null) {
 
         sc.makeRDD(requests).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
         val config = """{"search":{"type":"local","queries":[{"file":"src/test/resources/data-exhaust/creation-raw/*"}]},"model":"org.ekstep.analytics.model.DataExhaustJobModel","parallelization":8,"appName":"Data Exhaust","deviceMapping":false, "modelParams":{}, "exhaustConfig":{"eks-creation-raw":{"events":["DEFAULT"],"eventConfig":{"DEFAULT":{"eventType":"CreationRaw","searchType":"local","fetchConfig":{"params":{"file":"src/test/resources/data-exhaust/creation-raw/*"}},"filterMapping":{"tags":{"name":"tags","operator":"IN"}}}}}}}"""
-
-        DataExhaustJob.main(config)(Option(sc));
-    }
-
-    ignore should "run the data exhaust and save data to S3" in {
-
-        preProcess()
-
-        val requests = Array(
-            JobRequest("partner1", "1234", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2016-09-01", "2016-09-10", Option(List("dff9175fa217e728d86bc1f4d8f818f6d2959303")), None, Option("appId"), Option("ChannelId")))),
-                None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, None),
-            JobRequest("partner1", "273645", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2016-11-19", "2016-11-20", Option(List("test-tag")), Option(List("ASSESS")), Option("appId"), Option("ChannelId")))),
-                None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, None));
-
-        sc.makeRDD(requests).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
-
-        val config = """{"search":{"type":"s3"},"model":"org.ekstep.analytics.model.DataExhaustJobModel","modelParams":{"dataset-raw-bucket":"ekstep-datasets-test","consumption-raw-prefix":"staging/datasets/D001/4208ab995984d222b59299e5103d350a842d8d41/","data-exhaust-bucket":"ekstep-public","data-exhaust-prefix":"dev/data-exhaust"}, "parallelization":8,"appName":"Data Exhaust","deviceMapping":false}"""
-        DataExhaustJob.main(config)(Option(sc));
-    }
-
-    ignore should "run the data exhaust for consumption summary data and save it to S3" in {
-
-        preProcess()
-
-        val requests = Array(
-            JobRequest("client-key1", "requestID1", None, "SUBMITTED", JSONUtils.serialize(RequestConfig(RequestFilter("2017-06-18", "2017-06-18", Option(List()), Option(List("ME_SESSION_SUMMARY")), Option("appId"), Option("ChannelId")), Option("D003"))),
-                None, None, None, None, None, None, DateTime.now(), None, None, None, None, None, None, None, None, None, None))
-
-        sc.makeRDD(requests).saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.JOB_REQUEST)
-
-        val config = """{"search":{"type":"s3"},"model":"org.ekstep.analytics.model.DataExhaustJobModel","modelParams":{"dataset-raw-bucket":"ekstep-dev-data-store","consumption-raw-prefix":"ss/","data-exhaust-bucket":"ekstep-public-dev","data-exhaust-prefix":"data-exhaust/test","tempLocalPath":"/tmp/dataexhaust"}, "parallelization":8,"appName":"Data Exhaust","deviceMapping":false}"""
-        DataExhaustJob.main(config)(Option(sc));
+        CommonUtil.closeSparkContext();
+        DataExhaustJob.main(config)(None);
     }
 
 }
