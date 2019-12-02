@@ -70,6 +70,12 @@
             <artifactId>json4s-jackson_2.11</artifactId>
             <version>3.2.11</version>
         </dependency>
+        <dependency>
+			<groupId>org.scalatest</groupId>
+			<artifactId>scalatest_${scala.maj.version}</artifactId>
+			<version>3.0.5</version>
+			<scope>test</scope>
+		</dependency>
     </dependencies>
 
     <build>
