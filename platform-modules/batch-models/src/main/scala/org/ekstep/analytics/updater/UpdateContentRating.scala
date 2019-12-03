@@ -9,7 +9,7 @@ import org.ekstep.analytics.framework.conf.AppConf
 import org.joda.time.DateTime
 import org.ekstep.analytics.framework.util.{HTTPClient, JSONUtils, JobLogger, RestUtil}
 
-case class ContentRatingResult(contentId: String, averageRating: Double) extends AlgoOutput with Output
+case class ContentRatingResult(contentId: String, numOfTimesRated: Long, averageRating: Double) extends AlgoOutput with Output
 case class Response(id: String, ver: String, ts: String, params: Params, responseCode: String, result: Map[String, AnyRef])
 
 object UpdateContentRating  extends IBatchModelTemplate[Empty, Empty, ContentRatingResult, ContentRatingResult] with Serializable {
@@ -34,7 +34,7 @@ object UpdateContentRating  extends IBatchModelTemplate[Empty, Empty, ContentRat
       val baseURL = AppConf.getConfig("lp.system.update.base.url")
       if (data.count() > 0) {
           data.foreach { f =>
-              val response = publishRatingToContentModel(f.contentId, f.averageRating, baseURL, RestUtil)
+              val response = publishRatingToContentModel(f.contentId, f.numOfTimesRated, f.averageRating, baseURL, RestUtil)
               val msg = response.result.getOrElse("messages", List()).asInstanceOf[List[String]].mkString(",")
               JobLogger.log("System Update API request for " + f.contentId + " is " + response.params.status.getOrElse(""), Option(Map("error" -> response.params.errmsg.getOrElse(""), "error_msg" -> msg)), Level.INFO)
           }
@@ -56,17 +56,18 @@ object UpdateContentRating  extends IBatchModelTemplate[Empty, Empty, ContentRat
       val apiURL = AppConf.getConfig("druid.sql.host")
       val ratingRequest = AppConf.getConfig("druid.content.rating.query")
       val contentRatingResponse = restUtil.post[List[Map[String, AnyRef]]](apiURL, ratingRequest)
-      contentRatingResponse.map(x => ContentRatingResult(x.getOrElse("ContentId", "").toString, x.getOrElse("AverageRating", 0.0).asInstanceOf[Number].doubleValue()))
+      contentRatingResponse.map(x => ContentRatingResult(x.getOrElse("ContentId", "").toString, x.getOrElse("Number of Ratings", 0.0).asInstanceOf[Number].longValue(), x.getOrElse("AverageRating", 0.0).asInstanceOf[Number].doubleValue()))
   }
 
-  def publishRatingToContentModel(contentId: String, rating: Double, baseURL: String, restUtil: HTTPClient): Response = {
+  def publishRatingToContentModel(contentId: String, numOfTimesRated: Long, avgRating: Double, baseURL: String, restUtil: HTTPClient): Response = {
       val systemUpdateURL = s"$baseURL/$contentId"
       val request =
           s"""
              |{
              |  "request": {
              |    "content": {
-             |      "me_averageRating": $rating
+             |      "me_totalRatings": $numOfTimesRated,
+             |      "me_averageRating": $avgRating
              |    }
              |  }
              |}
