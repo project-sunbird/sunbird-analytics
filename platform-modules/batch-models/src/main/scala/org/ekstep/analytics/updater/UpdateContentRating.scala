@@ -66,7 +66,7 @@ object UpdateContentRating  extends IBatchModelTemplate[Empty, Empty, ContentRat
              |{
              |  "request": {
              |    "content": {
-             |      "me_totalRating": $numOfTimesRated,
+             |      "me_totalRatings": $numOfTimesRated,
              |      "me_averageRating": $avgRating
              |    }
              |  }

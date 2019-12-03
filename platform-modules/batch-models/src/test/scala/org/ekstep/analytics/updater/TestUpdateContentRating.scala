@@ -59,7 +59,7 @@ class TestUpdateContentRating  extends SparkSpec(null) with MockFactory {
                |{
                |  "request": {
                |    "content": {
-               |      "me_totalRating": 5,
+               |      "me_totalRatings": 5,
                |      "me_averageRating": 5.0
                |    }
                |  }
@@ -106,6 +106,7 @@ class TestUpdateContentRating  extends SparkSpec(null) with MockFactory {
                |{
                |  "request": {
                |    "content": {
+               |      "me_totalRatings": 5,
                |      "me_averageRating": 5.0
                |    }
                |  }
