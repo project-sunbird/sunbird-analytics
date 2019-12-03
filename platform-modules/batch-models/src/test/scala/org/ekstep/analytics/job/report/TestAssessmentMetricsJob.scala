@@ -2,7 +2,9 @@ package org.ekstep.analytics.job
 
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.ekstep.analytics.framework.FrameworkContext
+import org.ekstep.analytics.framework.util.RestUtil
 import org.ekstep.analytics.job.report.{AssessmentMetricsJob, BaseReportSpec, ReportGenerator}
+import org.ekstep.analytics.util.ESUtil.elasticSearchURL
 import org.ekstep.analytics.util.{ESUtil, EmbeddedES, EsResponse}
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.cloud.storage.BaseStorageService
@@ -366,22 +368,38 @@ class TestAssessmentMetricsJob extends BaseReportSpec with MockFactory {
   }
 
   it should "Able to create a elastic search index" in {
-    val esResponse:EsResponse = ESUtil.createIndex(AssessmentMetricsJob.getIndexName, "");
+    val esResponse: EsResponse = ESUtil.createIndex(AssessmentMetricsJob.getIndexName, "");
     assert(esResponse.acknowledged === true)
   }
 
   it should "Able to add index to alias" in {
     ESUtil.createIndex(esIndexName, "");
-    val esResponse:EsResponse = ESUtil.addIndexToAlias(esIndexName, "cbatch-assessment");
+    val esResponse: EsResponse = ESUtil.addIndexToAlias(esIndexName, "cbatch-assessment");
     assert(esResponse.acknowledged === true)
   }
 
 
   it should "Remove all index from the alias" in {
-    val esResponse:EsResponse = ESUtil.removeAllIndexFromAlias("cbatch-assessment");
+    val esResponse: EsResponse = ESUtil.removeAllIndexFromAlias("cbatch-assessment");
     assert(esResponse.acknowledged === true)
   }
 
+  it should "not throw any error, Should create alias and index to save data into es" in {
+    val df = spark.createDataFrame(Seq(
+      ("user010", "Manju", "do_534985557934", "batch1", "10", "****@gmail.com", "*****75643", "Tumkur", "Orname", "", "NVPHS", "20", "Math", ""),
+      ("user110", "Manoj", "do_534985557934", "batch2", "13", "****@gmail.com", "*****75643", "Tumkur", "Orname", "", "NVPHS", "20", "Math", "")
+    )).toDF("userid", "username", "courseid", "batchid", "grand_total", "maskedemail", "maskedphone", "district_name", "orgname_resolved", "externalid", "schoolname_resolved", "total_sum_score", "content_name", "reportUrl")
+    try {
+      val indexName = AssessmentMetricsJob.getIndexName
+      AssessmentMetricsJob.saveToElastic(indexName, df);
+      val requestURL = elasticSearchURL + "/" + indexName + "/_count?q=courseId:do_534985557934"
+      val response = RestUtil.get[String](requestURL)
+      assert(response !== null)
+    } catch {
+      case ex: Exception => assert(ex === null)
+    }
 
+
+  }
 
 }

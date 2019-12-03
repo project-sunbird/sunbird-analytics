@@ -20,8 +20,8 @@ object EmbeddedES {
       .withElasticVersion("6.3.0")
       .withSetting(HTTP_PORT, "9200")
       .withSetting(CLUSTER_NAME, "TestCluster")
-      .withEsJavaOpts("-Xms128m -Xmx512m")
-      .withStartTimeout(1, MINUTES);
+      .withEsJavaOpts("-Xms128m -Xmx1g")
+      .withStartTimeout(2, MINUTES);
 
     indices.foreach(f => {
       val indexSettingsBuilder = IndexSettings.builder();
@@ -44,7 +44,12 @@ object EmbeddedES {
   }
 
   def stop() {
-    if (esServer != null)
+    if (esServer != null) {
       esServer.stop();
+      Console.println("****** Stopping the embedded elastic search service ******");
+    } else {
+      Console.println("****** Already embedded ES is stopped ******");
+    }
+
   }
 }
