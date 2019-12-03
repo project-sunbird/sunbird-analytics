@@ -11,7 +11,7 @@ import org.sunbird.cloud.storage.conf.AppConf
 case class RootOrgData(rootorgjoinid: String, rootorgchannel: String, rootorgslug: String)
 
 case class SubOrgRow(id: String, isrootorg: Boolean, rootorgid: String, channel: String, status: String, locationid: String, locationids: Seq[String], orgname: String,
-                     explodedlocation: String, locid: String, loccode: String, locname: String, locparentid: String, loctype: String, rootorgjoinid: String, rootorgchannel: String)
+                     explodedlocation: String, locid: String, loccode: String, locname: String, locparentid: String, loctype: String, rootorgjoinid: String, rootorgchannel: String, externalid: String)
 
 object StateAdminGeoReportJob extends optional.Application with IJob with BaseReportsJob {
 
@@ -69,6 +69,7 @@ object StateAdminGeoReportJob extends optional.Application with IJob with BaseRe
       col("locationid").as("locationid"),
       col("orgname").as("orgname"),
       col("locationids").as("locationids"),
+      col("externalid").as("externalid"),
       col("slug").as("slug")).cache();
 
     val rootOrgs = organisationDF.select(col("id").as("rootorgjoinid"), col("channel").as("rootorgchannel"),col("slug").as("rootorgslug")).where(col("isrootorg") && col("status").===(1)).collect();
@@ -88,19 +89,19 @@ object StateAdminGeoReportJob extends optional.Application with IJob with BaseRe
 
     subOrgJoinedDF
       .groupBy("slug")
-      .agg(countDistinct("id").as("schools"), count(col("locType").equalTo("district")).as("districts"),
-          count(col("locType").equalTo("block")).as("blocks"))
+      .agg(countDistinct("id").as("schools"), countDistinct(col("locType").equalTo("district")).as("districts"),
+        countDistinct(col("locType").equalTo("block")).as("blocks"))
       .coalesce(1)
       .write
       .partitionBy("slug")
       .mode("overwrite")
       .json(s"$summaryDir")
 
-
     val districtDF = subOrgJoinedDF.where(col("loctype").equalTo("district")).select(col("channel").as("channel"), col("slug"), col("id").as("schoolid"), col("orgname").as("schoolname"), col("locid").as("districtid"), col("locname").as("districtname"));
+
     val blockDF = subOrgJoinedDF.where(col("loctype").equalTo("block")).select(col("id").as("schooljoinid"), col("locid").as("blockid"), col("locname").as("blockname"));
 
-    blockDF.join(districtDF, blockDF.col("schooljoinid").equalTo(districtDF.col("schoolid")), "left").drop(col("schooljoinid")).coalesce(1)
+    val blockData = blockDF.join(districtDF, blockDF.col("schooljoinid").equalTo(districtDF.col("schoolid")), "left").drop(col("schooljoinid")).coalesce(1)
       .select(col("schoolid").as("School id"),
         col("schoolname").as("School name"),
         col("channel").as("Channel"),
@@ -108,8 +109,8 @@ object StateAdminGeoReportJob extends optional.Application with IJob with BaseRe
         col("districtname").as("District name"),
         col("blockid").as("Block id"),
         col("blockname").as("Block name"),
-        col("slug"))
-      .write
+        col("slug").as("slug"))
+     blockData.write
       .partitionBy("slug")
       .mode("overwrite")
       .option("header", "true")
@@ -120,6 +121,16 @@ object StateAdminGeoReportJob extends optional.Application with IJob with BaseRe
     fSFileUtils.purgeDirectory(detailDir)
     fSFileUtils.purgeDirectory(summaryDir)
 
+     val blockDataWithSlug = blockData.
+       groupBy(col("slug"),col("District name").as("districtName")).
+       agg(countDistinct("Block id").as("blocks"),count("School id").as("schools"))
+     blockDataWithSlug.write
+       .partitionBy("slug")
+       .mode("overwrite")
+       .json(s"$summaryDir")
+
+     fSFileUtils.renameReport(summaryDir, renamedDir, ".json", "geo-summary-district")
+     fSFileUtils.purgeDirectory(summaryDir)
      blockDF.distinct()
   }
 

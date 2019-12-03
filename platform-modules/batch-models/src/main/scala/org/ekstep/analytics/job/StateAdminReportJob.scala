@@ -85,18 +85,90 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
      val claimedShadowDataSummaryDF = claimedShadowUserDF.groupBy("channel")
        .pivot("claimstatus").agg(count("claimstatus")).na.fill(0)
 
-     claimedShadowDataSummaryDF.show(10, false)
      saveUserValidatedSummaryReport(claimedShadowDataSummaryDF, s"$summaryDir")
      saveUserDetailsReport(claimedShadowUserDF.toDF(), s"$detailDir")
 
-     fSFileUtils.renameReport(detailDir, renamedDir, ".csv", "validated-user-summary")
+     fSFileUtils.renameReport(detailDir, renamedDir, ".csv", "validated-user-detail")
      fSFileUtils.renameReport(summaryDir, renamedDir, ".json", "validated-user-summary")
 
     // Purge the directories after copying to the upload staging area
      fSFileUtils.purgeDirectory(detailDir)
      fSFileUtils.purgeDirectory(summaryDir)
 
+     val blockDataWithSlug = generateGeoSummaryReport()
+     val resultDF = blockDataWithSlug.join(claimedShadowUserDF, blockDataWithSlug.col("externalid") === (claimedShadowUserDF.col("orgextid")),"left")
+     resultDF.groupBy(col("slug"),col("District name").as("districtName")).
+       agg(countDistinct("Block id").as("blocks"),countDistinct(claimedShadowUserDF.col("orgextid")).as("schools"), count("userextid").as("registered")).write
+       .partitionBy("slug")
+       .mode("overwrite")
+       .json(s"$summaryDir")
+
+     fSFileUtils.renameReport(summaryDir, renamedDir, ".json", "validated-user-summary-district")
+     fSFileUtils.purgeDirectory(summaryDir)
     shadowUserDF.distinct()
+  }
+
+  def generateGeoSummaryReport()(implicit sparkSession: SparkSession) = {
+    import sparkSession.implicits._
+    val sunbirdKeyspace = AppConf.getConfig("course.metrics.cassandra.sunbirdKeyspace")
+    val tempDir = AppConf.getConfig("admin.metrics.temp.dir")
+    val renamedDir = s"$tempDir/renamed"
+
+    val fSFileUtils = new HDFSFileUtils(className, JobLogger)
+
+    val detailDir = s"$tempDir/detail"
+    val summaryDir = s"$tempDir/summary"
+
+    val locationDF = loadData(sparkSession, Map("table" -> "location", "keyspace" -> sunbirdKeyspace), None).select(
+      col("id").as("locid"),
+      col("code").as("loccode"),
+      col("name").as("locname"),
+      col("parentid").as("locparentid"),
+      col("type").as("loctype"))
+
+    val organisationDF = loadData(sparkSession, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace), None).select(
+      col("id").as("id"),
+      col("isrootorg").as("isrootorg"),
+      col("rootorgid").as("rootorgid"),
+      col("channel").as("channel"),
+      col("status").as("status"),
+      col("locationid").as("locationid"),
+      col("orgname").as("orgname"),
+      col("locationids").as("locationids"),
+      col("externalid").as("externalid"),
+      col("slug").as("slug")).cache();
+
+    val rootOrgs = organisationDF.select(col("id").as("rootorgjoinid"), col("channel").as("rootorgchannel"),col("slug").as("rootorgslug")).where(col("isrootorg") && col("status").===(1)).collect();
+    val rootOrgRDD = sparkSession.sparkContext.parallelize(rootOrgs.toSeq);
+    val rootOrgEncoder = Encoders.product[RootOrgData].schema
+    val rootOrgDF = sparkSession.createDataFrame(rootOrgRDD, rootOrgEncoder);
+
+    val subOrgDF = organisationDF
+      .withColumn("explodedlocation", explode(when(size(col("locationids")).equalTo(0), array(lit(null).cast("string")))
+        .otherwise(when(col("locationids").isNotNull, col("locationids"))
+          .otherwise(array(lit(null).cast("string"))))))
+
+    val subOrgJoinedDF = subOrgDF
+      .where(col("status").equalTo(1) && not(col("isrootorg")))
+      .join(locationDF, subOrgDF.col("explodedlocation") === locationDF.col("locid"), "left")
+      .join(rootOrgDF, subOrgDF.col("rootorgid") === rootOrgDF.col("rootorgjoinid")).as[SubOrgRow]
+
+    val districtDF = subOrgJoinedDF.where(col("loctype").equalTo("district")).select(col("channel").as("channel"), col("slug"), col("id").as("schoolid"), col("orgname").as("schoolname"), col("locid").as("districtid"), col("locname").as("districtname"));
+
+    val blockDF = subOrgJoinedDF.where(col("loctype").equalTo("block")).select(col("id").as("schooljoinid"), col("locid").as("blockid"), col("locname").as("blockname"), col("externalid"));
+
+    val blockData = blockDF.join(districtDF, blockDF.col("schooljoinid").equalTo(districtDF.col("schoolid")), "left").drop(col("schooljoinid")).coalesce(1)
+      .select(col("schoolid").as("School id"),
+        col("schoolname").as("School name"),
+        col("channel").as("Channel"),
+        col("districtid").as("District id"),
+        col("districtname").as("District name"),
+        col("blockid").as("Block id"),
+        col("blockname").as("Block name"),
+        col("slug").as("slug"),
+        col("externalid"))
+
+    blockData
   }
 
   private def getChannelSlugMap()(implicit sparkSession: SparkSession): Map[String, String] = {
