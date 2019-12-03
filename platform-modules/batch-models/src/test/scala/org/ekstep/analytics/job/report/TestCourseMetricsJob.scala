@@ -339,8 +339,6 @@ class TestCourseMetricsJob extends BaseReportSpec with MockFactory {
       val is30DFPresent =  user030DF.select("externalid").collect().map(_(0)).toList.contains(null)
       assert(is10DFPresent === false)
       assert(is30DFPresent === false)
-
-
     }
 
     it should "[Issue SB-13080] report should validate the block_name for the locationids " in {
@@ -376,18 +374,6 @@ class TestCourseMetricsJob extends BaseReportSpec with MockFactory {
       val result = reportDF.filter(reportDF("userid")==="user030" && reportDF("block_name")==="TUMKUR").count()
       assert(result===1)
     }
-  //  it should "[Issue SB-13080] Should create an index " in {
-  //    //case class EsResponse(acknowledged: Boolean, shards_acknowledged: Boolean, index: String, error: Any, status: Any)
-  //    val successResponse = "{\"error\":null,\"status\":null,\"acknowledged\":true,\"index\":null,\"shards_acknowledged\":true}"
-  //    val response = JSONUtils.deserialize[EsResponse](successResponse)
-  //    val date = new DateTime()
-  //    val indexName = "cbatchstats-" + date.getMillis()
-  //    val aliasName = AppConf.getConfig("course.metrics.es.alias")
-  //    when(ESUtilMock.createIndex(indexName, AppConf.getConfig("course.metrics.es.mapping"))).thenReturn(null)
-  //    val result: ESIndexResponse = CourseMetricsJob.createEsIndex(indexName, aliasName)
-  //    println("result" + result)
-  //
-  //  }
 
 
   it should "[Issue SB-14781] not have any duplicate userid  in a batch " in {
@@ -501,6 +487,4 @@ class TestCourseMetricsJob extends BaseReportSpec with MockFactory {
     val value = regex.findFirstIn(school_name1)
     assert(value.isEmpty === true)
   }
-
-
 }

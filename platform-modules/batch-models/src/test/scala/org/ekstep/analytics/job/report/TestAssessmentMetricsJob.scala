@@ -166,7 +166,6 @@ class TestAssessmentMetricsJob extends BaseReportSpec with MockFactory {
     val denormedDF = AssessmentMetricsJob.denormAssessment(reportDF)
     denormedDF.createOrReplaceTempView("report_df")
     val content1_DF = spark.sql("select * from report_df where userid ='user030' and content_name = 'My content 1' ")
-    println(content1_DF.show(100, false));
 
     val username = content1_DF.select("username").collect().map(_ (0)).toList
     assert(username(0) === "Karishma Kapoor")
@@ -198,8 +197,8 @@ class TestAssessmentMetricsJob extends BaseReportSpec with MockFactory {
       ("do_112835335135993856149", "A3", "user030", "do_1125559882615357441175", "1010", "1971-09-22 02:10:53.444+0000", "2019-09-05 09:59:51.000+0000", "12", "4", "2019-09-06 09:59:51.000+0000", "10/2", "")
     )).toDF("content_id", "attempt_id", "user_id", "course_id", "batch_id", "created_on", "last_attempted_on", "total_max_score", "total_score", "updated_on", "grand_total", "question")
     val bestScoreDF = AssessmentMetricsJob.getAssessmentData(df);
-    val batchid_value = bestScoreDF.select("total_score").collect().map(_ (0)).toList
-    assert(batchid_value(0) === "5")
+    val bestScore = bestScoreDF.select("total_score").collect().map(_ (0)).toList
+    assert(bestScore(0) === "5")
   }
 
   it should "Ensure CSV Report Should have all proper columns names" in {
@@ -297,8 +296,8 @@ class TestAssessmentMetricsJob extends BaseReportSpec with MockFactory {
 
     val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
     val denormedDF = AssessmentMetricsJob.denormAssessment(reportDF)
+    // TODO: Check save is called or not
     AssessmentMetricsJob.saveReport(denormedDF, tempDir)
-
   }
 
   it should "fetch the only self assess content names from the elastic search" in {
@@ -306,7 +305,6 @@ class TestAssessmentMetricsJob extends BaseReportSpec with MockFactory {
     assert(contentESIndex.isEmpty === false)
     val contentList = List("do_112835335135993856149", "do_112835336280596480151", "do_112832394979106816114")
     val contentDF = ESUtil.getAssessmentNames(spark, contentList, AppConf.getConfig("assessment.metrics.content.index"), AppConf.getConfig("assessment.metrics.supported.contenttype"))
-    println(contentDF.show(false))
     contentDF.createOrReplaceTempView("content_metadata")
     val content_id_df = spark.sql("select * from content_metadata where identifier ='do_112835335135993856149'")
     val content_name = content_id_df.select("name").collect().map(_ (0)).toList
