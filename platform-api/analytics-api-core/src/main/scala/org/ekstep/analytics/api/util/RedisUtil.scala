@@ -68,6 +68,16 @@ class RedisUtil {
     }
   }
 
+  def hmset(key: String, dataMap: Map[String, String])(implicit jedisConnection: Jedis): Unit = {
+    try {
+      Option(jedisConnection.hmset(key, dataMap.asJava))
+    } catch {
+      case ex: Exception =>
+        APILogger.log("", Option(Map("comments" -> s"Redis connection exception!  ${ex.getMessage}")), "RedisUtil")
+        None
+    }
+  }
+
   // $COVERAGE-OFF$ cannot test this method because jedisPool cannot be mocked
   def resetConnection(): Unit = {
     jedisPool.close()
