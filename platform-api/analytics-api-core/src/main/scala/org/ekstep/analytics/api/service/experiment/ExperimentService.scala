@@ -1,6 +1,7 @@
 package org.ekstep.analytics.api.service.experiment
 
 import akka.actor.Actor
+import akka.pattern.pipe
 import com.typesafe.config.{Config, ConfigFactory}
 import javax.inject.Inject
 import org.ekstep.analytics.api.util.{APILogger, ElasticsearchService, JSONUtils, RedisUtil}
@@ -21,16 +22,19 @@ class ExperimentService @Inject()(redisUtil: RedisUtil, elasticsearchService :El
   val databaseIndex: Int = config.getInt("redis.experimentIndex")
   val emptyValueExpirySeconds: Int = config.getInt("experimentService.redisEmptyValueExpirySeconds")
   implicit val jedisConnection: Jedis = redisUtil.getConnection(databaseIndex)
-  val NoExperiemntAssigned = "NO_EXPERIMENT_ASSIGNED"
+  val NoExperimentAssigned = "NO_EXPERIMENT_ASSIGNED"
 
   def receive: Receive = {
     case ExperimentRequest(deviceId, userId, url, producer) => {
+      val senderActor = sender()
       val result = getExperiment(deviceId, userId, url, producer)
-      val reply = sender()
+      result.pipeTo(senderActor)
+      /*
       result.onComplete {
         case Success(value) => reply ! value
         case Failure(error) => reply ! None
       }
+      */
     }
   }
 
@@ -40,7 +44,7 @@ class ExperimentService @Inject()(redisUtil: RedisUtil, elasticsearchService :El
 
     experimentCachedData.map {
       expData =>
-        if (NoExperiemntAssigned.equals(expData)) {
+        if (NoExperimentAssigned.equals(expData)) {
           APILogger.log("", Option(Map("comments" -> s"No experiment assigned for key $key")), "ExperimentService")
           Future(None)
         } else
@@ -52,7 +56,7 @@ class ExperimentService @Inject()(redisUtil: RedisUtil, elasticsearchService :El
           redisUtil.addCache(key, JSONUtils.serialize(res))
           resolveExperiment(res)
         }.getOrElse {
-          redisUtil.addCache(key, NoExperiemntAssigned, emptyValueExpirySeconds)
+          redisUtil.addCache(key, NoExperimentAssigned, emptyValueExpirySeconds)
           None
         }
       }
