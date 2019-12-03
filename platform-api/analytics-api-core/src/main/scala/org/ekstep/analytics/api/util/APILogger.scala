@@ -34,6 +34,6 @@ object APILogger {
 		val ts = new DateTime().getMillis
 		val mid = org.ekstep.analytics.framework.util.CommonUtil.getMessageId(eid, level, ts, None, None)
 		val context = V3Context("analytics.api", Option(V3PData("AnalyticsAPI", Option("3.0"), Option(apiName))), "analytics", None, None, None, None)
-   	new V3Event(eid, System.currentTimeMillis(), new DateTime().toString(org.ekstep.analytics.framework.util.CommonUtil.df3), "3.0", mid, Actor("", "System"), context, None, edata, List(), null)
+   	new V3Event(eid, System.currentTimeMillis(), new DateTime().toString(org.ekstep.analytics.framework.util.CommonUtil.df3), "3.0", mid, Actor("", "System"), context, None, edata, List())
 	}
 }
