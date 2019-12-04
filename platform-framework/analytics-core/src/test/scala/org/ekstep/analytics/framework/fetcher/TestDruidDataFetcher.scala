@@ -148,6 +148,7 @@ class TestDruidDataFetcher extends SparkSpec with Matchers with MockFactory {
         val mockDruidClient = mock[DruidClient]
         (mockDruidClient.doQuery(_:DruidQuery)(_:DruidConfig)).expects(druidQuery, *).returns(Future(druidResponse))
         (mockFc.getDruidClient: () => DruidClient).expects().returns(mockDruidClient);
+        (mockFc.shutdownDruidClient _).expects().once()
 
         val druidResult = DruidDataFetcher.getDruidData(query)
 
@@ -176,6 +177,7 @@ class TestDruidDataFetcher extends SparkSpec with Matchers with MockFactory {
         val mockDruidClient = mock[DruidClient]
         (mockDruidClient.doQuery(_:DruidQuery)(_:DruidConfig)).expects(druidQuery, *).returns(Future(druidResponse))
         (mockFc.getDruidClient: () => DruidClient).expects().returns(mockDruidClient);
+        (mockFc.shutdownDruidClient _).expects().once()
 
         val druidResult = DruidDataFetcher.getDruidData(query)
         
@@ -210,6 +212,7 @@ class TestDruidDataFetcher extends SparkSpec with Matchers with MockFactory {
         val mockDruidClient = mock[DruidClient]
         (mockDruidClient.doQuery(_:DruidQuery)(_:DruidConfig)).expects(druidQuery, *).returns(Future(druidResponse))
         (mockFc.getDruidClient: () => DruidClient).expects().returns(mockDruidClient);
+        (mockFc.shutdownDruidClient _).expects().once()
 
         val druidResult = DruidDataFetcher.getDruidData(query)
 
