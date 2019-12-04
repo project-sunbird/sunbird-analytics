@@ -23,7 +23,7 @@ class TestStateAdminGeoReportJob extends SparkSpec(null) with MockFactory {
   }
 
   "StateAdminGeoReportJob" should "generate reports" in {
-    val reportDF = StateAdminGeoReportJob.generateGeoSummaryReport()(spark)
+    val reportDF = StateAdminGeoReportJob.generateGeoReport()(spark)
     assert(reportDF.count == 6)
   }
 }
