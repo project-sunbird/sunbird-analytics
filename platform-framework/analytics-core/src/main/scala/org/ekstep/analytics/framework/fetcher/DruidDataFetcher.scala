@@ -20,15 +20,9 @@ object DruidDataFetcher {
   
     @throws(classOf[DataFetcherException])
     def getDruidData(query: DruidQueryModel)(implicit fc: FrameworkContext): List[String] = {
-
-        try {
-            val request = getDruidQuery(query)
-            val result = executeDruidQuery(request);
-            processResult(query, result);
-        }
-        finally {
-            fc.shutdownDruidClient()
-        }
+        val request = getDruidQuery(query)
+        val result = executeDruidQuery(request);
+        processResult(query, result);
     }
 
     def getDruidQuery(query: DruidQueryModel): DruidQuery = {
