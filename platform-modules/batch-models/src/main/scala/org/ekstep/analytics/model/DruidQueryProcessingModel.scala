@@ -43,39 +43,44 @@ object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, Druid
     }
 
     override def algorithm(data: RDD[DruidOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DruidOutput] = {
-        val strConfig = config("reportConfig").asInstanceOf[Map[String, AnyRef]]
-        val reportConfig = JSONUtils.deserialize[ReportConfig](JSONUtils.serialize(strConfig))
+        try {
+            val strConfig = config("reportConfig").asInstanceOf[Map[String, AnyRef]]
+            val reportConfig = JSONUtils.deserialize[ReportConfig](JSONUtils.serialize(strConfig))
 
-        val queryDims = reportConfig.metrics.map{ f =>
-            f.druidQuery.dimensions.getOrElse(List()).map(f => f.aliasName.getOrElse(f.fieldName))
-        }.distinct
+            val queryDims = reportConfig.metrics.map { f =>
+                f.druidQuery.dimensions.getOrElse(List()).map(f => f.aliasName.getOrElse(f.fieldName))
+            }.distinct
 
-        if(queryDims.length > 1) throw new DruidConfigException("Query dimensions are not matching")
+            if (queryDims.length > 1) throw new DruidConfigException("Query dimensions are not matching")
 
-        val interval = strConfig("dateRange").asInstanceOf[Map[String, AnyRef]]
-        val granularity = interval.get("granularity")
-        val queryInterval = if(interval.get("staticInterval").nonEmpty) {
-            interval("staticInterval").asInstanceOf[String]
-        } else if(interval.get("interval").nonEmpty) {
-            val dateRange = interval("interval").asInstanceOf[Map[String, String]]
-            dateRange("startDate") + "/" + dateRange("endDate")
-        } else throw new DruidConfigException("Both staticInterval and interval cannot be missing. Either of them should be specified")
+            val interval = strConfig("dateRange").asInstanceOf[Map[String, AnyRef]]
+            val granularity = interval.get("granularity")
+            val queryInterval = if (interval.get("staticInterval").nonEmpty) {
+                interval("staticInterval").asInstanceOf[String]
+            } else if (interval.get("interval").nonEmpty) {
+                val dateRange = interval("interval").asInstanceOf[Map[String, String]]
+                dateRange("startDate") + "/" + dateRange("endDate")
+            } else throw new DruidConfigException("Both staticInterval and interval cannot be missing. Either of them should be specified")
 
-        val metrics = reportConfig.metrics.flatMap{ f =>
-            val queryConfig = if(granularity.nonEmpty)
-                JSONUtils.deserialize[Map[String, AnyRef]](JSONUtils.serialize(f.druidQuery)) ++ Map("intervals" -> queryInterval, "granularity" -> granularity.get)
-            else
-                JSONUtils.deserialize[Map[String, AnyRef]](JSONUtils.serialize(f.druidQuery)) ++ Map("intervals" -> queryInterval)
+            val metrics = reportConfig.metrics.flatMap { f =>
+                val queryConfig = if (granularity.nonEmpty)
+                    JSONUtils.deserialize[Map[String, AnyRef]](JSONUtils.serialize(f.druidQuery)) ++ Map("intervals" -> queryInterval, "granularity" -> granularity.get)
+                else
+                    JSONUtils.deserialize[Map[String, AnyRef]](JSONUtils.serialize(f.druidQuery)) ++ Map("intervals" -> queryInterval)
 
-            val data = DruidDataFetcher.getDruidData(JSONUtils.deserialize[DruidQueryModel](JSONUtils.serialize(queryConfig)))
-            data.map{ x =>
-                val dataMap = JSONUtils.deserialize[Map[String, AnyRef]](x)
-                val key = dataMap.filter(m => (queryDims.flatten ++ List("date")).contains(m._1)).values.map(f => f.toString).toList.sorted(Ordering.String.reverse).mkString(",")
-                (key, dataMap)
+                val data = DruidDataFetcher.getDruidData(JSONUtils.deserialize[DruidQueryModel](JSONUtils.serialize(queryConfig)))
+                data.map { x =>
+                    val dataMap = JSONUtils.deserialize[Map[String, AnyRef]](x)
+                    val key = dataMap.filter(m => (queryDims.flatten ++ List("date")).contains(m._1)).values.map(f => f.toString).toList.sorted(Ordering.String.reverse).mkString(",")
+                    (key, dataMap)
+                }
             }
+            val finalResult = sc.parallelize(metrics).foldByKey(Map())(_ ++ _)
+            finalResult.map { f => JSONUtils.deserialize[DruidOutput](JSONUtils.serialize(f._2)) }
         }
-        val finalResult = sc.parallelize(metrics).foldByKey(Map())(_ ++ _)
-        finalResult.map{f => JSONUtils.deserialize[DruidOutput](JSONUtils.serialize(f._2))}
+        finally {
+            fc.shutdownDruidClient()
+        }
     }
 
     override def postProcess(data: RDD[DruidOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DruidOutput] = {
