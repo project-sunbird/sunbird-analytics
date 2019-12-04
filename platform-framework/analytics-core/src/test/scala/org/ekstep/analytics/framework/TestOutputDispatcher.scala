@@ -178,8 +178,8 @@ class TestOutputDispatcher extends SparkSpec("src/test/resources/sample_telemetr
         noException should be thrownBy {
             OutputDispatcher.dispatch(output2, strData.collect());
         }
-        
-        a[AzureException] should be thrownBy {
+
+        noException should be thrownBy {
           OutputDispatcher.dispatch(output1, events);
         }
     }
