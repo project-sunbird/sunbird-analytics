@@ -74,7 +74,6 @@ object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, Druid
                 (key, dataMap)
             }
         }
-        fc.shutdownDruidClient()
         val finalResult = sc.parallelize(metrics).foldByKey(Map())(_ ++ _)
         finalResult.map{f => JSONUtils.deserialize[DruidOutput](JSONUtils.serialize(f._2))}
     }
