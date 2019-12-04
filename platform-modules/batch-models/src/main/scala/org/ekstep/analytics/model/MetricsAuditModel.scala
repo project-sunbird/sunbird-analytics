@@ -85,7 +85,7 @@ object MetricsAuditModel extends IBatchModelTemplate[Empty, Empty, V3DerivedEven
     val metricData = filters.map{f =>
       val filteredRdd = rdd.filter(x => null != x.flags)
       val filterCount = DataFilter.filter(filteredRdd, f).count()
-      val diff = if(denormCount > 0) (denormCount - filterCount) * 100 / denormCount else 0
+      val diff = if(denormCount > 0) filterCount * 100 / denormCount else 0
       List(V3MetricEdata(f.name.substring(6), Option(filterCount)), V3MetricEdata("percentage_events_with_" + f.name.substring(6), Some(diff)))
     }.flatten.toList
     metricData ++ List(V3MetricEdata("count", Some(denormCount)))
