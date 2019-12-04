@@ -241,13 +241,5 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
         val storageService = getReportStorageService();
         storageService.upload(container, sourcePath, objectKey, isDirectory = Option(true))
         storageService.closeContext();
-        // TODO: Purge the files after uploaded to blob store
     }
-}
-
-object StateAdminReportJobTest {
-
-  def main(args: Array[String]): Unit = {
-    StateAdminReportJob.main("""{"model":"Test"}""");
-  }
 }

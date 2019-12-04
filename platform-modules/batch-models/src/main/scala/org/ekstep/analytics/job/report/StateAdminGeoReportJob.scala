@@ -88,11 +88,3 @@ object StateAdminGeoReportJob extends optional.Application with IJob with BaseRe
     storageService.closeContext();
   }
 }
-
-object StateAdminGeoReportJobTest {
-
-  def main(args: Array[String]): Unit = {
-    StateAdminGeoReportJob.main("""{"model":"Test"}""");
-  }
-}
-
