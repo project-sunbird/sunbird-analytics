@@ -1,11 +1,13 @@
 package org.ekstep.analytics.job
 
+import java.io.File
+
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.ekstep.analytics.framework.FrameworkContext
 import org.ekstep.analytics.framework.util.RestUtil
 import org.ekstep.analytics.job.report.{AssessmentMetricsJob, BaseReportSpec, ReportGenerator}
 import org.ekstep.analytics.util.ESUtil.elasticSearchURL
-import org.ekstep.analytics.util.{ESUtil, EmbeddedES, EsResponse}
+import org.ekstep.analytics.util.{ESUtil, EmbeddedES, EsResponse, FileUtil}
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.cloud.storage.BaseStorageService
 import org.sunbird.cloud.storage.conf.AppConf
@@ -368,12 +370,14 @@ class TestAssessmentMetricsJob extends BaseReportSpec with MockFactory {
   }
 
   it should "Able to create a elastic search index" in {
+
     val esResponse: EsResponse = ESUtil.createIndex(AssessmentMetricsJob.getIndexName, "");
     assert(esResponse.acknowledged === true)
   }
 
   it should "Able to add index to alias" in {
     ESUtil.createIndex(esIndexName, "");
+    ESUtil.removeIndexFromAlias(List(esIndexName), "cbatch-assessment")
     val esResponse: EsResponse = ESUtil.addIndexToAlias(esIndexName, "cbatch-assessment");
     assert(esResponse.acknowledged === true)
   }
@@ -398,8 +402,46 @@ class TestAssessmentMetricsJob extends BaseReportSpec with MockFactory {
     } catch {
       case ex: Exception => assert(ex === null)
     }
-
-
   }
+
+  it should "Should able to create a local directory to rename the reports" in {
+    implicit val mockFc = mock[FrameworkContext];
+    val mockStorageService = mock[BaseStorageService]
+    (mockFc.getStorageService(_: String, _: String, _: String)).expects(*, *, *).returns(mockStorageService).anyNumberOfTimes();
+    (mockStorageService.upload _).expects(*, *, *, *, *, *, *).returns("").anyNumberOfTimes();
+    (mockStorageService.closeContext _).expects().returns().anyNumberOfTimes()
+
+    val tempDir = AppConf.getConfig("course.metrics.temp.dir")
+    val df = spark.createDataFrame(Seq(
+      ("", "user010", "Manju", "D R", "****@gmail.com", "*****75643", "org1", "TMK", "NVPHS", "2019-10-11", "100", "2019-11-11", "batch_001", "10", "10/10")
+    )).toDF("externalid", "userid", "firstname", "lastname", "maskedemail", "maskedphone", "orgname_resolved", "district_name", "schoolname_resolved", "enrolleddate", "course_completion", "completedon", "batchid", "math", "total_score")
+    AssessmentMetricsJob.saveToAzure(df, tempDir, "batch-001")
+
+    val renamedDir = s"$tempDir/renamed"
+    val temp = new File(tempDir)
+    val out = new File(renamedDir)
+    try {
+      FileUtil.renameReport(tempDir, renamedDir, "batch-001");
+      assert(out.exists() === true)
+      assert(temp.exists() === true)
+    } catch {
+      case ex: Exception => assert(ex === null)
+    }
+  }
+
+  it should "Not throw any error if the temp folder is already exists" in {
+    val tempDir = AppConf.getConfig("course.metrics.temp.dir")
+    val renamedDir = s"$tempDir/renamed"
+    val temp = new File(tempDir)
+    val out = new File(renamedDir)
+    temp.mkdirs()
+    out.mkdirs()
+    try {
+      FileUtil.renameReport(tempDir, renamedDir, "batch-001");
+    } catch {
+      case ex: Exception => assert(ex === null)
+    }
+  }
+
 
 }

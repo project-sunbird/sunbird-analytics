@@ -12,8 +12,8 @@ import org.ekstep.analytics.util.{ESUtil, FileUtil}
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import org.sunbird.cloud.storage.conf.AppConf
+
 import scala.collection.{Map, _}
-import scala.reflect.ManifestFactory.classType
 
 object AssessmentMetricsJob extends optional.Application with IJob with BaseReportsJob {
 
@@ -285,7 +285,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with BaseRepo
     storageService.closeContext();
   }
 
-  def saveToElastic(index: String, alias: String, reportDF: DataFrame): Unit = {
+  def saveToElastic(index: String, reportDF: DataFrame): Unit = {
     val assessmentReportDF = reportDF.select(
       col("userid").as("userId"),
       col("username").as("userName"),
@@ -326,7 +326,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with BaseRepo
             val urlBatch = saveToAzure(reportData, url, batchId)
             val resolvedDF = filteredDF.withColumn("reportUrl", lit(urlBatch))
             if (StringUtils.isNotBlank(indexToEs) && StringUtils.equalsIgnoreCase("true", indexToEs)) {
-              saveToElastic(this.getIndexName, aliasName, resolvedDF)
+              saveToElastic(this.getIndexName, resolvedDF)
               JobLogger.log("Indexing of assessment report data is success: " + this.getIndexName, None, INFO)
             } else {
               JobLogger.log("Skipping Indexing assessment report into ES", None, INFO)
