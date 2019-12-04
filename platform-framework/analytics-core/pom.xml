@@ -189,6 +189,12 @@
 		    <groupId>org.apache.kafka</groupId>
 		    <artifactId>kafka_${scala.maj.version}</artifactId>
 		    <version>1.0.1</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.fasterxml.jackson.core</groupId>
+					<artifactId>jackson-databind</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.neo4j</groupId>

@@ -91,7 +91,7 @@ class TestDataFetcher extends SparkSpec with Matchers with MockFactory {
 
     it should "invoke the druid data fetcher" in {
 
-        implicit val mockFc = mock[FrameworkContext];
+        implicit val fc = new FrameworkContext();
         val unknownQuery = DruidQueryModel("scan", "telemetry-events", "LastWeek", Option("day"), None, None, Option(List(DruidFilter("in", "eid", None, Option(List("START", "END"))))))
         the[DataFetcherException] thrownBy {
             DataFetcher.fetchBatchData[TimeSeriesData](Fetcher("druid", None, None, Option(unknownQuery)));

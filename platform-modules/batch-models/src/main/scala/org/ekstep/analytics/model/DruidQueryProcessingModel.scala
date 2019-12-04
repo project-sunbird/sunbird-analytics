@@ -16,11 +16,15 @@ case class DruidOutput(date: Option[String], state: Option[String], district: Op
                        total_scans_on_portal: Option[Integer] = Option(0),  total_scans_on_app: Option[Integer] = Option(0),
                        total_sessions: Option[Integer] = Option(0), total_ts: Option[Double] = Option(0.0),
                        total_successful_scans: Option[Integer] = Option(0), total_failed_scans: Option[Integer] = Option(0),
-                       total_content_download: Option[Integer] = Option(0), total_content_plays: Option[Integer] = Option(0), 
+                       total_content_download: Option[Integer] = Option(0), total_content_plays: Option[Integer] = Option(0),
                        total_content_plays_on_portal: Option[Integer] = Option(0), total_content_plays_on_app: Option[Integer] = Option(0),
+                       total_content_plays_on_desktop: Option[Integer] = Option(0),
                        total_unique_devices: Option[Double] = Option(0), total_unique_devices_on_portal: Option[Double] = Option(0),
-                       total_unique_devices_on_app: Option[Double] = Option(0), total_time_spent_in_hours: Option[Double] = Option(0),
-                       total_percent_failed_scans: Option[Double] = Option(0)) extends Input with AlgoInput with AlgoOutput with Output
+                       total_unique_devices_on_app: Option[Double] = Option(0), total_unique_devices_on_desktop: Option[Double] = Option(0),
+                       total_time_spent_in_hours: Option[Double] = Option(0), total_time_spent_in_hours_on_app: Option[Double] = Option(0),
+                       total_time_spent_in_hours_on_portal: Option[Double] = Option(0), total_time_spent_in_hours_on_desktop: Option[Double] = Option(0),
+                       total_percent_failed_scans: Option[Double] = Option(0), total_content_download_on_app:Option[Integer] = Option(0),
+                       total_content_download_on_portal:Option[Integer] = Option(0), total_content_download_on_desktop:Option[Integer] = Option(0)) extends Input with AlgoInput with AlgoOutput with Output
 
 case class ReportConfig(id: String, queryType: String, dateRange: QueryDateRange, metrics: List[Metrics], labels: Map[String, String], output: List[OutputConfig])
 case class QueryDateRange(interval: Option[QueryInterval], staticInterval: Option[String], granularity: Option[String])
@@ -70,7 +74,6 @@ object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, Druid
                 (key, dataMap)
             }
         }
-
         val finalResult = sc.parallelize(metrics).foldByKey(Map())(_ ++ _)
         finalResult.map{f => JSONUtils.deserialize[DruidOutput](JSONUtils.serialize(f._2))}
     }
