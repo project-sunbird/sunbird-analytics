@@ -3,6 +3,7 @@ package org.ekstep.analytics.framework.fetcher
 import java.time.format.DateTimeFormatter
 
 import ing.wbaa.druid._
+import ing.wbaa.druid.client.DruidHttpClient
 import ing.wbaa.druid.definitions._
 import ing.wbaa.druid.dql.DSL._
 import ing.wbaa.druid.dql.Dim
@@ -11,18 +12,23 @@ import io.circe.Json
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.exception.DataFetcherException
 import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils}
-import org.ekstep.analytics.framework.{DruidQueryModel, PostAggregationFields}
+import org.ekstep.analytics.framework.{DruidQueryModel, FrameworkContext, PostAggregationFields}
 
 import scala.concurrent.Await
 
 object DruidDataFetcher {
   
     @throws(classOf[DataFetcherException])
-    def getDruidData(query: DruidQueryModel): List[String] = {
+    def getDruidData(query: DruidQueryModel)(implicit fc: FrameworkContext): List[String] = {
 
-        val request = getDruidQuery(query)
-        val result = executeDruidQuery(request);
-        processResult(query, result);
+        try {
+            val request = getDruidQuery(query)
+            val result = executeDruidQuery(request);
+            processResult(query, result);
+        }
+        finally {
+            fc.shutdownDruidClient()
+        }
     }
 
     def getDruidQuery(query: DruidQueryModel): DruidQuery = {
@@ -66,8 +72,8 @@ object DruidDataFetcher {
         }
     }
 
-    def executeDruidQuery(query: DruidQuery) : DruidResponse = {
-        val response = query.execute()
+    def executeDruidQuery(query: DruidQuery)(implicit fc: FrameworkContext) : DruidResponse = {
+        val response = fc.getDruidClient().doQuery(query);
         val queryWaitTimeInMins = AppConf.getConfig("druid.query.wait.time.mins").toLong
         Await.result(response, scala.concurrent.duration.Duration.apply(queryWaitTimeInMins, "minute"))
     }

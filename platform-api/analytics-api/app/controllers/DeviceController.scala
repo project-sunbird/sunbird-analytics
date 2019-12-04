@@ -4,8 +4,8 @@ import akka.actor._
 import akka.pattern.ask
 import com.google.inject.Inject
 import org.ekstep.analytics.api.service.experiment.{ExperimentData, ExperimentRequest}
-import org.ekstep.analytics.api.service.{DeviceProfile, GetDeviceProfile, RegisterDevice}
-import org.ekstep.analytics.api.util.{APILogger, CacheUtil, CommonUtil, JSONUtils}
+import org.ekstep.analytics.api.service.{DeviceProfile, DeviceProfileRequest, RegisterDevice}
+import org.ekstep.analytics.api.util.{APILogger, CommonUtil, JSONUtils}
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{AnyContent, ControllerComponents, Request, Result}
 import play.api.{Configuration, Environment}
@@ -15,6 +15,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class DeviceController @Inject()(
   @Named("device-register-actor") deviceRegisterActor: ActorRef,
+  @Named("device-profile-actor") deviceProfileActor: ActorRef,
   @Named("experiment-actor") experimentActor: ActorRef,
   system: ActorSystem,
   configuration: Configuration,
@@ -107,27 +108,25 @@ class DeviceController @Inject()(
   }
 
   def getDeviceProfile(deviceId: String) = Action.async { implicit request =>
+
     // The X-Forwarded-For header from Azure is in the format '61.12.65.222:33740, 61.12.65.222'
     val ip = request.headers.get("X-Forwarded-For").map {
-      x =>
-        val ipArray = x.split(",")
+      headers =>
+        val ipArray = headers.split(",")
         if (ipArray.length == 2) ipArray(1).trim else ipArray(0).trim
     }
     val headerIP = ip.getOrElse("")
-    println(s"calling deviceRegisterServiceAPIActor with $headerIP, $deviceId, ${deviceRegisterActor.path}")
-    val result = (deviceRegisterActor ? GetDeviceProfile(deviceId, headerIP)).mapTo[Option[DeviceProfile]]
+    val result = (deviceProfileActor ? DeviceProfileRequest(deviceId, headerIP)).mapTo[Option[DeviceProfile]]
     result.map {
       deviceData =>
-        if (deviceData.nonEmpty)
-        {
+        if (deviceData.nonEmpty) {
           APILogger.log("", Option(Map("type" -> "api_access", "params" -> List(Map("userDeclaredLocation" -> deviceData.get.userDeclaredLocation, "ipLocation" -> deviceData.get.ipLocation) ++ Map("status" -> 200, "method" -> "POST",
             "rid" -> "getDeviceProfile", "title" -> "getDeviceProfile")))), "getDeviceProfile")
 
           Ok(JSONUtils.serialize(CommonUtil.OK("analytics.device-profile",
             Map("userDeclaredLocation" -> deviceData.get.userDeclaredLocation, "ipLocation" -> deviceData.get.ipLocation))))
             .withHeaders(CONTENT_TYPE -> "application/json")
-        }
-        else {
+        } else {
           InternalServerError(
             JSONUtils.serialize(CommonUtil.errorResponse("analytics.device-profile", "IP is missing in the header", "ERROR"))
           ).withHeaders(CONTENT_TYPE -> "application/json")

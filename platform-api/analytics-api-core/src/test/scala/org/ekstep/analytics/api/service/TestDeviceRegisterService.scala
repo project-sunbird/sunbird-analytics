@@ -6,10 +6,9 @@ import akka.util.Timeout
 import com.typesafe.config.Config
 import org.ekstep.analytics.api.BaseSpec
 import org.ekstep.analytics.api.util._
+import scala.concurrent.duration._
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.mockito.Mockito._
-
-import scala.concurrent.duration._
 
 class TestDeviceRegisterService extends BaseSpec {
 
@@ -24,8 +23,12 @@ class TestDeviceRegisterService extends BaseSpec {
   val redisIndex: Int = config.getInt("redis.deviceIndex")
   val saveMetricsActor = TestActorRef(new SaveMetricsActor)
   val metricsActorProbe = TestProbe()
+
+  when(configMock.getString("postgres.table.geo_location_city.name")).thenReturn("geo_location_city")
+  when(configMock.getString("postgres.table.geo_location_city_ipv4.name")).thenReturn("geo_location_city_ipv4")
+
   private val deviceRegisterService = TestActorRef(new DeviceRegisterService(saveMetricsActor, configMock, redisUtilMock, postgresDBMock, H2DBMock)).underlyingActor
-  private val deviceRegisterActorRef = TestActorRef(new DeviceRegisterService(saveMetricsActor, config, redisUtilMock, postgresDBMock, H2DBMock){
+  private val deviceRegisterActorRef = TestActorRef(new DeviceRegisterService(saveMetricsActor, configMock, redisUtilMock, postgresDBMock, H2DBMock){
     override val metricsActor = metricsActorProbe.ref
   })
 
@@ -145,6 +148,7 @@ class TestDeviceRegisterService extends BaseSpec {
     uaspecResult should be (None)
   }
 
+  /*
   "Resolve location for get device profile" should "return location details given an IP address" in {
     when(deviceRegisterServiceMock.resolveLocationFromH2(ipAddress = "106.51.74.185"))
       .thenReturn(DeviceStateDistrict("Karnataka", "BANGALORE"))
@@ -160,6 +164,7 @@ class TestDeviceRegisterService extends BaseSpec {
     deviceLocation.state should be("")
     deviceLocation.districtCustom should be("")
   }
+  */
 
   "Resolve declared location for get device profile" should "return declared location details" in {
     when(redisUtilMock.getAllByKey("test-device"))
@@ -231,26 +236,39 @@ class TestDeviceRegisterService extends BaseSpec {
   }
 
 
-  "Device profile actor" should "get device profile for particular device ID" in {
-    import akka.pattern.ask
-    implicit val timeout: Timeout = 20 seconds
-    val query =
-      s"""
-         |SELECT
-         |  glc.subdivision_1_name state,
-         |  glc.subdivision_2_custom_name district_custom
-         |FROM $geoLocationCityIpv4TableName gip,
-         |  $geoLocationCityTableName glc
-         |WHERE gip.geoname_id = glc.geoname_id
-         |  AND gip.network_start_integer <= 1935923652
-         |  AND gip.network_last_integer >= 1935923652
-               """.stripMargin
+//  "Device profile actor" should "get device profile for particular device ID" in {
+//    import akka.pattern.ask
+//    implicit val timeout: Timeout = 20 seconds
+//    val query =
+//      s"""
+//         |SELECT
+//         |  glc.subdivision_1_name state,
+//         |  glc.subdivision_2_custom_name district_custom
+//         |FROM $geoLocationCityIpv4TableName gip,
+//         |  $geoLocationCityTableName glc
+//         |WHERE gip.geoname_id = glc.geoname_id
+//         |  AND gip.network_start_integer <= 1935923652
+//         |  AND gip.network_last_integer >= 1935923652
+//               """.stripMargin
+//
+//    when(H2DBMock.readLocation(query)).thenReturn(DeviceStateDistrict("Karnataka", "KA"))
+//
+//    val response = (deviceRegisterActorRef ? GetDeviceProfile(did = "Device-2", headerIP = "115.99.217.196")).mapTo[Option[DeviceProfile]]
+//    response.map { deviceData =>
+//      deviceData.get.ipLocation.getOrElse(None) should be eq (Location("Karnataka", "KA"))
+//    }
+//  }
 
-    when(H2DBMock.readLocation(query)).thenReturn(DeviceStateDistrict("Karnataka", "KA"))
+  "Device Register" should "get device profile map which will be saved to redis" in {
+    val register = RegisterDevice("test-device", "106.51.74.185", None, None, None, Option(""), None, None, Option("Karnataka"), Option("BANGALORE"))
+    val location = new DeviceLocation()
+    val dataMap = Map("device_id" -> "test-device", "devicespec" -> "", "user_declared_state" -> "Karnataka", "user_declared_district" -> "BANGALORE").filter(f => (f._2.nonEmpty))
+    when(deviceRegisterServiceMock.getDeviceProfileMap(register, location))
+      .thenReturn(dataMap)
 
-    val response = (deviceRegisterActorRef ? GetDeviceProfile(did = "Device-2", headerIP = "115.99.217.196")).mapTo[Option[DeviceProfile]]
-    response.map { deviceData =>
-      deviceData.get.ipLocation.getOrElse(None) should be eq(Location("Karnataka", "KA"))
-    }
+    val deviceDataMap = deviceRegisterServiceMock.getDeviceProfileMap(register, location)
+    deviceDataMap.get("user_declared_state").get should be("Karnataka")
+    deviceDataMap.get("user_declared_district").get should be("BANGALORE")
+    deviceDataMap.get("devicespec").isEmpty should be(true)
   }
 }
