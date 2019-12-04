@@ -404,19 +404,8 @@ class TestAssessmentMetricsJob extends BaseReportSpec with MockFactory {
     }
   }
 
-  it should "Should able to create a local directory to rename the reports" in {
-    implicit val mockFc = mock[FrameworkContext];
-    val mockStorageService = mock[BaseStorageService]
-    (mockFc.getStorageService(_: String, _: String, _: String)).expects(*, *, *).returns(mockStorageService).anyNumberOfTimes();
-    (mockStorageService.upload _).expects(*, *, *, *, *, *, *).returns("").anyNumberOfTimes();
-    (mockStorageService.closeContext _).expects().returns().anyNumberOfTimes()
-
+  it should "Should able to create a local directory to rename the reports if exists" in {
     val tempDir = AppConf.getConfig("course.metrics.temp.dir")
-    val df = spark.createDataFrame(Seq(
-      ("", "user010", "Manju", "D R", "****@gmail.com", "*****75643", "org1", "TMK", "NVPHS", "2019-10-11", "100", "2019-11-11", "batch_001", "10", "10/10")
-    )).toDF("externalid", "userid", "firstname", "lastname", "maskedemail", "maskedphone", "orgname_resolved", "district_name", "schoolname_resolved", "enrolleddate", "course_completion", "completedon", "batchid", "math", "total_score")
-    AssessmentMetricsJob.saveToAzure(df, tempDir, "batch-001")
-
     val renamedDir = s"$tempDir/renamed"
     val temp = new File(tempDir)
     val out = new File(renamedDir)
