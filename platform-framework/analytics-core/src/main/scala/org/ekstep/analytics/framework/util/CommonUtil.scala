@@ -60,8 +60,6 @@ object CommonUtil {
 
         if (!conf.contains("spark.cassandra.connection.host"))
             conf.set("spark.cassandra.connection.host", AppConf.getConfig("spark.cassandra.connection.host"))
-        if (embeddedCassandraMode)
-            conf.set("spark.cassandra.connection.port", AppConf.getConfig("cassandra.service.embedded.connection.port"))
 
         if (sparkCassandraConnectionHost.nonEmpty) {
             conf.set("spark.cassandra.connection.host", sparkCassandraConnectionHost.get.asInstanceOf[String])

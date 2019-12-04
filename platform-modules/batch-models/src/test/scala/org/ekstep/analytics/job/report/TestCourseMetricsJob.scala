@@ -7,9 +7,12 @@ import org.ekstep.analytics.model.SparkSpec
 import org.scalamock.scalatest.MockFactory
 
 import scala.collection.Map
+import org.ekstep.analytics.job.report.ReportGenerator
+import org.ekstep.analytics.job.report.CourseMetricsJob
+import org.ekstep.analytics.job.report.BaseReportSpec
 
 
-class TestCourseMetricsJob extends SparkSpec(null) with MockFactory {
+class TestCourseMetricsJob extends BaseReportSpec with MockFactory {
   var spark: SparkSession = _
   var courseBatchDF: DataFrame = _
   var userCoursesDF: DataFrame = _
@@ -23,9 +26,9 @@ class TestCourseMetricsJob extends SparkSpec(null) with MockFactory {
   val sunbirdKeyspace = "sunbird"
 
   override def beforeAll(): Unit = {
+    
     super.beforeAll()
-    spark = SparkSession.builder.config(sc.getConf).getOrCreate()
-
+    spark = getSparkSession();
 
     /*
      * Data created with 31 active batch from batchid = 1000 - 1031

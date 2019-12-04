@@ -46,7 +46,7 @@ class TestOutputDispatcher extends SparkSpec("src/test/resources/sample_telemetr
         
         implicit val mockFc = mock[FrameworkContext];
         val mockStorageService = mock[BaseStorageService]
-        (mockFc.getStorageService _).expects("aws").returns(mockStorageService).anyNumberOfTimes();
+        (mockFc.getStorageService(_:String):BaseStorageService).expects("aws").returns(mockStorageService).anyNumberOfTimes();
         (mockStorageService.upload _).expects("dev-data-store", *, *, Option(false), None, None, None).returns(null).anyNumberOfTimes();
         (mockStorageService.closeContext _).expects().returns().anyNumberOfTimes()
         val output1 = Dispatcher("s3file", Map[String, AnyRef]("bucket" -> "dev-data-store", "key" -> "output/test-log1.json", "filePath" -> "src/test/resources/sample_telemetry.log", "zip" -> true.asInstanceOf[AnyRef]));
@@ -167,7 +167,7 @@ class TestOutputDispatcher extends SparkSpec("src/test/resources/sample_telemetr
       
         implicit val mockFc = mock[FrameworkContext];
         val mockStorageService = mock[BaseStorageService]
-        (mockFc.getStorageService _).expects("azure").returns(mockStorageService).anyNumberOfTimes();
+        (mockFc.getStorageService(_:String):BaseStorageService).expects("azure").returns(mockStorageService).anyNumberOfTimes();
         (mockStorageService.upload _).expects("dev-data-store", *, *, Option(false), None, None, None).returns(null).anyNumberOfTimes();
         (mockStorageService.closeContext _).expects().returns().anyNumberOfTimes()
         val date = System.currentTimeMillis()
@@ -188,7 +188,7 @@ class TestOutputDispatcher extends SparkSpec("src/test/resources/sample_telemetr
       
         implicit val mockFc = mock[FrameworkContext];
         val mockStorageService = mock[BaseStorageService]
-        (mockFc.getStorageService _).expects("azure").returns(mockStorageService).anyNumberOfTimes();
+        (mockFc.getStorageService(_:String):BaseStorageService).expects("azure").returns(mockStorageService).anyNumberOfTimes();
         (mockStorageService.upload _).expects("dev-data-store", *, *, Option(true), *, Option(3), *).returns("").anyNumberOfTimes();
         (mockStorageService.closeContext _).expects().returns().anyNumberOfTimes()
         //noException should be thrownBy {

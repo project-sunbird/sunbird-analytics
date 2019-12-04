@@ -14,7 +14,7 @@ object EventsReplayJob extends optional.Application with IJob {
 
   def name(): String = "EventsReplayJob"
 
-  override def main(config: String)(implicit sc: Option[SparkContext] = None): Unit = {
+  override def main(config: String)(implicit sc: Option[SparkContext] = None, fc: Option[FrameworkContext] = None): Unit = {
 
     val jobConfig = JSONUtils.deserialize[JobConfig](config)
     implicit val sparkContext = if (sc.isEmpty) CommonUtil.getSparkContext(JobContext.parallelization, jobConfig.appName.getOrElse(jobConfig.model)) else sc.get

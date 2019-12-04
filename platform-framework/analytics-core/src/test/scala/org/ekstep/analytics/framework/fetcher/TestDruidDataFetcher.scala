@@ -186,7 +186,7 @@ class TestDruidDataFetcher extends SparkSpec with Matchers with MockFactory {
           ]
         """
         val doc: Json = parse(json).getOrElse(Json.Null);
-        val results = List(DruidResult.apply(ZonedDateTime.now(), doc));
+        val results = List(DruidResult.apply(ZonedDateTime.of(2019, 11, 28, 17, 0, 0, 0, ZoneOffset.UTC), doc));
         val druidResponse = DruidResponse.apply(results, QueryType.TopN)
         val druidResult = DruidDataFetcher.processResult(query, druidResponse);
         druidResult.size should be (2)
