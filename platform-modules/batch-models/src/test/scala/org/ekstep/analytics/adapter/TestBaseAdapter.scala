@@ -1,13 +1,11 @@
 package org.ekstep.analytics.adapter
 
+import org.ekstep.analytics.framework.{Params, Response}
 import org.ekstep.analytics.framework.exception.DataAdapterException
-import org.ekstep.analytics.framework.{EventId, Response}
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.model.SparkSpec
-import org.ekstep.analytics.framework.Params
+import org.junit.Assert
 import org.sunbird.cloud.storage.conf.AppConf
-import com.typesafe.config.ConfigValue
-import com.typesafe.config.ConfigValueFactory
 
 class TestBaseAdapter extends SparkSpec {
 
@@ -31,6 +29,17 @@ class TestBaseAdapter extends SparkSpec {
           ContentAdapter.getTextbookContents("2019-11-01", "2019-11-02");
         }
 
+    }
+
+    it should "Should able to search" in {
+        val anyRefVariable: AnyRef = new java.util.Date
+        val arr = Array(Map("date" -> anyRefVariable))
+
+        def testFun(a: Int, b: Int): ContentResult = {
+            ContentResult(20, Option(arr))
+        }
+
+        Assert.assertNotNull(ContentAdapter.search(10, 2, arr, testFun))
     }
 
 }
