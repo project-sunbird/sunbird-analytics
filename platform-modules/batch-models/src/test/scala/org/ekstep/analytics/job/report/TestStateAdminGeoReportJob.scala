@@ -19,11 +19,12 @@ class TestStateAdminGeoReportJob extends SparkSpec(null) with MockFactory {
   override def beforeAll(): Unit = {
     super.beforeAll()
     spark = getSparkSession()
-    EmbeddedCassandra.loadData("src/test/resources/reports/reports_test_data.cql"); // Load test data in embedded cassandra server
+    EmbeddedCassandra.loadData("../../platform-modules/batch-models/src/test/resources/reports/reports_test_data.cql"); // Load test data in embedded cassandra server
   }
 
   "StateAdminGeoReportJob" should "generate reports" in {
     val reportDF = StateAdminGeoReportJob.generateGeoReport()(spark)
-    assert(reportDF.count == 6)
+    assert(reportDF.count() === 6)
+    assert(reportDF.select("District id").distinct().count == 4)
   }
 }

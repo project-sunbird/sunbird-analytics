@@ -32,24 +32,15 @@ trait StateAdminReportHelper extends  BaseReportsJob {
 
     val subOrgJoinedDF = subOrgDF
       .where(col("status").equalTo(1) && not(col("isrootorg")))
-      .join(locationDF, subOrgDF.col("explodedlocation") === locationDF.col("locid"), "left_outer")
-      .join(rootOrgDF, subOrgDF.col("rootorgid") === rootOrgDF.col("rootorgjoinid"), "left_outer").as[SubOrgRow]
+      .join(locationDF, subOrgDF.col("explodedlocation") === locationDF.col("locid"), "left")
+      .join(rootOrgDF, subOrgDF.col("rootorgid") === rootOrgDF.col("rootorgjoinid"), "left").as[SubOrgRow]
 
-    subOrgJoinedDF
-      .groupBy("slug")
-      .agg(countDistinct("id").as("schools"), countDistinct(col("locType").equalTo("district")).as("districts"),
-        countDistinct(col("locType").equalTo("block")).as("blocks"))
-      .coalesce(1)
-      .write
-      .partitionBy("slug")
-      .mode("overwrite")
-      .json(s"$summaryDir")
 
     val districtDF = subOrgJoinedDF.where(col("loctype").equalTo("district")).select(col("channel").as("channel"), col("slug"), col("id").as("schoolid"), col("orgname").as("schoolname"), col("locid").as("districtid"), col("locname").as("districtname"));
 
     val blockDF = subOrgJoinedDF.where(col("loctype").equalTo("block")).select(col("id").as("schooljoinid"), col("locid").as("blockid"), col("locname").as("blockname"), col("externalid"));
 
-    val blockData = blockDF.join(districtDF, blockDF.col("schooljoinid").equalTo(districtDF.col("schoolid")), "left").drop(col("schooljoinid")).coalesce(1)
+    val blockData = blockDF.join(districtDF, blockDF.col("schooljoinid").equalTo(districtDF.col("schoolid")), "right_outer").drop(col("schooljoinid")).coalesce(1)
       .select(col("schoolid").as("School id"),
         col("schoolname").as("School name"),
         col("channel").as("Channel"),

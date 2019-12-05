@@ -50,6 +50,17 @@ object StateAdminGeoReportJob extends optional.Application with IJob with StateA
       .option("header", "true")
       .csv(s"$detailDir")
 
+    blockData
+          .groupBy(col("slug"))
+          .agg(countDistinct("School id").as("schools"),
+            countDistinct(col("District id")).as("districts"),
+            countDistinct(col("Block id")).as("blocks"))
+          .coalesce(1)
+          .write
+          .partitionBy("slug")
+          .mode("overwrite")
+          .json(s"$summaryDir")
+
     fSFileUtils.renameReport(summaryDir, renamedDir, ".json", "geo-summary")
     fSFileUtils.renameReport(detailDir, renamedDir, ".csv", "geo-detail")
     fSFileUtils.purgeDirectory(detailDir)

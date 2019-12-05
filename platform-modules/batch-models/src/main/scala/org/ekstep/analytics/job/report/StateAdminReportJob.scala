@@ -51,7 +51,7 @@ object StateAdminReportJob extends optional.Application with IJob with StateAdmi
         JobLogger.end("StateAdminReportJob completed successfully!", "SUCCESS", Option(Map("config" -> config, "model" -> name)))
     }
 
-    def generateReport()(implicit sparkSession: SparkSession) : Dataset[ShadowUserData]  = {
+    def generateReport()(implicit sparkSession: SparkSession)   = {
 
         import sparkSession.implicits._
         val renamedDir = s"$tempDir/renamed"
@@ -72,6 +72,7 @@ object StateAdminReportJob extends optional.Application with IJob with StateAdmi
         fSFileUtils.renameReport(detailDir, renamedDir, ".csv", "user-detail")
         fSFileUtils.renameReport(summaryDir, renamedDir, ".json", "user-summary")
 
+
         // Purge the directories after copying to the upload staging area
         fSFileUtils.purgeDirectory(detailDir)
         fSFileUtils.purgeDirectory(summaryDir)
@@ -90,6 +91,10 @@ object StateAdminReportJob extends optional.Application with IJob with StateAdmi
         fSFileUtils.purgeDirectory(summaryDir)
 
         val organisationDF = loadOrganisationDF()
+        val channelSlugMap: Map[String, String] = getChannelSlugMap(organisationDF)
+        renameChannelDirsToSlug(renamedDir, channelSlugMap)
+
+        // We can directly write to the slug folder
         val blockDataWithSlug = generateGeoBlockData(organisationDF)
         val resultDF = blockDataWithSlug.join(claimedShadowUserDF, blockDataWithSlug.col("externalid") === (claimedShadowUserDF.col("orgextid")),"left")
         resultDF.groupBy(col("slug"),col("District name").as("districtName")).
@@ -101,9 +106,7 @@ object StateAdminReportJob extends optional.Application with IJob with StateAdmi
         fSFileUtils.renameReport(summaryDir, renamedDir, ".json", "validated-user-summary-district")
         fSFileUtils.purgeDirectory(summaryDir)
 
-        val channelSlugMap: Map[String, String] = getChannelSlugMap(organisationDF)
-        renameChannelDirsToSlug(renamedDir, channelSlugMap)
-        shadowUserDF.distinct()
+        blockDataWithSlug
     }
 
     private def getChannelSlugMap(organisationDF: DataFrame)(implicit sparkSession: SparkSession): Map[String, String] = {
