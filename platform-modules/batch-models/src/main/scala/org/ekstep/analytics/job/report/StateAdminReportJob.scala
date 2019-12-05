@@ -5,7 +5,7 @@ import org.apache.spark.sql._
 import org.apache.spark.sql.functions.{col, lit, _}
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger}
-import org.ekstep.analytics.util.{HDFSFileUtils, StateAdminReportHelper}
+import org.ekstep.analytics.util.HDFSFileUtils
 import org.sunbird.cloud.storage.conf.AppConf
 
 case class UserStatus(id: Long, status: String)
@@ -23,12 +23,9 @@ case class ShadowUserData(channel: String, userextid: String, addedby: String, c
 // Shadow user summary in the json will have this POJO
 case class UserSummary(accounts_validated: Long, accounts_rejected: Long, accounts_unclaimed: Long, accounts_failed: Long)
 
-object StateAdminReportJob extends optional.Application with IJob with BaseReportsJob {
+object StateAdminReportJob extends optional.Application with IJob with StateAdminReportHelper {
 
     implicit val className: String = "org.ekstep.analytics.job.StateAdminReportJob"
-    val sunbirdKeyspace = AppConf.getConfig("course.metrics.cassandra.sunbirdKeyspace")
-    val tempDir = AppConf.getConfig("admin.metrics.temp.dir")
-
 
     def name(): String = "StateAdminReportJob"
 
@@ -49,11 +46,7 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
     private def execute(config: JobConfig)(implicit sparkSession: SparkSession, fc: FrameworkContext) = {
 
         val tempDir = AppConf.getConfig("admin.metrics.temp.dir")
-        val renamedDir = s"$tempDir/renamed"
-
         generateReport();
-        val channelSlugMap: Map[String, String] = getChannelSlugMap()
-        renameChannelDirsToSlug(renamedDir, channelSlugMap)
         uploadReport(renamedDir)
         JobLogger.end("StateAdminReportJob completed successfully!", "SUCCESS", Option(Map("config" -> config, "model" -> name)))
     }
@@ -67,7 +60,7 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
         val summaryDir = s"$tempDir/summary"
 
         val shadowDataEncoder = Encoders.product[ShadowUserData].schema
-        val stateAdminReport = new StateAdminReportHelper(sparkSession)
+        //val stateAdminReport = new StateAdminReportHelper(sparkSession)
         val shadowUserDF = loadData(sparkSession, Map("table" -> "shadow_user", "keyspace" -> sunbirdKeyspace), Some(shadowDataEncoder)).as[ShadowUserData]
         val claimedShadowUserDF = shadowUserDF.where(col("claimstatus")=== ClaimedStatus.id)
 
@@ -96,7 +89,8 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
         fSFileUtils.purgeDirectory(detailDir)
         fSFileUtils.purgeDirectory(summaryDir)
 
-        val blockDataWithSlug = stateAdminReport.generateGeoBlockData()
+        val organisationDF = loadOrganisationDF()
+        val blockDataWithSlug = generateGeoBlockData(organisationDF)
         val resultDF = blockDataWithSlug.join(claimedShadowUserDF, blockDataWithSlug.col("externalid") === (claimedShadowUserDF.col("orgextid")),"left")
         resultDF.groupBy(col("slug"),col("District name").as("districtName")).
           agg(countDistinct("Block id").as("blocks"),countDistinct(claimedShadowUserDF.col("orgextid")).as("schools"), count("userextid").as("registered")).write
@@ -106,11 +100,14 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
 
         fSFileUtils.renameReport(summaryDir, renamedDir, ".json", "validated-user-summary-district")
         fSFileUtils.purgeDirectory(summaryDir)
+
+        val channelSlugMap: Map[String, String] = getChannelSlugMap(organisationDF)
+        renameChannelDirsToSlug(renamedDir, channelSlugMap)
         shadowUserDF.distinct()
     }
 
-    private def getChannelSlugMap()(implicit sparkSession: SparkSession): Map[String, String] = {
-      val channelSlugMap: Map[String, String] = loadData(sparkSession, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace), None)
+    private def getChannelSlugMap(organisationDF: DataFrame)(implicit sparkSession: SparkSession): Map[String, String] = {
+      val channelSlugMap: Map[String, String] = organisationDF
         .select(col("channel"), col("slug")).where(col("isrootorg") && col("status").===(1))
         .collect().groupBy(f => f.get(0).asInstanceOf[String]).mapValues(f => f.head.get(1).asInstanceOf[String]);
       return channelSlugMap

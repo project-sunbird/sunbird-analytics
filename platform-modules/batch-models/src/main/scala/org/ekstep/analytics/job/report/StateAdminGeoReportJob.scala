@@ -5,7 +5,7 @@ import org.apache.spark.sql._
 import org.apache.spark.sql.functions.{col, _}
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger}
-import org.ekstep.analytics.util.{HDFSFileUtils, StateAdminReportHelper}
+import org.ekstep.analytics.util.{HDFSFileUtils}
 import org.sunbird.cloud.storage.conf.AppConf
 
 case class RootOrgData(rootorgjoinid: String, rootorgchannel: String, rootorgslug: String)
@@ -13,13 +13,9 @@ case class RootOrgData(rootorgjoinid: String, rootorgchannel: String, rootorgslu
 case class SubOrgRow(id: String, isrootorg: Boolean, rootorgid: String, channel: String, status: String, locationid: String, locationids: Seq[String], orgname: String,
                      explodedlocation: String, locid: String, loccode: String, locname: String, locparentid: String, loctype: String, rootorgjoinid: String, rootorgchannel: String, externalid: String)
 
-object StateAdminGeoReportJob extends optional.Application with IJob with BaseReportsJob {
+object StateAdminGeoReportJob extends optional.Application with IJob with StateAdminReportHelper {
 
   implicit val className: String = "org.ekstep.analytics.job.StateAdminGeoReportJob"
-  val tempDir = AppConf.getConfig("admin.metrics.temp.dir")
-  val renamedDir = s"$tempDir/renamed"
-  val detailDir = s"$tempDir/detail"
-  val summaryDir = s"$tempDir/summary"
   val fSFileUtils = new HDFSFileUtils(className, JobLogger)
 
   def name(): String = "StateAdminGeoReportJob"
@@ -46,8 +42,8 @@ object StateAdminGeoReportJob extends optional.Application with IJob with BaseRe
   }
 
   def generateGeoReport() (implicit sparkSession: SparkSession): DataFrame = {
-    val stateAdminReport = new StateAdminReportHelper(sparkSession)
-    val blockData = stateAdminReport.generateGeoBlockData()
+    val organisationDF: DataFrame = loadOrganisationDF()
+    val blockData:DataFrame = generateGeoBlockData(organisationDF)
     blockData.write
       .partitionBy("slug")
       .mode("overwrite")
@@ -88,3 +84,4 @@ object StateAdminGeoReportJob extends optional.Application with IJob with BaseRe
     storageService.closeContext();
   }
 }
+

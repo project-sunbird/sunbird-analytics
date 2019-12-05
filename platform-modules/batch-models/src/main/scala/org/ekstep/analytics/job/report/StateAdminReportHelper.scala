@@ -1,39 +1,24 @@
-package org.ekstep.analytics.util
+package org.ekstep.analytics.job.report
 
-import org.apache.spark.sql.{Encoders, SparkSession}
+import org.apache.spark.sql.{DataFrame, Encoders, SparkSession}
 import org.apache.spark.sql.functions._
-import org.ekstep.analytics.job.report.StateAdminGeoReportJob.loadData
-import org.ekstep.analytics.job.report.{RootOrgData, SubOrgRow}
 import org.sunbird.cloud.storage.conf.AppConf
 
-class StateAdminReportHelper(sparkSession: SparkSession) {
-  implicit val this.sparkSession = sparkSession
-
+trait StateAdminReportHelper extends  BaseReportsJob {
   val tempDir = AppConf.getConfig("admin.metrics.temp.dir")
+  val sunbirdKeyspace = AppConf.getConfig("course.metrics.cassandra.sunbirdKeyspace")
   val summaryDir = s"$tempDir/summary"
+  val renamedDir = s"$tempDir/renamed"
+  val detailDir = s"$tempDir/detail"
 
-  def generateGeoBlockData()(implicit sparkSession: SparkSession) = {
+  def generateGeoBlockData(organisationDF: DataFrame) (implicit sparkSession: SparkSession) = {
     import sparkSession.implicits._
-    val sunbirdKeyspace = AppConf.getConfig("course.metrics.cassandra.sunbirdKeyspace")
-
     val locationDF = loadData(sparkSession, Map("table" -> "location", "keyspace" -> sunbirdKeyspace), None).select(
       col("id").as("locid"),
       col("code").as("loccode"),
       col("name").as("locname"),
       col("parentid").as("locparentid"),
       col("type").as("loctype"))
-
-    val organisationDF = loadData(sparkSession, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace), None).select(
-      col("id").as("id"),
-      col("isrootorg").as("isrootorg"),
-      col("rootorgid").as("rootorgid"),
-      col("channel").as("channel"),
-      col("status").as("status"),
-      col("locationid").as("locationid"),
-      col("orgname").as("orgname"),
-      col("locationids").as("locationids"),
-      col("externalid").as("externalid"),
-      col("slug").as("slug")).cache();
 
     val rootOrgs = organisationDF.select(col("id").as("rootorgjoinid"), col("channel").as("rootorgchannel"), col("slug").as("rootorgslug")).where(col("isrootorg") && col("status").===(1)).collect();
     val rootOrgRDD = sparkSession.sparkContext.parallelize(rootOrgs.toSeq);
@@ -76,4 +61,19 @@ class StateAdminReportHelper(sparkSession: SparkSession) {
         col("externalid"))
     blockData
   }
+
+  def loadOrganisationDF() (implicit sparkSession: SparkSession)  =  {
+    loadData(sparkSession, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace), None).select(
+    col("id").as("id"),
+    col("isrootorg").as("isrootorg"),
+    col("rootorgid").as("rootorgid"),
+    col("channel").as("channel"),
+    col("status").as("status"),
+    col("locationid").as("locationid"),
+    col("orgname").as("orgname"),
+    col("locationids").as("locationids"),
+    col("externalid").as("externalid"),
+    col("slug").as("slug")).cache();
+  }
+
 }
