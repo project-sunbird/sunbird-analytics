@@ -1,23 +1,14 @@
 package org.ekstep.analytics.job
 
-import org.ekstep.analytics.framework.JobConfig
-import org.ekstep.analytics.framework.Fetcher
-import org.ekstep.analytics.framework.Query
-import org.ekstep.analytics.framework.Dispatcher
-import org.ekstep.analytics.model.SparkSpec
-import org.ekstep.analytics.framework.util.JSONUtils
-import com.datastax.spark.connector._
-import org.ekstep.analytics.framework.util.CommonUtil
-import org.joda.time.DateTime
-import org.ekstep.analytics.util.Constants
-import com.datastax.spark.connector.cql.CassandraConnector
 import java.io.File
-import org.ekstep.analytics.util.RequestFilter
-import org.ekstep.analytics.util.RequestConfig
-import org.ekstep.analytics.util.JobRequest
-import org.apache.commons.io.FileUtils
+
+import com.datastax.spark.connector._
+import com.datastax.spark.connector.cql.CassandraConnector
 import org.ekstep.analytics.framework.conf.AppConf
-import java.util.Arrays
+import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils}
+import org.ekstep.analytics.model.SparkSpec
+import org.ekstep.analytics.util.{Constants, JobRequest, RequestConfig, RequestFilter}
+import org.joda.time.DateTime
 
 class TestDataExhaustJob extends SparkSpec(null) {
 
@@ -38,8 +29,7 @@ class TestDataExhaustJob extends SparkSpec(null) {
         super.afterAll();
     }
 
-     ignore should "execute DataExhaustJob job from local data and won't throw any Exception" in {
-    //"DataExhaustJob" should "execute DataExhaustJob job from local data and won't throw any Exception" in {
+  "DataExhaustJob" should "execute DataExhaustJob job from local data and won't throw any Exception" in {
 
         preProcess()
         rmLocalDir(AppConf.getConfig("data_exhaust.save_config.prefix"))
@@ -51,8 +41,8 @@ class TestDataExhaustJob extends SparkSpec(null) {
         val config = """{"search":{"type":"local","queries":[{"file":"src/test/resources/data-exhaust/creation-raw/2017-06-22-1498096911578.json"}]},"model":"org.ekstep.analytics.model.DataExhaustJobModel", "parallelization":8,"appName":"Data Exhaust","deviceMapping":false,"modelParams":{}, "exhaustConfig":{"eks-consumption-raw":{"events":["DEFAULT"],"eventConfig":{"DEFAULT":{"eventType":"ConsumptionRaw","searchType":"local","fetchConfig":{"params":{"file":"src/test/resources/data-exhaust/consumption-raw/*"}},"filterMapping":{"tags":{"name":"tags","operator":"IN"}}}}}}}"""
         DataExhaustJob.main(config)(Option(sc));
     }
-    
-    ignore should "fetch raw events from raw/ prefix" in {
+
+  "DataExhaustJob" should "fetch raw events from raw/ prefix" in {
         
         preProcess()
         
@@ -68,11 +58,7 @@ class TestDataExhaustJob extends SparkSpec(null) {
         
         val prefix = AppConf.getConfig("data_exhaust.save_config.prefix")
         val bucket = AppConf.getConfig("data_exhaust.save_config.bucket")
-        
-//        val keys = S3Util.getAllKeys(bucket, prefix+"/test_raw").toList
-//        keys.length should be >(0)
-//        keys.contains("_SUCCESS")
-        //S3Util.deleteFolder(bucket, prefix+"/test_raw")
+
     }
 
     "DataExhaustJob" should "output CSV format" in {

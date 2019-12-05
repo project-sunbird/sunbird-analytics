@@ -1,15 +1,12 @@
 package org.ekstep.analytics.job
 
+import java.io.File
+
 import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.ekstep.analytics.framework.conf.AppConf
-import org.ekstep.analytics.model.SparkSpec
+import org.ekstep.analytics.job.report.{BaseReportSpec, CourseMetricsJob, ReportGenerator}
 import org.scalamock.scalatest.MockFactory
-
-import scala.collection.Map
-import org.ekstep.analytics.job.report.ReportGenerator
-import org.ekstep.analytics.job.report.CourseMetricsJob
-import org.ekstep.analytics.job.report.BaseReportSpec
 
 
 class TestCourseMetricsJob extends BaseReportSpec with MockFactory {
@@ -26,7 +23,7 @@ class TestCourseMetricsJob extends BaseReportSpec with MockFactory {
   val sunbirdKeyspace = "sunbird"
 
   override def beforeAll(): Unit = {
-    
+
     super.beforeAll()
     spark = getSparkSession();
 
@@ -101,296 +98,282 @@ class TestCourseMetricsJob extends BaseReportSpec with MockFactory {
   }
 
 
-    "TestUpdateCourseMetrics" should "generate reports" in {
+  "TestUpdateCourseMetrics" should "generate reports" in {
 
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace))
-        .returning(courseBatchDF)
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace))
+      .returning(courseBatchDF)
 
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "user_courses", "keyspace" -> sunbirdCoursesKeyspace))
-        .returning(userCoursesDF)
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user_courses", "keyspace" -> sunbirdCoursesKeyspace))
+      .returning(userCoursesDF)
 
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "user", "keyspace" -> sunbirdKeyspace))
-        .returning(userDF)
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user", "keyspace" -> sunbirdKeyspace))
+      .returning(userDF)
 
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "user_org", "keyspace" -> sunbirdKeyspace))
-        .returning(userOrgDF)
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user_org", "keyspace" -> sunbirdKeyspace))
+      .returning(userOrgDF)
 
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace))
-        .returning(orgDF)
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace))
+      .returning(orgDF)
 
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "location", "keyspace" -> sunbirdKeyspace))
-        .returning(locationDF)
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "location", "keyspace" -> sunbirdKeyspace))
+      .returning(locationDF)
 
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "usr_external_identity", "keyspace" -> sunbirdKeyspace))
-        .returning(externalIdentityDF)
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "usr_external_identity", "keyspace" -> sunbirdKeyspace))
+      .returning(externalIdentityDF)
 
-      val reportDF = CourseMetricsJob
-        .prepareReport(spark, reporterMock.loadData)
-        .cache()
+    val reportDF = CourseMetricsJob
+      .prepareReport(spark, reporterMock.loadData)
+      .cache()
 
-      CourseMetricsJob.saveReport(reportDF,  AppConf.getConfig("course.metrics.temp.dir"))
-      CourseMetricsJob.saveReportES(reportDF)
+    CourseMetricsJob.saveReport(reportDF, AppConf.getConfig("course.metrics.temp.dir"))
+    CourseMetricsJob.saveReportES(reportDF)
 
 
-      assert(reportDF.count == 34)
-      assert(reportDF.groupBy(col("batchid")).count().count() == 10)
+    assert(reportDF.count == 34)
+    assert(reportDF.groupBy(col("batchid")).count().count() == 10)
 
-      val reportData = reportDF
-        .groupBy(col("batchid"))
-        .count()
-        .collect()
+    val reportData = reportDF
+      .groupBy(col("batchid"))
+      .count()
+      .collect()
 
 
-      assert(reportData.filter(row => row.getString(0) == "1001").head.getLong(1) == 2)
-      assert(reportData.filter(row => row.getString(0) == "1002").head.getLong(1) == 3)
-      assert(reportData.filter(row => row.getString(0) == "1003").head.getLong(1) == 4)
-      assert(reportData.filter(row => row.getString(0) == "1004").head.getLong(1) == 4)
-      assert(reportData.filter(row => row.getString(0) == "1005").head.getLong(1) == 4)
-      assert(reportData.filter(row => row.getString(0) == "1006").head.getLong(1) == 4)
-      assert(reportData.filter(row => row.getString(0) == "1007").head.getLong(1) == 4)
-      assert(reportData.filter(row => row.getString(0) == "1008").head.getLong(1) == 3)
-      assert(reportData.filter(row => row.getString(0) == "1009").head.getLong(1) == 3)
-      assert(reportData.filter(row => row.getString(0) == "1010").head.getLong(1) == 3)
+    assert(reportData.filter(row => row.getString(0) == "1001").head.getLong(1) == 2)
+    assert(reportData.filter(row => row.getString(0) == "1002").head.getLong(1) == 3)
+    assert(reportData.filter(row => row.getString(0) == "1003").head.getLong(1) == 4)
+    assert(reportData.filter(row => row.getString(0) == "1004").head.getLong(1) == 4)
+    assert(reportData.filter(row => row.getString(0) == "1005").head.getLong(1) == 4)
+    assert(reportData.filter(row => row.getString(0) == "1006").head.getLong(1) == 4)
+    assert(reportData.filter(row => row.getString(0) == "1007").head.getLong(1) == 4)
+    assert(reportData.filter(row => row.getString(0) == "1008").head.getLong(1) == 3)
+    assert(reportData.filter(row => row.getString(0) == "1009").head.getLong(1) == 3)
+    assert(reportData.filter(row => row.getString(0) == "1010").head.getLong(1) == 3)
 
-    }
+  }
 
-    it should "should calculate the progress" in {
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace))
-        .returning(courseBatchDF)
+  it should "should calculate the progress" in {
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace))
+      .returning(courseBatchDF)
 
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "user_courses", "keyspace" -> sunbirdCoursesKeyspace))
-        .returning(userCoursesDF)
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user_courses", "keyspace" -> sunbirdCoursesKeyspace))
+      .returning(userCoursesDF)
 
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "user", "keyspace" -> sunbirdKeyspace))
-        .returning(userDF)
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user", "keyspace" -> sunbirdKeyspace))
+      .returning(userDF)
 
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "user_org", "keyspace" -> sunbirdKeyspace))
-        .returning(userOrgDF)
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user_org", "keyspace" -> sunbirdKeyspace))
+      .returning(userOrgDF)
 
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace))
-        .returning(orgDF)
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace))
+      .returning(orgDF)
 
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "location", "keyspace" -> sunbirdKeyspace))
-        .returning(locationDF)
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "location", "keyspace" -> sunbirdKeyspace))
+      .returning(locationDF)
 
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "usr_external_identity", "keyspace" -> sunbirdKeyspace))
-        .returning(externalIdentityDF)
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "usr_external_identity", "keyspace" -> sunbirdKeyspace))
+      .returning(externalIdentityDF)
 
-      val reportDF = CourseMetricsJob.prepareReport(spark, reporterMock.loadData)
+    val reportDF = CourseMetricsJob.prepareReport(spark, reporterMock.loadData)
 
-      //sampling report
-      val data1 = reportDF
-        .select("course_completion")
-        .where(col("batchid") === "1007" and col("userid") === "user017")
-        .collect()
+    //sampling report
+    val data1 = reportDF
+      .select("course_completion")
+      .where(col("batchid") === "1007" and col("userid") === "user017")
+      .collect()
 
-      assert(data1.head.getInt(0) == 65)
+    assert(data1.head.getInt(0) == 65)
 
-      val data2 = reportDF
-        .select("course_completion")
-        .where(col("batchid") === "1009" and col("userid") === "user019")
-        .collect()
+    val data2 = reportDF
+      .select("course_completion")
+      .where(col("batchid") === "1009" and col("userid") === "user019")
+      .collect()
 
-      assert(data2.head.get(0) == 0)
+    assert(data2.head.get(0) == 0)
 
-      val districtName = reportDF
-        .select("district_name")
-        .where(col("batchid") === "1006" and col("userid") === "user026")
-        .collect()
+    val districtName = reportDF
+      .select("district_name")
+      .where(col("batchid") === "1006" and col("userid") === "user026")
+      .collect()
 
-      assert(districtName.head.get(0) == "GULBARGA")
-    }
+    assert(districtName.head.get(0) == "GULBARGA")
+  }
 
-    it should "should round course progress to 100 when it is greater than 100" in {
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace))
-        .returning(courseBatchDF)
+  it should "should round course progress to 100 when it is greater than 100" in {
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace))
+      .returning(courseBatchDF)
 
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "user_courses", "keyspace" -> sunbirdCoursesKeyspace))
-        .returning(userCoursesDF)
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user_courses", "keyspace" -> sunbirdCoursesKeyspace))
+      .returning(userCoursesDF)
 
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "user", "keyspace" -> sunbirdKeyspace))
-        .returning(userDF)
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user", "keyspace" -> sunbirdKeyspace))
+      .returning(userDF)
 
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "user_org", "keyspace" -> sunbirdKeyspace))
-        .returning(userOrgDF)
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user_org", "keyspace" -> sunbirdKeyspace))
+      .returning(userOrgDF)
 
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace))
-        .returning(orgDF)
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace))
+      .returning(orgDF)
 
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "location", "keyspace" -> sunbirdKeyspace))
-        .returning(locationDF)
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "location", "keyspace" -> sunbirdKeyspace))
+      .returning(locationDF)
 
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "usr_external_identity", "keyspace" -> sunbirdKeyspace))
-        .returning(externalIdentityDF)
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "usr_external_identity", "keyspace" -> sunbirdKeyspace))
+      .returning(externalIdentityDF)
+
+    val reportDF = CourseMetricsJob.prepareReport(spark, reporterMock.loadData)
 
-      val reportDF = CourseMetricsJob.prepareReport(spark, reporterMock.loadData)
+    val data1 = reportDF
+      .select("course_completion")
+      .where(col("batchid") === "1006" and col("userid") === "user005")
+      .collect()
+
+    assert(data1.head.getInt(0) == 100)
+
+    val data2 = reportDF
+      .select("course_completion")
+      .where(col("batchid") === "1005" and col("userid") === "user004")
+      .collect()
 
-      val data1 = reportDF
-        .select("course_completion")
-        .where(col("batchid") === "1006" and col("userid") === "user005")
-        .collect()
-
-      assert(data1.head.getInt(0) == 100)
-
-      val data2 = reportDF
-        .select("course_completion")
-        .where(col("batchid") === "1005" and col("userid") === "user004")
-        .collect()
-
-      assert(data2.head.getInt(0) == 100)
-    }
-
-    it should "[Issue SB-12141] report should have 1 record for users mapped to two organisation (root and suborg)" in {
-
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace))
-        .returning(courseBatchDF)
-
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "user_courses", "keyspace" -> sunbirdCoursesKeyspace))
-        .returning(userCoursesDF)
-
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "user", "keyspace" -> sunbirdKeyspace))
-        .returning(userDF)
-
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "user_org", "keyspace" -> sunbirdKeyspace))
-        .returning(userOrgDF)
-
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace))
-        .returning(orgDF)
-
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "location", "keyspace" -> sunbirdKeyspace))
-        .returning(locationDF)
-
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "usr_external_identity", "keyspace" -> sunbirdKeyspace))
-        .returning(externalIdentityDF)
-
-      val reportDF = CourseMetricsJob.prepareReport(spark, reporterMock.loadData)
-
-      val data1 = reportDF
-        .where(col("batchid") === "1003" and col("userid") === "user013")
-        .count()
-
-      assert(data1 == 1)
-    }
-
-    it should "[Issue SB-13080] report should have externalid,orgname, block_name, completedOn fields" in {
-
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace))
-        .returning(courseBatchDF)
-
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "user_courses", "keyspace" -> sunbirdCoursesKeyspace))
-        .returning(userCoursesDF)
-
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "user", "keyspace" -> sunbirdKeyspace))
-        .returning(userDF)
-
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "user_org", "keyspace" -> sunbirdKeyspace))
-        .returning(userOrgDF)
-
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace))
-        .returning(orgDF)
-
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "location", "keyspace" -> sunbirdKeyspace))
-        .returning(locationDF)
-
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "usr_external_identity", "keyspace" -> sunbirdKeyspace))
-        .returning(externalIdentityDF)
-
-      val reportDF = CourseMetricsJob.prepareReport(spark, reporterMock.loadData)
-      assert(reportDF.columns.contains("userid").equals(true))
-      assert(reportDF.columns.contains("completedon").equals(true))
-      assert(reportDF.columns.contains("externalid").equals(true))
-      assert(reportDF.columns.contains("block_name").equals(true))
-      // Externalid must not be null for user010, user030
-      val user10DF = reportDF.filter(reportDF.col("userid") === "user010")
-      val is10DFPresent =  user10DF.select("externalid").collect().map(_(0)).toList.contains(null)
-      val user030DF = reportDF.filter(reportDF.col("userid") === "user030")
-      val is30DFPresent =  user030DF.select("externalid").collect().map(_(0)).toList.contains(null)
-      assert(is10DFPresent === false)
-      assert(is30DFPresent === false)
-
-
-    }
-
-    it should "[Issue SB-13080] report should validate the block_name for the locationids " in {
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace))
-        .returning(courseBatchDF)
-
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "user_courses", "keyspace" -> sunbirdCoursesKeyspace))
-        .returning(userCoursesDF)
-
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "user", "keyspace" -> sunbirdKeyspace))
-        .returning(userDF)
-
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "user_org", "keyspace" -> sunbirdKeyspace))
-        .returning(userOrgDF)
-
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace))
-        .returning(orgDF)
-
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "location", "keyspace" -> sunbirdKeyspace))
-        .returning(locationDF)
-
-      (reporterMock.loadData _)
-        .expects(spark, Map("table" -> "usr_external_identity", "keyspace" -> sunbirdKeyspace))
-        .returning(externalIdentityDF)
-
-      val reportDF = CourseMetricsJob.prepareReport(spark, reporterMock.loadData)
-      val result = reportDF.filter(reportDF("userid")==="user030" && reportDF("block_name")==="TUMKUR").count()
-      assert(result===1)
-    }
-  //  it should "[Issue SB-13080] Should create an index " in {
-  //    //case class EsResponse(acknowledged: Boolean, shards_acknowledged: Boolean, index: String, error: Any, status: Any)
-  //    val successResponse = "{\"error\":null,\"status\":null,\"acknowledged\":true,\"index\":null,\"shards_acknowledged\":true}"
-  //    val response = JSONUtils.deserialize[EsResponse](successResponse)
-  //    val date = new DateTime()
-  //    val indexName = "cbatchstats-" + date.getMillis()
-  //    val aliasName = AppConf.getConfig("course.metrics.es.alias")
-  //    when(ESUtilMock.createIndex(indexName, AppConf.getConfig("course.metrics.es.mapping"))).thenReturn(null)
-  //    val result: ESIndexResponse = CourseMetricsJob.createEsIndex(indexName, aliasName)
-  //    println("result" + result)
-  //
-  //  }
+    assert(data2.head.getInt(0) == 100)
+  }
+
+  it should "[Issue SB-12141] report should have 1 record for users mapped to two organisation (root and suborg)" in {
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace))
+      .returning(courseBatchDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user_courses", "keyspace" -> sunbirdCoursesKeyspace))
+      .returning(userCoursesDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user", "keyspace" -> sunbirdKeyspace))
+      .returning(userDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user_org", "keyspace" -> sunbirdKeyspace))
+      .returning(userOrgDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace))
+      .returning(orgDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "location", "keyspace" -> sunbirdKeyspace))
+      .returning(locationDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "usr_external_identity", "keyspace" -> sunbirdKeyspace))
+      .returning(externalIdentityDF)
+
+    val reportDF = CourseMetricsJob.prepareReport(spark, reporterMock.loadData)
+
+    val data1 = reportDF
+      .where(col("batchid") === "1003" and col("userid") === "user013")
+      .count()
+
+    assert(data1 == 1)
+  }
+
+  it should "[Issue SB-13080] report should have externalid,orgname, block_name, completedOn fields" in {
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace))
+      .returning(courseBatchDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user_courses", "keyspace" -> sunbirdCoursesKeyspace))
+      .returning(userCoursesDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user", "keyspace" -> sunbirdKeyspace))
+      .returning(userDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user_org", "keyspace" -> sunbirdKeyspace))
+      .returning(userOrgDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace))
+      .returning(orgDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "location", "keyspace" -> sunbirdKeyspace))
+      .returning(locationDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "usr_external_identity", "keyspace" -> sunbirdKeyspace))
+      .returning(externalIdentityDF)
+
+    val reportDF = CourseMetricsJob.prepareReport(spark, reporterMock.loadData)
+    assert(reportDF.columns.contains("userid").equals(true))
+    assert(reportDF.columns.contains("completedon").equals(true))
+    assert(reportDF.columns.contains("externalid").equals(true))
+    assert(reportDF.columns.contains("block_name").equals(true))
+    // Externalid must not be null for user010, user030
+    val user10DF = reportDF.filter(reportDF.col("userid") === "user010")
+    val is10DFPresent = user10DF.select("externalid").collect().map(_ (0)).toList.contains(null)
+    val user030DF = reportDF.filter(reportDF.col("userid") === "user030")
+    val is30DFPresent = user030DF.select("externalid").collect().map(_ (0)).toList.contains(null)
+    assert(is10DFPresent === false)
+    assert(is30DFPresent === false)
+  }
+
+  it should "[Issue SB-13080] report should validate the block_name for the locationids " in {
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace))
+      .returning(courseBatchDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user_courses", "keyspace" -> sunbirdCoursesKeyspace))
+      .returning(userCoursesDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user", "keyspace" -> sunbirdKeyspace))
+      .returning(userDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "user_org", "keyspace" -> sunbirdKeyspace))
+      .returning(userOrgDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace))
+      .returning(orgDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "location", "keyspace" -> sunbirdKeyspace))
+      .returning(locationDF)
+
+    (reporterMock.loadData _)
+      .expects(spark, Map("table" -> "usr_external_identity", "keyspace" -> sunbirdKeyspace))
+      .returning(externalIdentityDF)
+
+    val reportDF = CourseMetricsJob.prepareReport(spark, reporterMock.loadData)
+    val result = reportDF.filter(reportDF("userid") === "user030" && reportDF("block_name") === "TUMKUR").count()
+    assert(result === 1)
+  }
 
 
   it should "[Issue SB-14781] not have any duplicate userid  in a batch " in {
@@ -505,5 +488,37 @@ class TestCourseMetricsJob extends BaseReportSpec with MockFactory {
     assert(value.isEmpty === true)
   }
 
+  it should "Should able to create a local directory to rename the reports" in {
+    val tempDir = AppConf.getConfig("course.metrics.temp.dir")
+    val df = spark.createDataFrame(Seq(
+      ("", "user010", "Manju", "D R", "****@gmail.com", "*****75643", "org1", "TMK", "NVPHS", "BlockName", "2019-10-11", "100", "2019-11-11", "batch_001")
+    )).toDF("externalid", "userid", "firstname", "lastname", "maskedemail", "maskedphone", "orgname_resolved", "district_name", "schoolname_resolved", "block_name", "enrolleddate", "course_completion", "completedon", "batchid")
+    CourseMetricsJob.saveReport(df, tempDir)
 
+    val renamedDir = s"$tempDir/renamed"
+    val temp = new File(tempDir)
+    val out = new File(renamedDir)
+    try {
+      CourseMetricsJob.renameReport(tempDir, renamedDir);
+      assert(out.exists() === true)
+      assert(temp.exists() === true)
+    } catch {
+      case ex: Exception => assert(ex === null)
+    }
+  }
+
+  it should "Not throw any error if the temp folder is already exists" in {
+    val tempDir = AppConf.getConfig("course.metrics.temp.dir")
+    val renamedDir = s"$tempDir/renamed"
+    val temp = new File(tempDir)
+    val out = new File(renamedDir)
+    temp.mkdirs()
+    out.mkdirs()
+    try {
+      CourseMetricsJob.renameReport(tempDir, renamedDir);
+    } catch {
+      case ex: Exception => assert(ex === null)
+    }
+
+  }
 }
