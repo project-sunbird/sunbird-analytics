@@ -20,11 +20,16 @@ class FrameworkContext {
   }
 
   def getDruidClient() : DruidClient = {
-    return dc;
+    if (dc != null)
+      return dc;
+    else DruidHttpClient.apply(DruidConfig.DefaultConfig)
   }
 
   def shutdownDruidClient() = {
-    if(dc != null) dc.actorSystem.terminate()
+    if(dc != null) {
+      dc.actorSystem.terminate()
+      dc = null;
+    }
   }
   
 }
