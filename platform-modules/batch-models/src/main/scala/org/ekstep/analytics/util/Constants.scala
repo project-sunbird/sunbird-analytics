@@ -1,7 +1,6 @@
 package org.ekstep.analytics.util
 
 import org.ekstep.analytics.framework.conf.AppConf
-import java.net.URLEncoder
 
 object Constants {
 
@@ -37,15 +36,4 @@ object Constants {
     val ELASTIC_SEARCH_SERVICE_ENDPOINT = AppConf.getConfig("elasticsearch.service.endpoint")
     val ELASTIC_SEARCH_INDEX_COMPOSITESEARCH_NAME = AppConf.getConfig("elasticsearch.index.compositesearch.name")
 
-    def getContentList(): String = {
-        s"$LP_URL/v2/analytics/content/list";
-    }
-
-    def getContent(contentId: String): String = {
-        s"$LP_URL/v2/content/" + URLEncoder.encode(contentId, "UTF-8");
-    }
-
-    def getContentUpdateAPIUrl(contentId: String): String = {
-        s"$LP_URL/v2/content/$contentId";
-    }
 }

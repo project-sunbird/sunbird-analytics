@@ -3,7 +3,6 @@ package org.ekstep.analytics.updater
 import com.datastax.spark.connector._
 import com.datastax.spark.connector.cql.CassandraConnector
 import org.apache.spark.rdd.RDD
-import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils}
 import org.ekstep.analytics.model.SparkSpec
 import org.ekstep.analytics.util.{WorkFlowUsageSummaryFact, _}
@@ -51,5 +50,4 @@ class TestUpdatePortalMetrics extends SparkSpec(null) with MockFactory {
     dashboardSummary.totalTimeSpent should be(0.0)
     dashboardSummary.totalContentPlaySessions should be(0)
   }
-
 }
