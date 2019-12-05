@@ -28,7 +28,6 @@ object MetricsAuditModel extends IBatchModelTemplate[Empty, Empty, V3DerivedEven
 
     val auditConfig = config("auditConfig").asInstanceOf[List[Map[String, AnyRef]]]
     val metrics = auditConfig.map{f =>
-      println("config: " + f)
       var metricsEvent: V3DerivedEvent = null
       val queryConfig = JSONUtils.deserialize[JobConfig](JSONUtils.serialize(f))
       val queryType = queryConfig.search.`type`
@@ -39,7 +38,6 @@ object MetricsAuditModel extends IBatchModelTemplate[Empty, Empty, V3DerivedEven
         case "druid" =>
           metricsEvent = getDruidCount(queryConfig)
       }
-      println("metrics" + metricsEvent)
       metricsEvent
     }
     sc.parallelize(metrics)
