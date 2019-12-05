@@ -1,5 +1,6 @@
 package org.ekstep.analytics.framework
 
+import com.typesafe.config.ConfigFactory
 import org.sunbird.cloud.storage.factory.StorageServiceFactory
 import org.sunbird.cloud.storage.factory.StorageConfig
 import org.sunbird.cloud.storage.conf.AppConf
@@ -22,12 +23,20 @@ class FrameworkContext {
   def getDruidClient() : DruidClient = {
     if (dc != null)
       return dc;
-    else DruidHttpClient.apply(DruidConfig.DefaultConfig)
+    else {
+        val config = AppConf.getConfig().getConfig("druid")
+        implicit val druidConfig = DruidConfig(
+            clientBackend = classOf[DruidHttpClient],
+            clientConfig = config.getConfig("client-config")
+        )
+        DruidHttpClient.apply(druidConfig)
+    }
   }
 
   def shutdownDruidClient() = {
     if(dc != null) {
       dc.actorSystem.terminate()
+      dc.shutdown()
       dc = null;
     }
   }
