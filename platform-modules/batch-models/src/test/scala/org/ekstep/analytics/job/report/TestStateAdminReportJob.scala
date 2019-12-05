@@ -1,16 +1,14 @@
 package org.ekstep.analytics.job
 
-import org.apache.spark.sql.DataFrame
-import org.apache.spark.sql.Encoders
-import org.apache.spark.sql.SparkSession
-import org.ekstep.analytics.model.SparkSpec
+import org.apache.spark.sql.{DataFrame, Encoders, SparkSession}
+import org.ekstep.analytics.framework.conf.AppConf
+import org.ekstep.analytics.framework.util.JobLogger
+import org.ekstep.analytics.job.report.StateAdminReportJob.className
+import org.ekstep.analytics.job.report.{BaseReportSpec, BaseReportsJob, ShadowUserData, StateAdminReportJob}
+import org.ekstep.analytics.util.{EmbeddedCassandra, HDFSFileUtils}
 import org.scalamock.scalatest.MockFactory
-import org.ekstep.analytics.job.report.BaseReportsJob
-import org.ekstep.analytics.job.report.StateAdminReportJob
-import org.ekstep.analytics.job.report.ShadowUserData
-import org.ekstep.analytics.util.EmbeddedCassandra
 
-class TestStateAdminReportJob extends SparkSpec(null) with MockFactory {
+class TestStateAdminReportJob extends BaseReportSpec with MockFactory {
 
   implicit var spark: SparkSession = _
   var map: Map[String, String] = _
@@ -32,4 +30,14 @@ class TestStateAdminReportJob extends SparkSpec(null) with MockFactory {
     // There are only 2 state information in the test csv
     assert(reportDF.count() == 3)
   }
+
+  it should "Should able to rename the dir" in {
+    val fsFileUtils = new HDFSFileUtils(className, JobLogger)
+    val files = fsFileUtils.getSubdirectories(s"$AppConf.getConfig('admin.metrics.temp.dir')/renamed")
+    files.map { oneChannelDir =>
+      val newDirName = oneChannelDir.getParent() + "/" + "Test"
+      fsFileUtils.renameDirectory(oneChannelDir.getAbsolutePath(), newDirName)
+    }
+  }
+
 }
