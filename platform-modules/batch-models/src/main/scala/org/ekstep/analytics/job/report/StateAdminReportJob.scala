@@ -97,7 +97,7 @@ object StateAdminReportJob extends optional.Application with IJob with StateAdmi
         // We can directly write to the slug folder
         val blockDataWithSlug = generateGeoBlockData(organisationDF)
         val resultDF = blockDataWithSlug.join(claimedShadowUserDF, blockDataWithSlug.col("externalid") === (claimedShadowUserDF.col("orgextid")),"left")
-        resultDF.groupBy(col("slug"),col("District name").as("districtName")).
+        resultDF.groupBy(col("slug"),col("index"), col("District name").as("districtName")).
           agg(countDistinct("Block id").as("blocks"),countDistinct(claimedShadowUserDF.col("orgextid")).as("schools"), count("userextid").as("registered")).write
           .partitionBy("slug")
           .mode("overwrite")

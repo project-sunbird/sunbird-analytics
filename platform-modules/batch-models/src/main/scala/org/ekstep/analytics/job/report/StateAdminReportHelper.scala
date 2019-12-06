@@ -1,5 +1,6 @@
 package org.ekstep.analytics.job.report
 
+import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.{DataFrame, Encoders, SparkSession}
 import org.apache.spark.sql.functions._
 import org.sunbird.cloud.storage.conf.AppConf
@@ -39,9 +40,11 @@ trait StateAdminReportHelper extends  BaseReportsJob {
     val districtDF = subOrgJoinedDF.where(col("loctype").equalTo("district")).select(col("channel").as("channel"), col("slug"), col("id").as("schoolid"), col("orgname").as("schoolname"), col("locid").as("districtid"), col("locname").as("districtname"));
 
     val blockDF = subOrgJoinedDF.where(col("loctype").equalTo("block")).select(col("id").as("schooljoinid"), col("locid").as("blockid"), col("locname").as("blockname"), col("externalid"));
-
+    val window = Window.partitionBy("slug").orderBy(asc("districtName"))
     val blockData = blockDF.join(districtDF, blockDF.col("schooljoinid").equalTo(districtDF.col("schoolid")), "right_outer").drop(col("schooljoinid")).coalesce(1)
-      .select(col("schoolid").as("School id"),
+      .withColumn("index",row_number().over(window)).select(
+        col("index"),
+        col("schoolid").as("School id"),
         col("schoolname").as("School name"),
         col("channel").as("Channel"),
         col("districtid").as("District id"),
@@ -50,6 +53,7 @@ trait StateAdminReportHelper extends  BaseReportsJob {
         col("blockname").as("Block name"),
         col("slug").as("slug"),
         col("externalid"))
+    blockData.show(10,false)
     blockData
   }
 
