@@ -23,7 +23,7 @@ class TestStateAdminReportJob extends SparkSpec(null) with MockFactory {
   override def beforeAll(): Unit = {
     super.beforeAll()
     spark = getSparkSession();
-    EmbeddedCassandra.loadData("../../platform-modules/batch-models/src/test/resources/reports/reports_test_data.cql"); // Load test data in embedded cassandra server
+    EmbeddedCassandra.loadData("src/test/resources/reports/reports_test_data.cql") // Load test data in embedded cassandra server
   }
 
 
