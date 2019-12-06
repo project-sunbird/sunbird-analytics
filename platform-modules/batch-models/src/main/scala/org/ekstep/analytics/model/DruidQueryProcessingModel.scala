@@ -79,6 +79,7 @@ object DruidQueryProcessingModel  extends IBatchModelTemplate[DruidOutput, Druid
             finalResult.map { f => JSONUtils.deserialize[DruidOutput](JSONUtils.serialize(f._2)) }
         }
         finally {
+            println("inside finally")
             fc.shutdownDruidClient()
         }
     }
