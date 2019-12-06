@@ -43,10 +43,10 @@ import org.scalamock.scalatest.MockFactory
       val auditConfig = "{\"search\":{\"type\":\"none\"},\"model\":\"org.ekstep.analytics.model.MetricsAuditJob\",\"modelParams\":{\"auditConfig\":[{\"name\":\"raw\",\"search\":{\"type\":\"local\",\"queries\":[{\"file\":\"src/test/resources/audit-metrics-report/raw/raw.json\"}]}}]},\"output\":[{\"to\":\"file\",\"params\":{\"file\":\"src/test/resources/audit-metrics-result\"}}],\"parallelization\":8,\"appName\":\"Metrics Audit\"}"
       val config = Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/audit-metrics-report/raw/raw.json")))))
       val testRDD = DataFetcher.fetchBatchData[String](config)
-      testRDD.count() should be (46)
+      testRDD.count() should be (57792)
 
       val metrics = MetricsAuditModel.getTotalSecorCountAudit(testRDD)
-      metrics.filter(f => "inputEvents".equals(f.metric)).map(f => f.value should be (Some(46)))
+      metrics.filter(f => "inputEvents".equals(f.metric)).map(f => f.value should be (Some(57792)))
     }
 
     it should "load failed files from local and give the count for failed backup" in {
