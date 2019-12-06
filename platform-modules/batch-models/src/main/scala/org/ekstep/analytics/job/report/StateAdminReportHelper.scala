@@ -53,7 +53,6 @@ trait StateAdminReportHelper extends  BaseReportsJob {
         col("blockname").as("Block name"),
         col("slug").as("slug"),
         col("externalid"))
-    blockData.show(10,false)
     blockData
   }
 
