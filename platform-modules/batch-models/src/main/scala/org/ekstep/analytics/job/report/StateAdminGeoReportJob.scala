@@ -2,24 +2,21 @@ package org.ekstep.analytics.job.report
 
 import org.apache.spark.SparkContext
 import org.apache.spark.sql._
-import org.apache.spark.sql.functions.{ col, lit, _ }
+import org.apache.spark.sql.functions.{col, _}
 import org.ekstep.analytics.framework._
-import org.ekstep.analytics.framework.util.{ JSONUtils, JobLogger }
-import org.ekstep.analytics.util.HDFSFileUtils
+import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger}
+import org.ekstep.analytics.util.{HDFSFileUtils}
 import org.sunbird.cloud.storage.conf.AppConf
-import org.apache.spark.annotation.DeveloperApi
-import org.apache.spark.annotation.Experimental
-import scala.reflect.ManifestFactory.classType
-import scala.reflect.api.materializeTypeTag
 
 case class RootOrgData(rootorgjoinid: String, rootorgchannel: String, rootorgslug: String)
 
 case class SubOrgRow(id: String, isrootorg: Boolean, rootorgid: String, channel: String, status: String, locationid: String, locationids: Seq[String], orgname: String,
-                     explodedlocation: String, locid: String, loccode: String, locname: String, locparentid: String, loctype: String, rootorgjoinid: String, rootorgchannel: String)
+                     explodedlocation: String, locid: String, loccode: String, locname: String, locparentid: String, loctype: String, rootorgjoinid: String, rootorgchannel: String, externalid: String)
 
-object StateAdminGeoReportJob extends optional.Application with IJob with BaseReportsJob {
+object StateAdminGeoReportJob extends optional.Application with IJob with StateAdminReportHelper {
 
   implicit val className: String = "org.ekstep.analytics.job.StateAdminGeoReportJob"
+  val fSFileUtils = new HDFSFileUtils(className, JobLogger)
 
   def name(): String = "StateAdminGeoReportJob"
 
@@ -39,131 +36,53 @@ object StateAdminGeoReportJob extends optional.Application with IJob with BaseRe
 
   private def execute(config: JobConfig)(implicit sparkSession: SparkSession, fc: FrameworkContext) = {
 
-    val tempDir = AppConf.getConfig("admin.metrics.temp.dir")
-    val renamedDir = s"$tempDir/renamed"
-
-    generateGeoSummaryReport()
+    generateGeoReport()
     uploadReport(renamedDir)
     JobLogger.end("StateAdminGeoReportJob completed successfully!", "SUCCESS", Option(Map("config" -> config, "model" -> name)))
   }
 
-  def generateGeoSummaryReport()(implicit sparkSession: SparkSession) = {
-    import sparkSession.implicits._
-    val sunbirdKeyspace = AppConf.getConfig("course.metrics.cassandra.sunbirdKeyspace")
-    val tempDir = AppConf.getConfig("admin.metrics.temp.dir")
-    val renamedDir = s"$tempDir/renamed"
-
-    val fSFileUtils = new HDFSFileUtils(className, JobLogger)
-
-    val detailDir = s"$tempDir/detail"
-    val summaryDir = s"$tempDir/summary"
-
-    val locationDF = loadData(sparkSession, Map("table" -> "location", "keyspace" -> sunbirdKeyspace), None).select(
-      col("id").as("locid"),
-      col("code").as("loccode"),
-      col("name").as("locname"),
-      col("parentid").as("locparentid"),
-      col("type").as("loctype"))
-
-    val organisationDF = loadData(sparkSession, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace), None).select(
-      col("id").as("id"),
-      col("isrootorg").as("isrootorg"),
-      col("rootorgid").as("rootorgid"),
-      col("channel").as("channel"),
-      col("status").as("status"),
-      col("locationid").as("locationid"),
-      col("orgname").as("orgname"),
-      col("locationids").as("locationids"),
-      col("slug").as("slug")).cache();
-
-    val rootOrgs = organisationDF.select(col("id").as("rootorgjoinid"), col("channel").as("rootorgchannel"), col("slug").as("rootorgslug")).where(col("isrootorg") && col("status").===(1)).collect();
-    val rootOrgRDD = sparkSession.sparkContext.parallelize(rootOrgs.toSeq);
-    val rootOrgEncoder = Encoders.product[RootOrgData].schema
-    val rootOrgDF = sparkSession.createDataFrame(rootOrgRDD, rootOrgEncoder);
-
-    val subOrgDF = organisationDF
-      .withColumn("explodedlocation", explode(when(size(col("locationids")).equalTo(0), array(lit(null).cast("string")))
-        .otherwise(when(col("locationids").isNotNull, col("locationids"))
-          .otherwise(array(lit(null).cast("string"))))))
-
-    val subOrgJoinedDF = subOrgDF
-      .where(col("status").equalTo(1) && not(col("isrootorg")))
-      .join(locationDF, subOrgDF.col("explodedlocation") === locationDF.col("locid"), "left_outer")
-      .join(rootOrgDF, subOrgDF.col("rootorgid") === rootOrgDF.col("rootorgjoinid"), "left_outer").as[SubOrgRow]
-
-    subOrgJoinedDF
-      .groupBy("slug")
-      .agg(countDistinct("id").as("schools"), count(col("locType").equalTo("district")).as("districts"),
-        count(col("locType").equalTo("block")).as("blocks"))
-      .coalesce(1)
-      .write
-      .partitionBy("slug")
-      .mode("overwrite")
-      .json(s"$summaryDir")
-
-    val districtDF = subOrgJoinedDF.where(col("loctype").equalTo("district")).select(col("channel").as("channel"), col("slug"), col("id").as("schoolid"), col("orgname").as("schoolname"), col("locid").as("districtid"), col("locname").as("districtname"));
-    val blockDF = subOrgJoinedDF.where(col("loctype").equalTo("block")).select(col("id").as("schooljoinid"), col("locid").as("blockid"), col("locname").as("blockname"));
-
-    blockDF.join(districtDF, blockDF.col("schooljoinid").equalTo(districtDF.col("schoolid")), "left").drop(col("schooljoinid")).coalesce(1)
-      .select(
-        col("schoolid").as("School id"),
-        col("schoolname").as("School name"),
-        col("channel").as("Channel"),
-        col("districtid").as("District id"),
-        col("districtname").as("District name"),
-        col("blockid").as("Block id"),
-        col("blockname").as("Block name"),
-        col("slug"))
-      .write
+  def generateGeoReport() (implicit sparkSession: SparkSession): DataFrame = {
+    val organisationDF: DataFrame = loadOrganisationDF()
+    val blockData:DataFrame = generateGeoBlockData(organisationDF)
+    blockData.write
       .partitionBy("slug")
       .mode("overwrite")
       .option("header", "true")
       .csv(s"$detailDir")
 
+    blockData
+          .groupBy(col("slug"))
+          .agg(countDistinct("School id").as("schools"),
+            countDistinct(col("District id")).as("districts"),
+            countDistinct(col("Block id")).as("blocks"))
+          .coalesce(1)
+          .write
+          .partitionBy("slug")
+          .mode("overwrite")
+          .json(s"$summaryDir")
+
     fSFileUtils.renameReport(summaryDir, renamedDir, ".json", "geo-summary")
     fSFileUtils.renameReport(detailDir, renamedDir, ".csv", "geo-detail")
     fSFileUtils.purgeDirectory(detailDir)
     fSFileUtils.purgeDirectory(summaryDir)
-
-    blockDF.distinct()
+    districtSummaryReport(blockData)
+    blockData
   }
 
-  def saveGeoDetailsReport(reportDF: DataFrame, url: String): Unit = {
-    reportDF.coalesce(1)
-      .select(
-        col("id").as("School id"),
-        col("orgname").as("School name"),
-        col("channel").as("Channel"),
-        col("status").as("Status"),
-        col("locid").as("Location id"),
-        col("name").as("Location name"),
-        col("parentid").as("Parent location id"),
-        col("type").as("type"))
-      .write
-      .mode("overwrite")
-      .option("header", "true")
-      .csv(url)
-
-    JobLogger.log(s"StateAdminGeoReportJob: uploadedSuccess nRecords = ${reportDF.count()}")
+  def districtSummaryReport(blockData: DataFrame): Unit = {
+    val blockDataWithSlug = blockData.
+      groupBy(col("slug"),col("District name").as("districtName")).
+      agg(countDistinct("Block id").as("blocks"),count("School id").as("schools"))
+    dataFrameToJsonFile(blockDataWithSlug)
+    fSFileUtils.renameReport(summaryDir, renamedDir, ".json", "geo-summary-district")
+    fSFileUtils.purgeDirectory(summaryDir)
   }
 
-  /**
-   * Saves the raw data as a .json.
-   * Appends /summary to the URL to prevent overwrites.
-   * Check function definition for the exact column ordering.
-   * * If we don't partition, the reports get subsequently updated and we dont want so
-   * @param reportDF
-   * @param url
-   */
-  def saveSummaryReport(reportDF: DataFrame, url: String): Unit = {
-    reportDF.coalesce(1)
-      .write
-      .partitionBy("channel")
+  def dataFrameToJsonFile(dataFrame: DataFrame): Unit = {
+    dataFrame.write
+      .partitionBy("slug")
       .mode("overwrite")
-      .json(url)
-
-    JobLogger.log(s"StateAdminGeoReportJob: uploadedSuccess nRecords = ${reportDF.count()}")
-    println(s"StateAdminGeoReportJob: uploadedSuccess nRecords = ${reportDF.count()} and ${url}")
+      .json(s"$summaryDir")
   }
 
   def uploadReport(sourcePath: String)(implicit fc: FrameworkContext) = {

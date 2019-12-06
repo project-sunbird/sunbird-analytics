@@ -23,12 +23,9 @@ case class ShadowUserData(channel: String, userextid: String, addedby: String, c
 // Shadow user summary in the json will have this POJO
 case class UserSummary(accounts_validated: Long, accounts_rejected: Long, accounts_unclaimed: Long, accounts_failed: Long)
 
-object StateAdminReportJob extends optional.Application with IJob with BaseReportsJob {
+object StateAdminReportJob extends optional.Application with IJob with StateAdminReportHelper {
 
     implicit val className: String = "org.ekstep.analytics.job.StateAdminReportJob"
-    val sunbirdKeyspace = AppConf.getConfig("course.metrics.cassandra.sunbirdKeyspace")
-    val tempDir = AppConf.getConfig("admin.metrics.temp.dir")
-
 
     def name(): String = "StateAdminReportJob"
 
@@ -49,16 +46,12 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
     private def execute(config: JobConfig)(implicit sparkSession: SparkSession, fc: FrameworkContext) = {
 
         val tempDir = AppConf.getConfig("admin.metrics.temp.dir")
-        val renamedDir = s"$tempDir/renamed"
-
         generateReport();
-        val channelSlugMap: Map[String, String] = getChannelSlugMap()
-        renameChannelDirsToSlug(renamedDir, channelSlugMap)
         uploadReport(renamedDir)
         JobLogger.end("StateAdminReportJob completed successfully!", "SUCCESS", Option(Map("config" -> config, "model" -> name)))
     }
 
-    def generateReport()(implicit sparkSession: SparkSession) : Dataset[ShadowUserData]  = {
+    def generateReport()(implicit sparkSession: SparkSession)   = {
 
         import sparkSession.implicits._
         val renamedDir = s"$tempDir/renamed"
@@ -67,7 +60,9 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
         val summaryDir = s"$tempDir/summary"
 
         val shadowDataEncoder = Encoders.product[ShadowUserData].schema
+        //val stateAdminReport = new StateAdminReportHelper(sparkSession)
         val shadowUserDF = loadData(sparkSession, Map("table" -> "shadow_user", "keyspace" -> sunbirdKeyspace), Some(shadowDataEncoder)).as[ShadowUserData]
+        val claimedShadowUserDF = shadowUserDF.where(col("claimstatus")=== ClaimedStatus.id)
 
         val shadowDataSummary = generateSummaryData(shadowUserDF)
 
@@ -77,17 +72,48 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
         fSFileUtils.renameReport(detailDir, renamedDir, ".csv", "user-detail")
         fSFileUtils.renameReport(summaryDir, renamedDir, ".json", "user-summary")
 
+
         // Purge the directories after copying to the upload staging area
         fSFileUtils.purgeDirectory(detailDir)
         fSFileUtils.purgeDirectory(summaryDir)
-        shadowUserDF.distinct()
+        // Only claimed used
+        val claimedShadowDataSummaryDF = claimedShadowUserDF.groupBy("channel")
+          .pivot("claimstatus").agg(count("claimstatus")).na.fill(0)
+
+        saveUserValidatedSummaryReport(claimedShadowDataSummaryDF, s"$summaryDir")
+        saveUserDetailsReport(claimedShadowUserDF.toDF(), s"$detailDir")
+
+        fSFileUtils.renameReport(detailDir, renamedDir, ".csv", "validated-user-detail")
+        fSFileUtils.renameReport(summaryDir, renamedDir, ".json", "validated-user-summary")
+
+        // Purge the directories after copying to the upload staging area
+        fSFileUtils.purgeDirectory(detailDir)
+        fSFileUtils.purgeDirectory(summaryDir)
+
+        val organisationDF = loadOrganisationDF()
+        val channelSlugMap: Map[String, String] = getChannelSlugMap(organisationDF)
+        renameChannelDirsToSlug(renamedDir, channelSlugMap)
+
+        // We can directly write to the slug folder
+        val blockDataWithSlug = generateGeoBlockData(organisationDF)
+        val resultDF = blockDataWithSlug.join(claimedShadowUserDF, blockDataWithSlug.col("externalid") === (claimedShadowUserDF.col("orgextid")),"left")
+        resultDF.groupBy(col("slug"),col("District name").as("districtName")).
+          agg(countDistinct("Block id").as("blocks"),countDistinct(claimedShadowUserDF.col("orgextid")).as("schools"), count("userextid").as("registered")).write
+          .partitionBy("slug")
+          .mode("overwrite")
+          .json(s"$summaryDir")
+
+        fSFileUtils.renameReport(summaryDir, renamedDir, ".json", "validated-user-summary-district")
+        fSFileUtils.purgeDirectory(summaryDir)
+
+        blockDataWithSlug
     }
 
-    private def getChannelSlugMap()(implicit sparkSession: SparkSession): Map[String, String] = {
-        val channelSlugMap: Map[String, String] = loadData(sparkSession, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace), None)
-          .select(col("channel"), col("slug")).where(col("isrootorg") && col("status").===(1))
-          .collect().groupBy(f => f.get(0).asInstanceOf[String]).mapValues(f => f.head.get(1).asInstanceOf[String]);
-        return channelSlugMap
+    private def getChannelSlugMap(organisationDF: DataFrame)(implicit sparkSession: SparkSession): Map[String, String] = {
+      val channelSlugMap: Map[String, String] = organisationDF
+        .select(col("channel"), col("slug")).where(col("isrootorg") && col("status").===(1))
+        .collect().groupBy(f => f.get(0).asInstanceOf[String]).mapValues(f => f.head.get(1).asInstanceOf[String]);
+      return channelSlugMap
     }
 
     def generateSummaryData(shadowUserDF: Dataset[ShadowUserData])(implicit spark: SparkSession): DataFrame = {
@@ -140,6 +166,19 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
           .csv(url)
 
         JobLogger.log(s"StateAdminReportJob: uploadedSuccess nRecords = ${reportDF.count()}")
+    }
+
+    def saveUserValidatedSummaryReport(reportDF: DataFrame, url: String): Unit = {
+      reportDF.coalesce(1)
+        .select(
+          col("channel"),
+          when(col(ClaimedStatus.id.toString).isNull, 0).otherwise(col(ClaimedStatus.id.toString)).as("registered"))
+        .write
+        .partitionBy("channel")
+        .mode("overwrite")
+        .json(url)
+
+      JobLogger.log(s"StateAdminReportJob: uploadedSuccess nRecords = ${reportDF.count()}")
     }
 
     def saveUserSummaryReport(reportDF: DataFrame, url: String): Unit = {
@@ -202,6 +241,5 @@ object StateAdminReportJob extends optional.Application with IJob with BaseRepor
         val storageService = getReportStorageService();
         storageService.upload(container, sourcePath, objectKey, isDirectory = Option(true))
         storageService.closeContext();
-        // TODO: Purge the files after uploaded to blob store
     }
 }
