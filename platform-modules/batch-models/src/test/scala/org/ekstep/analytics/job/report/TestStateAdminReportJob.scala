@@ -30,13 +30,4 @@ class TestStateAdminReportJob extends BaseReportSpec with MockFactory {
     assert(reportDF.select("School id").count() == 6)
   }
 
-  it should "Should able to rename the dir" in {
-    val fsFileUtils = new HDFSFileUtils(className, JobLogger)
-    val files = fsFileUtils.getSubdirectories(s"$AppConf.getConfig('admin.metrics.temp.dir')/renamed")
-    files.map { oneChannelDir =>
-      val newDirName = oneChannelDir.getParent() + "/" + "Test"
-      fsFileUtils.renameDirectory(oneChannelDir.getAbsolutePath(), newDirName)
-    }
-  }
-
 }
