@@ -93,7 +93,7 @@ class TestCourseMetricsJob extends BaseReportSpec with MockFactory {
       .read
       .format("com.databricks.spark.csv")
       .option("header", "true")
-      .load("src/test/resources/course-metrics-updater/userOrgTable.csv")
+      .load("src/test/resources/course-metrics-updater/userOrgtable.csv")
       .cache()
   }
 
