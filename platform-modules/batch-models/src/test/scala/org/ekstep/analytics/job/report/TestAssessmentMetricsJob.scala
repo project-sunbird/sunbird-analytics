@@ -109,7 +109,7 @@ class TestAssessmentMetricsJob extends BaseReportSpec with MockFactory {
       .read
       .format("com.databricks.spark.csv")
       .option("header", "true")
-      .load("src/test/resources/assessment-metrics-updater/userOrgTable.csv")
+      .load("src/test/resources/assessment-metrics-updater/userOrgtable.csv")
       .cache()
 
     EmbeddedES.loadData("compositesearch", "cs", Buffer(
