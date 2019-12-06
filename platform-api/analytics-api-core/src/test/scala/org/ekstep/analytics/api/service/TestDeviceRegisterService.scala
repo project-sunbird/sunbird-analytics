@@ -295,9 +295,11 @@ class TestDeviceRegisterService extends BaseSpec {
          |  AND gip.network_last_integer >= 1935923652
                """.stripMargin
 
-    when(postgresDBMock.readLocation(query)).thenReturn(List(DeviceLocation(continentName = "Asia", countryCode = "IN", countryName = "India", stateCode = "KA",
-      state = null, subDivsion2 = null, city = null,
-      stateCustom = "", stateCodeCustom = "29", districtCustom = null)))
+    when(postgresDBMock.readLocation(query)).thenReturn(List(
+      DeviceLocation(continentName = "Asia", countryCode = "IN", countryName = "India", stateCode = "KA",
+        state = null, subDivsion2 = null, city = null,
+        stateCustom = "", stateCodeCustom = "29", districtCustom = null))
+    )
 
     deviceRegisterActorRef.tell(RegisterDevice(did = "device-001", headerIP = "115.99.217.196", ip_addr = Option("115.99.217.196"), fcmToken = Option("some-token"), producer = Option("prod.diksha.app"), dspec = Option(deviceSpec), uaspec = Option(uaspec), first_access = Option(123456789), user_declared_state = None, user_declared_district = None), ActorRef.noSender)
     verify(postgresDBMock, times(2)).readLocation(query)
