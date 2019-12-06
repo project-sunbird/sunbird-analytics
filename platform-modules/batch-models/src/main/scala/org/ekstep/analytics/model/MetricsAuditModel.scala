@@ -9,7 +9,8 @@ import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils}
 
 case class DruidMetrics(total_count: Long, date: String)
-case class V3Flags(flag: V3FlagContent)
+@scala.beans.BeanInfo
+case class V3Flags(flags: V3FlagContent)
 case class V3ContextEvent(context: V3Context)
 
 object MetricsAuditModel extends IBatchModelTemplate[Empty, Empty, V3DerivedEvent, V3DerivedEvent] with Serializable {
@@ -32,7 +33,7 @@ object MetricsAuditModel extends IBatchModelTemplate[Empty, Empty, V3DerivedEven
       val queryType = queryConfig.search.`type`
 
       queryType match {
-        case "azure" =>
+        case "azure" | "local" =>
           metricsEvent = getSecorMetrics(queryConfig)
         case "druid" =>
           metricsEvent = getDruidCount(queryConfig)
@@ -80,11 +81,14 @@ object MetricsAuditModel extends IBatchModelTemplate[Empty, Empty, V3DerivedEven
   }
 
   def getDenormSecorAudit(rdd: RDD[V3Flags], filters: Array[Filter])(implicit sc: SparkContext): List[V3MetricEdata] = {
-    val count = rdd.count()
+    val denormCount = rdd.count()
     val metricData = filters.map{f =>
-      V3MetricEdata(f.name.substring(6), Option(DataFilter.filter(rdd, f).count()))
-    }.toList
-    metricData
+      val filteredRdd = rdd.filter(x => null != x.flags)
+      val filterCount = DataFilter.filter(filteredRdd, f).count()
+      val diff = if(denormCount > 0) filterCount * 100 / denormCount else 0
+      List(V3MetricEdata(f.name.substring(6), Option(filterCount)), V3MetricEdata("percentage_events_with_" + f.name.substring(6), Some(diff)))
+    }.flatten.toList
+    metricData ++ List(V3MetricEdata("count", Some(denormCount)))
   }
 
   def getDruidCount(queryConfig: JobConfig)(implicit sc: SparkContext): V3DerivedEvent = {
