@@ -69,4 +69,23 @@ class TestDeviceProfileService extends BaseSpec {
     verify(H2DBMock, times(1)).readLocation(query)
   }
 
+  "Device profileService" should "When state is not defined" in {
+
+    val query =
+      s"""
+         |SELECT
+         |  glc.subdivision_1_name state,
+         |  glc.subdivision_2_custom_name district_custom
+         |FROM $geoLocationCityIpv4TableName gip,
+         |  $geoLocationCityTableName glc
+         |WHERE gip.geoname_id = glc.geoname_id
+         |  AND gip.network_start_integer <= 1781746361
+         |  AND gip.network_last_integer >= 1781746361
+               """.stripMargin
+    when(H2DBMock.readLocation(query)).thenReturn(DeviceStateDistrict("", ""))
+    when(redisUtilMock.getAllByKey("device-001")).thenReturn(Some(Map("user_declared_state" -> "Karnatka", "user_declared_district" -> "Tumkur")))
+    deviceProfileServiceActorRef.tell(DeviceProfileRequest("device-001", "106.51.74.185"), ActorRef.noSender)
+    verify(H2DBMock, times(2)).readLocation(query)
+  }
+
 }
