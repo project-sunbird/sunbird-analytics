@@ -6,7 +6,6 @@ import com.google.common.collect._
 import com.typesafe.config.Config
 import javax.inject.{Inject, _}
 import org.ekstep.analytics.api._
-import org.ekstep.analytics.framework.util.RestUtil
 import org.joda.time.{DateTime, DateTimeZone}
 import scalikejdbc._
 
@@ -132,16 +131,6 @@ class CacheUtil @Inject()(postgresDB: PostgresDBUtil, H2DB: H2DBUtil) {
       if (!languageMap.isEmpty) languageMap.empty;
       initCache();
     }
-  }
-
-  def _search(offset: Int, limit: Int)(implicit config: Config): ContentResult = {
-    val baseUrl = config.getString("service.search.url");
-    val searchPath = config.getString("service.search.path");
-    val searchUrl = s"$baseUrl$searchPath";
-    val requestStr = config.getString("service.search.requestbody");
-    val request = if (requestStr != null) requestStr else JSONUtils.serialize(Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Resource"), "status" -> List("Live")), "exists" -> List("downloadUrl"), "offset" -> offset, "limit" -> limit)))
-    val resp = RestUtil.post[ContentResponse](searchUrl, request);
-    resp.result;
   }
 }
 

@@ -14,9 +14,9 @@ class TestDeviceProfileService extends BaseSpec {
   private val configMock = mock[Config]
   private val redisUtilMock = mock[RedisUtil]
   private val H2DBMock = mock[H2DBUtil]
+  val redisIndex: Int = config.getInt("redis.deviceIndex")
   implicit val executor = scala.concurrent.ExecutionContext.global
   implicit val jedisConnection = redisUtilMock.getConnection(redisIndex)
-  val redisIndex: Int = config.getInt("redis.deviceIndex")
   val saveMetricsActor = TestActorRef(new SaveMetricsActor)
   val metricsActorProbe = TestProbe()
   when(configMock.getString("postgres.table.geo_location_city.name")).thenReturn("geo_location_city")

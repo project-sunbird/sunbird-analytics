@@ -1,20 +1,58 @@
 package org.ekstep.analytics.api.service
 
-import scala.collection.immutable.List
-
+import com.typesafe.config.ConfigFactory
 import org.apache.commons.lang3.StringUtils
+import org.cassandraunit.CQLDataLoader
+import org.cassandraunit.dataset.cql.FileCQLDataSet
+import org.cassandraunit.utils.EmbeddedCassandraServerHelper
 import org.ekstep.analytics.api._
 import org.ekstep.analytics.api.util._
+import org.ekstep.analytics.framework.FrameworkContext
 import org.ekstep.analytics.framework.conf.AppConf
-import org.joda.time.DateTime
-import org.joda.time.LocalDate
+import org.joda.time.{DateTime, LocalDate}
+import org.scalamock.scalatest.MockFactory
+import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
+import org.sunbird.cloud.storage.BaseStorageService
 
-class TestJobAPIService extends BaseSpec {
+import scala.collection.immutable.List
+
+class TestJobAPIService extends FlatSpec with Matchers with BeforeAndAfterAll with MockFactory {
+  implicit val mockFc = mock[FrameworkContext];
+  implicit val config = ConfigFactory.load()
+
+  override def beforeAll() {
+    if (embeddedCassandraMode) {
+      System.setProperty("cassandra.unsafesystem", "true")
+      EmbeddedCassandraServerHelper.startEmbeddedCassandra(20000L)
+      val session = DBUtil.session
+      val dataLoader = new CQLDataLoader(session);
+      dataLoader.load(new FileCQLDataSet(AppConf.getConfig("cassandra.cql_path"), true, true));
+    }
+  }
+
+  override def afterAll() {
+    if (embeddedCassandraMode) {
+      EmbeddedCassandraServerHelper.cleanEmbeddedCassandra()
+      EmbeddedCassandraServerHelper.stopEmbeddedCassandra()
+    }
+  }
+
+  private def embeddedCassandraMode(): Boolean = {
+    val isEmbedded = AppConf.getConfig("cassandra.service.embedded.enable")
+    StringUtils.isNotBlank(isEmbedded) && StringUtils.equalsIgnoreCase("true", isEmbedded)
+  }
+
+  def loadFileData[T](file: String)(implicit mf: Manifest[T]): Array[T] = {
+    if (file == null) {
+      return null
+    }
+    scala.io.Source.fromFile(file).getLines().toList.map(line => JSONUtils.deserialize[T](line)).filter { x => x != null }.toArray
+  }
+
 
   "JobAPIService" should "return response for data request" in {
     val request = """{"id":"ekstep.analytics.data.out","ver":"1.0","ts":"2016-12-07T12:40:40+05:30","params":{"msgid":"4f04da60-1e24-4d31-aa7b-1daf91c46341","client_key":"dev-portal"},"request":{"output_format": "json", "filter":{"start_date":"2016-09-01","end_date":"2016-09-20","tags":["6da8fa317798fd23e6d30cdb3b7aef10c7e7bef5"]}}}"""
     val response = JobAPIService.dataRequest(request, "in.ekstep")
-    println(response)
     response.responseCode should be("OK")
   }
 
@@ -128,8 +166,8 @@ class TestJobAPIService extends BaseSpec {
 
   }
 
-  // Channel Exhaust Test Cases
-  // -ve Test cases
+  //  // Channel Exhaust Test Cases
+  //  // -ve Test cases
   it should "return a CLIENT_ERROR in the response if we set `datasetID` other than these ('raw', 'summary', 'metrics', 'failed')" in {
     val datasetId = "test"
     val resObj = JobAPIService.getChannelData("in.ekstep", datasetId, "2018-05-14", "2018-05-15", None)
@@ -157,7 +195,7 @@ class TestJobAPIService extends BaseSpec {
     resObj.responseCode should be("CLIENT_ERROR")
     resObj.params.errmsg should be("'to' should be LESSER OR EQUAL TO today's date..")
   }
-
+  //
   it should "return a CLIENT_ERROR in the response if date_range > 10" in {
     val toDate = new LocalDate().toString()
     val fromDate = new LocalDate().minusDays(11).toString()
@@ -166,9 +204,9 @@ class TestJobAPIService extends BaseSpec {
     resObj.responseCode should be("CLIENT_ERROR")
     resObj.params.errmsg should be("Date range should be < 10 days")
   }
-
-  // +ve test cases
-
+  //
+  //  // +ve test cases
+  //
   ignore should "return a successfull response if 'to' is empty" in {
     val toDate = ""
     val resObj = JobAPIService.getChannelData("in.ekstep", "raw", "2018-05-20", toDate, None)
@@ -181,10 +219,17 @@ class TestJobAPIService extends BaseSpec {
     resObj.responseCode should be("OK")
   }
 
-  ignore should "return a successfull response if we pass code=ds" in {
+  it should "Return the Success API Response" in {
+    val mockStorageService = mock[BaseStorageService]
+    (mockFc.getStorageService(_: String)).expects(*).returns(mockStorageService).anyNumberOfTimes();
+    (mockStorageService.upload _).expects(*, *, *, *, *, *, *).returns("").anyNumberOfTimes();
+    (mockStorageService.getSignedURL _).expects(*, *, *, *).returns("").anyNumberOfTimes();
+    (mockStorageService.searchObjectkeys _).expects(*, *, *, *, *, *).returns(List("")).anyNumberOfTimes();
+    (mockStorageService.closeContext _).expects().returns().anyNumberOfTimes()
     val resObj = JobAPIService.getChannelData("in.ekstep", "raw", "2018-05-20", "2018-05-20", Option("device-summary"))
     resObj.responseCode should be("OK")
     val res = resObj.result.getOrElse(Map())
+    println("res" + res)
     res.contains("telemetryURLs") should be(true)
   }
 }
