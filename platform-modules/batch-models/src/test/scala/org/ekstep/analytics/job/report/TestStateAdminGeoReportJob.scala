@@ -26,6 +26,7 @@ class TestStateAdminGeoReportJob extends SparkSpec(null) with MockFactory {
     val reportDF = StateAdminGeoReportJob.generateGeoReport()(spark)
     assert(reportDF.count() === 6)
     //for geo report we expect these columns
+    assert(reportDF.columns.contains("index") === true)
     assert(reportDF.columns.contains("School id") === true)
     assert(reportDF.columns.contains("School name") === true)
     assert(reportDF.columns.contains("Channel") === true)
