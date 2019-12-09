@@ -88,4 +88,23 @@ class TestDeviceProfileService extends BaseSpec {
     verify(H2DBMock, times(2)).readLocation(query)
   }
 
+
+  "Device profileService" should "catch the exception" in {
+    intercept[Exception] {
+      val query =
+        s"""
+           |SELECT
+           |  glc.subdivision_1_name state,
+           |  glc.subdivision_2_custom_name district_custom
+           |FROM $geoLocationCityIpv4TableName gip,
+           |  $geoLocationCityTableName glc
+           |WHERE gip.geoname_id = glc.geoname_id
+           |  AND gip.network_start_integer <= 1781746361
+           |  AND gip.network_last_integer >= 1781746361
+               """.stripMargin
+      when(H2DBMock.readLocation(query)).thenThrow(new Exception("Error"))
+      deviceProfileServiceActorRef.tell(DeviceProfileRequest("device-001", "106.51.74.185"), ActorRef.noSender)
+    }
+  }
+
 }

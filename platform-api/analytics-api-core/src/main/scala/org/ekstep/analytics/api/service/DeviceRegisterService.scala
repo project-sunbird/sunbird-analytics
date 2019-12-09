@@ -7,7 +7,7 @@ import com.typesafe.config.Config
 import is.tagomor.woothee.Classifier
 import javax.inject.{Inject, Named}
 import org.apache.logging.log4j.LogManager
-import org.ekstep.analytics.api.util.{DeviceStateDistrict, H2DBUtil, _}
+import org.ekstep.analytics.api.util.{H2DBUtil, _}
 import org.joda.time.{DateTime, DateTimeZone}
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.exceptions.JedisConnectionException
@@ -69,17 +69,8 @@ class DeviceRegisterService @Inject()(
                         "params" -> List(Map("status" -> 500, "method" -> "POST",
                             "rid" -> "registerDevice", "title" -> "registerDevice")), "data" -> errorMessage)),
                         "registerDevice")
-                case ex: Exception =>
-                    ex.printStackTrace()
-                    val errorMessage = "DeviceRegisterAPI failed due to " + ex.getMessage
-                    APILogger.log("", Option(Map("type" -> "api_access",
-                        "params" -> List(Map("status" -> 500, "method" -> "POST",
-                            "rid" -> "registerDevice", "title" -> "registerDevice")), "data" -> errorMessage)),
-                        "registerDevice")
             }
     }
-
-
     def registerDevice(registrationDetails: RegisterDevice) {
         val validIp = if (registrationDetails.headerIP.startsWith("192")) registrationDetails.ip_addr.getOrElse("") else registrationDetails.headerIP
         if (validIp.nonEmpty) {
