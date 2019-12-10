@@ -1,12 +1,11 @@
 package org.ekstep.analytics.job
 
+import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.ekstep.analytics.model.SparkSpec
 import org.scalamock.scalatest.MockFactory
-import org.ekstep.analytics.job.report.StateAdminGeoReportJob
-import org.ekstep.analytics.job.report.BaseReportsJob
+import org.ekstep.analytics.job.report.{BaseReportsJob, StateAdminGeoReportJob}
 import org.ekstep.analytics.util.EmbeddedCassandra
-import org.sunbird.cloud.storage.conf.AppConf
 
 class TestStateAdminGeoReportJob extends SparkSpec(null) with MockFactory {
 
@@ -26,26 +25,21 @@ class TestStateAdminGeoReportJob extends SparkSpec(null) with MockFactory {
   "StateAdminGeoReportJob" should "generate reports" in {
     val reportDF = StateAdminGeoReportJob.generateGeoReport()(spark)
     assert(reportDF.count() === 6)
+    //for geo report we expect these columns
+    assert(reportDF.columns.contains("index") === true)
+    assert(reportDF.columns.contains("School id") === true)
+    assert(reportDF.columns.contains("School name") === true)
+    assert(reportDF.columns.contains("Channel") === true)
+    assert(reportDF.columns.contains("District id") === true)
+    assert(reportDF.columns.contains("District name") === true)
+    assert(reportDF.columns.contains("Block id") === true)
+    assert(reportDF.columns.contains("Block name") === true)
+    assert(reportDF.columns.contains("slug") === true)
+    assert(reportDF.columns.contains("externalid") === true)
+    val apslug = reportDF.where(col("slug") === "ApSlug")
+    val school_name = apslug.select("School name").collect().map(_ (0)).toList
+    assert(school_name(0) === "MPPS SIMHACHALNAGAR")
+    assert(school_name(1) === "Another school")
     assert(reportDF.select("District id").distinct().count == 4)
-  }
-
-  "StateAdminGeoReportJob" should "able to saveGeoDetailsReport" in {
-    val tempDir = AppConf.getConfig("admin.metrics.temp.dir")
-    val df = spark.createDataFrame(Seq(
-      ("school_123", "NVPHS", "564378567534", "true", "location_123", "tumkur", "bengaluru", ""),
-      ("school_222", "SSIT", "564578348", "true", "location_123", "tumkur", "bengaluru", "")
-    )).toDF("id", "orgname", "channel", "status", "locid", "name", "parentid", "type")
-
-    StateAdminGeoReportJob.saveGeoDetailsReport(df, tempDir)
-  }
-
-  "StateAdminGeoReportJob" should "able to saveSummaryReport" in {
-    val tempDir = AppConf.getConfig("admin.metrics.temp.dir")
-    val df = spark.createDataFrame(Seq(
-      ("0", "0", "1", "1", "0", "1", "1", "org.sunbird"),
-      ("1", "0", "1", "3", "0", "1", "1", "54735743")
-    )).toDF("accounts_unclaimed", "accounts_validated",
-      "accounts_rejected", "FAILED", "MULTIMATCH", "ORGEXTIDMISMATCH", "accounts_failed", "channel")
-    StateAdminGeoReportJob.saveSummaryReport(df, tempDir)
   }
 }

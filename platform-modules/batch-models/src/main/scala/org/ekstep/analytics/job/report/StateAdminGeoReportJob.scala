@@ -5,7 +5,7 @@ import org.apache.spark.sql._
 import org.apache.spark.sql.functions.{col, _}
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger}
-import org.ekstep.analytics.util.{HDFSFileUtils}
+import org.ekstep.analytics.util.HDFSFileUtils
 import org.sunbird.cloud.storage.conf.AppConf
 
 case class RootOrgData(rootorgjoinid: String, rootorgchannel: String, rootorgslug: String)
@@ -71,7 +71,7 @@ object StateAdminGeoReportJob extends optional.Application with IJob with StateA
 
   def districtSummaryReport(blockData: DataFrame): Unit = {
     val blockDataWithSlug = blockData.
-      groupBy(col("slug"),col("District name").as("districtName")).
+      groupBy(col("slug"),col("index"),col("District name").as("districtName")).
       agg(countDistinct("Block id").as("blocks"),count("School id").as("schools"))
     dataFrameToJsonFile(blockDataWithSlug)
     fSFileUtils.renameReport(summaryDir, renamedDir, ".json", "geo-summary-district")

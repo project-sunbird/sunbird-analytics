@@ -1,11 +1,9 @@
 package org.ekstep.analytics.job
 
+import org.apache.spark.sql.functions.{col}
 import org.apache.spark.sql.{DataFrame, Encoders, SparkSession}
-import org.ekstep.analytics.framework.conf.AppConf
-import org.ekstep.analytics.framework.util.JobLogger
-import org.ekstep.analytics.job.report.StateAdminReportJob.className
 import org.ekstep.analytics.job.report.{BaseReportSpec, BaseReportsJob, ShadowUserData, StateAdminReportJob}
-import org.ekstep.analytics.util.{EmbeddedCassandra, HDFSFileUtils}
+import org.ekstep.analytics.util.{EmbeddedCassandra}
 import org.scalamock.scalatest.MockFactory
 
 class TestStateAdminReportJob extends BaseReportSpec with MockFactory {
@@ -27,16 +25,15 @@ class TestStateAdminReportJob extends BaseReportSpec with MockFactory {
 
   "StateAdminReportJob" should "generate reports" in {
     val reportDF = StateAdminReportJob.generateReport()(spark)
-    assert(reportDF.select("School id").count() == 6)
-  }
-
-  it should "Should able to rename the dir" in {
-    val fsFileUtils = new HDFSFileUtils(className, JobLogger)
-    val files = fsFileUtils.getSubdirectories(s"$AppConf.getConfig('admin.metrics.temp.dir')/renamed")
-    files.map { oneChannelDir =>
-      val newDirName = oneChannelDir.getParent() + "/" + "Test"
-      fsFileUtils.renameDirectory(oneChannelDir.getAbsolutePath(), newDirName)
-    }
+    assert(reportDF.columns.contains("index") === true)
+    assert(reportDF.columns.contains("registered") === true)
+    assert(reportDF.columns.contains("blocks") === true)
+    assert(reportDF.columns.contains("schools") === true)
+    assert(reportDF.columns.contains("districtName") === true)
+    assert(reportDF.columns.contains("slug") === true)
+    val apslug = reportDF.where(col("slug") === "ApSlug")
+    val districtName = apslug.select("districtName").collect().map(_ (0)).toList
+    assert(districtName(0) === "GULBARGA")
   }
 
 }
