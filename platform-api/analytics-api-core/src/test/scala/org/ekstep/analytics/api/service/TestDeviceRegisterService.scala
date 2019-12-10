@@ -146,41 +146,9 @@ class TestDeviceRegisterService extends BaseSpec {
     uaspecResult should be(None)
   }
 
-  /*
-  "Resolve location for get device profile" should "return location details given an IP address" in {
-    when(deviceRegisterServiceMock.resolveLocationFromH2(ipAddress = "106.51.74.185"))
-      .thenReturn(DeviceStateDistrict("Karnataka", "BANGALORE"))
-    val deviceLocation = deviceRegisterServiceMock.resolveLocationFromH2("106.51.74.185")
-    deviceLocation.state should be("Karnataka")
-    deviceLocation.districtCustom should be("BANGALORE")
-  }
-
-  "Resolve location for get device profile" should "return empty location if the IP address is not found" in {
-    when(deviceRegisterServiceMock.resolveLocationFromH2(ipAddress = "106.51.74.185"))
-      .thenReturn(new DeviceStateDistrict())
-    val deviceLocation = deviceRegisterServiceMock.resolveLocationFromH2("106.51.74.185")
-    deviceLocation.state should be("")
-    deviceLocation.districtCustom should be("")
-  }
-  */
-
   "Resolve declared location for get device profile" should "return declared location details" in {
     when(redisUtilMock.getAllByKey("test-device"))
       .thenReturn(Option(Map("user_declared_state" -> "Karnataka", "user_declared_district" -> "BANGALORE")))
-    //    when(deviceRegisterServiceMock.resolveLocationFromH2(ipAddress = "106.51.74.185"))
-    //      .thenReturn(DeviceStateDistrict("Karnataka", "BANGALORE"))
-    //    val deviceLocation = deviceRegisterServiceMock.getDeviceProfile(GetDeviceProfile("test-device", "106.51.74.185"))
-    //
-    //    deviceLocation onComplete {
-    //      case Success(value) => {
-    //        value.get.userDeclaredLocation.get.state should be ("Karnataka")
-    //        value.get.userDeclaredLocation.get.district should be ("BANGALORE")
-    //        value.get.ipLocation.get.state should be ("Karnataka")
-    //        value.get.ipLocation.get.district should be ("BANGALORE")
-    //      }
-    //      case Failure(error) => error.printStackTrace()
-    //    }
-
     val deviceLocation = redisUtilMock.getAllByKey("test-device")
     deviceLocation.get.get("user_declared_state").getOrElse() should be("Karnataka")
     deviceLocation.get.get("user_declared_district").getOrElse() should be("BANGALORE")
@@ -233,30 +201,6 @@ class TestDeviceRegisterService extends BaseSpec {
 
   }
 
-
-  //  "Device profile actor" should "get device profile for particular device ID" in {
-  //    import akka.pattern.ask
-  //    implicit val timeout: Timeout = 20 seconds
-  //    val query =
-  //      s"""
-  //         |SELECT
-  //         |  glc.subdivision_1_name state,
-  //         |  glc.subdivision_2_custom_name district_custom
-  //         |FROM $geoLocationCityIpv4TableName gip,
-  //         |  $geoLocationCityTableName glc
-  //         |WHERE gip.geoname_id = glc.geoname_id
-  //         |  AND gip.network_start_integer <= 1935923652
-  //         |  AND gip.network_last_integer >= 1935923652
-  //               """.stripMargin
-  //
-  //    when(H2DBMock.readLocation(query)).thenReturn(DeviceStateDistrict("Karnataka", "KA"))
-  //
-  //    val response = (deviceRegisterActorRef ? GetDeviceProfile(did = "Device-2", headerIP = "115.99.217.196")).mapTo[Option[DeviceProfile]]
-  //    response.map { deviceData =>
-  //      deviceData.get.ipLocation.getOrElse(None) should be eq (Location("Karnataka", "KA"))
-  //    }
-  //  }
-
   "Device Register" should "get device profile map which will be saved to redis" in {
     val register = RegisterDevice("test-device", "106.51.74.185", None, None, None, Option(""), None, None, Option("Karnataka"), Option("BANGALORE"))
     val location = new DeviceLocation()
@@ -304,6 +248,4 @@ class TestDeviceRegisterService extends BaseSpec {
     deviceRegisterActorRef.tell(RegisterDevice(did = "device-001", headerIP = "115.99.217.196", ip_addr = Option("115.99.217.196"), fcmToken = Option("some-token"), producer = Option("prod.diksha.app"), dspec = Option(deviceSpec), uaspec = Option(uaspec), first_access = Option(123456789), user_declared_state = None, user_declared_district = None), ActorRef.noSender)
     verify(postgresDBMock, times(2)).readLocation(query)
   }
-
-
 }
