@@ -1,30 +1,19 @@
 package org.ekstep.analytics.framework.fetcher
 
-import ing.wbaa.druid.definitions.{AggregationType, PostAggregationType}
-import org.ekstep.analytics.framework.{PostAggregationFields, SparkSpec}
-import org.ekstep.analytics.framework.DruidFilter
-import org.ekstep.analytics.framework.DruidQueryModel
-import org.ekstep.analytics.framework.Aggregation
-import org.ekstep.analytics.framework.DruidDimension
-import org.ekstep.analytics.framework.FrameworkContext
-import org.ekstep.analytics.framework.GroupByPid
-import org.ekstep.analytics.framework.TimeSeriesData
-import org.scalamock.scalatest.MockFactory
-import org.scalatest.Matchers
-import ing.wbaa.druid._
-import java.time.ZonedDateTime
+import java.time.{ZoneOffset, ZonedDateTime}
 
+import cats.syntax.either._
+import ing.wbaa.druid._
+import ing.wbaa.druid.client.DruidClient
+import ing.wbaa.druid.definitions.{AggregationType, PostAggregationType}
 import io.circe._
 import io.circe.parser._
-import cats.syntax.either._
-import java.time.ZoneId
-import java.time.ZoneOffset
+import org.ekstep.analytics.framework._
+import org.scalamock.scalatest.MockFactory
+import org.scalatest.Matchers
 
-import ing.wbaa.druid.client.DruidClient
-
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.concurrent._
-import ExecutionContext.Implicits.global
 
 class TestDruidDataFetcher extends SparkSpec with Matchers with MockFactory {
 
@@ -129,9 +118,9 @@ class TestDruidDataFetcher extends SparkSpec with Matchers with MockFactory {
     
     it should "fetch the data from druid using groupBy query type" in {
 
-        val query = DruidQueryModel("groupBy", "telemetry-events", "LastWeek", Option("all"), Option(List(Aggregation(Option("count"), "count", ""),Aggregation(Option("total_duration"), "doubleSum", "edata_duration"))), Option(List(DruidDimension("context_pdata_id", Option("producer_id")), DruidDimension("context_pdata_pid", Option("producer_pid")))), Option(List(DruidFilter("in", "eid", None, Option(List("START", "END"))))))
+        val query = DruidQueryModel("groupBy", "telemetry-events", "2019-11-01/2019-11-02", Option("all"), Option(List(Aggregation(Option("count"), "count", ""),Aggregation(Option("total_duration"), "doubleSum", "edata_duration"))), Option(List(DruidDimension("context_pdata_id", Option("producer_id")), DruidDimension("context_pdata_pid", Option("producer_pid")))), Option(List(DruidFilter("in", "eid", None, Option(List("START", "END"))))))
         val druidQuery = DruidDataFetcher.getDruidQuery(query)
-        druidQuery.toString() should be ("GroupByQuery(List(CountAggregation(count), DoubleSumAggregation(total_duration,edata_duration)),List(2019-11-25/2019-12-02),Some(AndFilter(List(InFilter(eid,List(START, END),None)))),List(DefaultDimension(context_pdata_id,Some(producer_id),None), DefaultDimension(context_pdata_pid,Some(producer_pid),None)),All,None,None,List(),Map())")
+        druidQuery.toString() should be ("GroupByQuery(List(CountAggregation(count), DoubleSumAggregation(total_duration,edata_duration)),List(2019-11-01/2019-11-02),Some(AndFilter(List(InFilter(eid,List(START, END),None)))),List(DefaultDimension(context_pdata_id,Some(producer_id),None), DefaultDimension(context_pdata_pid,Some(producer_pid),None)),All,None,None,List(),Map())")
         
         val json: String = """
           {
@@ -157,9 +146,9 @@ class TestDruidDataFetcher extends SparkSpec with Matchers with MockFactory {
     
     it should "fetch the data from druid using timeseries query type" in {
 
-        val query = DruidQueryModel("timeSeries", "telemetry-events", "LastWeek", Option("day"), None, None, Option(List(DruidFilter("in", "eid", None, Option(List("START", "END"))))))
+        val query = DruidQueryModel("timeSeries", "telemetry-events", "2019-11-01/2019-11-02", Option("day"), None, None, Option(List(DruidFilter("in", "eid", None, Option(List("START", "END"))))))
         val druidQuery = DruidDataFetcher.getDruidQuery(query);
-        druidQuery.toString() should be ("TimeSeriesQuery(List(CountAggregation(count_count)),List(2019-11-25/2019-12-02),Some(AndFilter(List(InFilter(eid,List(START, END),None)))),Day,false,List(),Map())");
+        druidQuery.toString() should be ("TimeSeriesQuery(List(CountAggregation(count_count)),List(2019-11-01/2019-11-02),Some(AndFilter(List(InFilter(eid,List(START, END),None)))),Day,false,List(),Map())");
         
         val json: String = """
           {
@@ -185,9 +174,9 @@ class TestDruidDataFetcher extends SparkSpec with Matchers with MockFactory {
 
     it should "fetch the data from druid using topN query type" in {
 
-        val query = DruidQueryModel("topN", "telemetry-events", "LastWeek", Option("day"), Option(List(Aggregation(Option("count"), "count", ""))), Option(List(DruidDimension("context_pdata_id", Option("producer_id")))), Option(List(DruidFilter("in", "eid", None, Option(List("START", "END"))))))
+        val query = DruidQueryModel("topN", "telemetry-events", "2019-11-01/2019-11-02", Option("day"), Option(List(Aggregation(Option("count"), "count", ""))), Option(List(DruidDimension("context_pdata_id", Option("producer_id")))), Option(List(DruidFilter("in", "eid", None, Option(List("START", "END"))))))
         val druidQuery = DruidDataFetcher.getDruidQuery(query);
-        druidQuery.toString() should be ("TopNQuery(DefaultDimension(context_pdata_id,Some(producer_id),None),100,count,List(CountAggregation(count)),List(2019-11-25/2019-12-02),Day,Some(AndFilter(List(InFilter(eid,List(START, END),None)))),List(),Map())")
+        druidQuery.toString() should be ("TopNQuery(DefaultDimension(context_pdata_id,Some(producer_id),None),100,count,List(CountAggregation(count)),List(2019-11-01/2019-11-02),Day,Some(AndFilter(List(InFilter(eid,List(START, END),None)))),List(),Map())")
 
         val json: String = """
           [
