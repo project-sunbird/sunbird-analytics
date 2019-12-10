@@ -1,15 +1,13 @@
 package org.ekstep.analytics.framework
 
-import org.apache.spark.rdd.RDD
-import org.ekstep.analytics.framework.util.CommonUtil
-import org.ekstep.analytics.framework.exception.DataFilterException
-import scala.util.control.Breaks
-import org.apache.commons.beanutils.BeanUtils
 import org.apache.commons.beanutils.PropertyUtils
+import org.apache.spark.rdd.RDD
+import org.ekstep.analytics.framework.exception.DataFilterException
 import org.ekstep.analytics.framework.filter.Matcher
+import org.ekstep.analytics.framework.util.{CommonUtil, JobLogger}
+
 import scala.collection.mutable.Buffer
-import org.apache.log4j.Logger
-import org.ekstep.analytics.framework.util.JobLogger
+import scala.util.control.Breaks
 
 /**
  * @author Santhosh
