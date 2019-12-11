@@ -35,10 +35,10 @@ node('build-slave') {
         }
         stage('Build') {
             sh '''
-                cd platform-framework && mvn clean install -DskipTests=true
-                cd ../platform-modules && mvn clean install -DskipTests
+                cd platform-framework && mvn clean install
+                cd ../platform-modules && mvn clean install
                 cd job-manager && mvn clean package
-                cd ../../platform-api && mvn clean install -DskipTests=true
+                cd ../../platform-api && mvn clean install
                 mvn play2:dist -pl analytics-api
                 '''
         }

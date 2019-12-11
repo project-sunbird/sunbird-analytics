@@ -58,14 +58,4 @@ class TestCacheUtil extends BaseSpec {
       cacheUtilSpy.validateCache()
       verify(cacheUtilSpy, times(1)).initCache()
     }
-
-    ignore should "search content" in {
-      val ContentResponseMock = mock[ContentResponse]
-      val httpClientMock = mock[HTTPClient]
-      val request = JSONUtils.serialize(Map("request" -> Map("filters" -> Map("objectType" -> List("Content"), "contentType" -> List("Resource"), "status" -> List("Live")), "exists" -> List("downloadUrl"), "offset" -> 0, "limit" -> 100)))
-      when(httpClientMock.post[ContentResponse]("https://dev.ekstep.in/api/search/v2/search", request)).thenReturn(ContentResponseMock)
-      cacheUtil._search(0, 100)
-
-      verify(httpClientMock, times(1)).post(ArgumentMatchers.any(), ArgumentMatchers.any())
-    }
 }
