@@ -32,10 +32,18 @@ object TestModel3 extends IBatchModel[MeasuredEvent, String] with Serializable {
     override def name: String = "TestModel3";
 }
 
-class TestJobDriver extends FlatSpec with Matchers {
+class TestJobDriver extends FlatSpec with Matchers with BeforeAndAfterAll {
 
     implicit val sc: Option[SparkContext] = None;
-    implicit val fc: Option[FrameworkContext] = None;
+    implicit var fc: Option[FrameworkContext] = _;
+    
+    override def beforeAll() {
+      fc = Option(new FrameworkContext());
+    }
+    
+    override def afterAll() {
+      fc.get.closeContext();
+    }
             
     "TestJobDriver" should "successfully test the job driver" in {
 
