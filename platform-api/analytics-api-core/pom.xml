@@ -163,6 +163,12 @@
 			<version>${akka.version}</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.scalamock</groupId>
+			<artifactId>scalamock_${scala.maj.version}</artifactId>
+			<version>4.1.0</version>
+			<scope>test</scope>
+		</dependency>
 		<!-- https://mvnrepository.com/artifact/com.typesafe.akka/akka-actor_2.11 -->
 		<dependency>
 			<groupId>com.typesafe.akka</groupId>
