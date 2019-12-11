@@ -15,7 +15,7 @@ import org.apache.spark.rdd.RDD
 
 object TestModel2 extends IBatchModel[MeasuredEvent, String] with Serializable {
 
-    def execute(events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
+    def execute(events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext, fc: FrameworkContext): RDD[String] = {
         events.map { x => JSONUtils.serialize(x) };
     }
 
@@ -24,7 +24,7 @@ object TestModel2 extends IBatchModel[MeasuredEvent, String] with Serializable {
 
 object TestModel3 extends IBatchModel[MeasuredEvent, String] with Serializable {
 
-    def execute(events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[String] = {
+    def execute(events: RDD[MeasuredEvent], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext, fc: FrameworkContext): RDD[String] = {
         val contents = events.map { x => x.content_id.getOrElse("") }
         contents;
     }

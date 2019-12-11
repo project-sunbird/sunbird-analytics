@@ -17,32 +17,41 @@ object BatchJobDriver {
     implicit val className = "org.ekstep.analytics.framework.driver.BatchJobDriver"
     implicit val fc = new FrameworkContext();
     
+    case class Context(spark: SparkContext, fc: FrameworkContext, autocloseSpark: Boolean, autocloseFC: Boolean )
+    
     def process[T, R](config: JobConfig, model: IBatchModel[T, R])(implicit mf: Manifest[T], mfr: Manifest[R], sc: Option[SparkContext], fc: Option[FrameworkContext]) {
         process(config, List(model));
     }
 
     def process[T, R](config: JobConfig, models: List[IBatchModel[T, R]])(implicit mf: Manifest[T], mfr: Manifest[R], sc: Option[SparkContext], fc: Option[FrameworkContext]) {
         JobContext.parallelization = CommonUtil.getParallelization(config);
-        if (sc.isEmpty) {
-            val sparkCassandraConnectionHost = config.modelParams.getOrElse(Map()).get("sparkCassandraConnectionHost")
-            val sparkElasticsearchConnectionHost = config.modelParams.getOrElse(Map()).get("sparkElasticsearchConnectionHost")
-            implicit val sc = CommonUtil.getSparkContext(JobContext.parallelization, config.appName.getOrElse(config.model), sparkCassandraConnectionHost,sparkElasticsearchConnectionHost)
-            implicit val fc = CommonUtil.getFrameworkContext(Option(Array((AppConf.getConfig("cloud_storage_type"), AppConf.getConfig("cloud_storage_type"), AppConf.getConfig("cloud_storage_type")))));
-            try {
-                _process(config, models);
-            } finally {
-                CommonUtil.closeSparkContext();
-                fc.closeContext();
-                /*
-                 * Clearing previous job persisting rdd, in case of the job got failed
-                 * */
-                if (JobContext.rddList.nonEmpty)
-                    JobContext.rddList.clear()
+        
+        val context: Context = {
+            val spark = if (sc.isEmpty) {
+                val sparkCassandraConnectionHost = config.modelParams.getOrElse(Map()).get("sparkCassandraConnectionHost")
+                val sparkElasticsearchConnectionHost = config.modelParams.getOrElse(Map()).get("sparkElasticsearchConnectionHost")
+                CommonUtil.getSparkContext(JobContext.parallelization, config.appName.getOrElse(config.model), sparkCassandraConnectionHost,sparkElasticsearchConnectionHost)
+            } else {
+                sc.get
             }
-        } else {
-            implicit val sparkContext = sc.get;
-            implicit val frameworkContext = fc.get;
+            val autocloseSC = if (sc.isEmpty) true else false;
+            val frameworkContext = if (fc.isEmpty) {
+                CommonUtil.getFrameworkContext(Option(Array((AppConf.getConfig("cloud_storage_type"), AppConf.getConfig("cloud_storage_type"), AppConf.getConfig("cloud_storage_type")))));
+            } else {
+                fc.get
+            }
+            val autocloseFC = if (fc.isEmpty) true else false;
+            Context(spark, frameworkContext, autocloseSC, autocloseFC)
+        }
+        try {
+            implicit val sparkContext = context.spark;
+            implicit val fContext = context.fc;
             _process(config, models);
+        } finally {
+            if(context.autocloseSpark) CommonUtil.closeSparkContext()(context.spark);
+            if(context.autocloseFC) context.fc.closeContext();
+            // Clearing previous job persisting rdd, in case of the job got failed
+            if (JobContext.rddList.nonEmpty) JobContext.rddList.clear()
         }
     }
 

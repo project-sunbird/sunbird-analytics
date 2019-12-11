@@ -40,7 +40,7 @@ object ExperimentDefinitionModel extends IBatchModelTemplate[Empty, ExperimentDe
 
     override def name: String = "ExperimentDefinitionModel"
 
-    override def preProcess(data: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ExperimentDefinition] = {
+    override def preProcess(data: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[ExperimentDefinition] = {
 
         val experiments = sc.cassandraTable[ExperimentDefinition](Constants.PLATFORM_KEY_SPACE_NAME, Constants.EXPERIMENT_DEFINITION_TABLE)
           .filter(metadata => metadata.status.equalsIgnoreCase("SUBMITTED"))
@@ -48,7 +48,7 @@ object ExperimentDefinitionModel extends IBatchModelTemplate[Empty, ExperimentDe
         experiments
     }
 
-    override def algorithm(experiments: RDD[ExperimentDefinition], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ExperimentDefinitionOutput] = {
+    override def algorithm(experiments: RDD[ExperimentDefinition], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[ExperimentDefinitionOutput] = {
 
         val metadata: ListBuffer[ExperimentDefinitionMetadata] = ListBuffer()
         implicit val utils: ExperimentDataUtils = new ExperimentDataUtils
@@ -60,7 +60,7 @@ object ExperimentDefinitionModel extends IBatchModelTemplate[Empty, ExperimentDe
     }
 
 
-    override def postProcess(data: RDD[ExperimentDefinitionOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ExperimentDefinitionOutput] = {
+    override def postProcess(data: RDD[ExperimentDefinitionOutput], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[ExperimentDefinitionOutput] = {
         data
     }
 

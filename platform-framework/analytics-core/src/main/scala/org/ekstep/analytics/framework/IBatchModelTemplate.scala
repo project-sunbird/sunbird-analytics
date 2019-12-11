@@ -17,7 +17,7 @@ trait IBatchModelTemplate[T <: AnyRef, A <: AlgoInput, B <: AlgoOutput, R <: Out
      * 2. algorithm
      * 3. postProcess
      */
-    override def execute(events: RDD[T], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext): RDD[R] = {
+    override def execute(events: RDD[T], jobParams: Option[Map[String, AnyRef]])(implicit sc: SparkContext, fc: FrameworkContext): RDD[R] = {
         
         val config = jobParams.getOrElse(Map[String, AnyRef]());
         val inputRDD = preProcess(events, config);
@@ -35,12 +35,12 @@ trait IBatchModelTemplate[T <: AnyRef, A <: AlgoInput, B <: AlgoOutput, R <: Out
      * 2. Join/fetch data from LP
      * 3. Join/Fetch data from Cassandra
      */
-    def preProcess(events: RDD[T], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[A]
+    def preProcess(events: RDD[T], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[A]
 
     /**
      * Method which runs the actual algorithm
      */
-    def algorithm(events: RDD[A], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[B]
+    def algorithm(events: RDD[A], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[B]
 
     /**
      * Post processing on the algorithm output. Some of the post processing steps are
@@ -48,5 +48,5 @@ trait IBatchModelTemplate[T <: AnyRef, A <: AlgoInput, B <: AlgoOutput, R <: Out
      * 2. Converting to "MeasuredEvent" to be able to dispatch to Kafka or any output dispatcher
      * 3. Transform into a structure that can be input to another data product
      */
-    def postProcess(events: RDD[B], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[R]
+    def postProcess(events: RDD[B], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[R]
 }

@@ -10,18 +10,18 @@ case class SampleAlgoOut(id: String, events: Buffer[Event]) extends AlgoOutput w
 
 object SampleModelTemplate extends IBatchModelTemplate[Event, Event, SampleAlgoOut, SampleAlgoOut] {
 
-    override def preProcess(data: RDD[Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[Event] = {
+    override def preProcess(data: RDD[Event], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[Event] = {
         DataFilter.filter(data, Filter("eid", "EQ", Option("GE_GENIE_START")));
     }
 
-    override def algorithm(data: RDD[Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[SampleAlgoOut] = {
+    override def algorithm(data: RDD[Event], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[SampleAlgoOut] = {
         val newGroupedEvents = data.map(event => (event.did, Buffer(event)))
             .partitionBy(new HashPartitioner(JobContext.parallelization))
             .reduceByKey((a, b) => a ++ b);
         newGroupedEvents.map { x => SampleAlgoOut(x._1, x._2) }
     }
 
-    override def postProcess(data: RDD[SampleAlgoOut], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[SampleAlgoOut] = {
+    override def postProcess(data: RDD[SampleAlgoOut], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[SampleAlgoOut] = {
         data
     }
     
