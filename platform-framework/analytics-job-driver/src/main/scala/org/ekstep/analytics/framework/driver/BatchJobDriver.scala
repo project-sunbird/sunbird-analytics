@@ -17,20 +17,22 @@ object BatchJobDriver {
     implicit val className = "org.ekstep.analytics.framework.driver.BatchJobDriver"
     implicit val fc = new FrameworkContext();
     
-    def process[T, R](config: JobConfig, model: IBatchModel[T, R])(implicit mf: Manifest[T], mfr: Manifest[R], sc: SparkContext) {
+    def process[T, R](config: JobConfig, model: IBatchModel[T, R])(implicit mf: Manifest[T], mfr: Manifest[R], sc: Option[SparkContext], fc: Option[FrameworkContext]) {
         process(config, List(model));
     }
 
-    def process[T, R](config: JobConfig, models: List[IBatchModel[T, R]])(implicit mf: Manifest[T], mfr: Manifest[R], sc: SparkContext) {
+    def process[T, R](config: JobConfig, models: List[IBatchModel[T, R]])(implicit mf: Manifest[T], mfr: Manifest[R], sc: Option[SparkContext], fc: Option[FrameworkContext]) {
         JobContext.parallelization = CommonUtil.getParallelization(config);
-        if (null == sc) {
+        if (sc.isEmpty) {
             val sparkCassandraConnectionHost = config.modelParams.getOrElse(Map()).get("sparkCassandraConnectionHost")
             val sparkElasticsearchConnectionHost = config.modelParams.getOrElse(Map()).get("sparkElasticsearchConnectionHost")
             implicit val sc = CommonUtil.getSparkContext(JobContext.parallelization, config.appName.getOrElse(config.model), sparkCassandraConnectionHost,sparkElasticsearchConnectionHost)
+            implicit val fc = CommonUtil.getFrameworkContext(Option(Array((AppConf.getConfig("cloud_storage_type"), AppConf.getConfig("cloud_storage_type"), AppConf.getConfig("cloud_storage_type")))));
             try {
                 _process(config, models);
             } finally {
                 CommonUtil.closeSparkContext();
+                fc.closeContext();
                 /*
                  * Clearing previous job persisting rdd, in case of the job got failed
                  * */
@@ -38,15 +40,16 @@ object BatchJobDriver {
                     JobContext.rddList.clear()
             }
         } else {
+            implicit val sparkContext = sc.get;
+            implicit val frameworkContext = fc.get;
             _process(config, models);
         }
     }
 
-    private def _process[T, R](config: JobConfig, models: List[IBatchModel[T, R]])(implicit mf: Manifest[T], mfr: Manifest[R], sc: SparkContext) {
+    private def _process[T, R](config: JobConfig, models: List[IBatchModel[T, R]])(implicit mf: Manifest[T], mfr: Manifest[R], sc: SparkContext, fc: FrameworkContext) {
         
         val rdd = DataFetcher.fetchBatchData[T](config.search).cache();
         val count = rdd.count;
-        _setDeviceMapping(config, rdd);
         val data = DataFilter.filterAndSort[T](rdd, config.filters, config.sort);
         models.foreach { model =>
             JobContext.jobName = model.name
@@ -76,17 +79,7 @@ object BatchJobDriver {
         }
     }
 
-    private def _setDeviceMapping[T](config: JobConfig, data: RDD[T])(implicit mf: Manifest[T]) {
-        if (config.deviceMapping.nonEmpty && config.deviceMapping.get) {
-            JobContext.deviceMapping = mf.toString() match {
-                case "org.ekstep.analytics.framework.Event" =>
-                    data.map(x => x.asInstanceOf[Event]).filter { x => ("GE_GENIE_START".equals(x.eid) || "GE_START".equals(x.eid)) }.map { x => (x.did, if (x.edata != null) x.edata.eks.loc else "") }.collect().toMap;
-                case _ => Map()
-            }
-        }
-    }
-
-    private def _processModel[T, R](config: JobConfig, data: RDD[T], model: IBatchModel[T, R])(implicit mf: Manifest[T], mfr: Manifest[R], sc: SparkContext): (Long, Long) = {
+    private def _processModel[T, R](config: JobConfig, data: RDD[T], model: IBatchModel[T, R])(implicit mf: Manifest[T], mfr: Manifest[R], sc: SparkContext, fc: FrameworkContext): (Long, Long) = {
 
         CommonUtil.time({
             val output = model.execute(data, config.modelParams);

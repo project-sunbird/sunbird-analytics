@@ -24,6 +24,7 @@ import org.sunbird.cloud.storage.conf.AppConf
 import org.sunbird.cloud.storage.factory.{ StorageConfig, StorageServiceFactory }
 import org.ekstep.analytics.kafka.consumer.JobConsumerV2Config
 import org.ekstep.analytics.kafka.consumer.JobConsumerV2
+import org.ekstep.analytics.framework.FrameworkContext
 
 case class JobManagerConfig(jobsCount: Int, topic: String, bootStrapServer: String, zookeeperConnect: String, consumerGroup: String, slackChannel: String, slackUserName: String, tempBucket: String, tempFolder: String, runMode: String = "shutdown");
 
@@ -74,6 +75,11 @@ class JobRunner(config: JobManagerConfig, consumer: JobConsumerV2, doneSignal: C
     implicit val className: String = "JobRunner";
 
     override def run {
+        implicit val fc = new FrameworkContext();
+        // Register the storage service for all data
+        fc.getStorageService(AppConf.getConfig("cloud_storage_type"));
+        // Register the reports storage service
+        fc.getStorageService(AppConf.getConfig("cloud_storage_type"), AppConf.getConfig("reports_azure_storage_key"), AppConf.getConfig("reports_azure_storage_secret"));
         while (doneSignal.getCount() != 0) {
             val record = consumer.read;
             if (record.isDefined) {
@@ -84,9 +90,11 @@ class JobRunner(config: JobManagerConfig, consumer: JobConsumerV2, doneSignal: C
                 Thread.sleep(10 * 1000); // Sleep for 10 seconds
             }
         }
+        // Jobs are done. Close the framework context.
+        fc.closeContext();
     }
 
-    private def executeJob(record: String) {
+    private def executeJob(record: String)(implicit fc: FrameworkContext) {
         JobLogger.log("Starting the job execution", None, INFO);
         val jobConfig = JSONUtils.deserialize[Map[String, AnyRef]](record);
         val modelName = jobConfig.get("model").get.toString()

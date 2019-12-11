@@ -240,6 +240,5 @@ object StateAdminReportJob extends optional.Application with IJob with StateAdmi
 
         val storageService = getReportStorageService();
         storageService.upload(container, sourcePath, objectKey, isDirectory = Option(true))
-        storageService.closeContext();
     }
 }

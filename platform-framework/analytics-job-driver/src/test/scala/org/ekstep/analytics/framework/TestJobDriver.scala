@@ -34,6 +34,9 @@ object TestModel3 extends IBatchModel[MeasuredEvent, String] with Serializable {
 
 class TestJobDriver extends FlatSpec with Matchers {
 
+    implicit val sc: Option[SparkContext] = None;
+    implicit val fc: Option[FrameworkContext] = None;
+            
     "TestJobDriver" should "successfully test the job driver" in {
 
         val jobConfig = JobConfig(
@@ -51,7 +54,6 @@ class TestJobDriver extends FlatSpec with Matchers {
             val baos = new ByteArrayOutputStream
             val ps = new PrintStream(baos)
             Console.setOut(ps);
-            implicit val sc: SparkContext = null;
             JobDriver.run[Event, String]("batch", JSONUtils.serialize(jobConfig), new TestModel);
             baos.toString should include("(Total Events Size,1699)");
             baos.close()
@@ -70,7 +72,6 @@ class TestJobDriver extends FlatSpec with Matchers {
             None,
             Option(true))
 
-        implicit val sc: SparkContext = null;
         JobDriver.run("batch", JSONUtils.serialize(jobConfig), new TestModel);
     }
     
@@ -86,27 +87,23 @@ class TestJobDriver extends FlatSpec with Matchers {
             None,
             Option(true))
 
-        implicit val sc: SparkContext = null;
         JobDriver.run("batch", JSONUtils.serialize(jobConfig), new TestModel);
     }
 
     it should "invoke stream job driver" in {
         val jobConfig = JobConfig(Fetcher("stream", None, None), None, None, "", None, None, None, None)
-        implicit val sc: SparkContext = null;
         JobDriver.run("streaming", JSONUtils.serialize(jobConfig), new TestModel);
     }
 
     it should "thrown an exception if unknown job type is found" in {
         val jobConfig = JobConfig(Fetcher("stream", None, None), None, None, "", None, None, None, None)
         a[Exception] should be thrownBy {
-            implicit val sc: SparkContext = null;
             JobDriver.run("xyz", JSONUtils.serialize(jobConfig), new TestModel);
         }
     }
 
     it should "thrown an exception if unable to parse the config file" in {
         a[Exception] should be thrownBy {
-            implicit val sc: SparkContext = null;
             JobDriver.run("streaming", JSONUtils.serialize(""), new TestModel);
         }
     }
@@ -125,9 +122,9 @@ class TestJobDriver extends FlatSpec with Matchers {
             None)
 
         noException should be thrownBy {
-            implicit val sc: SparkContext = CommonUtil.getSparkContext(1, "Test");
+            implicit val sc: Option[SparkContext] = Option(CommonUtil.getSparkContext(1, "Test"));
             JobDriver.run[Event, String]("batch", JSONUtils.serialize(jobConfig), new TestModel);
-            CommonUtil.closeSparkContext();
+            CommonUtil.closeSparkContext()(sc.get);
         }
     }
 
@@ -145,9 +142,9 @@ class TestJobDriver extends FlatSpec with Matchers {
             Option(true))
 
         noException should be thrownBy {
-            implicit val sc: SparkContext = CommonUtil.getSparkContext(1, "Test");
+            implicit val sc = Option(CommonUtil.getSparkContext(1, "Test"));
             JobDriver.run[MeasuredEvent, String]("batch", JSONUtils.serialize(jobConfig), TestModel2);
-            CommonUtil.closeSparkContext();
+            CommonUtil.closeSparkContext()(sc.get);
         }
     }
 
@@ -166,16 +163,15 @@ class TestJobDriver extends FlatSpec with Matchers {
             None)
 
         noException should be thrownBy {
-            implicit val sc: SparkContext = CommonUtil.getSparkContext(1, "Test");
+            implicit val sc = Option(CommonUtil.getSparkContext(1, "Test"));
             val models = List(TestModel2, TestModel3)
             JobDriver.run[MeasuredEvent, String]("batch", JSONUtils.serialize(jobConfig), models, "TestMergeJobs");
-            CommonUtil.closeSparkContext();
+            CommonUtil.closeSparkContext()(sc.get);
         }
     }
 
     it should "run the stream job driver on multiple models" in {
         val jobConfig = JobConfig(Fetcher("local", None, None), None, None, "", None, None, None, None)
-        implicit val sc: SparkContext = null;
         val models = List(TestModel2, TestModel3)
         JobDriver.run("streaming", JSONUtils.serialize(jobConfig), models, "TestMergeJobs");
     }
@@ -183,7 +179,6 @@ class TestJobDriver extends FlatSpec with Matchers {
     it should "thrown an exception if unknown job type is found when running multile jobs" in {
         val jobConfig = JobConfig(Fetcher("local", None, None), None, None, "", None, None, None, None)
         a[Exception] should be thrownBy {
-            implicit val sc: SparkContext = null;
             val models = List(TestModel2, TestModel3)
             JobDriver.run("xyz", JSONUtils.serialize(jobConfig), models, "TestMergeJobs");
         }
@@ -191,7 +186,6 @@ class TestJobDriver extends FlatSpec with Matchers {
 
     it should "thrown an exception if unable to parse the config file when running multiple jobs" in {
         a[Exception] should be thrownBy {
-            implicit val sc: SparkContext = null;
             val models = List(TestModel2, TestModel3)
             JobDriver.run("batch", JSONUtils.serialize(""), models, "TestMergeJobs");
         }
