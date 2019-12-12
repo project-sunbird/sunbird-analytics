@@ -92,7 +92,6 @@ object StateAdminGeoReportJob extends optional.Application with IJob with StateA
 
     val storageService = getReportStorageService();
     storageService.upload(container, sourcePath, objectKey, isDirectory = Option(true))
-    storageService.closeContext();
   }
 }
 

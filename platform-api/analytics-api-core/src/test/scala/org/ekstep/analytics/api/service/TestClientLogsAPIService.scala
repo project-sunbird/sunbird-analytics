@@ -74,4 +74,18 @@ class TestClientLogsAPIService extends BaseSpec {
     requestObj1.validate.status should be(true)
     requestObj1.validate.msg should be("")
   }
+
+
+  "validateLog" should "Should validate the request" in {
+    val res1 = JSONUtils.deserialize[Log]("{\"id\":\"test\",\"ts\":0,\"log\":null,\"appver\":\"1.2\",\"pageid\":\"do_54366452\"}")
+    val res2 = JSONUtils.deserialize[Log]("{\"id\":\"test\",\"ts\":0,\"log\":\"test\",\"appver\":\"1.2\",\"pageid\":\"do_54366452\"}")
+    val res3 = JSONUtils.deserialize[ClientLogRequest]("{\"context\":null,\"pdata\":null,\"logs\":null}")
+    println(res3.validate)
+    res1.validate.msg should not be(null)
+    res1.validate.status should  be(false)
+    res2.validate.msg should not be(null)
+    res2.validate.status should  be(false)
+    res3.validate.status should be(false)
+    res3.validate.msg should not be(null)
+  }
 }

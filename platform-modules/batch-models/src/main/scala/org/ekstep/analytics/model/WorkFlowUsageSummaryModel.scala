@@ -71,7 +71,7 @@ object WorkFlowUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, Workf
         WorkflowUsageMetricsSummary(wk, events.head.content_type, total_ts, total_sessions, avg_ts_session, total_interactions, avg_interactions_min, total_pageviews_count, avg_pageviews, date_range, lastEvent.syncts, device_ids, unique_users, contents, firstEvent.pdata);
     }
 
-    override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[WorkflowUsageInput] = {
+    override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[WorkflowUsageInput] = {
         val tags = sc.cassandraTable[RegisteredTag](Constants.CONTENT_KEY_SPACE_NAME, Constants.REGISTERED_TAGS).filter { x => true == x.active }.map { x => x.tag_id }.collect
         val registeredTags = if (tags.nonEmpty) tags; else Array[String]();
 
@@ -122,7 +122,7 @@ object WorkFlowUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, Workf
             .reduceByKey((a, b) => a ++ b).map { x => WorkflowUsageInput(x._1, x._2) };
     }
 
-    override def algorithm(data: RDD[WorkflowUsageInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[WorkflowUsageMetricsSummary] = {
+    override def algorithm(data: RDD[WorkflowUsageInput], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[WorkflowUsageMetricsSummary] = {
 
         // Filter out records with empty did/contentId
         val filteredData = data.filter(f => (f.index.did.nonEmpty && f.index.content_id.nonEmpty))
@@ -131,7 +131,7 @@ object WorkFlowUsageSummaryModel extends IBatchModelTemplate[DerivedEvent, Workf
         }
     }
 
-    override def postProcess(data: RDD[WorkflowUsageMetricsSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
+    override def postProcess(data: RDD[WorkflowUsageMetricsSummary], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[MeasuredEvent] = {
         val meEventVersion = AppConf.getConfig("telemetry.version");
         data.map { usageSumm =>
             val mid = CommonUtil.getMessageId("ME_WORKFLOW_USAGE_SUMMARY", usageSumm.wk.user_id + usageSumm.wk.tag + usageSumm.wk.period, "DAY", usageSumm.dt_range, usageSumm.wk.content_id, Option(usageSumm.pdata.id), Option(usageSumm.wk.channel), usageSumm.wk.did);

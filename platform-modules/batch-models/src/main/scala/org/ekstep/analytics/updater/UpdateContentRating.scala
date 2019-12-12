@@ -17,11 +17,11 @@ object UpdateContentRating  extends IBatchModelTemplate[Empty, Empty, ContentRat
   implicit val className = "org.ekstep.analytics.updater.UpdateContentRating"
   override def name: String = "UpdateContentRating"
 
-  override def preProcess(data: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[Empty] = {
+  override def preProcess(data: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[Empty] = {
       data
   }
 
-  override def algorithm(data: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentRatingResult] = {
+  override def algorithm(data: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[ContentRatingResult] = {
 
       val contentList = getRatedContents(config, RestUtil)
       val contentRatingList = getContentRatings(RestUtil)
@@ -30,7 +30,7 @@ object UpdateContentRating  extends IBatchModelTemplate[Empty, Empty, ContentRat
       sc.parallelize(finalList)
   }
 
-  override def postProcess(data: RDD[ContentRatingResult], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[ContentRatingResult] = {
+  override def postProcess(data: RDD[ContentRatingResult], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[ContentRatingResult] = {
       val baseURL = AppConf.getConfig("lp.system.update.base.url")
       if (data.count() > 0) {
           data.foreach { f =>

@@ -338,7 +338,6 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     val objectKey = AppConf.getConfig("course.metrics.cloud.objectKey")
     val storageService = getReportStorageService();
     storageService.upload(container, sourcePath, objectKey, isDirectory = Option(true))
-    storageService.closeContext();
   }
 
   private def recursiveListFiles(file: File, ext: String): Array[File] = {
