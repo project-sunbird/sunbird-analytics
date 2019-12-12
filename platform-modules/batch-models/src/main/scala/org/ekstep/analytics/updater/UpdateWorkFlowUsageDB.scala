@@ -17,11 +17,11 @@ object UpdateWorkFlowUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
     val className = "org.ekstep.analytics.updater.UpdateWorkFlowUsageDB"
     override def name: String = "UpdateWorkFlowUsageDB"
 
-    override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DerivedEvent] = {
+    override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[DerivedEvent] = {
         DataFilter.filter(data, Filter("eid", "EQ", Option("ME_WORKFLOW_USAGE_SUMMARY")))
     }
 
-    override def algorithm(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[WorkFlowUsageSummaryFact] = {
+    override def algorithm(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[WorkFlowUsageSummaryFact] = {
         val workflowSummary = data.map { x =>
 
             val period = x.dimensions.period.get
@@ -58,7 +58,7 @@ object UpdateWorkFlowUsageDB extends IBatchModelTemplate[DerivedEvent, DerivedEv
         rollup(workflowSummary, DAY).union(rollup(workflowSummary, WEEK)).union(rollup(workflowSummary, MONTH)).union(rollup(workflowSummary, CUMULATIVE)).cache();
     }
 
-    override def postProcess(data: RDD[WorkFlowUsageSummaryFact], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[WorkFlowSummaryIndex] = {
+    override def postProcess(data: RDD[WorkFlowUsageSummaryFact], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[WorkFlowSummaryIndex] = {
         // Update the database
         data.saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.WORKFLOW_USAGE_SUMMARY_FACT)
         data.map { x => WorkFlowSummaryIndex(x.d_period, x.d_channel, x.d_app_id, x.d_tag, x.d_type, x.d_mode, x.d_device_id, x.d_content_id, x.d_user_id) };

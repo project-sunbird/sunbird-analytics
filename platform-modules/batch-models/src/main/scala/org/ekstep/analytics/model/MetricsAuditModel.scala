@@ -18,13 +18,11 @@ object MetricsAuditModel extends IBatchModelTemplate[Empty, Empty, V3DerivedEven
   val className = "org.ekstep.analytics.model.MetricsAuditJob"
   override def name: String = "MetricsAuditJob"
 
-  implicit val fc = new FrameworkContext()
-
-  override def preProcess(events: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[Empty] = {
+  override def preProcess(events: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[Empty] = {
     events;
   }
 
-  override def algorithm(events: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[V3DerivedEvent] = {
+  override def algorithm(events: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[V3DerivedEvent] = {
 
     val auditConfig = config("auditConfig").asInstanceOf[List[Map[String, AnyRef]]]
     val metrics = auditConfig.map{f =>
@@ -43,12 +41,12 @@ object MetricsAuditModel extends IBatchModelTemplate[Empty, Empty, V3DerivedEven
     sc.parallelize(metrics)
   }
 
-  override def postProcess(events: RDD[V3DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[V3DerivedEvent] = {
+  override def postProcess(events: RDD[V3DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[V3DerivedEvent] = {
     events;
   }
 
 
-  def getSecorMetrics(queryConfig: JobConfig)(implicit sc: SparkContext): V3DerivedEvent = {
+  def getSecorMetrics(queryConfig: JobConfig)(implicit sc: SparkContext, fc: FrameworkContext): V3DerivedEvent = {
     var metricEvent: List[V3MetricEdata] = null
     val name = queryConfig.name.get
     name match {
@@ -91,7 +89,7 @@ object MetricsAuditModel extends IBatchModelTemplate[Empty, Empty, V3DerivedEven
     metricData ++ List(V3MetricEdata("count", Some(denormCount)))
   }
 
-  def getDruidCount(queryConfig: JobConfig)(implicit sc: SparkContext): V3DerivedEvent = {
+  def getDruidCount(queryConfig: JobConfig)(implicit sc: SparkContext, fc: FrameworkContext): V3DerivedEvent = {
     val name = queryConfig.name.get
     val data = DataFetcher.fetchBatchData[DruidMetrics](queryConfig.search).first()
     val metrics = List(V3MetricEdata(name, Some(data.total_count)),V3MetricEdata("date", Some(data.date)))

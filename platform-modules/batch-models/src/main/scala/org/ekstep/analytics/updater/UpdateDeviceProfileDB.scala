@@ -17,7 +17,7 @@ object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DevicePro
     val className = "org.ekstep.analytics.model.UpdateDeviceProfileDB"
     override def name: String = "UpdateDeviceProfileDB"
 
-    override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceProfileInput] = {
+    override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[DeviceProfileInput] = {
         val filteredEvents = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_DEVICE_SUMMARY")))
         val newGroupedEvents = filteredEvents.map { event =>
             (DeviceProfileKey(event.dimensions.did.get), Buffer(event))
@@ -27,7 +27,7 @@ object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DevicePro
         deviceData.map { x => DeviceProfileInput(x._1, x._2._1, x._2._2) }
     }
 
-    override def algorithm(data: RDD[DeviceProfileInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceProfileOutput] = {
+    override def algorithm(data: RDD[DeviceProfileInput], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[DeviceProfileOutput] = {
 
         data.map { events =>
             val eventsSortedByFromDate = events.currentData.sortBy { x => x.context.date_range.from };
@@ -50,7 +50,7 @@ object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DevicePro
         }
     }
 
-    override def postProcess(data: RDD[DeviceProfileOutput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[Empty] = {
+    override def postProcess(data: RDD[DeviceProfileOutput], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[Empty] = {
         data.saveToCassandra(Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_PROFILE_TABLE);
         sc.makeRDD(List(Empty()));
     }

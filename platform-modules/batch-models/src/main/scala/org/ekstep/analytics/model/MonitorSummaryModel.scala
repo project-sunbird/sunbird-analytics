@@ -41,16 +41,15 @@ case class MonitorMessage(job_name: String, job_id: String, success: Int, number
 object MonitorSummaryModel extends IBatchModelTemplate[V3Event, V3Event, JobMonitor, MeasuredEvent] with Serializable {
 
     implicit val className = "org.ekstep.analytics.model.MonitorSummaryModel"
-    implicit val fc = new FrameworkContext();
     
     override def name: String = "MonitorSummaryModel"
 
-    override def preProcess(data: RDD[V3Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[V3Event] = {
+    override def preProcess(data: RDD[V3Event], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[V3Event] = {
         val filteredData = data.filter { x => (x.eid.equals("JOB_START") || (x.eid.equals("JOB_END"))) }.filter { x => !x.context.pdata.get.pid.get.equals("MonitorSummaryModel") }
         filteredData.sortBy(_.ets)
     }
 
-    override def algorithm(data: RDD[V3Event], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[JobMonitor] = {
+    override def algorithm(data: RDD[V3Event], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[JobMonitor] = {
         val jobsStarted = data.filter { x => (x.eid.equals("JOB_START")) }.count()
         val filteresData = data.filter { x => (x.eid.equals("JOB_END")) }
         val edataMap = filteresData.map { x => (x.edata) }
@@ -76,7 +75,7 @@ object MonitorSummaryModel extends IBatchModelTemplate[V3Event, V3Event, JobMoni
         sc.parallelize(List(JobMonitor(jobsStarted, jobsCompleted, jobsFailed, totalEventsGenerated, totalTs, syncTs, jobSummary, DtRange(data.first().ets, data.collect().last.ets))))
     }
 
-    override def postProcess(data: RDD[JobMonitor], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
+    override def postProcess(data: RDD[JobMonitor], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[MeasuredEvent] = {
 
         if(config.getOrElse("pushMetrics", false).asInstanceOf[Boolean]) {
             val jobSumm = data.map(f => f.job_summary).flatMap(f => f)

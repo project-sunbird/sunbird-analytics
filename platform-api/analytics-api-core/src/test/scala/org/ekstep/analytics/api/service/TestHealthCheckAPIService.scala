@@ -4,11 +4,12 @@ import akka.actor.ActorSystem
 import akka.testkit.TestActorRef
 import org.ekstep.analytics.api.{BaseSpec, Response}
 import org.ekstep.analytics.api.util.JSONUtils
+import org.ekstep.analytics.api.util.RedisUtil
 
 class TestHealthCheckAPIService extends BaseSpec {
 
     private implicit val system: ActorSystem = ActorSystem("health-check-test-actor-system", config)
-    val healthCheckService = TestActorRef(new HealthCheckAPIService()).underlyingActor
+    val redisUtil = mock[RedisUtil]
 
     override def beforeAll() {
         super.beforeAll();
@@ -20,7 +21,7 @@ class TestHealthCheckAPIService extends BaseSpec {
 
     
     "HealthCheckAPIService" should "return health statusof APIs" in {
-        val response = healthCheckService.getHealthStatus()
+        val response = HealthCheckAPIService.getHealthStatus()
         val resp = JSONUtils.deserialize[Response](response)
         
         resp.id should be ("ekstep.analytics-api.health");

@@ -23,7 +23,7 @@ object DeviceSummaryModel extends IBatchModelTemplate[String, DeviceInput, Devic
     val className = "org.ekstep.analytics.model.DeviceSummaryModel"
     override def name: String = "DeviceSummaryModel"
 
-    override def preProcess(data: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceInput] = {
+    override def preProcess(data: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[DeviceInput] = {
         val rawEventsList = List("SEARCH", "INTERACT")
         val wfsData = data.filter(f => f.contains("ME_WORKFLOW_SUMMARY")).map(f => JSONUtils.deserialize[DerivedEvent](f)).filter { x => (x.dimensions.did.nonEmpty && StringUtils.isNotBlank(x.dimensions.did.get)) }
         val rawData = data.filter(f => !f.contains("ME_WORKFLOW_SUMMARY")).map(f => JSONUtils.deserialize[V3Event](f)).filter{f => rawEventsList.contains(f.eid) && f.context.did.nonEmpty}.filter { x => (StringUtils.isNotBlank(x.context.did.get) && (StringUtils.equals(x.edata.subtype, "ContentDownload-Success") || x.edata.filters.getOrElse(Map[String, AnyRef]()).asInstanceOf[Map[String, AnyRef]].contains("dialcodes"))) };
@@ -36,7 +36,7 @@ object DeviceSummaryModel extends IBatchModelTemplate[String, DeviceInput, Devic
         groupedWfsData.fullOuterJoin(groupedRawData).map(f => DeviceInput(f._1, f._2._1, f._2._2))
     }
 
-    override def algorithm(data: RDD[DeviceInput], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceSummary] = {
+    override def algorithm(data: RDD[DeviceInput], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[DeviceSummary] = {
         val summary = data.map{ f =>
             val index = f.index
             val wfs = f.wfsData.getOrElse(Buffer()).sortBy { x => x.context.date_range.from }
@@ -79,7 +79,7 @@ object DeviceSummaryModel extends IBatchModelTemplate[String, DeviceInput, Devic
           }
     }
 
-    override def postProcess(data: RDD[DeviceSummary], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[MeasuredEvent] = {
+    override def postProcess(data: RDD[DeviceSummary], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[MeasuredEvent] = {
         data.map { x =>
             val mid = CommonUtil.getMessageId("ME_DEVICE_SUMMARY", x.device_id, "DAY", x.dt_range, "NA", None, Option(x.channel))
             val measures = Map(
