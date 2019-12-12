@@ -5,14 +5,17 @@ import akka.testkit.TestActorRef
 import org.ekstep.analytics.api.BaseSpec
 import org.ekstep.analytics.api.util.{CacheUtil, DeviceLocation}
 import org.mockito.Mockito.{times, verify}
+import com.typesafe.config.Config
+import com.typesafe.config.ConfigFactory
 
 class TestCacheRefreshActor extends BaseSpec {
 
   private implicit val system: ActorSystem = ActorSystem("cache-refresh-test-actor-system", config)
-  val cacheUtilMock = mock[CacheUtil]
+  
 
-  "Cache refresh actor" should "refersh the cache periodically" in {
-
+  "Cache refresh actor" should "refresh the cache periodically" in {
+    implicit val config: Config = ConfigFactory.load()
+    val cacheUtilMock = mock[CacheUtil]
     val cacheRefreshActorRef = TestActorRef(new CacheRefreshActor(cacheUtilMock))
 
     cacheRefreshActorRef.tell(DeviceLocation(continentName = "Asia", countryCode = "IN", countryName = "India", stateCode = "KA",

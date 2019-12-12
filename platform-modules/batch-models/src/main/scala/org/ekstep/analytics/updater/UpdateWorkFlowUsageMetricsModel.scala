@@ -34,7 +34,7 @@ object UpdateWorkFlowUsageMetricsModel extends IBatchModelTemplate[DerivedEvent,
     * @param sc     - SparkContext
     * @return - ME_WORKFLOW_USAGE_SUMMARY
     */
-  override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DerivedEvent] = {
+  override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[DerivedEvent] = {
     DataFilter
       .filter(data, Filter("eid", "EQ", Option("ME_WORKFLOW_USAGE_SUMMARY")))
       .filter(f =>
@@ -53,7 +53,7 @@ object UpdateWorkFlowUsageMetricsModel extends IBatchModelTemplate[DerivedEvent,
     * @return - DashBoardSummary ->(uniqueDevices, totalContentPlayTime, totalTimeSpent,)
     */
   override def algorithm(data: RDD[DerivedEvent], config: Map[String, AnyRef])
-                        (implicit sc: SparkContext): RDD[WorkFlowUsageMetricsAlgoOutput] = {
+                        (implicit sc: SparkContext, fc: FrameworkContext): RDD[WorkFlowUsageMetricsAlgoOutput] = {
 
     object _constant extends Enumeration {
       val APP = "app"
@@ -106,7 +106,7 @@ object UpdateWorkFlowUsageMetricsModel extends IBatchModelTemplate[DerivedEvent,
     * @return - ME_PORTAL_CUMULATIVE_METRICS MeasuredEvents
     */
   override def postProcess(data: RDD[WorkFlowUsageMetricsAlgoOutput], config: Map[String, AnyRef])
-                          (implicit sc: SparkContext): RDD[WorkFlowUsageMetricsAlgoOutput] = {
+                          (implicit sc: SparkContext, fc: FrameworkContext): RDD[WorkFlowUsageMetricsAlgoOutput] = {
     if (data.count() > 0) data.saveToCassandra(Constants.PLATFORM_KEY_SPACE_NAME, Constants.WORKFLOW_USAGE_SUMMARY)
     data
   }

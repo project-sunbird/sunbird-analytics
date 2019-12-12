@@ -1,19 +1,21 @@
 package org.ekstep.analytics.updater
 
-import org.ekstep.analytics.framework.util.{HTTPClient, JSONUtils}
+import org.ekstep.analytics.framework.util.HTTPClient
 import org.ekstep.analytics.model.SparkSpec
 import org.joda.time.DateTime
 import org.scalamock.scalatest.MockFactory
+import org.ekstep.analytics.framework.FrameworkContext
 
 class TestUpdateContentRating  extends SparkSpec(null) with MockFactory {
 
+    implicit val fc = new FrameworkContext();
     "UpdateContentRating" should "get content list which are rated in given time" in {
 
         val startDate = new DateTime().minusDays(1).toString("yyyy-MM-dd")
         val endDate = new DateTime().toString("yyyy-MM-dd")
         val mockRestUtil = mock[HTTPClient]
         (mockRestUtil.post[List[Map[String, AnyRef]]](_: String, _: String, _: Option[Map[String, String]])(_: Manifest[List[Map[String, AnyRef]]]))
-          .expects("http://11.2.1.20:8082/druid/v2/sql/", "{\"query\":\"SELECT DISTINCT \\\"object_id\\\" AS \\\"Id\\\"\\nFROM \\\"druid\\\".\\\"%s\\\" WHERE \\\"eid\\\" = 'FEEDBACK' AND \\\"__time\\\" BETWEEN TIMESTAMP '%s' AND TIMESTAMP '%s' \"}".format("telemetry-events", new DateTime(startDate).withTimeAtStartOfDay().toString("yyyy-MM-dd HH:mm:ss"), new DateTime(endDate).withTimeAtStartOfDay().toString("yyyy-MM-dd HH:mm:ss")), None, manifest[List[Map[String, AnyRef]]])
+          .expects("http://localhost:8082/druid/v2/sql/", "{\"query\":\"SELECT DISTINCT \\\"object_id\\\" AS \\\"Id\\\"\\nFROM \\\"druid\\\".\\\"%s\\\" WHERE \\\"eid\\\" = 'FEEDBACK' AND \\\"__time\\\" BETWEEN TIMESTAMP '%s' AND TIMESTAMP '%s' \"}".format("telemetry-events", new DateTime(startDate).withTimeAtStartOfDay().toString("yyyy-MM-dd HH:mm:ss"), new DateTime(endDate).withTimeAtStartOfDay().toString("yyyy-MM-dd HH:mm:ss")), None, manifest[List[Map[String, AnyRef]]])
           .returns(List(Map("ContentId" -> "test-1"), Map("ContentId" -> "test-2")))
 
         val contentIds = UpdateContentRating.getRatedContents(Map("startDate" -> startDate.asInstanceOf[AnyRef], "endDate" -> endDate.asInstanceOf[AnyRef]), mockRestUtil)
@@ -26,7 +28,7 @@ class TestUpdateContentRating  extends SparkSpec(null) with MockFactory {
         val endDate = new DateTime().toString("yyyy-MM-dd")
         val mockRestUtil = mock[HTTPClient]
         (mockRestUtil.post[List[Map[String, AnyRef]]](_: String, _: String, _: Option[Map[String, String]])(_: Manifest[List[Map[String, AnyRef]]]))
-          .expects("http://11.2.1.20:8082/druid/v2/sql/", "{\"query\":\"SELECT DISTINCT \\\"object_id\\\" AS \\\"Id\\\"\\nFROM \\\"druid\\\".\\\"%s\\\" WHERE \\\"eid\\\" = 'FEEDBACK' AND \\\"__time\\\" BETWEEN TIMESTAMP '%s' AND TIMESTAMP '%s' \"}".format("telemetry-events", new DateTime(startDate).withTimeAtStartOfDay().toString("yyyy-MM-dd HH:mm:ss"), new DateTime(endDate).withTimeAtStartOfDay().toString("yyyy-MM-dd HH:mm:ss")), None, manifest[List[Map[String, AnyRef]]])
+          .expects("http://localhost:8082/druid/v2/sql/", "{\"query\":\"SELECT DISTINCT \\\"object_id\\\" AS \\\"Id\\\"\\nFROM \\\"druid\\\".\\\"%s\\\" WHERE \\\"eid\\\" = 'FEEDBACK' AND \\\"__time\\\" BETWEEN TIMESTAMP '%s' AND TIMESTAMP '%s' \"}".format("telemetry-events", new DateTime(startDate).withTimeAtStartOfDay().toString("yyyy-MM-dd HH:mm:ss"), new DateTime(endDate).withTimeAtStartOfDay().toString("yyyy-MM-dd HH:mm:ss")), None, manifest[List[Map[String, AnyRef]]])
           .returns(List(Map("ContentId" -> "test-1"), Map("ContentId" -> "test-2")))
 
         val contentIds = UpdateContentRating.getRatedContents(Map("startDate" -> startDate.asInstanceOf[AnyRef], "endDate" -> startDate.asInstanceOf[AnyRef]), mockRestUtil)
@@ -37,7 +39,7 @@ class TestUpdateContentRating  extends SparkSpec(null) with MockFactory {
 
         val mockRestUtil = mock[HTTPClient]
         (mockRestUtil.post[List[Map[String, AnyRef]]](_: String, _: String, _: Option[Map[String, String]])(_: Manifest[List[Map[String, AnyRef]]]))
-          .expects("http://11.2.1.20:8082/druid/v2/sql/", "{\"query\": \"SELECT \\\"object_id\\\" AS ContentId, COUNT(*) AS \\\"Number of Ratings\\\", SUM(edata_rating) AS \\\"Total Ratings\\\", SUM(edata_rating)/COUNT(*) AS \\\"AverageRating\\\" FROM \\\"druid\\\".\\\"telemetry-events\\\" WHERE \\\"eid\\\" = 'FEEDBACK' GROUP BY \\\"object_id\\\"\"}", None, manifest[List[Map[String, AnyRef]]])
+          .expects("http://localhost:8082/druid/v2/sql/", "{\"query\": \"SELECT \\\"object_id\\\" AS ContentId, COUNT(*) AS \\\"Number of Ratings\\\", SUM(edata_rating) AS \\\"Total Ratings\\\", SUM(edata_rating)/COUNT(*) AS \\\"AverageRating\\\" FROM \\\"druid\\\".\\\"telemetry-events\\\" WHERE \\\"eid\\\" = 'FEEDBACK' GROUP BY \\\"object_id\\\"\"}", None, manifest[List[Map[String, AnyRef]]])
           .returns(List(Map("ContentId" -> "test-1", "Total Ratings" -> 25.asInstanceOf[AnyRef], "Number of Ratings" -> 5.asInstanceOf[AnyRef], "AverageRating" -> 5.asInstanceOf[AnyRef]), Map("ContentId" -> "test-2", "AverageRating" -> 3.asInstanceOf[AnyRef])))
 
         val contentRatings = UpdateContentRating.getContentRatings(mockRestUtil)
@@ -147,13 +149,6 @@ class TestUpdateContentRating  extends SparkSpec(null) with MockFactory {
         response.params.status.getOrElse("") should be("failed")
         response.result.getOrElse("node_id", "") should be("org.ekstep.jun16.story.test05")
 
-    }
-
-    ignore should "run successfully" in {
-
-        val rdd = UpdateContentRating.execute(sc.emptyRDD, None);
-        val out = rdd.collect();
-        println(out.length)
     }
 
 }

@@ -9,7 +9,8 @@ import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils}
 
 case class DruidMetrics(total_count: Long, date: String)
-case class V3Flags(flag: V3FlagContent)
+@scala.beans.BeanInfo
+case class V3Flags(flags: V3FlagContent)
 case class V3ContextEvent(context: V3Context)
 
 object MetricsAuditModel extends IBatchModelTemplate[Empty, Empty, V3DerivedEvent, V3DerivedEvent] with Serializable {
@@ -17,13 +18,11 @@ object MetricsAuditModel extends IBatchModelTemplate[Empty, Empty, V3DerivedEven
   val className = "org.ekstep.analytics.model.MetricsAuditJob"
   override def name: String = "MetricsAuditJob"
 
-  implicit val fc = new FrameworkContext()
-
-  override def preProcess(events: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[Empty] = {
+  override def preProcess(events: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[Empty] = {
     events;
   }
 
-  override def algorithm(events: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[V3DerivedEvent] = {
+  override def algorithm(events: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[V3DerivedEvent] = {
 
     val auditConfig = config("auditConfig").asInstanceOf[List[Map[String, AnyRef]]]
     val metrics = auditConfig.map{f =>
@@ -32,7 +31,7 @@ object MetricsAuditModel extends IBatchModelTemplate[Empty, Empty, V3DerivedEven
       val queryType = queryConfig.search.`type`
 
       queryType match {
-        case "azure" =>
+        case "azure" | "local" =>
           metricsEvent = getSecorMetrics(queryConfig)
         case "druid" =>
           metricsEvent = getDruidCount(queryConfig)
@@ -42,12 +41,12 @@ object MetricsAuditModel extends IBatchModelTemplate[Empty, Empty, V3DerivedEven
     sc.parallelize(metrics)
   }
 
-  override def postProcess(events: RDD[V3DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[V3DerivedEvent] = {
+  override def postProcess(events: RDD[V3DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[V3DerivedEvent] = {
     events;
   }
 
 
-  def getSecorMetrics(queryConfig: JobConfig)(implicit sc: SparkContext): V3DerivedEvent = {
+  def getSecorMetrics(queryConfig: JobConfig)(implicit sc: SparkContext, fc: FrameworkContext): V3DerivedEvent = {
     var metricEvent: List[V3MetricEdata] = null
     val name = queryConfig.name.get
     name match {
@@ -80,14 +79,17 @@ object MetricsAuditModel extends IBatchModelTemplate[Empty, Empty, V3DerivedEven
   }
 
   def getDenormSecorAudit(rdd: RDD[V3Flags], filters: Array[Filter])(implicit sc: SparkContext): List[V3MetricEdata] = {
-    val count = rdd.count()
+    val denormCount = rdd.count()
     val metricData = filters.map{f =>
-      V3MetricEdata(f.name.substring(6), Option(DataFilter.filter(rdd, f).count()))
-    }.toList
-    metricData
+      val filteredRdd = rdd.filter(x => null != x.flags)
+      val filterCount = DataFilter.filter(filteredRdd, f).count()
+      val diff = if(denormCount > 0) filterCount * 100 / denormCount else 0
+      List(V3MetricEdata(f.name.substring(6), Option(filterCount)), V3MetricEdata("percentage_events_with_" + f.name.substring(6), Some(diff)))
+    }.flatten.toList
+    metricData ++ List(V3MetricEdata("count", Some(denormCount)))
   }
 
-  def getDruidCount(queryConfig: JobConfig)(implicit sc: SparkContext): V3DerivedEvent = {
+  def getDruidCount(queryConfig: JobConfig)(implicit sc: SparkContext, fc: FrameworkContext): V3DerivedEvent = {
     val name = queryConfig.name.get
     val data = DataFetcher.fetchBatchData[DruidMetrics](queryConfig.search).first()
     val metrics = List(V3MetricEdata(name, Some(data.total_count)),V3MetricEdata("date", Some(data.date)))

@@ -6,6 +6,7 @@ import org.ekstep.analytics.util.Constants
 import org.ekstep.analytics.framework.DerivedEvent
 import com.datastax.spark.connector._
 import org.ekstep.analytics.util.WorkFlowUsageSummaryFact
+import org.ekstep.analytics.framework.FrameworkContext
 
 class TestUpdateWorkflowUsageDB extends SparkSpec(null) {
 
@@ -21,6 +22,8 @@ class TestUpdateWorkflowUsageDB extends SparkSpec(null) {
         super.afterAll();
     }
 
+    implicit val fc = new FrameworkContext();
+    
     it should "update all usage suammary db and check the updated fields" in {
         val rdd = loadFile[DerivedEvent]("src/test/resources/workflow-usage-updater/test-data.log");
         val rdd2 = UpdateWorkFlowUsageDB.execute(rdd, None);
