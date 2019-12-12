@@ -26,8 +26,6 @@ node('build-slave') {
         }
         stage('Pre-Build') {
             sh '''
-                sed -i "s#>logs<#>/mount/data/analytics/logs/api-service<#g" platform-api/analytics-api/conf/log4j2.xml
-                sed -i 's#${application.home:-.}/logs#/mount/data/analytics/logs/api-service#g' platform-api/analytics-api/conf/logback.xml
                 sed -i "s/cassandra.service.embedded.enable=false/cassandra.service.embedded.enable=true/g" platform-api/analytics-api/conf/application.conf
                 sed -i "s/cassandra.service.embedded.enable=false/cassandra.service.embedded.enable=true/g" platform-api/analytics-api-core/src/test/resources/application.conf
                 #sed -i "s/'replication_factor': '2'/'replication_factor': '1'/g" platform-scripts/database/data.cql
@@ -35,10 +33,13 @@ node('build-slave') {
         }
         stage('Build') {
             sh '''
-                cd platform-framework && mvn clean install
-                cd ../platform-modules && mvn clean install
+                cd platform-framework && mvn clean install -DskipTests
+                cd ../platform-modules && mvn clean install -DskipTests
                 cd job-manager && mvn clean package
-                cd ../../platform-api && mvn clean install
+                cd ../../platform-api && mvn scoverage:report
+                sed -i "s#>logs<#>/mount/data/analytics/logs/api-service<#g" platform-api/analytics-api/conf/log4j2.xml
+                sed -i 's#${application.home:-.}/logs#/mount/data/analytics/logs/api-service#g' platform-api/analytics-api/conf/logback.xml
+                mvn clean install -DskipTests
                 mvn play2:dist -pl analytics-api
                 '''
         }
