@@ -6,7 +6,7 @@ import redis.clients.jedis.{Jedis, JedisPool, JedisPoolConfig}
 import scala.collection.JavaConverters._
 
 class RedisUtil {
-  implicit val className = "org.ekstep.analytics.api.util.RedisUtil"
+  implicit val className: String = "org.ekstep.analytics.api.util.RedisUtil"
   private val config: Config = ConfigFactory.load()
   private val redis_host = config.getString("redis.host")
   private val redis_port = config.getInt("redis.port")
@@ -27,6 +27,10 @@ class RedisUtil {
   }
 
   private var jedisPool = new JedisPool(buildPoolConfig, redis_host, redis_port)
+
+  def closePool() = {
+    jedisPool.close()
+  }
 
   def getConnection: Jedis = jedisPool.getResource
 

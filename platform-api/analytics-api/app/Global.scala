@@ -11,6 +11,16 @@ import org.ekstep.analytics.api.util.{APILogger, ElasticsearchService, RedisUtil
 
 object Global extends WithFilters(RequestInterceptor) {
 
+    val deviceRegisterRedisUtil = new RedisUtil()
+    val deviceProfileRedisUtil = new RedisUtil()
+
+    Runtime.getRuntime.addShutdownHook(new Thread {
+        override def run = {
+            deviceProfileRedisUtil.closePool()
+            deviceRegisterRedisUtil.closePool()
+        }
+    })
+
     override def beforeStart(app: Application) {
         APILogger.init("org.ekstep.analytics-api")
         // Logger.info("Caching content")
@@ -19,16 +29,15 @@ object Global extends WithFilters(RequestInterceptor) {
         Logger.info("Application has started...")
         val config = ConfigFactory.load()
 
-        val deviceRegisterRedisUtil = new RedisUtil()
-        val deviceProfileRedisUtil = new RedisUtil()
+
         val metricsActor: ActorRef = app.actorSystem.actorOf(Props(new SaveMetricsActor(config)))
 
         val deviceRegisterActor = app.actorSystem
-          .actorOf(Props(new DeviceRegisterService(metricsActor, config, deviceRegisterRedisUtil)), "deviceRegisterServiceAPIActor")
+          .actorOf(Props(new DeviceRegisterService(metricsActor, config, deviceRegisterRedisUtil)).withDispatcher("device-register-actor"), "deviceRegisterServiceAPIActor")
         AppConf.setActorRef("deviceRegisterService", deviceRegisterActor)
 
         val deviceProfileActor = app.actorSystem
-          .actorOf(Props(new DeviceProfileService(metricsActor, config, deviceProfileRedisUtil)), "deviceProfileServiceAPIActor")
+          .actorOf(Props(new DeviceProfileService(metricsActor, config, deviceProfileRedisUtil)).withDispatcher("device-profile-actor"), "deviceProfileServiceAPIActor")
         AppConf.setActorRef("deviceProfileService", deviceProfileActor)
 
         // experiment Service
