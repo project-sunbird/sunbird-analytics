@@ -15,7 +15,9 @@ case class WorkflowDataRead(did: Option[String], sid: String, uid: String, pdata
                           page_summary: Option[Iterable[PageSummary]], etags: Option[ETags])
 
 class TestWorkFlowSummaryModel extends SparkSpec {
-    
+  
+    implicit val fc = new FrameworkContext();
+  
     it should "generate 6 workflow summary with 1 default app summary" in {
       
         val data = loadFile[V3Event]("src/test/resources/workflow-summary/test-data2.log")

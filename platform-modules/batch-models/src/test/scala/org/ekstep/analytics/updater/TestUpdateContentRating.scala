@@ -4,9 +4,11 @@ import org.ekstep.analytics.framework.util.HTTPClient
 import org.ekstep.analytics.model.SparkSpec
 import org.joda.time.DateTime
 import org.scalamock.scalatest.MockFactory
+import org.ekstep.analytics.framework.FrameworkContext
 
 class TestUpdateContentRating  extends SparkSpec(null) with MockFactory {
 
+    implicit val fc = new FrameworkContext();
     "UpdateContentRating" should "get content list which are rated in given time" in {
 
         val startDate = new DateTime().minusDays(1).toString("yyyy-MM-dd")
@@ -147,13 +149,6 @@ class TestUpdateContentRating  extends SparkSpec(null) with MockFactory {
         response.params.status.getOrElse("") should be("failed")
         response.result.getOrElse("node_id", "") should be("org.ekstep.jun16.story.test05")
 
-    }
-
-    ignore should "run successfully" in {
-
-        val rdd = UpdateContentRating.execute(sc.emptyRDD, None);
-        val out = rdd.collect();
-        println(out.length)
     }
 
 }

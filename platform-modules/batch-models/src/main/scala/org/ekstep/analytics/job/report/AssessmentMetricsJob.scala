@@ -282,7 +282,6 @@ object AssessmentMetricsJob extends optional.Application with IJob with BaseRepo
     FileUtil.renameReport(tempDir, renamedDir, batchId)
     val storageService = getReportStorageService();
     storageService.upload(container, renamedDir, objectKey, isDirectory = Option(true))
-    storageService.closeContext();
   }
 
   def saveToElastic(index: String, reportDF: DataFrame): Unit = {

@@ -22,7 +22,7 @@ object JobDriver {
     implicit val className = "org.ekstep.analytics.framework.JobDriver"
     
     @throws(classOf[Exception])
-    def run[T, R](t: String, config: String, model: IBatchModel[T, R])(implicit mf: Manifest[T], mfr: Manifest[R], sc: SparkContext) {
+    def run[T, R](t: String, config: String, model: IBatchModel[T, R])(implicit mf: Manifest[T], mfr: Manifest[R], sc: Option[SparkContext], fc: Option[FrameworkContext]) {
         JobLogger.init(model.getClass.getName.split("\\$").last);
         try {
             val jobConfig = JSONUtils.deserialize[JobConfig](config);
@@ -44,7 +44,7 @@ object JobDriver {
         }
     }
     
-    def run[T, R](t: String, config: String, models: List[IBatchModel[T, R]], jobName: String)(implicit mf: Manifest[T], mfr: Manifest[R], sc: SparkContext) {
+    def run[T, R](t: String, config: String, models: List[IBatchModel[T, R]], jobName: String)(implicit mf: Manifest[T], mfr: Manifest[R], sc: Option[SparkContext], fc: Option[FrameworkContext]) {
         JobLogger.init(jobName);
         try {
             val jobConfig = JSONUtils.deserialize[JobConfig](config);

@@ -6,10 +6,13 @@ import org.apache.spark.rdd.RDD
 import org.ekstep.analytics.framework.DerivedEvent
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.V3Event
+import org.ekstep.analytics.framework.FrameworkContext
 
 class TestMonitorSummaryModel extends SparkSpec(null) {
 
     "Monitor Summary Model" should "monitor the data products logs" in {
+      
+        implicit val fc = new FrameworkContext();
         val modelMapping = loadFile[ModelMapping]("src/test/resources/monitor-summary/model-mapping.log").collect().toList;
         val rdd1 = loadFile[V3Event]("src/test/resources/monitor-summary/2017-12-08.log");
         val rdd2 = MonitorSummaryModel.execute(rdd1, Option(Map("model" -> modelMapping)));
