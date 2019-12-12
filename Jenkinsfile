@@ -33,8 +33,8 @@ node('build-slave') {
         }
         stage('Build') {
             sh '''
-                cd platform-framework && mvn clean install -DskipTests
-                cd ../platform-modules && mvn clean install -DskipTests
+                cd platform-framework && mvn clean install
+                cd ../platform-modules && mvn clean install
                 cd job-manager && mvn clean package
                 cd ../../platform-api && mvn scoverage:report
                 sed -i "s#>logs<#>/mount/data/analytics/logs/api-service<#g" platform-api/analytics-api/conf/log4j2.xml
