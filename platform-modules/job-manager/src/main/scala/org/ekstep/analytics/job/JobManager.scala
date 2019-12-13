@@ -110,7 +110,7 @@ class JobRunner(config: JobManagerConfig, consumer: JobConsumerV2, doneSignal: C
                 }
             }
             JobLogger.log("Executing " + modelName, None, INFO);
-            JobExecutor.main(modelName, configStr)
+            JobExecutorV2.main(modelName, configStr)
             JobLogger.log("Finished executing " + modelName, None, INFO);
         } catch {
             case ex: Exception =>

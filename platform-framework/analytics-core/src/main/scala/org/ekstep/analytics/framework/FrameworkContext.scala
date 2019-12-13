@@ -21,7 +21,6 @@ class FrameworkContext {
         getStorageService(f._1, f._2, f._3);
       })
     }
-
   }
 
   def getStorageService(storageType: String): BaseStorageService = {
