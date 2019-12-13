@@ -8,7 +8,7 @@ import org.ekstep.analytics.framework.util.JobLogger
 class HDFSFileUtils(classNameStr: String, jobLogger: JobLogger.type ) {
   implicit val className = classNameStr
 
-  private def recursiveListFiles(file: File, ext: String): Array[File] = {
+  def recursiveListFiles(file: File, ext: String): Array[File] = {
     val fileList = file.listFiles
     val extOnly = fileList.filter(file => file.getName.endsWith(ext))
     extOnly ++ fileList.filter(_.isDirectory).flatMap(recursiveListFiles(_, ext))
@@ -77,6 +77,14 @@ class HDFSFileUtils(classNameStr: String, jobLogger: JobLogger.type ) {
         jobLogger.log(s"${partitionFieldName} Copied from ${file.toPath.toAbsolutePath()} to ${filePath}" )
 
       }
+    })
+  }
+
+
+  def copyFilesToDir(files: Array[File], dirName: String) {
+    files.foreach(file => {
+      val newPath = new File(dirName+"/"+file.getName)
+      Files.copy(file.toPath, newPath.toPath, StandardCopyOption.REPLACE_EXISTING)
     })
   }
 
