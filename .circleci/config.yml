@@ -31,7 +31,7 @@ jobs:
     - run:
         name: sonar
         command: |
-          mvn verify -X sonar:sonar -Dsonar.projectKey=project-sunbird_sunbird-analytics -Dsonar.organization=project-sunbird -Dsonar.exclusions=/home/circleci/project/platform-modules/video-streaming/**/*,/home/circleci/project/platform-modules/optional-master/**/* -Dsonar.host.url=https://sonarcloud.io -Dsonar.scala.coverage.reportPaths=/home/circleci/project/target/scoverage.xml,/home/circleci/project/platform-modules/batch-models/target/scoverage.xml,/home/circleci/project/platform-framework/analytics-job-driver/target/scoverage.xml,/home/circleci/project/platform-framework/analytics-core/target/scoverage.xml,/home/circleci/project/platform-api/analytics-api/target/scoverage.xml,/home/circleci/project/platform-api/analytics-api-core/target/scoverage.xml
+          mvn verify -X sonar:sonar -Dsonar.projectKey=project-sunbird_sunbird-analytics -Dsonar.organization=project-sunbird -Dsonar.exclusions=platform-modules/video-streaming/**, platform-modules/optional-master/** -Dsonar.host.url=https://sonarcloud.io -Dsonar.scala.coverage.reportPaths=/home/circleci/project/target/scoverage.xml,/home/circleci/project/platform-modules/batch-models/target/scoverage.xml,/home/circleci/project/platform-framework/analytics-job-driver/target/scoverage.xml,/home/circleci/project/platform-framework/analytics-core/target/scoverage.xml,/home/circleci/project/platform-api/analytics-api/target/scoverage.xml,/home/circleci/project/platform-api/analytics-api-core/target/scoverage.xml
 
 workflows:
   version: 2.1
