@@ -7,21 +7,27 @@ import org.ekstep.analytics.api.BaseSpec
 import org.ekstep.analytics.api.util._
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.mockito.Mockito._
+import redis.clients.jedis.Jedis
+
+import scala.concurrent.ExecutionContext
 
 class TestDeviceRegisterService extends BaseSpec {
 
   val deviceRegisterServiceMock: DeviceRegisterService = mock[DeviceRegisterService]
   private implicit val system: ActorSystem = ActorSystem("device-register-test-actor-system", config)
   private val configMock = mock[Config]
+  private val jedisMock = mock[Jedis]
   private val redisUtilMock = mock[RedisUtil]
   private val postgresDBMock = mock[PostgresDBUtil]
   private val H2DBMock = mock[H2DBUtil]
-  implicit val executor = scala.concurrent.ExecutionContext.global
-  implicit val jedisConnection = redisUtilMock.getConnection(redisIndex)
+  implicit val executor: ExecutionContext = scala.concurrent.ExecutionContext.global
+  // implicit val jedisConnection = redisUtilMock.getConnection(redisIndex)
+
   val redisIndex: Int = config.getInt("redis.deviceIndex")
   val saveMetricsActor = TestActorRef(new SaveMetricsActor)
   val metricsActorProbe = TestProbe()
 
+  when(configMock.getInt("redis.deviceIndex")).thenReturn(redisIndex)
   when(configMock.getString("postgres.table.geo_location_city.name")).thenReturn("geo_location_city")
   when(configMock.getString("postgres.table.geo_location_city_ipv4.name")).thenReturn("geo_location_city_ipv4")
   when(configMock.getBoolean("device.api.enable.debug.log")).thenReturn(true)
@@ -30,8 +36,8 @@ class TestDeviceRegisterService extends BaseSpec {
     override val metricsActor = metricsActorProbe.ref
   })
 
-  val geoLocationCityIpv4TableName = config.getString("postgres.table.geo_location_city_ipv4.name")
-  val geoLocationCityTableName = config.getString("postgres.table.geo_location_city.name")
+  private val geoLocationCityIpv4TableName = config.getString("postgres.table.geo_location_city_ipv4.name")
+  private val geoLocationCityTableName = config.getString("postgres.table.geo_location_city.name")
 
   val request: String =
     s"""
@@ -62,6 +68,7 @@ class TestDeviceRegisterService extends BaseSpec {
 
   override def beforeAll() {
     super.beforeAll()
+    when(redisUtilMock.getConnection(redisIndex)).thenReturn(jedisMock)
   }
 
   val uaspec = s"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36"
@@ -146,22 +153,6 @@ class TestDeviceRegisterService extends BaseSpec {
     uaspecResult should be(None)
   }
 
-  "Resolve declared location for get device profile" should "return declared location details" in {
-    when(redisUtilMock.getAllByKey("test-device"))
-      .thenReturn(Option(Map("user_declared_state" -> "Karnataka", "user_declared_district" -> "BANGALORE")))
-    val deviceLocation = redisUtilMock.getAllByKey("test-device")
-    deviceLocation.get.get("user_declared_state").getOrElse() should be("Karnataka")
-    deviceLocation.get.get("user_declared_district").getOrElse() should be("BANGALORE")
-  }
-
-  "Resolve user declared location for get device profile" should "return empty location declared location is not found" in {
-    when(redisUtilMock.getAllByKey("test-device"))
-      .thenReturn(None)
-
-    val deviceLocation = redisUtilMock.getAllByKey("test-device")
-    deviceLocation.isEmpty should be(true)
-  }
-
   "register device message" should "resolve location write to logger" in {
     val deviceSpec = "{\"cpu\":\"abi:  armeabi-v7a  ARMv7 Processor rev 4 (v7l)\",\"make\":\"Micromax Micromax A065\",\"os\":\"Android 4.4.2\"}"
     val uaspec = s"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36"
@@ -209,8 +200,8 @@ class TestDeviceRegisterService extends BaseSpec {
       .thenReturn(dataMap)
 
     val deviceDataMap = deviceRegisterServiceMock.getDeviceProfileMap(register, location)
-    deviceDataMap.get("user_declared_state").get should be("Telangana")
-    deviceDataMap.get("user_declared_district").get should be("Hyderbad")
+    deviceDataMap("user_declared_state") should be("Telangana")
+    deviceDataMap("user_declared_district") should be("Hyderbad")
     deviceDataMap.get("devicespec").isEmpty should be(true)
   }
 

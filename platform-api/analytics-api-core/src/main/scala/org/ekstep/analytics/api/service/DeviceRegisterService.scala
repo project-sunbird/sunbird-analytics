@@ -13,19 +13,24 @@ import org.postgresql.util.PSQLException
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.exceptions.JedisConnectionException
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
+import scala.collection.JavaConverters._
 
 case class RegisterDevice(did: String, headerIP: String, ip_addr: Option[String] = None, fcmToken: Option[String] = None, producer: Option[String] = None, dspec: Option[String] = None, uaspec: Option[String] = None, first_access: Option[Long]= None, user_declared_state: Option[String] = None, user_declared_district: Option[String] = None)
 case class DeviceProfileLog(device_id: String, location: DeviceLocation, device_spec: Option[Map[String, AnyRef]] = None, uaspec: Option[String] = None, fcm_token: Option[String] = None, producer_id: Option[String] = None, first_access: Option[Long] = None, user_declared_state: Option[String] = None, user_declared_district: Option[String] = None)
 case class DeviceProfile(userDeclaredLocation: Option[Location], ipLocation: Option[Location])
 case class Location(state: String, district: String)
 
+sealed trait DeviceRegisterStatus
+case object DeviceRegisterSuccesfulAck extends DeviceRegisterStatus
+case object DeviceRegisterFailureAck extends DeviceRegisterStatus
+
 class DeviceRegisterService @Inject()(
                                        @Named("save-metrics-actor") saveMetricsActor: ActorRef,
                                        config: Config,
                                        redisUtil: RedisUtil,
                                        postgresDB: PostgresDBUtil,
-                                       H2DB : H2DBUtil
+                                       H2DB: H2DBUtil
                                      ) extends Actor {
 
     implicit val ec: ExecutionContext = context.system.dispatchers.lookup("device-register-actor")
@@ -34,9 +39,8 @@ class DeviceRegisterService @Inject()(
     val geoLocationCityIpv4TableName: String = config.getString("postgres.table.geo_location_city_ipv4.name")
     val metricsActor: ActorRef = saveMetricsActor
     val deviceDatabaseIndex: Int = config.getInt("redis.deviceIndex")
-    implicit val jedisConnection: Jedis = redisUtil.getConnection(deviceDatabaseIndex)
+    // implicit val jedisConnection: Jedis = redisUtil.getConnection(deviceDatabaseIndex)
     private val logger = LogManager.getLogger("device-logger")
-    private val enableDebugLogging = config.getBoolean("device.api.enable.debug.log")
 
     override def preStart { println("starting DeviceRegisterService") }
 
@@ -53,48 +57,46 @@ class DeviceRegisterService @Inject()(
       case deviceRegDetails: RegisterDevice =>
         try {
           metricsActor.tell(IncrementApiCalls, ActorRef.noSender)
-          registerDevice(deviceRegDetails)
+          sender() ! registerDevice(deviceRegDetails)
         } catch {
           case ex: PSQLException =>
             ex.printStackTrace()
-            val errorMessage = "DeviceRegisterAPI failed due to " + ex.getMessage
+            val errorMessage = s"DeviceRegisterAPI failed due to ${ex.getMessage}"
             metricsActor.tell(IncrementLocationDbErrorCount, ActorRef.noSender)
             APILogger.log("", Option(Map("type" -> "api_access",
               "params" -> List(Map("status" -> 500, "method" -> "POST",
                 "rid" -> "registerDevice", "title" -> "registerDevice")), "data" -> errorMessage)),
               "registerDevice")
+            throw ex
           case ex: JedisConnectionException =>
             ex.printStackTrace()
-            val errorMessage = "DeviceRegisterAPI failed due to " + ex.getMessage
+            val errorMessage = s"DeviceRegisterAPI failed due to ${ex.getMessage}"
             APILogger.log("", Option(Map("type" -> "api_access",
               "params" -> List(Map("status" -> 500, "method" -> "POST",
                 "rid" -> "registerDevice", "title" -> "registerDevice")), "data" -> errorMessage)),
               "registerDevice")
+            throw ex
           case ex: Exception =>
             ex.printStackTrace()
-            val errorMessage = "DeviceRegisterAPI failed due to " + ex.getMessage
+            val errorMessage = s"DeviceRegisterAPI failed due to ${ex.getMessage}"
             APILogger.log("", Option(Map("type" -> "api_access",
               "params" -> List(Map("status" -> 500, "method" -> "POST",
                 "rid" -> "registerDevice", "title" -> "registerDevice")), "data" -> errorMessage)),
               "registerDevice")
+            throw ex
         }
     }
-    def registerDevice(registrationDetails: RegisterDevice) {
+
+    def registerDevice(registrationDetails: RegisterDevice): DeviceRegisterStatus = {
         val validIp = if (registrationDetails.headerIP.startsWith("192")) registrationDetails.ip_addr.getOrElse("") else registrationDetails.headerIP
         if (validIp.nonEmpty) {
             val location = resolveLocation(validIp)
 
             // logging metrics
             if(isLocationResolved(location)) {
-                if (enableDebugLogging) {
-                    println(s"DeviceRegisterService.registerDevice: Location resolved - { did: ${registrationDetails.did}, ip_address: $validIp, state: ${location.state}, city: ${location.city}, district: ${location.districtCustom} }")
-                }
                 APILogger.log("", Option(Map("comments" -> s"Location resolved for ${registrationDetails.did} to state: ${location.state}, city: ${location.city}, district: ${location.districtCustom}")), "registerDevice")
                 metricsActor.tell(IncrementLocationDbSuccessCount, ActorRef.noSender)
             } else {
-                if (enableDebugLogging) {
-                    println(s"DeviceRegisterService.registerDevice: Location not resolved - { did: ${registrationDetails.did}, ip_address: $validIp }")
-                }
                 APILogger.log("", Option(Map("comments" -> s"Location is not resolved for ${registrationDetails.did}")), "registerDevice")
                 metricsActor.tell(IncrementLocationDbMissCount, ActorRef.noSender)
             }
@@ -106,9 +108,15 @@ class DeviceRegisterService @Inject()(
 
             // Add device profile to redis cache
             val deviceProfileMap = getDeviceProfileMap(registrationDetails, location)
-            redisUtil.hmset(registrationDetails.did, deviceProfileMap)
-            if (enableDebugLogging) {
-                println(s"Redis-cache updated for did: ${registrationDetails.did}")
+            val jedisConnection: Jedis = redisUtil.getConnection(deviceDatabaseIndex)
+            try {
+              Option(jedisConnection.hmset(registrationDetails.did, deviceProfileMap.asJava))
+            } catch {
+              case ex: Exception =>
+                APILogger.log("", Option(Map("comments" -> s"Redis cache update exception for ${registrationDetails.did}: ${ex.getMessage}")), "DeviceRegisterService")
+                None
+            } finally {
+              jedisConnection.close()
             }
             APILogger.log(s"Redis-cache updated for did: ${registrationDetails.did}", None, "registerDevice")
 
@@ -116,11 +124,17 @@ class DeviceRegisterService @Inject()(
               registrationDetails.uaspec, registrationDetails.fcmToken, registrationDetails.producer, registrationDetails.first_access,
               registrationDetails.user_declared_state, registrationDetails.user_declared_district)
 
-            val deviceRegisterLogEvent = generateDeviceRegistrationLogEvent(deviceProfileLog)
-            logger.info(deviceRegisterLogEvent)
-            metricsActor.tell(IncrementLogDeviceRegisterSuccessCount, ActorRef.noSender)
+            logDeviceRegisterEvent(deviceProfileLog)
+            DeviceRegisterSuccesfulAck
         }
+      DeviceRegisterFailureAck
 
+    }
+
+    def logDeviceRegisterEvent(deviceProfileLog: DeviceProfileLog) = Future {
+      val deviceRegisterLogEvent = generateDeviceRegistrationLogEvent(deviceProfileLog)
+      logger.info(deviceRegisterLogEvent)
+      metricsActor.tell(IncrementLogDeviceRegisterSuccessCount, ActorRef.noSender)
     }
 
     def resolveLocation(ipAddress: String): DeviceLocation = {
