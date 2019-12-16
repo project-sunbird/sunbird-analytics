@@ -13,7 +13,6 @@ object DeviceProfileUpdater extends optional.Application with IJob {
   
     def main(config: String)(implicit sc: Option[SparkContext] = None, fc: Option[FrameworkContext] = None) {
         JobLogger.log("Started executing Job")
-        implicit val sparkContext: SparkContext = sc.getOrElse(null);
         JobDriver.run("batch", config, UpdateDeviceProfileDB);
         JobLogger.log("Job Completed.")
     }

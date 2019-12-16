@@ -1,10 +1,8 @@
 package controllers
 
-import akka.actor.{ActorRef, Props}
 import akka.util.Timeout
 import akka.util.Timeout.durationToTimeout
 import com.typesafe.config.Config
-import org.ekstep.analytics.api.service.CacheRefreshActor
 import play.api.Configuration
 import play.api.mvc._
 

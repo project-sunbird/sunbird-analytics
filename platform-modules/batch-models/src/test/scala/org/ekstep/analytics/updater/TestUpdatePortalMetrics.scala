@@ -8,6 +8,7 @@ import org.ekstep.analytics.model.SparkSpec
 import org.ekstep.analytics.util.{WorkFlowUsageSummaryFact, _}
 import org.joda.time.DateTime
 import org.scalamock.scalatest.MockFactory
+import org.ekstep.analytics.framework.FrameworkContext
 
 
 /**
@@ -36,12 +37,13 @@ class TestUpdatePortalMetrics extends SparkSpec(null) with MockFactory {
   /**
     * Which is used to execute updateDashboard data product
     */
-  private def executeDataProduct():RDD[PortalMetrics]={
+  private def executeDataProduct()(implicit fc: FrameworkContext):RDD[PortalMetrics]={
     UpdatePortalMetrics.execute(sc.emptyRDD, Option(Map("date" -> new DateTime().toString(CommonUtil.dateFormat).asInstanceOf[AnyRef])))
   }
 
   "UpdateDashboardModel" should "Should find the unique device count,totalContentPublished,totalTimeSpent,totalContentPlayTime and should filter when d_time>0(Cumulative)" in {
     
+    implicit val fc = new FrameworkContext();
     val rdd = executeDataProduct()
     val out = rdd.collect()
     val dashboardSummary = JSONUtils.deserialize[WorkFlowUsageMetrics](JSONUtils.serialize(out.head.metrics_summary))
