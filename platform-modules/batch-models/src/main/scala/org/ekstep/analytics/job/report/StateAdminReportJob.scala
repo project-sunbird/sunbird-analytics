@@ -1,5 +1,7 @@
 package org.ekstep.analytics.job.report
 
+import java.io.File
+
 import org.apache.spark.SparkContext
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions.{col, lit, _}
@@ -27,6 +29,8 @@ object StateAdminReportJob extends optional.Application with IJob with StateAdmi
 
     implicit val className: String = "org.ekstep.analytics.job.StateAdminReportJob"
 
+    val fSFileUtils = new HDFSFileUtils(className, JobLogger)
+
     def name(): String = "StateAdminReportJob"
 
     def main(config: String)(implicit sc: Option[SparkContext] = None, fc: Option[FrameworkContext] = None) {
@@ -35,7 +39,6 @@ object StateAdminReportJob extends optional.Application with IJob with StateAdmi
         JobLogger.start("Started executing", Option(Map("config" -> config, "model" -> name)))
         val jobConfig = JSONUtils.deserialize[JobConfig](config)
         JobContext.parallelization = 10
-
         implicit val sparkSession: SparkSession = openSparkSession(jobConfig);
         implicit val frameworkContext = getReportingFrameworkContext();
         execute(jobConfig)
@@ -44,8 +47,6 @@ object StateAdminReportJob extends optional.Application with IJob with StateAdmi
     }
 
     private def execute(config: JobConfig)(implicit sparkSession: SparkSession, fc: FrameworkContext) = {
-
-        val tempDir = AppConf.getConfig("admin.metrics.temp.dir")
         generateReport();
         uploadReport(renamedDir)
         JobLogger.end("StateAdminReportJob completed successfully!", "SUCCESS", Option(Map("config" -> config, "model" -> name)))
@@ -54,10 +55,6 @@ object StateAdminReportJob extends optional.Application with IJob with StateAdmi
     def generateReport()(implicit sparkSession: SparkSession)   = {
 
         import sparkSession.implicits._
-        val renamedDir = s"$tempDir/renamed"
-        val fSFileUtils = new HDFSFileUtils(className, JobLogger)
-        val detailDir = s"$tempDir/detail"
-        val summaryDir = s"$tempDir/summary"
 
         val shadowDataEncoder = Encoders.product[ShadowUserData].schema
         //val stateAdminReport = new StateAdminReportHelper(sparkSession)
@@ -219,15 +216,22 @@ object StateAdminReportJob extends optional.Application with IJob with StateAdmi
     }
 
     private def renameChannelDirsToSlug(sourcePath: String, channelSlugMap: Map[String, String]) = {
-        val fsFileUtils = new HDFSFileUtils(className, JobLogger)
-        val files = fsFileUtils.getSubdirectories(sourcePath)
+        val files = fSFileUtils.getSubdirectories(sourcePath)
         files.map { oneChannelDir =>
             val name = oneChannelDir.getName()
             val slugName = channelSlugMap.get(name);
             if(slugName.nonEmpty) {
                 println(s"name = ${name} and slugname = ${slugName}")
                 val newDirName = oneChannelDir.getParent() + "/" + slugName.get.asInstanceOf[String]
-                fsFileUtils.renameDirectory(oneChannelDir.getAbsolutePath(), newDirName)
+                if(new File(newDirName).exists) {
+                  val jsonFiles = fSFileUtils.recursiveListFiles(oneChannelDir, ".json")
+                  fSFileUtils.copyFilesToDir(jsonFiles, newDirName)
+                  val csvFiles = fSFileUtils.recursiveListFiles(oneChannelDir, ".csv")
+                  fSFileUtils.copyFilesToDir(csvFiles, newDirName)
+                  fSFileUtils.purgeDirectory(oneChannelDir.getAbsolutePath())
+                } else {
+                  fSFileUtils.renameDirectory(oneChannelDir.getAbsolutePath(), newDirName)
+                }
             } else {
                 println("Slug not found for - " + name);
             }
@@ -241,6 +245,5 @@ object StateAdminReportJob extends optional.Application with IJob with StateAdmi
 
         val storageService = getReportStorageService();
         storageService.upload(container, sourcePath, objectKey, isDirectory = Option(true))
-        storageService.closeContext();
     }
 }

@@ -6,6 +6,8 @@ import org.ekstep.analytics.model.SparkSpec
 import org.scalamock.scalatest.MockFactory
 import org.ekstep.analytics.job.report.{BaseReportsJob, StateAdminGeoReportJob}
 import org.ekstep.analytics.util.EmbeddedCassandra
+import org.sunbird.cloud.storage.conf.AppConf
+import java.io.File
 
 class TestStateAdminGeoReportJob extends SparkSpec(null) with MockFactory {
 
@@ -23,6 +25,7 @@ class TestStateAdminGeoReportJob extends SparkSpec(null) with MockFactory {
   }
 
   "StateAdminGeoReportJob" should "generate reports" in {
+    val tempDir = AppConf.getConfig("admin.metrics.temp.dir")
     val reportDF = StateAdminGeoReportJob.generateGeoReport()(spark)
     assert(reportDF.count() === 6)
     //for geo report we expect these columns
@@ -41,5 +44,14 @@ class TestStateAdminGeoReportJob extends SparkSpec(null) with MockFactory {
     assert(school_name(0) === "MPPS SIMHACHALNAGAR")
     assert(school_name(1) === "Another school")
     assert(reportDF.select("District id").distinct().count == 4)
+    //checking reports were created under slug folder
+    val slugName = apslug.select("slug").collect().map(_ (0)).toList
+    val apslugDirPath = tempDir+"/renamed/"+slugName(0)+"/"
+    val geoDetail = new File(apslugDirPath+"geo-detail.csv")
+    val geoSummary = new File(apslugDirPath+"geo-summary.json")
+    val geoSummaryDistrict = new File(apslugDirPath+"geo-summary-district.json")
+    assert(geoDetail.exists() === true)
+    assert(geoSummary.exists() === true)
+    assert(geoSummaryDistrict.exists() === true)
   }
 }

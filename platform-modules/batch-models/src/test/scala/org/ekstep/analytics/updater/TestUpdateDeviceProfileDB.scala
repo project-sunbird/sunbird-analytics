@@ -5,8 +5,11 @@ import com.datastax.spark.connector.cql.CassandraConnector
 import org.ekstep.analytics.framework.DerivedEvent
 import org.ekstep.analytics.model.SparkSpec
 import org.ekstep.analytics.util.Constants
+import org.ekstep.analytics.framework.FrameworkContext
 
 class TestUpdateDeviceProfileDB extends SparkSpec(null) {
+    
+    implicit val fc = new FrameworkContext();
     
     "UpdateDeviceProfileDB" should "create device profile in device db" in {
         CassandraConnector(sc.getConf).withSessionDo { session =>

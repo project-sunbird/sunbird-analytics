@@ -52,7 +52,6 @@ object UpdatePortalMetrics extends IBatchModelTemplate[DerivedEvent, DerivedEven
   with Serializable {
 
   val className = "org.ekstep.analytics.updater.UpdatePortalMetrics"
-  implicit val fc = new FrameworkContext();
 
   private val EVENT_ID: String = "ME_PORTAL_CUMULATIVE_METRICS"
 
@@ -66,7 +65,7 @@ object UpdatePortalMetrics extends IBatchModelTemplate[DerivedEvent, DerivedEven
     * @param sc     - SparkContext
     * @return -     DerivedEvent
     */
-  override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DerivedEvent] = {
+  override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[DerivedEvent] = {
     data
   }
 
@@ -77,8 +76,7 @@ object UpdatePortalMetrics extends IBatchModelTemplate[DerivedEvent, DerivedEven
     * @param sc     - Spark context
     * @return - DashBoardSummary ->(uniqueDevices, totalContentPlayTime, totalTimeSpent,)
     */
-  override def algorithm(data: RDD[DerivedEvent], config: Map[String, AnyRef])
-                        (implicit sc: SparkContext): RDD[WorkFlowUsageMetrics] = {
+  override def algorithm(data: RDD[DerivedEvent], config: Map[String, AnyRef]) (implicit sc: SparkContext, fc: FrameworkContext): RDD[WorkFlowUsageMetrics] = {
     val publisherByLanguageList = getLanguageAndPublisherList()
     val totalContentPublished = Try(ContentAdapter.getPublishedContentList().count).getOrElse(0)
     val noOfUniqueDevices =
@@ -103,7 +101,7 @@ object UpdatePortalMetrics extends IBatchModelTemplate[DerivedEvent, DerivedEven
     * @param sc     - Spark context
     * @return - ME_PORTAL_CUMULATIVE_METRICS MeasuredEvents
     */
-  override def postProcess(data: RDD[WorkFlowUsageMetrics], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[PortalMetrics] = {
+  override def postProcess(data: RDD[WorkFlowUsageMetrics], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[PortalMetrics] = {
     val record = data.first()
     val measures = WorkFlowUsageMetrics(record.noOfUniqueDevices, record.totalContentPlaySessions, record.totalTimeSpent, record.totalContentPublished)
     val metrics = PortalMetrics(EVENT_ID, System.currentTimeMillis(), System.currentTimeMillis(), Some(measures))
