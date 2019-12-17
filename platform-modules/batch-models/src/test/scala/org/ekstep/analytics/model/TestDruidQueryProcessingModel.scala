@@ -120,7 +120,7 @@ class TestDruidQueryProcessingModel extends SparkSpec(null) {
         DruidQueryProcessingModel.execute(sc.emptyRDD, Option(modelParams));
     }
 
-    it should "execute desktop metrics" in {
+    ignore should "execute desktop metrics" in {
         val totalContentDownloadDesktopQuery = DruidQueryModel("groupBy", "telemetry-events", "LastDay",Option("all"),
             Option(List(Aggregation(Option("total_content_download_on_desktop"), "count", "mid"))),
             Option(List(DruidDimension("content_board", Option("state")))),
