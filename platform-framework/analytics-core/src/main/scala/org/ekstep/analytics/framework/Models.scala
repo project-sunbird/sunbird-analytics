@@ -1,6 +1,7 @@
 package org.ekstep.analytics.framework
 
 import java.io.Serializable
+import java.sql.Timestamp
 import java.util.Date
 
 class Models extends Serializable {}
@@ -233,3 +234,13 @@ case class ItemResponse(itemId: String, itype: Option[AnyRef], ilevel: Option[An
 case class EventSummary(id: String, count: Int)
 case class EnvSummary(env: String, time_spent: Double, count: Long)
 case class PageSummary(id: String, `type`: String, env: String, time_spent: Double, visit_count: Long)
+
+// Device Summary Model
+case class DeviceProfileOutput(device_id: String, first_access: Option[Timestamp], last_access: Option[Timestamp], total_ts: Option[Double],
+                               total_launches: Option[Long], avg_ts: Option[Double],
+                               device_spec: Option[String], uaspec: Option[String], state: Option[String], city: Option[String],
+                               country: Option[String], country_code:Option[String], state_code:Option[String],
+                               state_custom: Option[String], state_code_custom: Option[String], district_custom: Option[String],
+                               fcm_token: Option[String], producer_id: Option[String], user_declared_state: Option[String],
+                               user_declared_district: Option[String], api_last_updated_on:Option[Timestamp],
+                               updated_date: Option[Timestamp] = Option(new Timestamp(System.currentTimeMillis()))) extends AlgoOutput

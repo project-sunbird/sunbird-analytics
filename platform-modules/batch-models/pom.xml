@@ -316,7 +316,12 @@
 		    <version>2.10.0</version>
 		    <scope>test</scope>
 		</dependency>
-				
+		<!-- https://mvnrepository.com/artifact/io.zonky.test/embedded-postgres -->
+		<dependency>
+			<groupId>io.zonky.test</groupId>
+			<artifactId>embedded-postgres</artifactId>
+			<version>1.2.6</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<sourceDirectory>src/main/scala</sourceDirectory>

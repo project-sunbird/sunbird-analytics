@@ -1,27 +1,28 @@
 package org.ekstep.analytics.model
 
-import org.ekstep.analytics.framework._
-import org.apache.spark.SparkContext
+import java.sql.Timestamp
+
+import org.apache.commons.lang3.StringUtils
+import org.apache.spark.{HashPartitioner, SparkContext}
 import org.apache.spark.rdd.RDD
-import org.apache.spark.HashPartitioner
+import org.ekstep.analytics.framework._
+import org.ekstep.analytics.framework.conf.AppConf
+import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, PostgresDBUtil}
 
 import scala.collection.mutable.Buffer
-import org.ekstep.analytics.framework.util.JSONUtils
-import org.apache.commons.lang3.StringUtils
-import org.ekstep.analytics.framework.util.CommonUtil
-import com.datastax.spark.connector._
-import com.datastax.spark.connector.SomeColumns
-import org.ekstep.analytics.util.Constants
 
 case class DeviceIndex(device_id: String, channel: String)
 case class DialStats(total_count: Long, success_count: Long, failure_count: Long)
 case class DeviceInput(index: DeviceIndex, wfsData: Option[Buffer[DerivedEvent]], rawData: Option[Buffer[V3Event]]) extends AlgoInput
-case class DeviceSummary(device_id: String, channel: String, total_ts: Double, total_launches: Long, contents_played: Long, unique_contents_played: Long, content_downloads: Long, dial_stats: DialStats, dt_range: DtRange, syncts: Long, firstAccess: Long) extends AlgoOutput
+case class DeviceSummary(device_id: String, channel: String, total_ts: Double, total_launches: Long, contents_played: Long, unique_contents_played: Long, content_downloads: Long, dial_stats: DialStats, dt_range: DtRange, syncts: Long, firstAccess: Timestamp) extends AlgoOutput
 
 object DeviceSummaryModel extends IBatchModelTemplate[String, DeviceInput, DeviceSummary, MeasuredEvent] with Serializable {
 
     val className = "org.ekstep.analytics.model.DeviceSummaryModel"
     override def name: String = "DeviceSummaryModel"
+
+    val postgreDB = new PostgresDBUtil()
+    val table = AppConf.getConfig("postgres.device.table_name")
 
     override def preProcess(data: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[DeviceInput] = {
         val rawEventsList = List("SEARCH", "INTERACT")
@@ -65,17 +66,24 @@ object DeviceSummaryModel extends IBatchModelTemplate[String, DeviceInput, Devic
             val dial_success = dialcodes_events.filter(f => f.edata.size > 0).length
             val dial_failure = dialcodes_events.filter(f => f.edata.size == 0).length
             val content_downloads = raw.filter(f => "INTERACT".equals(f.eid)).length
-            (index, DeviceSummary(index.device_id, index.channel, CommonUtil.roundDouble(total_ts, 2), total_launches, contents_played, unique_contents_played, content_downloads, DialStats(dial_count, dial_success, dial_failure), DtRange(startTimestamp, endTimestamp), syncts, startTimestamp))
+            (index, DeviceSummary(index.device_id, index.channel, CommonUtil.roundDouble(total_ts, 2), total_launches, contents_played, unique_contents_played, content_downloads, DialStats(dial_count, dial_success, dial_failure), DtRange(startTimestamp, endTimestamp), syncts, new Timestamp(startTimestamp)))
         }
-        val firstAccessFromCassandra = summary.map{ x => x._1}
-          .joinWithCassandraTable[Option[Long]](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_PROFILE_TABLE).select("first_access")
-          .on(SomeColumns("device_id"))
-        summary.leftOuterJoin(firstAccessFromCassandra)
-          .map{ x =>
-              val firstAccessValue = x._2._2.getOrElse(Option(0L))
-              if(firstAccessValue.getOrElse(0L) != 0)
-                  x._2._1.copy(firstAccess = firstAccessValue.getOrElse(x._2._1.firstAccess))
-              else x._2._1
+
+        val firstAccessFromPostgres = summary.flatMap{x =>
+            val firstAccessQuery = s"SELECT device_id, first_access FROM $table WHERE device_id = '${x._1.device_id}'"
+            postgreDB.readFirstAccessFromDB(firstAccessQuery)
+        }
+
+        val postgresData = firstAccessFromPostgres.map(f => (f.device_id, f.first_access))
+        val summaryData = summary.map(f => (f._1.device_id, f._2))
+
+        summaryData.leftOuterJoin(postgresData)
+          .map{f =>
+          val firstAccessVal = f._2._2.getOrElse(Option(new Timestamp(0L)))
+          if(firstAccessVal != (new Timestamp(0L))) {
+              f._2._1.copy(firstAccess = firstAccessVal.getOrElse(f._2._1.firstAccess))}
+          else
+              f._2._1
           }
     }
 
@@ -90,10 +98,11 @@ object DeviceSummaryModel extends IBatchModelTemplate[String, DeviceInput, Devic
                 "content_downloads" -> x.content_downloads,
                 "dial_stats" -> x.dial_stats,
                 "firstAccess" -> x.firstAccess)
-            MeasuredEvent("ME_DEVICE_SUMMARY", System.currentTimeMillis(), x.syncts, "1.0", mid, null, null, None, None,
+            val measuredEvent = MeasuredEvent("ME_DEVICE_SUMMARY", System.currentTimeMillis(), x.syncts, "1.0", mid, null, null, None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "DeviceSummary").asInstanceOf[String])), None, "DAY", x.dt_range),
                 Dimensions(None, Option(x.device_id), None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, Option(x.channel)),
                 MEEdata(measures))
-        }       
+            measuredEvent
+        }
     }
 }

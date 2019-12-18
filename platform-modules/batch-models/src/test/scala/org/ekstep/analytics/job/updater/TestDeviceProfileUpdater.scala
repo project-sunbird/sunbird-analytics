@@ -1,8 +1,8 @@
 package org.ekstep.analytics.job.updater
 
-import org.ekstep.analytics.model.SparkSpec
-import org.ekstep.analytics.framework.{JobConfig, Fetcher, Query, Dispatcher}
 import org.ekstep.analytics.framework.util.JSONUtils
+import org.ekstep.analytics.framework.{Dispatcher, Fetcher, JobConfig, Query}
+import org.ekstep.analytics.model.SparkSpec
 
 class TestDeviceProfileUpdater extends SparkSpec(null) {
   
