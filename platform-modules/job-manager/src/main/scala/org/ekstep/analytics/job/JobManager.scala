@@ -61,6 +61,7 @@ object JobManager extends optional.Application {
         JobLogger.log("Job manager executor shutdown completed", None, INFO);
         consumer.close();
         JobLogger.log("Job manager consumer shutdown completed", None, INFO);
+        system.exit(0)
     }
 
     private def initializeConsumer(config: JobManagerConfig, jobQueue: BlockingQueue[String]): JobConsumerV2 = {
