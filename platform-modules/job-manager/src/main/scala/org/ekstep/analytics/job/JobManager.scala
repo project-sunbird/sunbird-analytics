@@ -121,7 +121,7 @@ class JobRunner(config: JobManagerConfig, consumer: JobConsumerV2, doneSignal: C
 
 object TestJobManager {
     def main(args: Array[String]): Unit = {
-        val config = """{"jobsCount":2,"topic":"local.analytics.job_queue","bootStrapServer":"localhost:9092","consumerGroup":"jobmanager","slackChannel":"#test_channel","slackUserName":"JobManager","tempBucket":"ekstep-dev-data-store","tempFolder":"transient-data"}""";
+        val config = """{"jobsCount":1,"topic":"analytics.job_queue","bootStrapServer":"localhost:9092","zookeeperConnect":"localhost:2181","consumerGroup":"jobmanager","slackChannel":"#test_channel","slackUserName":"JobManager","tempBucket":"dev-data-store","tempFolder":"transient-data"}""";
         JobManager.main(config);
     }
 }
