@@ -46,7 +46,6 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     implicit val sparkContext: SparkContext = getReportingSparkContext(jobConfig);
     implicit val frameworkContext = getReportingFrameworkContext();
     execute(jobConfig)
-    System.exit(0)
   }
 
   private def execute(config: JobConfig)(implicit sc: SparkContext, fc: FrameworkContext) = {
@@ -338,7 +337,6 @@ object CourseMetricsJob extends optional.Application with IJob with ReportGenera
     val objectKey = AppConf.getConfig("course.metrics.cloud.objectKey")
     val storageService = getReportStorageService();
     storageService.upload(container, sourcePath, objectKey, isDirectory = Option(true))
-    storageService.closeContext();
   }
 
   private def recursiveListFiles(file: File, ext: String): Array[File] = {

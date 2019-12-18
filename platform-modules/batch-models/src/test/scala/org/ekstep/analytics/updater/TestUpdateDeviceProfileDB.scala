@@ -11,6 +11,9 @@ import org.scalamock.scalatest.MockFactory
 
 class TestUpdateDeviceProfileDB extends SparkSpec(null) with MockFactory {
 
+    import org.ekstep.analytics.framework.FrameworkContext
+    implicit val fc = new FrameworkContext()
+
     private val postgresDBMock = mock[PostgresDBUtil]
     private val connectionMock = mock[Connection]
 
@@ -52,7 +55,6 @@ class TestUpdateDeviceProfileDB extends SparkSpec(null) with MockFactory {
     override def afterAll(): Unit = {
         pg.close()
     }
-
 
     "UpdateDeviceProfileDB" should "create device profile in device db" in {
         stmt.execute(s"TRUNCATE $deviceTable")

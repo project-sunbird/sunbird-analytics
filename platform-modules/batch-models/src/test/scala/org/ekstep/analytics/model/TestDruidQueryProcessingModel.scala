@@ -6,6 +6,7 @@ import org.ekstep.analytics.framework.util.JSONUtils
 
 class TestDruidQueryProcessingModel extends SparkSpec(null) {
 
+    implicit val fc = new FrameworkContext();
     ignore should "execute multiple queries and generate csv reports on multiple dimensions with dynamic interval" in {
         val scansQuery = DruidQueryModel("groupBy", "telemetry-events", "LastDay", None, Option(List(Aggregation(Option("total_scans"), "count", ""))), Option(List(DruidDimension("device_loc_state", Option("state")), DruidDimension("context_pdata_id", Option("producer_id")))), Option(List(DruidFilter("greaterThan", "edata_size", Option(0.asInstanceOf[AnyRef])),DruidFilter("equals", "eid", Option("SEARCH")))))
         val contentPlaysQuery = DruidQueryModel("groupBy", "summary-events", "LastDay", None, Option(List(Aggregation(Option("total_sessions"), "count", ""),Aggregation(Option("total_ts"), "doubleSum", "edata_time_spent"))), Option(List(DruidDimension("device_loc_state", Option("state")), DruidDimension("dimensions_pdata_id", Option("producer_id")))), Option(List(DruidFilter("in", "dimensions_pdata_id", None, Option(List("prod.diksha.app", "prod.diksha.portal"))),DruidFilter("in", "dimensions_type", None, Option(List("content", "app"))))))
@@ -116,6 +117,91 @@ class TestDruidQueryProcessingModel extends SparkSpec(null) {
         val strConfig2 = JSONUtils.serialize(reportConfig2)
         //        val reportConfig = """{"id":"data_metrics","queryType":"groupBy","dateRange":{"staticInterval":"LastDay","granularity":"day"},"metrics":[{"metric":"totalQrScans","label":"Total QR Scans","druidQuery":{"queryType":"groupBy","dataSource":"telemetry-events","intervals":"LastDay","aggregations":[{"name":"total_scans","type":"count"}],"dimensions":[["device_loc_state","state"],["context_pdata_id","producer_id"]],"filters":[{"type":"isnotnull","dimension":"edata_filters_dialcodes"},{"type":"equals","dimension":"eid","value":"SEARCH"}],"descending":"false"}},{"metric":"totalSuccessfulScans","label":"Total Successful QR Scans","druidQuery":{"queryType":"groupBy","dataSource":"telemetry-events","intervals":"LastDay","aggregations":[{"name":"total_successful_scans","type":"count"}],"dimensions":[["device_loc_state","state"],["context_pdata_id","producer_id"]],"filters":[{"type":"isnotnull","dimension":"edata_filters_dialcodes"},{"type":"greaterThan","dimension":"edata_size","value":0},{"type":"equals","dimension":"eid","value":"SEARCH"}],"descending":"false"}},{"metric":"totalfailedQRScans","label":"Total Failed QR Scans","druidQuery":{"queryType":"groupBy","dataSource":"telemetry-events","intervals":"LastDay","aggregations":[{"name":"total_failed_scans","type":"count"}],"dimensions":[["device_loc_state","state"],["context_pdata_id","producer_id"]],"filters":[{"type":"isnotnull","dimension":"edata_filters_dialcodes"},{"type":"equals","dimension":"edata_size","value":0},{"type":"equals","dimension":"eid","value":"SEARCH"}],"descending":"false"}}],"labels":{"state":"State","total_sessions":"Number of Content Plays","producer_id":"Producer","total_scans":"Total Number of QR Scans","total_successful_scans":"Total Number Of Successful QR Scans","total_failed_scans":"Total Number Of Failed QR Scans"},"output":[{"type":"csv","label":"QR Scans","metrics":["total_scans","total_successful_scans","total_failed_scans"],"dims":[],"fileParameters":["id","date"]}]}"""
         val modelParams = Map("reportConfig" -> JSONUtils.deserialize[Map[String, AnyRef]](strConfig2), "bucket" -> "test-container", "key" -> "druid-reports/", "filePath" -> "src/test/resources/")
+        DruidQueryProcessingModel.execute(sc.emptyRDD, Option(modelParams));
+    }
+
+    ignore should "execute desktop metrics" in {
+        val totalContentDownloadDesktopQuery = DruidQueryModel("groupBy", "telemetry-events", "LastDay",Option("all"),
+            Option(List(Aggregation(Option("total_content_download_on_desktop"), "count", "mid"))),
+            Option(List(DruidDimension("content_board", Option("state")))),
+            Option(List(
+                DruidFilter("equals", "context_env", Option("downloadManager")),
+                DruidFilter("equals", "edata_state", Option("COMPLETED")),
+                DruidFilter("equals", "context_pdata_id", Option("prod.diksha.desktop")),
+                DruidFilter("equals", "eid", Option("AUDIT"))
+            ))
+        )
+
+        val totalContentPlayedDesktopQuery = DruidQueryModel("groupBy", "summary-events", "LastDay",Option("all"),
+            Option(List(Aggregation(Option("total_content_plays_on_desktop"), "count", "mid"))),
+            Option(List(DruidDimension("collection_board", Option("state")))),
+            Option(List(
+                DruidFilter("equals", "eid", Option("ME_WORKFLOW_SUMMARY")),
+                DruidFilter("equals", "dimensions_mode", Option("play")),
+                DruidFilter("equals", "dimensions_type", Option("content")),
+                DruidFilter("equals", "dimensions_pdata_id", Option("prod.diksha.desktop"))
+            ))
+        )
+
+        val totalContentPlayedInHourOnDesktopQuery = DruidQueryModel("groupBy", "summary-events", "LastDay",Option("all"),
+            Option(List(Aggregation(Option("sum__edata_time_spent"), "doubleSum", "edata_time_spent"))),
+            Option(List(DruidDimension("collection_board", Option("state")))),
+            Option(List(
+                DruidFilter("equals", "eid", Option("ME_WORKFLOW_SUMMARY")),
+                DruidFilter("equals", "dimensions_mode", Option("play")),
+                DruidFilter("equals", "dimensions_type", Option("content")),
+                DruidFilter("equals", "dimensions_pdata_id", Option("prod.diksha.desktop"))
+            )), None,
+            Option(List(
+                PostAggregation("arithmetic", "total_time_spent_in_hours_on_desktop",
+                    PostAggregationFields("sum__edata_time_spent", 3600.asInstanceOf[AnyRef], "constant"), "/"
+                )
+            ))
+        )
+
+        val totalUniqueDevicesPlayedContentOnDesktopQuery = DruidQueryModel("groupBy", "summary-events", "LastDay",
+            Option("all"),
+            Option(List(Aggregation(Option("total_unique_devices_on_desktop_played_content"), "cardinality", "dimensions_did"))),
+            Option(List(DruidDimension("collection_board", Option("state")))),
+            Option(List(
+                DruidFilter("equals", "eid", Option("ME_WORKFLOW_SUMMARY")),
+                DruidFilter("equals", "dimensions_mode", Option("play")),
+                DruidFilter("equals", "dimensions_type", Option("content")),
+                DruidFilter("equals", "dimensions_pdata_id", Option("prod.diksha.desktop"))
+            ))
+        )
+
+        val reportConfig1 = ReportConfig("Desktop-Consumption-Daily-Reports", "groupBy",
+            QueryDateRange(None, Option("LastDay"), Option("day")),
+            List(
+                Metrics("totalContentDownloadDesktop", "Total Content Download", totalContentDownloadDesktopQuery),
+                Metrics("totalContentPlayedDesktop", "Total time spent in hours", totalContentPlayedDesktopQuery),
+                Metrics("totalContentPlayedInHourOnDesktop", "Total Content Download", totalContentPlayedInHourOnDesktopQuery),
+                Metrics("totalUniqueDevicesPlayedContentOnDesktop", "Total Unique Devices On Desktop that played content", totalUniqueDevicesPlayedContentOnDesktopQuery)
+            ),
+            Map(
+                "state" -> "State",
+                "total_content_download_on_desktop" -> "Total Content Downloads",
+                "total_content_plays_on_desktop" -> "Total Content Played",
+                "total_time_spent_in_hours_on_desktop" -> "Total time spent in hours",
+                "total_unique_devices_on_desktop_played_content" -> "Total Unique Devices On Desktop that played content"
+            ),
+            List(
+                OutputConfig("csv", Option("desktop"),
+                    List(
+                        "total_content_download_on_desktop",
+                        "total_time_spent_in_hours_on_desktop",
+                        "total_content_plays_on_desktop",
+                        "total_unique_devices_on_desktop_played_content"
+                    ),
+                    List("state"),
+                    List("dims")
+                )
+            )
+        )
+        val strConfig1 = JSONUtils.serialize(reportConfig1)
+
+        val modelParams = Map("reportConfig" -> JSONUtils.deserialize[Map[String, AnyRef]](strConfig1), "bucket" -> "test-container", "key" -> "druid-reports/", "filePath" -> "src/test/resources/")
         DruidQueryProcessingModel.execute(sc.emptyRDD, Option(modelParams));
     }
 }

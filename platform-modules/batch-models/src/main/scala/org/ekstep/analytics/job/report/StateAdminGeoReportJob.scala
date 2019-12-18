@@ -31,7 +31,6 @@ object StateAdminGeoReportJob extends optional.Application with IJob with StateA
     implicit val frameworkContext = getReportingFrameworkContext();
     execute(jobConfig)
     closeSparkSession()
-    System.exit(0)
   }
 
   private def execute(config: JobConfig)(implicit sparkSession: SparkSession, fc: FrameworkContext) = {
@@ -92,7 +91,6 @@ object StateAdminGeoReportJob extends optional.Application with IJob with StateA
 
     val storageService = getReportStorageService();
     storageService.upload(container, sourcePath, objectKey, isDirectory = Option(true))
-    storageService.closeContext();
   }
 }
 

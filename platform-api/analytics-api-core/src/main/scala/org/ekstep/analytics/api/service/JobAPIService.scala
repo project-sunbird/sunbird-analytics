@@ -1,25 +1,20 @@
 package org.ekstep.analytics.api.service
 
-import org.ekstep.analytics.api.util.{ APILogger, CommonUtil, DBUtil }
-import org.ekstep.analytics.framework.util.JSONUtils
-import akka.actor.Actor
-import com.typesafe.config.Config
-import org.ekstep.analytics.api._
 import java.security.MessageDigest
-
-import scala.util.Sorting
-import org.ekstep.analytics.framework.JobStatus
-import org.ekstep.analytics.api.JobStats
-import org.ekstep.analytics.api.APIIds
-import org.joda.time.DateTime
-import org.ekstep.analytics.api.OutputFormat
-import org.apache.commons.lang3.StringUtils
 import java.util.Calendar
 
+import akka.actor.Actor
+import com.typesafe.config.Config
+import org.apache.commons.lang3.StringUtils
+import org.ekstep.analytics.api.util.{APILogger, CommonUtil, DBUtil}
+import org.ekstep.analytics.api.{APIIds, JobStats, OutputFormat, _}
+import org.ekstep.analytics.framework.util.JSONUtils
+import org.ekstep.analytics.framework.{FrameworkContext, JobStatus}
+import org.joda.time.DateTime
 import org.sunbird.cloud.storage.conf.AppConf
-import org.sunbird.cloud.storage.factory.{ StorageConfig, StorageServiceFactory }
 
 import scala.collection.mutable.Buffer
+import scala.util.Sorting
 
 /**
   * @author mahesh
@@ -31,7 +26,9 @@ object JobAPIService {
   implicit val className = "org.ekstep.analytics.api.service.JobAPIService"
 
   case class DataRequest(request: String, channel: String, config: Config)
+
   case class GetDataRequest(clientKey: String, requestId: String, config: Config)
+
   case class DataRequestList(clientKey: String, limit: Int, config: Config)
 
   case class ChannelData(channel: String, event_type: String, from: String, to: String, config: Config, summaryType: Option[String])
@@ -39,7 +36,6 @@ object JobAPIService {
   val EVENT_TYPES = Buffer("raw", "summary", "metrics", "failed")
 
   val storageType = AppConf.getStorageType()
-  val storageService = StorageServiceFactory.getStorageService(StorageConfig(storageType, AppConf.getStorageKey(storageType), AppConf.getStorageSecret(storageType)))
 
   def dataRequest(request: String, channel: String)(implicit config: Config): Response = {
     val body = JSONUtils.deserialize[RequestBody](request)
@@ -71,7 +67,7 @@ object JobAPIService {
     CommonUtil.OK(APIIds.GET_DATA_REQUEST_LIST, Map("count" -> Int.box(jobs.size), "jobs" -> result))
   }
 
-  def getChannelData(channel: String, eventType: String, from: String, to: String, summaryType: Option[String])(implicit config: Config): Response = {
+  def getChannelData(channel: String, eventType: String, from: String, to: String, summaryType: Option[String])(implicit config: Config, fc: FrameworkContext): Response = {
 
     val isValid = _validateRequest(channel, eventType, from, to)
     if ("true".equalsIgnoreCase(isValid.getOrElse("status", "false"))) {
@@ -84,7 +80,7 @@ object JobAPIService {
         if (summaryType.nonEmpty && !StringUtils.equals(summaryType.getOrElse(""), "workflow-summary"))
           basePrefix + channel + "/" + eventType + "/" + summaryType.get + "/"
         else basePrefix + channel + "/" + eventType + "/"
-
+      val storageService = fc.getStorageService(storageType)
       val listObjs = storageService.searchObjectkeys(bucket, prefix, Option(from), Option(to), None)
       val calendar = Calendar.getInstance()
       calendar.add(Calendar.MINUTE, expiry)
@@ -221,13 +217,16 @@ object JobAPIService {
 }
 
 class JobAPIService extends Actor {
+
   import JobAPIService._
+
+  implicit val fc = new FrameworkContext();
 
   def receive = {
     case DataRequest(request: String, channelId: String, config: Config) => sender() ! dataRequest(request, channelId)(config)
     case GetDataRequest(clientKey: String, requestId: String, config: Config) => sender() ! getDataRequest(clientKey, requestId)(config)
     case DataRequestList(clientKey: String, limit: Int, config: Config) => sender() ! getDataRequestList(clientKey, limit)(config)
-    case ChannelData(channel: String, eventType: String, from: String, to: String, config: Config, summaryType: Option[String]) => sender() ! getChannelData(channel, eventType, from, to, summaryType)(config)
+    case ChannelData(channel: String, eventType: String, from: String, to: String, config: Config, summaryType: Option[String]) => sender() ! getChannelData(channel, eventType, from, to, summaryType)(config, fc)
   }
 
 }

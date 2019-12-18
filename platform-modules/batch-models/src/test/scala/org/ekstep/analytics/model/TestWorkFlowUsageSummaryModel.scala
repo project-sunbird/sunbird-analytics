@@ -9,9 +9,12 @@ import com.datastax.spark.connector.cql.CassandraConnector
 import org.ekstep.analytics.framework.RegisteredTag
 import org.ekstep.analytics.util.Constants
 import com.datastax.spark.connector._
+import org.ekstep.analytics.framework.FrameworkContext
 
 class TestWorkFlowUsageSummaryModel extends SparkSpec(null) {
 
+    implicit val fc = new FrameworkContext();  
+  
     "WorkFlowUsageSummaryModel" should "generate 2 workflow usage summary events per user and all user" in {
 
         val rdd1 = loadFile[DerivedEvent]("src/test/resources/workflow-usage-summary/test-data1.log");

@@ -12,6 +12,7 @@ import play.api.libs.concurrent.Futures
 import play.api.libs.json._
 import play.api.mvc._
 import play.api.{Configuration, Logger}
+import javax.inject._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -22,7 +23,6 @@ import scala.concurrent.{ExecutionContext, Future}
 class Application @Inject() (cc: ControllerComponents, futures: Futures, system: ActorSystem, configuration: Configuration, cacheUtil: CacheUtil)(implicit ec: ExecutionContext) extends BaseController(cc, configuration) {
 
 	implicit override val className = "controllers.Application"
-	val healthCheckAPIActor = system.actorOf(Props[HealthCheckAPIService].withRouter(FromConfig()), name = "healthCheckAPIActor")
 	val clientLogAPIActor = system.actorOf(Props[ClientLogsAPIService].withRouter(FromConfig()), name = "clientLogAPIActor")
 	val druidHealthActor = system.actorOf(Props(new DruidHealthCheckService(RestUtil)), "druidHealthActor")
 	val locationCacheRefreshActor: ActorRef = system.actorOf(Props(new CacheRefreshActor(cacheUtil)), "cacheRefreshActor")
@@ -35,12 +35,12 @@ class Application @Inject() (cc: ControllerComponents, futures: Futures, system:
 		}
 	}
 
-	def checkAPIhealth() = Action.async { request: Request[AnyContent] =>
-    val result = ask(healthCheckAPIActor, GetHealthStatus).mapTo[String]
-    result.map { x =>
-      Ok(x).withHeaders(CONTENT_TYPE -> "application/json");
+  def checkAPIhealth() = Action.async { request: Request[AnyContent] =>
+    val result = HealthCheckAPIService.getHealthStatus();
+    Future {
+      Ok(result).withHeaders(CONTENT_TYPE -> "application/json");      
     }
-	}
+  }
 
 	def logClientErrors() = Action.async { request: Request[AnyContent] =>
 		val body: String = Json.stringify(request.body.asJson.get)

@@ -1,16 +1,18 @@
 package org.ekstep.analytics.api.service
 
-import akka.actor.Actor
-import org.ekstep.analytics.api.util._
+import org.ekstep.analytics.api.util.CommonUtil
+import org.ekstep.analytics.api.util.DBUtil
+import org.ekstep.analytics.api.util.ElasticsearchService
+import org.ekstep.analytics.api.util.JSONUtils
+import org.ekstep.analytics.api.util.PostgresDBUtil
+import org.ekstep.analytics.api.util.RedisUtil
 
 case class ServiceHealthReport(name: String, healthy: Boolean, message: Option[String] = None)
 case class GetHealthStatus()
 
-class HealthCheckAPIService extends Actor {
+object HealthCheckAPIService {
 
-    def receive = {
-        case GetHealthStatus => sender() ! getHealthStatus();
-    }
+    lazy val redisUtil = new RedisUtil();
   
     def getHealthStatus(): String = {
 
@@ -37,8 +39,7 @@ class HealthCheckAPIService extends Actor {
     }
 
     private def checkRedisConnection(): Boolean = {
-        val redis = new RedisUtil()
-        redis.checkConnection
+        redisUtil.checkConnection
     }
 
     private def checkPostgresConnection(): Boolean = {
