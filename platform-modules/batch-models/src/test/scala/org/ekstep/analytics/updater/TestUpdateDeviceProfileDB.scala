@@ -1,11 +1,10 @@
 package org.ekstep.analytics.updater
 
-import java.sql.{Connection, Statement}
+import java.sql.Statement
 
 import io.zonky.test.db.postgres.embedded.EmbeddedPostgres
 import org.ekstep.analytics.framework.DerivedEvent
 import org.ekstep.analytics.framework.conf.AppConf
-import org.ekstep.analytics.framework.util.PostgresDBUtil
 import org.ekstep.analytics.model.SparkSpec
 import org.scalamock.scalatest.MockFactory
 
@@ -13,9 +12,6 @@ class TestUpdateDeviceProfileDB extends SparkSpec(null) with MockFactory {
 
     import org.ekstep.analytics.framework.FrameworkContext
     implicit val fc = new FrameworkContext()
-
-    private val postgresDBMock = mock[PostgresDBUtil]
-    private val connectionMock = mock[Connection]
 
     val deviceTable = AppConf.getConfig("postgres.device.table_name")
     val pg: EmbeddedPostgres = EmbeddedPostgres.builder().setPort(65124).start()
