@@ -22,11 +22,11 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class Application @Inject() (cc: ControllerComponents, futures: Futures, system: ActorSystem, configuration: Configuration, cacheUtil: CacheUtil)(implicit ec: ExecutionContext) extends BaseController(cc, configuration) {
 
-	implicit override val className = "controllers.Application"
-	val clientLogAPIActor = system.actorOf(Props[ClientLogsAPIService].withRouter(FromConfig()), name = "clientLogAPIActor")
-	val druidHealthActor = system.actorOf(Props(new DruidHealthCheckService(RestUtil)), "druidHealthActor")
-	val locationCacheRefreshActor: ActorRef = system.actorOf(Props(new CacheRefreshActor(cacheUtil)), "cacheRefreshActor")
-	val logger: Logger = Logger(this.getClass())
+	implicit override val className: String = "controllers.Application"
+	private val clientLogAPIActor = system.actorOf(Props[ClientLogsAPIService].withRouter(FromConfig()), name = "clientLogAPIActor")
+	private val druidHealthActor = system.actorOf(Props(new DruidHealthCheckService(RestUtil)), "druidHealthActor")
+	// private val locationCacheRefreshActor: ActorRef = system.actorOf(Props(new CacheRefreshActor(cacheUtil)), "cacheRefreshActor")
+	val logger: Logger = Logger(this.getClass)
 
 	def getDruidHealthStatus() = Action.async { request: Request[AnyContent] =>
 		val result = ask(druidHealthActor, "health").mapTo[String]
