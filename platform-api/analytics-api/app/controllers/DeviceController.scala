@@ -4,7 +4,7 @@ import akka.actor._
 import akka.pattern.ask
 import com.google.inject.Inject
 import org.ekstep.analytics.api.service.experiment.{ExperimentData, ExperimentRequest}
-import org.ekstep.analytics.api.service.{DeviceProfile, DeviceProfileRequest, RegisterDevice}
+import org.ekstep.analytics.api.service.{DeviceProfile, DeviceProfileRequest, DeviceRegisterStatus, RegisterDevice}
 import org.ekstep.analytics.api.util.{APILogger, CommonUtil, JSONUtils}
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{AnyContent, ControllerComponents, Request, Result}
@@ -14,17 +14,17 @@ import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
 
 class DeviceController @Inject()(
-  @Named("device-register-actor") deviceRegisterActor: ActorRef,
-  @Named("device-profile-actor") deviceProfileActor: ActorRef,
-  @Named("experiment-actor") experimentActor: ActorRef,
-  system: ActorSystem,
-  configuration: Configuration,
-  cc: ControllerComponents,
-  env: Environment
-) extends BaseController(cc, configuration) {
+                                  @Named("device-register-actor") deviceRegisterActor: ActorRef,
+                                  @Named("device-profile-actor") deviceProfileActor: ActorRef,
+                                  @Named("experiment-actor") experimentActor: ActorRef,
+                                  system: ActorSystem,
+                                  configuration: Configuration,
+                                  cc: ControllerComponents,
+                                  env: Environment
+                                ) extends BaseController(cc, configuration) {
 
-  implicit val ec: ExecutionContext = system.dispatchers.lookup("device-register-controller")
-  lazy val isExperimentEnabled: Boolean = configuration.getBoolean("deviceRegisterAPI.experiment.enable").getOrElse(false)
+  implicit val ec: ExecutionContext = system.dispatchers.lookup("device-register-controller-dispatcher")
+  lazy val isExperimentEnabled: Boolean = configuration.getOptional[Boolean]("deviceRegisterAPI.experiment.enable").getOrElse(false)
 
   def registerDevice(deviceId: String) = Action.async { request: Request[AnyContent] =>
     val body: JsValue = request.body.asJson.get
@@ -57,15 +57,26 @@ class DeviceController @Inject()(
       }
     }
 
-    deviceRegisterActor.tell(RegisterDevice(deviceId, headerIP, ipAddr, fcmToken, producer, dspec, uaspec, firstAccess, userDefinedState, userDefinedDistrict), ActorRef.noSender)
+    val deviceRegisterResult = deviceRegisterActor.ask(RegisterDevice(deviceId, headerIP, ipAddr, fcmToken, producer,
+      dspec, uaspec, firstAccess, userDefinedState, userDefinedDistrict)).mapTo[DeviceRegisterStatus]
 
     if (isExperimentEnabled) {
-      sendExperimentData(Some(deviceId), extMap.getOrElse(Map()).get("userId"), extMap.getOrElse(Map()).get("url"), producer)
+      val expApiResult = sendExperimentData(Some(deviceId), extMap.getOrElse(Map()).get("userId"), extMap.getOrElse(Map()).get("url"), producer)
+      for {
+        registerOutput <- deviceRegisterResult
+        expOutput <- expApiResult
+      } yield expOutput
     } else {
-      Future {
+      deviceRegisterResult.map { result =>
+
         Ok(JSONUtils.serialize(CommonUtil.OK("analytics.device-register",
           Map("message" -> s"Device registered successfully", "actions" -> List()))))
-          .withHeaders(CONTENT_TYPE -> "application/json")
+          .as("application/json")
+      }.recover {
+        case ex: Exception =>
+          InternalServerError(
+            JSONUtils.serialize(CommonUtil.errorResponse("analytics.device-register", ex.getMessage, "ERROR"))
+          ).as("application/json")
       }
     }
   }
@@ -102,7 +113,7 @@ class DeviceController @Inject()(
 
         InternalServerError(
           JSONUtils.serialize(CommonUtil.errorResponse("analytics.device-register", ex.getMessage, "ERROR"))
-        ).withHeaders(CONTENT_TYPE -> "application/json")
+        ).as("application/json")
       }
     }
   }
@@ -140,7 +151,7 @@ class DeviceController @Inject()(
 
         InternalServerError(
           JSONUtils.serialize(CommonUtil.errorResponse("analytics.device-profile", ex.getMessage, "ERROR"))
-        ).withHeaders(CONTENT_TYPE -> "application/json")
+        ).as("application/json")
       }
     }
   }

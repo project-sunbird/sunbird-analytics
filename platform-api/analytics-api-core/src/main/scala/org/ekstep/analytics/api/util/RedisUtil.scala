@@ -5,9 +5,9 @@ import java.time.Duration
 import com.typesafe.config.{Config, ConfigFactory}
 import redis.clients.jedis.{Jedis, JedisPool, JedisPoolConfig}
 import scala.collection.JavaConverters._
-import javax.inject._
+// import javax.inject._
 
-@Singleton
+// @Singleton
 class RedisUtil {
   implicit val className = "org.ekstep.analytics.api.util.RedisUtil"
   private val config: Config = ConfigFactory.load()
@@ -82,6 +82,10 @@ class RedisUtil {
   def resetConnection(): Unit = {
     jedisPool.close()
     jedisPool = new JedisPool(buildPoolConfig, redis_host, redis_port)
+  }
+
+  def closePool() = {
+    jedisPool.close()
   }
   // $COVERAGE-ON$
 
