@@ -8,6 +8,8 @@ import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger}
 import org.ekstep.analytics.util.HDFSFileUtils
 import org.sunbird.cloud.storage.conf.AppConf
 
+
+case class DistrictSummary(index:Int, districtName: String, blocks: Long, schools: Long)
 case class RootOrgData(rootorgjoinid: String, rootorgchannel: String, rootorgslug: String)
 
 case class SubOrgRow(id: String, isrootorg: Boolean, rootorgid: String, channel: String, status: String, locationid: String, locationids: Seq[String], orgname: String,
@@ -41,7 +43,7 @@ object StateAdminGeoReportJob extends optional.Application with IJob with StateA
     JobLogger.end("StateAdminGeoReportJob completed successfully!", "SUCCESS", Option(Map("config" -> config, "model" -> name)))
   }
 
-  def generateGeoReport() (implicit sparkSession: SparkSession): DataFrame = {
+  def generateGeoReport() (implicit sparkSession: SparkSession, fc: FrameworkContext): DataFrame = {
     val organisationDF: DataFrame = loadOrganisationDF()
     val blockData:DataFrame = generateGeoBlockData(organisationDF)
     blockData.write
@@ -69,7 +71,7 @@ object StateAdminGeoReportJob extends optional.Application with IJob with StateA
     blockData
   }
 
-  def districtSummaryReport(blockData: DataFrame): Unit = {
+  def districtSummaryReport(blockData: DataFrame)(implicit fc: FrameworkContext): Unit = {
     val blockDataWithSlug = blockData.
       groupBy(col("slug"),col("index"),col("District name").as("districtName")).
       agg(countDistinct("Block id").as("blocks"),count("School id").as("schools"))
@@ -78,11 +80,11 @@ object StateAdminGeoReportJob extends optional.Application with IJob with StateA
     fSFileUtils.purgeDirectory(summaryDir)
   }
 
-  def dataFrameToJsonFile(dataFrame: DataFrame): Unit = {
-    dataFrame.write
-      .partitionBy("slug")
-      .mode("overwrite")
-      .json(s"$summaryDir")
+  def dataFrameToJsonFile(dataFrame: DataFrame)(implicit fc: FrameworkContext): Unit = {
+    val dfMap = dataFrame.select("index","districtName", "blocks", "schools").collect().map(f => DistrictSummary(f.getInt(0),f.getString(1), f.getLong(2), f.getLong(3)))
+    val arrDistrictSummary = Array(JSONUtils.serialize(dfMap));
+    OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> (summaryDir + "/geo-summary-district.json"))), arrDistrictSummary);
+
   }
 
   def uploadReport(sourcePath: String)(implicit fc: FrameworkContext) = {
@@ -92,6 +94,13 @@ object StateAdminGeoReportJob extends optional.Application with IJob with StateA
 
     val storageService = getReportStorageService();
     storageService.upload(container, sourcePath, objectKey, isDirectory = Option(true))
+  }
+}
+
+object StateAdminGeoReportJobTest {
+
+  def main(args: Array[String]): Unit = {
+    StateAdminGeoReportJob.main("""{"model":"Test"}""");
   }
 }
 
