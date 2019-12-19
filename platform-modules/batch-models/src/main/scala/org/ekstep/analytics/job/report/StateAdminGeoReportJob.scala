@@ -81,12 +81,6 @@ object StateAdminGeoReportJob extends optional.Application with IJob with StateA
     dataFrameToJsonFile(blockDataWithSlug)
   }
 
-//  private def getChannelSlugMap(organisationDF: DataFrame)(implicit sparkSession: SparkSession): Map[String, String] = {
-//    val channelSlugMap: Map[String, String] = organisationDF
-//      .collect().groupBy(f => f.get(0).asInstanceOf[String]).mapValues(f => f.head.get(1).asInstanceOf[String]);
-//    return channelSlugMap
-//  }
-
   def dataFrameToJsonFile(dataFrame: DataFrame)(implicit fc: FrameworkContext): Unit = {
     val dfMap = dataFrame.select("slug", "index","districtName", "blocks", "schools")
       .collect()
