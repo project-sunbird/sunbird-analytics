@@ -2,7 +2,8 @@ package org.ekstep.analytics.job.report
 
 import org.apache.spark.SparkContext
 import org.apache.spark.sql._
-import org.apache.spark.sql.functions.{col, _}
+import org.apache.spark.sql.expressions.Window
+import org.apache.spark.sql.functions.{col, row_number, _}
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger}
 import org.ekstep.analytics.util.HDFSFileUtils
@@ -36,7 +37,7 @@ object StateAdminGeoReportJob extends optional.Application with IJob with StateA
   }
 
   private def execute(config: JobConfig)(implicit sparkSession: SparkSession, fc: FrameworkContext) = {
-
+    fSFileUtils.purgeDirectory(renamedDir)
     generateGeoReport()
     uploadReport(renamedDir)
     JobLogger.end("StateAdminGeoReportJob completed successfully!", "SUCCESS", Option(Map("config" -> config, "model" -> name)))
@@ -71,19 +72,31 @@ object StateAdminGeoReportJob extends optional.Application with IJob with StateA
   }
 
   def districtSummaryReport(blockData: DataFrame)(implicit fc: FrameworkContext): Unit = {
+    val window = Window.partitionBy("slug").orderBy(asc("districtName"))
     val blockDataWithSlug = blockData.
-      groupBy(col("slug"),col("index"),col("District name").as("districtName")).
+      select("*")
+      .groupBy(col("slug"),col("District name").as("districtName")).
       agg(countDistinct("Block id").as("blocks"),count("School id").as("schools"))
+        .withColumn("index", row_number().over(window))
     dataFrameToJsonFile(blockDataWithSlug)
-    fSFileUtils.renameReport(summaryDir, renamedDir, ".json", "geo-summary-district")
-    fSFileUtils.purgeDirectory(summaryDir)
   }
 
-  def dataFrameToJsonFile(dataFrame: DataFrame)(implicit fc: FrameworkContext): Unit = {
-    val dfMap = dataFrame.select("index","districtName", "blocks", "schools").collect().map(f => DistrictSummary(f.getInt(0),f.getString(1), f.getLong(2), f.getLong(3)))
-    val arrDistrictSummary = Array(JSONUtils.serialize(dfMap));
-    OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> (summaryDir + "/geo-summary-district.json"))), arrDistrictSummary);
+//  private def getChannelSlugMap(organisationDF: DataFrame)(implicit sparkSession: SparkSession): Map[String, String] = {
+//    val channelSlugMap: Map[String, String] = organisationDF
+//      .collect().groupBy(f => f.get(0).asInstanceOf[String]).mapValues(f => f.head.get(1).asInstanceOf[String]);
+//    return channelSlugMap
+//  }
 
+  def dataFrameToJsonFile(dataFrame: DataFrame)(implicit fc: FrameworkContext): Unit = {
+    val dfMap = dataFrame.select("slug", "index","districtName", "blocks", "schools")
+      .collect()
+      .groupBy(
+        f => f.getString(0)).map(f => {
+          val summary = f._2.map(f => DistrictSummary(f.getInt(1), f.getString(2), f.getLong(3), f.getLong(4)))
+          val arrDistrictSummary = Array(JSONUtils.serialize(summary))
+          val fileName = s"$renamedDir/${f._1}/geo-summary-district.json"
+          OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> fileName)), arrDistrictSummary);
+      })
   }
 
   def uploadReport(sourcePath: String)(implicit fc: FrameworkContext) = {
