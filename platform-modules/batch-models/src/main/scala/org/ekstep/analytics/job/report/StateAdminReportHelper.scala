@@ -46,7 +46,7 @@ trait StateAdminReportHelper extends  BaseReportsJob {
         col("index"),
         col("schoolid").as("School id"),
         col("schoolname").as("School name"),
-        col("channel").as("Channel"),
+        col("channel").as("Channels"),
         col("districtid").as("District id"),
         col("districtname").as("District name"),
         col("blockid").as("Block id"),

@@ -4,6 +4,7 @@ import java.io.File
 
 import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.{DataFrame, Encoders, SparkSession}
+import org.ekstep.analytics.framework.FrameworkContext
 import org.ekstep.analytics.job.report.{BaseReportSpec, BaseReportsJob, ShadowUserData, StateAdminReportJob}
 import org.ekstep.analytics.util.EmbeddedCassandra
 import org.scalamock.scalatest.MockFactory
@@ -27,8 +28,9 @@ class TestStateAdminReportJob extends BaseReportSpec with MockFactory {
 
 
   "StateAdminReportJob" should "generate reports" in {
+    implicit val fc = new FrameworkContext()
     val tempDir = AppConf.getConfig("admin.metrics.temp.dir")
-    val reportDF = StateAdminReportJob.generateReport()(spark)
+    val reportDF = StateAdminReportJob.generateReport()(spark, fc)
     assert(reportDF.columns.contains("index") === true)
     assert(reportDF.columns.contains("registered") === true)
     assert(reportDF.columns.contains("blocks") === true)

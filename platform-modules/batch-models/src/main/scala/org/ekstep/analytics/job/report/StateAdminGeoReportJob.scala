@@ -2,12 +2,15 @@ package org.ekstep.analytics.job.report
 
 import org.apache.spark.SparkContext
 import org.apache.spark.sql._
-import org.apache.spark.sql.functions.{col, _}
+import org.apache.spark.sql.expressions.Window
+import org.apache.spark.sql.functions.{col, row_number, _}
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger}
 import org.ekstep.analytics.util.HDFSFileUtils
 import org.sunbird.cloud.storage.conf.AppConf
 
+
+case class DistrictSummary(index:Int, districtName: String, blocks: Long, schools: Long)
 case class RootOrgData(rootorgjoinid: String, rootorgchannel: String, rootorgslug: String)
 
 case class SubOrgRow(id: String, isrootorg: Boolean, rootorgid: String, channel: String, status: String, locationid: String, locationids: Seq[String], orgname: String,
@@ -34,13 +37,13 @@ object StateAdminGeoReportJob extends optional.Application with IJob with StateA
   }
 
   private def execute(config: JobConfig)(implicit sparkSession: SparkSession, fc: FrameworkContext) = {
-
+    fSFileUtils.purgeDirectory(renamedDir)
     generateGeoReport()
     uploadReport(renamedDir)
     JobLogger.end("StateAdminGeoReportJob completed successfully!", "SUCCESS", Option(Map("config" -> config, "model" -> name)))
   }
 
-  def generateGeoReport() (implicit sparkSession: SparkSession): DataFrame = {
+  def generateGeoReport() (implicit sparkSession: SparkSession, fc: FrameworkContext): DataFrame = {
     val organisationDF: DataFrame = loadOrganisationDF()
     val blockData:DataFrame = generateGeoBlockData(organisationDF)
     blockData.write
@@ -68,20 +71,26 @@ object StateAdminGeoReportJob extends optional.Application with IJob with StateA
     blockData
   }
 
-  def districtSummaryReport(blockData: DataFrame): Unit = {
+  def districtSummaryReport(blockData: DataFrame)(implicit fc: FrameworkContext): Unit = {
+    val window = Window.partitionBy("slug").orderBy(asc("districtName"))
     val blockDataWithSlug = blockData.
-      groupBy(col("slug"),col("index"),col("District name").as("districtName")).
+      select("*")
+      .groupBy(col("slug"),col("District name").as("districtName")).
       agg(countDistinct("Block id").as("blocks"),count("School id").as("schools"))
+        .withColumn("index", row_number().over(window))
     dataFrameToJsonFile(blockDataWithSlug)
-    fSFileUtils.renameReport(summaryDir, renamedDir, ".json", "geo-summary-district")
-    fSFileUtils.purgeDirectory(summaryDir)
   }
 
-  def dataFrameToJsonFile(dataFrame: DataFrame): Unit = {
-    dataFrame.write
-      .partitionBy("slug")
-      .mode("overwrite")
-      .json(s"$summaryDir")
+  def dataFrameToJsonFile(dataFrame: DataFrame)(implicit fc: FrameworkContext): Unit = {
+    val dfMap = dataFrame.select("slug", "index","districtName", "blocks", "schools")
+      .collect()
+      .groupBy(
+        f => f.getString(0)).map(f => {
+          val summary = f._2.map(f => DistrictSummary(f.getInt(1), f.getString(2), f.getLong(3), f.getLong(4)))
+          val arrDistrictSummary = Array(JSONUtils.serialize(summary))
+          val fileName = s"$renamedDir/${f._1}/geo-summary-district.json"
+          OutputDispatcher.dispatch(Dispatcher("file", Map("file" -> fileName)), arrDistrictSummary);
+      })
   }
 
   def uploadReport(sourcePath: String)(implicit fc: FrameworkContext) = {
@@ -91,6 +100,13 @@ object StateAdminGeoReportJob extends optional.Application with IJob with StateA
 
     val storageService = getReportStorageService();
     storageService.upload(container, sourcePath, objectKey, isDirectory = Option(true))
+  }
+}
+
+object StateAdminGeoReportJobTest {
+
+  def main(args: Array[String]): Unit = {
+    StateAdminGeoReportJob.main("""{"model":"Test"}""");
   }
 }
 
