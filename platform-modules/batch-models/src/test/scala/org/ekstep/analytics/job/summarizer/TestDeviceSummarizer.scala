@@ -1,24 +1,18 @@
 package org.ekstep.analytics.job.summarizer
 
-import java.sql.Statement
-
-import io.zonky.test.db.postgres.embedded.EmbeddedPostgres
 import org.ekstep.analytics.framework.conf.AppConf
-import org.ekstep.analytics.model.SparkSpec
-import org.ekstep.analytics.framework.{Dispatcher, Fetcher, JobConfig, Query}
 import org.ekstep.analytics.framework.util.JSONUtils
+import org.ekstep.analytics.framework.{Dispatcher, Fetcher, JobConfig, Query}
+import org.ekstep.analytics.model.SparkSpec
+import org.ekstep.analytics.util.EmbeddedPostgresql
 
 class TestDeviceSummarizer extends SparkSpec(null) {
 
     val deviceTable = AppConf.getConfig("postgres.device.table_name")
-    val pg: EmbeddedPostgres = EmbeddedPostgres.builder().setPort(65124).start()
-    val connection = pg.getPostgresDatabase().getConnection()
-    val stmt: Statement = connection.createStatement()
-
 
     override def beforeAll(){
         super.beforeAll()
-        stmt.execute(
+        EmbeddedPostgresql.execute(
             s"""
                |CREATE TABLE IF NOT EXISTS $deviceTable(
                |    device_id TEXT PRIMARY KEY,
@@ -45,9 +39,9 @@ class TestDeviceSummarizer extends SparkSpec(null) {
                |    user_declared_state TEXT)""".stripMargin)
     }
 
-    override def afterAll(): Unit = {
-        pg.close()
-    }
+//    override def afterAll(): Unit = {
+//        pg.close()
+//    }
   
     "DeviceSummarizer" should "execute DeviceSummarizer job and won't throw any Exception" in {
 

@@ -3,7 +3,7 @@ package org.ekstep.analytics.model
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.{SparkConf, SparkContext}
 import org.ekstep.analytics.framework.conf.AppConf
-import org.ekstep.analytics.util.EmbeddedCassandra
+import org.ekstep.analytics.util.{EmbeddedCassandra, EmbeddedPostgresql}
 import org.scalatest._
 
 /**
@@ -28,12 +28,13 @@ class BaseSpec extends FlatSpec with Matchers with BeforeAndAfterAll {
   }
 
   override def beforeAll() {
-
     EmbeddedCassandra.setup();
+    EmbeddedPostgresql.start()
   }
 
   override def afterAll() {
     EmbeddedCassandra.close();
+    EmbeddedPostgresql.close();
   }
   
   def getSparkSession() : SparkSession = {

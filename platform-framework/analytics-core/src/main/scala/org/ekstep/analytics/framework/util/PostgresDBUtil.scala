@@ -47,7 +47,7 @@ class PostgresDBUtil {
     }
 
     def insertDataToPostgresDB(sqlString: String) = {
-        SQL(sqlString).executeUpdate().apply()
+        SQL(sqlString).execute().apply()
     }
 
     def readFirstAccessFromDB(sqlString: String) = {
