@@ -46,7 +46,6 @@ object StateAdminReportJob extends optional.Application with IJob with StateAdmi
         implicit val frameworkContext = getReportingFrameworkContext();
         execute(jobConfig)
         closeSparkSession()
-        System.exit(0)
     }
 
     private def execute(config: JobConfig)(implicit sparkSession: SparkSession, fc: FrameworkContext) = {
