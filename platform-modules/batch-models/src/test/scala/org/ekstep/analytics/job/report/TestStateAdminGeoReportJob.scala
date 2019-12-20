@@ -9,6 +9,8 @@ import org.ekstep.analytics.util.EmbeddedCassandra
 import org.sunbird.cloud.storage.conf.AppConf
 import java.io.File
 
+import org.ekstep.analytics.framework.FrameworkContext
+
 class TestStateAdminGeoReportJob extends SparkSpec(null) with MockFactory {
 
   implicit var spark: SparkSession = _
@@ -25,14 +27,14 @@ class TestStateAdminGeoReportJob extends SparkSpec(null) with MockFactory {
   }
 
   "StateAdminGeoReportJob" should "generate reports" in {
+    implicit val fc = new FrameworkContext()
     val tempDir = AppConf.getConfig("admin.metrics.temp.dir")
-    val reportDF = StateAdminGeoReportJob.generateGeoReport()(spark)
+    val reportDF = StateAdminGeoReportJob.generateGeoReport()(spark, fc)
     assert(reportDF.count() === 6)
     //for geo report we expect these columns
     assert(reportDF.columns.contains("index") === true)
     assert(reportDF.columns.contains("School id") === true)
     assert(reportDF.columns.contains("School name") === true)
-    assert(reportDF.columns.contains("Channel") === true)
     assert(reportDF.columns.contains("District id") === true)
     assert(reportDF.columns.contains("District name") === true)
     assert(reportDF.columns.contains("Block id") === true)

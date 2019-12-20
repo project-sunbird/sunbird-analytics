@@ -74,14 +74,14 @@ class CacheUtil @Inject()(postgresDB: PostgresDBUtil, H2DB: H2DBUtil) {
     val rangeQuery = s"select network_start_integer, network_last_integer, geoname_id from $geoLocationCityIpv4TableName"
     Try {
       val locCityData = postgresDB.readGeoLocationCity(cityQuery)
-      locCityData.map{
+      locCityData.map {
         loc =>
           val insertQuery = s"INSERT INTO $geoLocationCityTableName(geoname_id, subdivision_1_name, subdivision_2_custom_name) VALUES (${loc.geoname_id}, '${loc.subdivision_1_name}', '${loc.subdivision_2_custom_name}')"
           H2DB.executeQuery(insertQuery)
       }
 
       val locRangeData = postgresDB.readGeoLocationRange(rangeQuery)
-      locRangeData.map{
+      locRangeData.map {
         loc =>
           val insertQuery = s"INSERT INTO $geoLocationCityIpv4TableName(network_start_integer, network_last_integer, geoname_id) VALUES (${loc.network_start_integer}, ${loc.network_last_integer}, ${loc.geoname_id})"
           H2DB.executeQuery(insertQuery)
