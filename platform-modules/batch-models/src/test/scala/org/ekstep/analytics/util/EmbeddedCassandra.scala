@@ -10,7 +10,7 @@ import org.ekstep.analytics.framework.conf.AppConf
 object EmbeddedCassandra {
 
   System.setProperty("cassandra.unsafesystem", "true");
-  EmbeddedCassandraServerHelper.startEmbeddedCassandra();
+  EmbeddedCassandraServerHelper.startEmbeddedCassandra(30000L);
   val connector = CassandraConnector(getSparkConf());
   val session = connector.openSession();
   val dataLoader = new CQLDataLoader(session);

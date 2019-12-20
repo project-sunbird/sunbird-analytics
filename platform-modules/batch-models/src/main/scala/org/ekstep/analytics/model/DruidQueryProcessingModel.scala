@@ -23,8 +23,9 @@ case class DruidOutput(date: Option[String], state: Option[String], district: Op
                        total_unique_devices_on_app: Option[Double] = Option(0), total_unique_devices_on_desktop: Option[Double] = Option(0),
                        total_time_spent_in_hours: Option[Double] = Option(0), total_time_spent_in_hours_on_app: Option[Double] = Option(0),
                        total_time_spent_in_hours_on_portal: Option[Double] = Option(0), total_time_spent_in_hours_on_desktop: Option[Double] = Option(0),
-                       total_percent_failed_scans: Option[Double] = Option(0), total_content_download_on_app: Option[Integer] = Option(0),
-                       total_content_download_on_portal: Option[Integer] = Option(0), total_content_download_on_desktop: Option[Integer] = Option(0)) extends Input with AlgoInput with AlgoOutput with Output
+                       total_percent_failed_scans: Option[Double] = Option(0), total_content_download_on_app:Option[Integer] = Option(0),
+                       total_content_download_on_portal:Option[Integer] = Option(0), total_content_download_on_desktop:Option[Integer] = Option(0),
+                       total_unique_devices_on_desktop_played_content:Option[Integer] = Option(0)) extends Input with AlgoInput with AlgoOutput with Output
 
 case class ReportConfig(id: String, queryType: String, dateRange: QueryDateRange, metrics: List[Metrics], labels: Map[String, String], output: List[OutputConfig])
 case class QueryDateRange(interval: Option[QueryInterval], staticInterval: Option[String], granularity: Option[String])
