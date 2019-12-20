@@ -39,10 +39,6 @@ class TestDeviceSummarizer extends SparkSpec(null) {
                |    user_declared_state TEXT)""".stripMargin)
     }
 
-//    override def afterAll(): Unit = {
-//        pg.close()
-//    }
-  
     "DeviceSummarizer" should "execute DeviceSummarizer job and won't throw any Exception" in {
 
         val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/device-summary/test_data1.log"))))), null, null, "org.ekstep.analytics.model.DeviceSummaryModel", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestDeviceSummarizer"))

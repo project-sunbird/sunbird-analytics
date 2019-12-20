@@ -14,7 +14,6 @@ class TestUpdateDeviceProfileDB extends SparkSpec(null) {
 
     override def beforeAll(){
         super.beforeAll()
-        println("in before all")
     EmbeddedPostgresql.execute(
           s"""
             |CREATE TABLE $deviceTable(
@@ -40,16 +39,9 @@ class TestUpdateDeviceProfileDB extends SparkSpec(null) {
             |    updated_date TIMESTAMP,
             |    user_declared_district TEXT,
             |    user_declared_state TEXT)""".stripMargin)
-
-    EmbeddedPostgresql.execute("INSERT INTO device_profile (device_id, city) VALUES ('48edda82418a1e916e9906a2fd7942cb', 'Bengaluru');")
-        val device2 = EmbeddedPostgresql.executeQuery(s"SELECT * FROM $deviceTable WHERE device_id = '48edda82418a1e916e9906a2fd7942cb'")
-        while(device2.next()) {
-            println("city   " + device2.getString("city"))
-        }
     }
 
     ignore should "create device profile in device db" in {
-
         EmbeddedPostgresql.execute(s"TRUNCATE $deviceTable")
 
         val rdd = loadFile[DerivedEvent]("src/test/resources/device-profile/test-data1.log");
@@ -107,7 +99,6 @@ class TestUpdateDeviceProfileDB extends SparkSpec(null) {
     }
 
     ignore should "include new values and execute successfully" in {
-
         EmbeddedPostgresql.execute(s"TRUNCATE $deviceTable")
         EmbeddedPostgresql.execute("INSERT INTO device_profile (device_id,  state_custom, state_code_custom, district_custom, fcm_token, producer_id) VALUES ('88edda82418a1e916e9906a2fd7942cb', 'karnataka', '29', 'bangalore', 'token-xyz', 'sunbird-app')")
         EmbeddedPostgresql.execute(s"INSERT INTO $deviceTable (device_id,  state_custom, state_code_custom, district_custom, fcm_token, producer_id, user_declared_state, user_declared_district) VALUES ('test-device-1', 'Karnataka', '29', 'Bangalore', '', 'sunbird-portal', 'Karnataka', 'Bangalore')")

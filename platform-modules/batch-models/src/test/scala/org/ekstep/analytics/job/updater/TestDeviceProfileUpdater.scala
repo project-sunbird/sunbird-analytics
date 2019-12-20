@@ -37,18 +37,7 @@ class TestDeviceProfileUpdater extends SparkSpec(null) {
                |    updated_date TIMESTAMP,
                |    user_declared_district TEXT,
                |    user_declared_state TEXT)""".stripMargin)
-
-        EmbeddedPostgresql.execute("INSERT INTO device_profile (device_id, city) VALUES ('48edda82418a1e916e9906a2fd7942cb', 'Bengaluru');")
-        val device2 = EmbeddedPostgresql.executeQuery(s"SELECT * FROM $deviceTable WHERE device_id = '48edda82418a1e916e9906a2fd7942cb'")
-        while(device2.next()) {
-            println("city   " + device2.getString("city"))
-        }
     }
-
-//    override def afterAll(): Unit = {
-//        println("afterAll")
-//        pg.close()
-//    }
   
     "DeviceProfileUpdater" should "execute the job and shouldn't throw any exception" in {
         val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/device-profile/test-data1.log"))))), None, None, "org.ekstep.analytics.updater.DeviceProfileUpdater", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestDeviceProfileUpdater"), Option(false))
