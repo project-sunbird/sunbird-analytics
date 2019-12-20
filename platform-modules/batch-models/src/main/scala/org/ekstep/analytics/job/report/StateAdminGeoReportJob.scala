@@ -79,7 +79,6 @@ object StateAdminGeoReportJob extends optional.Application with IJob with StateA
 
   def districtSummaryReport(blockData: DataFrame)(implicit fc: FrameworkContext): Unit = {
     val window = Window.partitionBy("slug").orderBy(asc("districtName"))
-    blockData.show(10, false)
     val blockDataWithSlug = blockData.
       select("*")
       .groupBy(col("slug"),col("District name").as("districtName")).
