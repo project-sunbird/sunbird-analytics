@@ -37,10 +37,16 @@ object StateAdminGeoReportJob extends optional.Application with IJob with StateA
   }
 
   private def execute(config: JobConfig)(implicit sparkSession: SparkSession, fc: FrameworkContext) = {
-    fSFileUtils.purgeDirectory(renamedDir)
-    generateGeoReport()
-    uploadReport(renamedDir)
-    JobLogger.end("StateAdminGeoReportJob completed successfully!", "SUCCESS", Option(Map("config" -> config, "model" -> name)))
+      try{
+        fSFileUtils.purgeDirectory(renamedDir)
+      } catch {
+        case t: Throwable => null;
+      }
+      generateGeoReport()
+      uploadReport(renamedDir)
+      JobLogger.end("StateAdminGeoReportJob completed successfully!", "SUCCESS", Option(Map("config" -> config, "model" -> name)))
+
+
   }
 
   def generateGeoReport() (implicit sparkSession: SparkSession, fc: FrameworkContext): DataFrame = {
@@ -73,10 +79,11 @@ object StateAdminGeoReportJob extends optional.Application with IJob with StateA
 
   def districtSummaryReport(blockData: DataFrame)(implicit fc: FrameworkContext): Unit = {
     val window = Window.partitionBy("slug").orderBy(asc("districtName"))
+    blockData.show(10, false)
     val blockDataWithSlug = blockData.
       select("*")
       .groupBy(col("slug"),col("District name").as("districtName")).
-      agg(countDistinct("Block id").as("blocks"),count("School id").as("schools"))
+      agg(countDistinct("Block id").as("blocks"),countDistinct("externalid").as("schools"))
         .withColumn("index", row_number().over(window))
     dataFrameToJsonFile(blockDataWithSlug)
   }
