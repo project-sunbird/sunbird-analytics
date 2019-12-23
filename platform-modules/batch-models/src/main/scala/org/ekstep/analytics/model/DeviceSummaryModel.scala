@@ -99,11 +99,10 @@ object DeviceSummaryModel extends IBatchModelTemplate[String, DeviceInput, Devic
                 "content_downloads" -> x.content_downloads,
                 "dial_stats" -> x.dial_stats,
                 "firstAccess" -> x.firstAccess)
-            val measuredEvent = MeasuredEvent("ME_DEVICE_SUMMARY", System.currentTimeMillis(), x.syncts, "1.0", mid, null, null, None, None,
+            MeasuredEvent("ME_DEVICE_SUMMARY", System.currentTimeMillis(), x.syncts, "1.0", mid, null, null, None, None,
                 Context(PData(config.getOrElse("producerId", "AnalyticsDataPipeline").asInstanceOf[String], config.getOrElse("modelVersion", "1.0").asInstanceOf[String], Option(config.getOrElse("modelId", "DeviceSummary").asInstanceOf[String])), None, "DAY", x.dt_range),
                 Dimensions(None, Option(x.device_id), None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, Option(x.channel)),
                 MEEdata(measures))
-            measuredEvent
         }
     }
 }
