@@ -51,7 +51,7 @@ object JobFactory {
                 ExperimentDefinitionJob
             case "assessment-dashboard-metrics" =>
                 AssessmentMetricsJob
-            case "druid-query-processor" =>
+            case "daily-metrics" =>
                 DruidQueryProcessor
             case "district-monthly" =>
                 DruidQueryProcessor
