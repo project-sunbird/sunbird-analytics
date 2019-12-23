@@ -21,7 +21,7 @@ import scala.concurrent.duration._
 
 class SaveMetricsActor extends Actor {
 
-  val config = ConfigFactory.load()
+  private val config = ConfigFactory.load()
   private val logger = LogManager.getLogger("metrics-logger")
 
   private var apiCalls: Int = 0

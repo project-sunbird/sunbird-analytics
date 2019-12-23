@@ -53,6 +53,8 @@ object JobFactory {
                 AssessmentMetricsJob
             case "daily-metrics" =>
                 DruidQueryProcessor
+            case "desktop-consumption-report" =>
+                DruidQueryProcessor
             case "district-monthly" =>
                 DruidQueryProcessor
             case "district-weekly" =>

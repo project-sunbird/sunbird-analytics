@@ -11,7 +11,6 @@ import com.typesafe.config.ConfigFactory
 class TestCacheRefreshActor extends BaseSpec {
 
   private implicit val system: ActorSystem = ActorSystem("cache-refresh-test-actor-system", config)
-  
 
   "Cache refresh actor" should "refresh the cache periodically" in {
     implicit val config: Config = ConfigFactory.load()

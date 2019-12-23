@@ -14,32 +14,33 @@ class H2DBUtil {
     private val DB_USER = ""
     private val DB_PASSWORD = ""
 
-    val connection = getDBConnection();
+    val connection: Connection = getDBConnection()
 
     // $COVERAGE-OFF$ cannot be tested, it requires actual connection to driver
     def getDBConnection(): Connection = {
-        var dbConnection: Connection = null;
+        var dbConnection: Connection = null
         try {
-            Class.forName(DB_DRIVER);
+            Class.forName(DB_DRIVER)
         } catch {
             case e: ClassNotFoundException =>
-                System.out.println(e.getMessage());
+                System.out.println(e.getMessage)
         }
+
         try {
-            dbConnection = DriverManager.getConnection(DB_CONNECTION, DB_USER, DB_PASSWORD);
+            dbConnection = DriverManager.getConnection(DB_CONNECTION, DB_USER, DB_PASSWORD)
         } catch {
             case e: SQLException =>
-                System.out.println(e.getMessage());
+                System.out.println(e.getMessage)
         }
-        return dbConnection;
+        dbConnection
     }
     // $COVERAGE-ON$
 
     def readLocation(sqlString: String): DeviceStateDistrict = {
         val resultSet = connection.prepareStatement(sqlString).executeQuery()
-        var loc = new DeviceStateDistrict();
+        var loc = new DeviceStateDistrict()
         while (resultSet.next()) {
-            loc =  DeviceStateDistrict(resultSet)
+            loc = DeviceStateDistrict(resultSet)
         }
         loc
     }
