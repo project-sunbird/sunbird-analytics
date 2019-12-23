@@ -58,7 +58,8 @@ class DeviceRegisterService @Inject()(
       case deviceRegDetails: RegisterDevice =>
         try {
           metricsActor.tell(IncrementApiCalls, ActorRef.noSender)
-          registerDevice(deviceRegDetails)
+          val result = registerDevice(deviceRegDetails)
+          sender() ! result
         } catch {
           case ex: PSQLException =>
             ex.printStackTrace()
@@ -88,7 +89,7 @@ class DeviceRegisterService @Inject()(
         }
     }
 
-    def registerDevice(registrationDetails: RegisterDevice) {
+    def registerDevice(registrationDetails: RegisterDevice): Option[DeviceRegisterStatus] = {
         val validIp = if (registrationDetails.headerIP.startsWith("192")) registrationDetails.ip_addr.getOrElse("") else registrationDetails.headerIP
         if (validIp.nonEmpty) {
             val location = resolveLocation(validIp)
@@ -127,9 +128,9 @@ class DeviceRegisterService @Inject()(
               registrationDetails.user_declared_state, registrationDetails.user_declared_district)
 
             logDeviceRegisterEvent(deviceProfileLog)
-            DeviceRegisterSuccesfulAck
+            Option(DeviceRegisterSuccesfulAck)
         }
-      DeviceRegisterFailureAck
+      Option(DeviceRegisterFailureAck)
 
     }
 
