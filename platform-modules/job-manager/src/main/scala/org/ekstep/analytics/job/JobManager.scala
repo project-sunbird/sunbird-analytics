@@ -41,7 +41,6 @@ object JobManager extends optional.Application {
         val jobManagerConfig = JSONUtils.deserialize[JobManagerConfig](config);
         JobLogger.log("Starting job manager", Option(Map("config" -> jobManagerConfig)), INFO);
         init(jobManagerConfig);
-
     }
 
     def init(config: JobManagerConfig) = {
