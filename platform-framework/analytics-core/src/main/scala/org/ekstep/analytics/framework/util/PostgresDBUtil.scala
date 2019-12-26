@@ -1,10 +1,10 @@
 package org.ekstep.analytics.framework.util
 
-import java.sql.{Connection, Timestamp}
-
 import com.typesafe.config.{Config, ConfigFactory}
 import scalikejdbc._
 import javax.inject._
+import java.sql.{Connection, Timestamp}
+
 import org.ekstep.analytics.framework.DeviceProfileOutput
 
 @Singleton
@@ -155,4 +155,3 @@ object FirstAccessByDeviceID extends SQLSyntaxSupport[FirstAccessByDeviceID] {
         rs.string("device_id")
     )
 }
-// $COVERAGE-ON$

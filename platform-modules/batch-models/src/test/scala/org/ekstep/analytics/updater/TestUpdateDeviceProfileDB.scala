@@ -41,13 +41,14 @@ class TestUpdateDeviceProfileDB extends SparkSpec(null) {
             |    user_declared_state TEXT)""".stripMargin)
     }
 
-    ignore should "create device profile in device db" in {
+    "UpdateDeviceProfileDB" should "create device profile in device db" in {
         EmbeddedPostgresql.execute(s"TRUNCATE $deviceTable")
 
         val rdd = loadFile[DerivedEvent]("src/test/resources/device-profile/test-data1.log");
         UpdateDeviceProfileDB.execute(rdd, None);
 
         val device1 = EmbeddedPostgresql.executeQuery(s"SELECT * FROM $deviceTable WHERE device_id = '88edda82418a1e916e9906a2fd7942cb'")
+
         while(device1.next()) {
             device1.getString("first_access") should be ("2018-09-21 22:49:15.883")
             device1.getString("last_access") should be ("2018-09-22 19:39:41.139")
@@ -64,7 +65,7 @@ class TestUpdateDeviceProfileDB extends SparkSpec(null) {
         }
     }
     
-    ignore should "check for first_access and last_access" in {
+    it should "check for first_access and last_access" in {
         EmbeddedPostgresql.execute(s"TRUNCATE $deviceTable")
         EmbeddedPostgresql.execute("INSERT INTO device_profile (device_id, first_access, last_access, total_ts, total_launches, avg_ts, state, city, device_spec, uaspec) VALUES ('48edda82418a1e916e9906a2fd7942cb', '2018-09-21 22:49:15.883', '2018-09-21 22:49:24.377', 18, 2, 9, 'Karnataka', 'Bangalore', '{\"os\":\"Android\",\"make\":\"Motorola XT1706\"}', '{\"raw\": \"xyz\"}');")
         EmbeddedPostgresql.execute(s"INSERT INTO $deviceTable (device_id, first_access, last_access, total_ts, total_launches, avg_ts) VALUES ('88edda82418a1e916e9906a2fd7942cb', '2018-09-20 22:49:15.883', '2018-09-22 19:39:41.139', 20, 2, 10);")
@@ -89,7 +90,7 @@ class TestUpdateDeviceProfileDB extends SparkSpec(null) {
         }
     }
 
-    ignore should "Handle null values from Cassandra and execute successfully" in {
+    it should "Handle null values from Cassandra and execute successfully" in {
         EmbeddedPostgresql.execute(s"TRUNCATE $deviceTable")
         EmbeddedPostgresql.execute("INSERT INTO device_profile (device_id, first_access, last_access, total_ts, total_launches, avg_ts, state, city, device_spec, uaspec) VALUES ('48edda82418a1e916e9906a2fd7942cb', '2018-09-21 22:49:15.883', '2018-09-21 22:49:24.377', 18, 2, 9, 'Karnataka', 'Bangalore', '{\"os\":\"Android\",\"make\":\"Motorola XT1706\"}', '{\"raw\": \"xyz\"}');")
         EmbeddedPostgresql.execute(s"INSERT INTO $deviceTable (device_id) VALUES ('88edda82418a1e916e9906a2fd7942cb');")
@@ -98,7 +99,7 @@ class TestUpdateDeviceProfileDB extends SparkSpec(null) {
         UpdateDeviceProfileDB.execute(rdd, None)
     }
 
-    ignore should "include new values and execute successfully" in {
+    it should "include new values and execute successfully" in {
         EmbeddedPostgresql.execute(s"TRUNCATE $deviceTable")
         EmbeddedPostgresql.execute("INSERT INTO device_profile (device_id,  state_custom, state_code_custom, district_custom, fcm_token, producer_id) VALUES ('88edda82418a1e916e9906a2fd7942cb', 'karnataka', '29', 'bangalore', 'token-xyz', 'sunbird-app')")
         EmbeddedPostgresql.execute(s"INSERT INTO $deviceTable (device_id,  state_custom, state_code_custom, district_custom, fcm_token, producer_id, user_declared_state, user_declared_district) VALUES ('test-device-1', 'Karnataka', '29', 'Bangalore', '', 'sunbird-portal', 'Karnataka', 'Bangalore')")
@@ -118,11 +119,11 @@ class TestUpdateDeviceProfileDB extends SparkSpec(null) {
 
         val device2 = EmbeddedPostgresql.executeQuery(s"SELECT * FROM $deviceTable WHERE device_id = '48edda82418a1e916e9906a2fd7942cb'")
         while(device2.next()) {
-            device2.getString("state_custom") should be ("")
-            device2.getString("state_code_custom") should be ("")
-            device2.getString("district_custom") should be ("")
-            device2.getString("fcm_token") should be ("")
-            device2.getString("producer_id") should be ("")
+            device2.getString("state_custom") should be (null)
+            device2.getString("state_code_custom") should be (null)
+            device2.getString("district_custom") should be (null)
+            device2.getString("fcm_token") should be (null)
+            device2.getString("producer_id") should be (null)
         }
 
         val device3 = EmbeddedPostgresql.executeQuery(s"SELECT * FROM $deviceTable WHERE device_id = 'test-device-1'")

@@ -7,17 +7,20 @@ import org.apache.spark.{HashPartitioner, SparkContext}
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, PostgresDBUtil}
+
 import scala.collection.mutable.Buffer
 
 case class DeviceProfileKey(device_id: String)
 case class DeviceProfileInput(index: DeviceProfileKey, currentData: Buffer[DerivedEvent], previousData: Option[DeviceProfileOutput]) extends AlgoInput
+case class PostgresOutput(name: String, value: AnyRef)
+
 object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DeviceProfileInput, DeviceProfileOutput, Empty] with Serializable {
 
   val className = "org.ekstep.analytics.model.UpdateDeviceProfileDB"
 
   override def name: String = "UpdateDeviceProfileDB"
 
-  val postgreDB = new PostgresDBUtil()
+  val postgresDB = new PostgresDBUtil()
   val table = AppConf.getConfig("postgres.device.table_name")
 
   override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[DeviceProfileInput] = {
@@ -28,7 +31,7 @@ object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DevicePro
     }.partitionBy(new HashPartitioner(JobContext.parallelization)).reduceByKey((a, b) => a ++ b);
 
     val query = s"SELECT * FROM $table"
-    val responseRDD = sc.parallelize(postgreDB.readDBData(query))
+    val responseRDD = sc.parallelize(postgresDB.readDBData(query))
 
     val newEvents = newGroupedEvents.map(f => (DeviceProfileKey(f._1.device_id), f))
     val prevDeviceProfile = responseRDD.map(f => (DeviceProfileKey(f.device_id), f))
@@ -63,28 +66,23 @@ object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DevicePro
   }
 
   override def postProcess(data: RDD[DeviceProfileOutput], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[Empty] = {
-    data.foreach { f =>
-      val query =
-        s"""INSERT INTO $table (device_id, first_access, last_access, total_ts, total_launches, avg_ts, device_spec, uaspec, state,
-           |city, country, country_code, state_code, state_custom, state_code_custom, district_custom, fcm_token, producer_id,
-           |user_declared_state, user_declared_district, api_last_updated_on, updated_date) VALUES
-           |('${f.device_id}', '${f.first_access.get}', '${f.last_access.get}', '${f.total_ts.getOrElse(0)}',
-           |'${f.total_launches.getOrElse("")}', '${f.avg_ts.getOrElse(0)}', '${JSONUtils.serialize(f.device_spec.getOrElse(""))}',
-           |'${JSONUtils.serialize(f.uaspec.getOrElse(""))}', '${f.state.getOrElse("")}', '${f.city.getOrElse("")}', '${f.country.getOrElse("")}',
-           |'${f.country_code.getOrElse("")}', '${f.state_code.getOrElse("")}', '${f.state_custom.getOrElse("")}',
-           |'${f.state_code_custom.getOrElse("")}','${f.district_custom.getOrElse("")}', '${f.fcm_token.getOrElse("")}',
-           |'${f.producer_id.getOrElse("")}', '${f.user_declared_state.getOrElse("")}', '${f.user_declared_district.getOrElse("")}',
-           |'${f.api_last_updated_on.getOrElse(new Timestamp(System.currentTimeMillis()))}', '${f.updated_date.get}')
-           |ON CONFLICT (device_id) DO
-           |UPDATE SET device_id = '${f.device_id}', first_access = '${f.first_access.get}', last_access = '${f.last_access.get}',
-           |total_ts = '${f.total_ts.getOrElse(0)}', total_launches = '${f.total_launches.getOrElse("")}', avg_ts= '${f.avg_ts.getOrElse(0)}',
-           |device_spec = '${JSONUtils.serialize(f.device_spec.getOrElse(""))}', uaspec = '${JSONUtils.serialize(f.uaspec.getOrElse(""))}',
-           |state = '${f.state.getOrElse("")}', city = '${f.city.getOrElse("")}', country = '${f.country.getOrElse("")}', country_code= '${f.country_code.getOrElse("")}',
-           |state_code = '${f.state_code.getOrElse("")}', state_custom = '${f.state_custom.getOrElse("")}', state_code_custom = '${f.state_code_custom.getOrElse("")}',
-           |district_custom = '${f.district_custom.getOrElse("")}', fcm_token = '${f.fcm_token.getOrElse("")}', producer_id = '${f.producer_id.getOrElse("")}',
-           |user_declared_state = '${f.user_declared_state.getOrElse("")}', user_declared_district = '${f.user_declared_district.getOrElse("")}',
-           |api_last_updated_on = '${f.api_last_updated_on.getOrElse(new Timestamp(System.currentTimeMillis()))}', updated_date = '${f.updated_date.get}'""".stripMargin
-      postgreDB.insertDataToPostgresDB(query)
+
+    data.foreachPartition {partitions: Iterator[DeviceProfileOutput] =>
+      partitions.foreach{ f =>
+        val keyList: List[String] = List("first_access", "last_access", "updated_date", "api_last_updated_on")
+        val first_access = f.first_access.get
+        val last_access = f.last_access.get
+        val updated_date = f.updated_date.get
+        val api_last_updated = f.api_last_updated_on.getOrElse(new Timestamp(System.currentTimeMillis()))
+        val fieldMap = JSONUtils.deserialize[Map[String, Any]](JSONUtils.serialize(f))
+        val filteredMap = fieldMap.--(keyList)
+        val resultMap = filteredMap ++ Map("first_access" -> first_access, "last_access" -> last_access, "updated_date" -> updated_date, "api_last_updated_on" -> api_last_updated)
+
+        val columns = resultMap.keySet.mkString(",")
+        val values = resultMap.values.mkString("','")
+        val queryReq = s"""INSERT INTO $table ($columns) VALUES ('$values') ON CONFLICT (device_id) DO UPDATE SET ($columns) = ('$values')"""
+        postgresDB.insertDataToPostgresDB(queryReq)
+      }
     }
     sc.makeRDD(List(Empty()));
   }
