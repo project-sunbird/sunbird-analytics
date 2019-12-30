@@ -84,6 +84,7 @@ object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DevicePro
         postgresDB.insertDataToPostgresDB(queryReq)
       }
     }
+    postgresDB.closeConnection
     sc.makeRDD(List(Empty()));
   }
 }

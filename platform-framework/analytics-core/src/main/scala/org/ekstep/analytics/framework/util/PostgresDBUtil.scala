@@ -68,6 +68,10 @@ class PostgresDBUtil {
             case ex: Exception => false
         }
     }
+
+    def closeConnection = {
+        session.close()
+    }
 }
 
 case class DeviceLocation(continentName: String, countryCode: String, countryName: String, stateCode: String,

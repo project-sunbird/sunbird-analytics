@@ -74,6 +74,7 @@ object DeviceSummaryModel extends IBatchModelTemplate[String, DeviceInput, Devic
             val firstAccessQuery = s"SELECT device_id, first_access FROM $table WHERE device_id = '${x._1.device_id}'"
             postgreDB.readFirstAccessFromDB(firstAccessQuery)
         }
+        postgreDB.closeConnection
 
         val postgresData = firstAccessFromPostgres.map(f => (f.device_id, f.first_access))
         val summaryData = summary.map(f => (f._1.device_id, f._2))
