@@ -66,8 +66,8 @@ object CommonUtil {
 
     def getMonthRange(count: Int): Range = {
         val endDate = DateTime.now(DateTimeZone.UTC);
-        val startDate = endDate.minusDays(count * 30);
-        Range(monthPeriod.print(startDate).toInt, monthPeriod.print(endDate).toInt)
+        val startMonth = endDate.minusMonths(count);
+        Range(monthPeriod.print(startMonth).toInt, monthPeriod.print(endDate).toInt)
     }
 
     def errorResponse(apiId: String, err: String, responseCode: String): Response = {
