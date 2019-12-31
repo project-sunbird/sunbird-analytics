@@ -26,14 +26,19 @@ object AssessmentMetricsJob extends optional.Application with IJob with BaseRepo
 
   def main(config: String)(implicit sc: Option[SparkContext] = None, fc: Option[FrameworkContext] = None) {
 
-    JobLogger.init("Assessment Metrics")
-    JobLogger.start("Assessment Job Started executing", Option(Map("config" -> config, "model" -> name)))
-    val jobConfig = JSONUtils.deserialize[JobConfig](config)
-    JobContext.parallelization = jobConfig.parallelization.getOrElse(10) // Default to 10
+    try {
+      JobLogger.init("Assessment Metrics")
+      JobLogger.start("Assessment Job Started executing", Option(Map("config" -> config, "model" -> name)))
+      val jobConfig = JSONUtils.deserialize[JobConfig](config)
+      JobContext.parallelization = jobConfig.parallelization.getOrElse(10) // Default to 10
 
-    implicit val sparkContext: SparkContext = getReportingSparkContext(jobConfig);
-    implicit val frameworkContext: FrameworkContext = getReportingFrameworkContext();
-    execute(jobConfig)
+      implicit val sparkContext: SparkContext = getReportingSparkContext(jobConfig);
+      implicit val frameworkContext: FrameworkContext = getReportingFrameworkContext();
+      execute(jobConfig)
+    }
+    finally {
+      if(fc.nonEmpty) fc.get.closeContext();
+    }
   }
 
   private def execute(config: JobConfig)(implicit sc: SparkContext, fc: FrameworkContext) = {
