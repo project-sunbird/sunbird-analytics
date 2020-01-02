@@ -36,12 +36,10 @@ object AssessmentMetricsJob extends optional.Application with IJob with BaseRepo
     implicit val frameworkContext: FrameworkContext = getReportingFrameworkContext();
     try {
       execute(jobConfig)
-      frameworkContext.closeContext();
     }
     finally {
       if(fc.isEmpty) {
         frameworkContext.closeContext();
-        sparkContext.stop();
       }
     }
   }
@@ -291,6 +289,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with BaseRepo
     FileUtil.renameReport(tempDir, renamedDir, batchId)
     val storageService = getReportStorageService();
     storageService.upload(container, renamedDir, objectKey, isDirectory = Option(true))
+    storageService.closeContext()
   }
 
   def saveToElastic(index: String, reportDF: DataFrame): Unit = {
