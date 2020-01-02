@@ -39,7 +39,10 @@ object AssessmentMetricsJob extends optional.Application with IJob with BaseRepo
     }
     finally {
       println("fc inside finally: " + fc.isEmpty + "framework context: " + frameworkContext)
-      if(fc.isEmpty) frameworkContext.closeContext();
+      if(fc.isEmpty) {
+        frameworkContext.closeContext();
+        sparkContext.stop();
+      }
     }
   }
 
