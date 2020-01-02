@@ -50,6 +50,7 @@ class FrameworkContext {
   }
 
   def shutdownStorageService() = {
+    println("inside shutdownStorageService " + storageContainers.nonEmpty)
     if (null != storageContainers) {
       storageContainers.foreach(f => f._2.closeContext());
     }
