@@ -34,14 +34,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with BaseRepo
 
     implicit val sparkContext: SparkContext = getReportingSparkContext(jobConfig);
     implicit val frameworkContext: FrameworkContext = getReportingFrameworkContext();
-    try {
-      execute(jobConfig)
-    }
-    finally {
-      if(fc.isEmpty) {
-        frameworkContext.closeContext();
-      }
-    }
+    execute(jobConfig)
   }
 
   private def execute(config: JobConfig)(implicit sc: SparkContext, fc: FrameworkContext) = {
