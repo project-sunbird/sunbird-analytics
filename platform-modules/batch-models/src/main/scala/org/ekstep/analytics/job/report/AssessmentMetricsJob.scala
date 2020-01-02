@@ -36,9 +36,9 @@ object AssessmentMetricsJob extends optional.Application with IJob with BaseRepo
     implicit val frameworkContext: FrameworkContext = getReportingFrameworkContext();
     try {
       execute(jobConfig)
+      frameworkContext.closeContext();
     }
     finally {
-      println("fc inside finally: " + fc.isEmpty + "framework context: " + frameworkContext)
       if(fc.isEmpty) {
         frameworkContext.closeContext();
         sparkContext.stop();
