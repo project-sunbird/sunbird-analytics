@@ -20,7 +20,7 @@ class BaseSpec extends FlatSpec with Matchers with BeforeAndAfterAll with Mockit
   override def beforeAll() {
     if (embeddedCassandraMode) {
       System.setProperty("cassandra.unsafesystem", "true")
-		  EmbeddedCassandraServerHelper.startEmbeddedCassandra(20000L)
+		  EmbeddedCassandraServerHelper.startEmbeddedCassandra(30000L)
 		  val session = DBUtil.session
 		  val dataLoader = new CQLDataLoader(session);
 		  dataLoader.load(new FileCQLDataSet(AppConf.getConfig("cassandra.cql_path"), true, true));
