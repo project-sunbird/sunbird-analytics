@@ -6,6 +6,7 @@ import org.apache.spark.SparkContext
 import org.apache.spark.sql.{DataFrame, _}
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions.{col, lit, _}
+import org.ekstep.analytics.framework.Level.INFO
 import org.ekstep.analytics.framework.{FrameworkContext, _}
 import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger}
 import org.ekstep.analytics.util.HDFSFileUtils
@@ -221,16 +222,16 @@ object StateAdminReportJob extends optional.Application with IJob with StateAdmi
           .mode("overwrite")
           .json(url)
 
-        JobLogger.log(s"StateAdminReportJob: uploadedSuccess nRecords = ${reportDF.count()}")
+        JobLogger.log(s"StateAdminReportJob: uploadedSuccess nRecords = ${reportDF.count()}", None, INFO)
     }
 
     private def renameChannelDirsToSlug(sourcePath: String, channelSlugMap: Map[String, String]) = {
         val files = fSFileUtils.getSubdirectories(sourcePath)
         files.map { oneChannelDir =>
-            val name = oneChannelDir.getName()
-            val slugName = channelSlugMap.get(name);
-            if(slugName.nonEmpty) {
-                println(s"name = ${name} and slugname = ${slugName}")
+            val channelName = oneChannelDir.getName()
+            val slugName = channelSlugMap.get(channelName);
+            if(slugName.nonEmpty && !slugName.mkString.equals(channelName)) {
+                println(s"channelName = ${channelName} and slugname = ${slugName}")
                 val newDirName = oneChannelDir.getParent() + "/" + slugName.get.asInstanceOf[String]
                 if(new File(newDirName).exists) {
                   val jsonFiles = fSFileUtils.recursiveListFiles(oneChannelDir, ".json")
@@ -242,7 +243,7 @@ object StateAdminReportJob extends optional.Application with IJob with StateAdmi
                   fSFileUtils.renameDirectory(oneChannelDir.getAbsolutePath(), newDirName)
                 }
             } else {
-                println("Slug not found for - " + name);
+                println("Slug not found or already exists for - " + channelName);
             }
         }
     }
