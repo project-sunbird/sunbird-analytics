@@ -48,7 +48,12 @@ object StateAdminReportJob extends optional.Application with IJob with StateAdmi
     }
 
     private def execute(config: JobConfig)(implicit sparkSession: SparkSession, fc: FrameworkContext) = {
-        fSFileUtils.purgeDirectory(renamedDir)
+
+        try{
+          fSFileUtils.purgeDirectory(renamedDir)
+        } catch {
+          case t: Throwable => null;
+        }
         generateReport();
         uploadReport(renamedDir)
         JobLogger.end("StateAdminReportJob completed successfully!", "SUCCESS", Option(Map("config" -> config, "model" -> name)))
@@ -59,7 +64,6 @@ object StateAdminReportJob extends optional.Application with IJob with StateAdmi
         import sparkSession.implicits._
 
         val shadowDataEncoder = Encoders.product[ShadowUserData].schema
-        //val stateAdminReport = new StateAdminReportHelper(sparkSession)
         val shadowUserDF = loadData(sparkSession, Map("table" -> "shadow_user", "keyspace" -> sunbirdKeyspace), Some(shadowDataEncoder)).as[ShadowUserData]
         val claimedShadowUserDF = shadowUserDF.where(col("claimstatus")=== ClaimedStatus.id)
 
@@ -90,8 +94,7 @@ object StateAdminReportJob extends optional.Application with IJob with StateAdmi
 
         // We can directly write to the slug folder
         val blockDataWithSlug = generateGeoBlockData(organisationDF)
-        val userDistrictSummaryDF = blockDataWithSlug.where(col("Block id").gt(0)).join(claimedShadowUserDF, blockDataWithSlug.col("externalid") === (claimedShadowUserDF.col("orgextid")),"left_outer")
-
+        val userDistrictSummaryDF = blockDataWithSlug.where(col("Block id").isNotNull).join(claimedShadowUserDF, blockDataWithSlug.col("externalid") === (claimedShadowUserDF.col("orgextid")),"left_outer")
         val validatedUsersWithDst = userDistrictSummaryDF.groupBy(col("slug"), col("Channels")).agg(countDistinct("District name").as("districts"),countDistinct("Block id").as("blocks"),countDistinct(claimedShadowUserDF.col("orgextid")).as("schools"))
 
         val validatedShadowDataSummaryDF = claimedShadowDataSummaryDF.join(validatedUsersWithDst, claimedShadowDataSummaryDF.col("channel") === validatedUsersWithDst.col("Channels"))
@@ -251,6 +254,7 @@ object StateAdminReportJob extends optional.Application with IJob with StateAdmi
 
         val storageService = getReportStorageService();
         storageService.upload(container, sourcePath, objectKey, isDirectory = Option(true))
+        storageService.closeContext()
     }
 
     def dataFrameToJsonFile(dataFrame: DataFrame)(implicit fc: FrameworkContext): Unit = {
