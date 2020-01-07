@@ -11,6 +11,7 @@ import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger}
 import org.ekstep.analytics.util.{ESUtil, FileUtil}
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
+import org.sunbird.cloud.storage.BaseStorageService
 import org.sunbird.cloud.storage.conf.AppConf
 
 import scala.collection.{Map, _}
@@ -25,6 +26,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with BaseRepo
   def name(): String = "AssessmentMetricsJob"
 
   def main(config: String)(implicit sc: Option[SparkContext] = None, fc: Option[FrameworkContext] = None) {
+
 
     JobLogger.init("Assessment Metrics")
     JobLogger.start("Assessment Job Started executing", Option(Map("config" -> config, "model" -> name)))
@@ -268,7 +270,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with BaseRepo
     reportDF.withColumn("rownum", row_number.over(df)).where(col("rownum") === 1).drop("rownum")
   }
 
-  def saveToAzure(reportDF: DataFrame, url: String, batchId: String)(implicit fc: FrameworkContext) = {
+  def saveToAzure(reportDF: DataFrame, url: String, batchId: String, storageService: BaseStorageService)(implicit fc: FrameworkContext): String = {
     val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
     val renamedDir = s"$tempDir/renamed"
     val container = AppConf.getConfig("cloud.container.reports")
@@ -279,7 +281,6 @@ object AssessmentMetricsJob extends optional.Application with IJob with BaseRepo
       .option("header", "true")
       .save(url)
     FileUtil.renameReport(tempDir, renamedDir, batchId)
-    val storageService = getReportStorageService();
     storageService.upload(container, renamedDir, objectKey, isDirectory = Option(true))
   }
 
@@ -312,6 +313,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with BaseRepo
   def save(courseBatchList: Array[Map[String, Any]], reportDF: DataFrame, url: String, spark: SparkSession)(implicit fc: FrameworkContext): Unit = {
     val aliasName = AppConf.getConfig("assessment.metrics.es.alias")
     val indexToEs = AppConf.getConfig("course.es.index.enabled")
+    val storageService = getReportStorageService();
     courseBatchList.foreach(item => {
       JobLogger.log("Course batch mappings: " + item, None, INFO)
       val courseId = item.getOrElse("courseid", "").asInstanceOf[String]
@@ -321,7 +323,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with BaseRepo
           val filteredDF = reportDF.filter(col("courseid") === courseId && col("batchid") === batchId)
           val reportData = transposeDF(filteredDF)
           try {
-            val urlBatch = saveToAzure(reportData, url, batchId)
+            val urlBatch = saveToAzure(reportData, url, batchId, storageService)
             val resolvedDF = filteredDF.withColumn("reportUrl", lit(urlBatch))
             if (StringUtils.isNotBlank(indexToEs) && StringUtils.equalsIgnoreCase("true", indexToEs)) {
               saveToElastic(this.getIndexName, resolvedDF)
@@ -337,6 +339,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with BaseRepo
         }
       })
     })
+    storageService.closeContext()
     rollOverIndex(getIndexName, aliasName)
   }
 
