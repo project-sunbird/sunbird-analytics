@@ -34,15 +34,15 @@ class TestStateAdminGeoReportJob extends SparkSpec(null) with MockFactory {
     //for geo report we expect these columns
     assert(reportDF.columns.contains("index") === true)
     assert(reportDF.columns.contains("School id") === true)
-    assert(reportDF.columns.contains("School name") === true)
+    assert(reportDF.columns.contains("School Name") === true)
     assert(reportDF.columns.contains("District id") === true)
-    assert(reportDF.columns.contains("District name") === true)
+    assert(reportDF.columns.contains("District Name") === true)
     assert(reportDF.columns.contains("Block id") === true)
-    assert(reportDF.columns.contains("Block name") === true)
+    assert(reportDF.columns.contains("Block Name") === true)
     assert(reportDF.columns.contains("slug") === true)
     assert(reportDF.columns.contains("externalid") === true)
     val apslug = reportDF.where(col("slug") === "ApSlug")
-    val school_name = apslug.select("School name").collect().map(_ (0)).toList
+    val school_name = apslug.select("School Name").collect().map(_ (0)).toList
     assert(school_name(0) === "MPPS SIMHACHALNAGAR")
     assert(school_name(1) === "Another school")
     assert(reportDF.select("District id").distinct().count == 4)

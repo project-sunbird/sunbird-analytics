@@ -45,12 +45,12 @@ trait StateAdminReportHelper extends  BaseReportsJob {
       .withColumn("index",row_number().over(window)).select(
         col("index"),
         col("schoolid").as("School id"),
-        col("schoolname").as("School name"),
+        col("schoolname").as("School Name"),
         col("channel").as("Channels"),
         col("districtid").as("District id"),
-        col("districtname").as("District name"),
+        col("districtname").as("District Name"),
         col("blockid").as("Block id"),
-        col("blockname").as("Block name"),
+        col("blockname").as("Block Name"),
         col("slug").as("slug"),
         col("externalid"))
     blockData

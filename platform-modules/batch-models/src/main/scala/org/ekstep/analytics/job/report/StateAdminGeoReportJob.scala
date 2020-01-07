@@ -81,7 +81,7 @@ object StateAdminGeoReportJob extends optional.Application with IJob with StateA
     val window = Window.partitionBy("slug").orderBy(asc("districtName"))
     val blockDataWithSlug = blockData.
       select("*")
-      .groupBy(col("slug"),col("District name").as("districtName")).
+      .groupBy(col("slug"),col("District Name").as("districtName")).
       agg(countDistinct("Block id").as("blocks"),countDistinct("externalid").as("schools"))
         .withColumn("index", row_number().over(window))
     dataFrameToJsonFile(blockDataWithSlug)

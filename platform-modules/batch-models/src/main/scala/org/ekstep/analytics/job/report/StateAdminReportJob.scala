@@ -84,11 +84,6 @@ object StateAdminReportJob extends optional.Application with IJob with StateAdmi
         val claimedShadowDataSummaryDF = claimedShadowUserDF.groupBy("channel")
           .pivot("claimstatus").agg(count("claimstatus")).na.fill(0)
 
-        saveUserDetailsReport(claimedShadowUserDF.toDF(), s"$detailDir")
-        fSFileUtils.renameReport(detailDir, renamedDir, ".csv", "validated-user-detail")
-
-        fSFileUtils.purgeDirectory(detailDir)
-
         val organisationDF = loadOrganisationDF()
         val channelSlugMap: Map[String, String] = getChannelSlugMap(organisationDF)
 
@@ -96,21 +91,39 @@ object StateAdminReportJob extends optional.Application with IJob with StateAdmi
         // We can directly write to the slug folder
         val blockDataWithSlug = generateGeoBlockData(organisationDF)
         val userDistrictSummaryDF = blockDataWithSlug.where(col("Block id").isNotNull).join(claimedShadowUserDF, blockDataWithSlug.col("externalid") === (claimedShadowUserDF.col("orgextid")),"left_outer")
-        val validatedUsersWithDst = userDistrictSummaryDF.groupBy(col("slug"), col("Channels")).agg(countDistinct("District name").as("districts"),countDistinct("Block id").as("blocks"),countDistinct(claimedShadowUserDF.col("orgextid")).as("schools"))
+        val validatedUsersWithDst = userDistrictSummaryDF.groupBy(col("slug"), col("Channels")).agg(countDistinct("District Name").as("districts"),countDistinct("Block id").as("blocks"),countDistinct(claimedShadowUserDF.col("orgextid")).as("schools"))
 
         val validatedShadowDataSummaryDF = claimedShadowDataSummaryDF.join(validatedUsersWithDst, claimedShadowDataSummaryDF.col("channel") === validatedUsersWithDst.col("Channels"))
-
         val validatedGeoSummaryDF = validatedShadowDataSummaryDF.withColumn("registered",
           when(col("1").isNull, 0).otherwise(col("1"))).drop("1", "channel", "Channels")
 
         saveUserValidatedSummaryReport(validatedGeoSummaryDF, s"$summaryDir")
         fSFileUtils.renameReport(summaryDir, renamedDir, ".json", "validated-user-summary")
         fSFileUtils.purgeDirectory(summaryDir)
+
+        saveValidatedUserDetailsReport(userDistrictSummaryDF, s"$detailDir")
+        fSFileUtils.renameReport(detailDir, renamedDir, ".csv", "validated-user-detail")
+        fSFileUtils.purgeDirectory(detailDir)
         renameChannelDirsToSlug(renamedDir, channelSlugMap)
-          val resultDF = userDistrictSummaryDF.groupBy(col("slug"), col("index"), col("District name").as("districtName")).
-            agg(countDistinct("Block id").as("blocks"),countDistinct(claimedShadowUserDF.col("orgextid")).as("schools"), count("userextid").as("registered"))
+
+        val resultDF = userDistrictSummaryDF.groupBy(col("slug"), col("index"), col("District Name").as("districtName")).
+          agg(countDistinct("Block id").as("blocks"),countDistinct(claimedShadowUserDF.col("orgextid")).as("schools"), count("userextid").as("registered"))
         saveUserDistrictSummary(resultDF)
           resultDF
+    }
+
+    def saveValidatedUserDetailsReport(userDistrictSummaryDF: DataFrame, url: String) = {
+      val window = Window.partitionBy("slug").orderBy(asc("District Name"))
+      val userDistrictDetailDF = userDistrictSummaryDF.withColumn("Sl", row_number().over(window)).select( col("Sl"), col("District Name"), col("District id").as("District ext. ID"),
+        col("Block Name"), col("Block id").as("Block ext. ID"), col("School Name"), col("externalid").as("School ext. ID"), col("name").as("Teacher Name"),
+        col("userextid").as("Teacher ext. ID"), col("userid").as("Teacher Diksha ID"), col("slug"))
+      userDistrictDetailDF
+        .coalesce(1)
+        .write
+        .partitionBy("slug")
+        .mode("overwrite")
+        .option("header", "true")
+        .csv(url)
     }
 
     def saveUserDistrictSummary(resultDF: DataFrame)(implicit fc: FrameworkContext) {
