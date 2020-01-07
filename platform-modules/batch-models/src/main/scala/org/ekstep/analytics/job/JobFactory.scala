@@ -51,7 +51,7 @@ object JobFactory {
                 ExperimentDefinitionJob
             case "assessment-dashboard-metrics" =>
                 AssessmentMetricsJob
-            case "druid-query-processor" =>
+            case "daily-metrics" =>
                 DruidQueryProcessor
             case "desktop-consumption-report" =>
                 DruidQueryProcessor
@@ -66,7 +66,7 @@ object JobFactory {
             case "admin-geo-reports" =>
                 StateAdminGeoReportJob
             case _ =>
-                throw new JobNotFoundException("Unknown job type found")
+                throw new JobNotFoundException("Unknown job type found") 
         }
     }
 }
