@@ -29,9 +29,10 @@ object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DevicePro
     val newGroupedEvents = filteredEvents.map { event =>
       (DeviceProfileKey(event.dimensions.did.get), Buffer(event))
     }.partitionBy(new HashPartitioner(JobContext.parallelization)).reduceByKey((a, b) => a ++ b);
-
-    val query = s"SELECT * FROM $table"
-    val responseRDD = sc.parallelize(postgresDB.readDBData(query))
+    val query = s"SELECT * FROM $table;"
+    val testData = postgresDB.readDBData(query)
+    println("Device profile data count: " + testData.size)
+    val responseRDD = sc.parallelize(testData)
 
     val newEvents = newGroupedEvents.map(f => (DeviceProfileKey(f._1.device_id), f))
     val prevDeviceProfile = responseRDD.map(f => (DeviceProfileKey(f.device_id), f))
@@ -66,9 +67,10 @@ object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DevicePro
   }
 
   override def postProcess(data: RDD[DeviceProfileOutput], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[Empty] = {
-
+    try{
     data.foreachPartition {partitions: Iterator[DeviceProfileOutput] =>
       partitions.foreach{ f =>
+        println("******************Inside post process foreach*********************")
         val keyList: List[String] = List("first_access", "last_access", "updated_date", "api_last_updated_on")
         val first_access = f.first_access.get
         val last_access = f.last_access.get
@@ -84,7 +86,11 @@ object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DevicePro
         postgresDB.insertDataToPostgresDB(queryReq)
       }
     }
-    postgresDB.closeConnection
+    }
+    finally {
+      postgresDB.closeConnection
+    }
+//    postgresDB.closeConnection
     sc.makeRDD(List(Empty()));
   }
 }
