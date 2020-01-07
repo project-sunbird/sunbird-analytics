@@ -42,7 +42,7 @@ class TestStateAdminGeoReportJob extends SparkSpec(null) with MockFactory {
     assert(reportDF.columns.contains("slug") === true)
     assert(reportDF.columns.contains("externalid") === true)
     val apslug = reportDF.where(col("slug") === "ApSlug")
-    val school_name = apslug.select("School Name").collect().map(_ (0)).toList
+    val school_name = apslug.select("School name").collect().map(_ (0)).toList
     assert(school_name(0) === "MPPS SIMHACHALNAGAR")
     assert(school_name(1) === "Another school")
     assert(reportDF.select("District id").distinct().count == 4)
