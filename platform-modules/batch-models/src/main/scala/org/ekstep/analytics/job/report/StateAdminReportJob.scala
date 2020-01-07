@@ -112,7 +112,7 @@ object StateAdminReportJob extends optional.Application with IJob with StateAdmi
           resultDF
     }
 
-    def saveValidatedUserDetailsReport(userDistrictSummaryDF: DataFrame, url: String) = {
+    def saveValidatedUserDetailsReport(userDistrictSummaryDF: DataFrame, url: String) {
       val window = Window.partitionBy("slug").orderBy(asc("District Name"))
       val userDistrictDetailDF = userDistrictSummaryDF.withColumn("Sl", row_number().over(window)).select( col("Sl"), col("District Name"), col("District id").as("District ext. ID"),
         col("Block Name"), col("Block id").as("Block ext. ID"), col("School Name"), col("externalid").as("School ext. ID"), col("name").as("Teacher Name"),
