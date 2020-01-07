@@ -270,7 +270,7 @@ object AssessmentMetricsJob extends optional.Application with IJob with BaseRepo
     reportDF.withColumn("rownum", row_number.over(df)).where(col("rownum") === 1).drop("rownum")
   }
 
-  def saveToAzure(reportDF: DataFrame, url: String, batchId: String, storageService:BaseStorageService)(implicit fc: FrameworkContext) = {
+  def saveToAzure(reportDF: DataFrame, url: String, batchId: String, storageService: BaseStorageService)(implicit fc: FrameworkContext): String = {
     val tempDir = AppConf.getConfig("assessment.metrics.temp.dir")
     val renamedDir = s"$tempDir/renamed"
     val container = AppConf.getConfig("cloud.container.reports")
