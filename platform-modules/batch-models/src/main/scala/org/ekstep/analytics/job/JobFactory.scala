@@ -66,7 +66,7 @@ object JobFactory {
             case "admin-geo-reports" =>
                 StateAdminGeoReportJob
             case _ =>
-                throw new JobNotFoundException("Unknown job type found")
+                throw new JobNotFoundException("Unknown job type found") 
         }
     }
 }
