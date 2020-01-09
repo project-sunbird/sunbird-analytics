@@ -12,11 +12,9 @@ object EmbeddedPostgresql {
   var stmt: Statement = null;
 
   def start() {
-    println("***************STARTING POSTGRES")
     pg = EmbeddedPostgres.builder().setPort(65124).start()
     connection = pg.getPostgresDatabase().getConnection()
     stmt = connection.createStatement()
-    println(pg.getPort + "   " + pg.getJdbcUrl("postgres", "postgres") + "    " + stmt.getConnection.getMetaData)
   }
 
   def execute(sqlString: String): Boolean = {
@@ -29,7 +27,6 @@ object EmbeddedPostgresql {
   }
 
   def close() {
-    println("*************CLOSING POSTGRES")
     stmt.close()
     connection.close()
     pg.close()

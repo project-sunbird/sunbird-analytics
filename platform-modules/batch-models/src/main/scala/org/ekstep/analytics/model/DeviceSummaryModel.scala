@@ -21,11 +21,10 @@ object DeviceSummaryModel extends IBatchModelTemplate[String, DeviceInput, Devic
     val className = "org.ekstep.analytics.model.DeviceSummaryModel"
     override def name: String = "DeviceSummaryModel"
 
-    val postgresDB = new PostgresDBUtil()
+
     val table = AppConf.getConfig("postgres.device.table_name")
 
     override def preProcess(data: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[DeviceInput] = {
-        println("postgresDB****    " + postgresDB)
         val rawEventsList = List("SEARCH", "INTERACT")
         val wfsData = data.filter(f => f.contains("ME_WORKFLOW_SUMMARY")).map(f => JSONUtils.deserialize[DerivedEvent](f)).filter { x => (x.dimensions.did.nonEmpty && StringUtils.isNotBlank(x.dimensions.did.get)) }
         val rawData = data.filter(f => !f.contains("ME_WORKFLOW_SUMMARY")).map(f => JSONUtils.deserialize[V3Event](f)).filter{f => rawEventsList.contains(f.eid) && f.context.did.nonEmpty}.filter { x => (StringUtils.isNotBlank(x.context.did.get) && (StringUtils.equals(x.edata.subtype, "ContentDownload-Success") || x.edata.filters.getOrElse(Map[String, AnyRef]()).asInstanceOf[Map[String, AnyRef]].contains("dialcodes"))) };
@@ -69,20 +68,10 @@ object DeviceSummaryModel extends IBatchModelTemplate[String, DeviceInput, Devic
             val content_downloads = raw.filter(f => "INTERACT".equals(f.eid)).length
             (index, DeviceSummary(index.device_id, index.channel, CommonUtil.roundDouble(total_ts, 2), total_launches, contents_played, unique_contents_played, content_downloads, DialStats(dial_count, dial_success, dial_failure), DtRange(startTimestamp, endTimestamp), syncts, new Timestamp(startTimestamp)))
         }
-        var firstAccessFromPostgres: RDD[FirstAccessByDeviceID] = null;
-        try {
-            firstAccessFromPostgres = summary.flatMap{x =>
-                val firstAccessQuery = s"SELECT device_id, first_access FROM $table WHERE device_id = '${x._1.device_id}'"
-                postgresDB.readFirstAccessFromDB(firstAccessQuery)
-            }
-        }
-        finally {
-            postgresDB.closeConnection
-        }
+        val firstAccessQuery = s"SELECT device_id, first_access FROM $table"
+        val firstAccess  = sc.parallelize(fc.getPostgresConnect().readFirstAccessFromDB(firstAccessQuery))
 
-//        postgresDB.closeConnection
-
-        val postgresData = firstAccessFromPostgres.map(f => {(f.device_id, f.first_access)})
+        val postgresData = firstAccess.map(f => {(f.device_id, f.first_access)})
         val summaryData = summary.map(f => (f._1.device_id, f._2))
 
         summaryData.leftOuterJoin(postgresData)

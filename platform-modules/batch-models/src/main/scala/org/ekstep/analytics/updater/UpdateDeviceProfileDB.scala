@@ -1,7 +1,9 @@
 package org.ekstep.analytics.updater
 
-import java.sql.Timestamp
+import java.sql.{DriverManager, Timestamp}
 
+import com.datastax.driver.core.Row
+import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.spark.rdd._
 import org.apache.spark.{HashPartitioner, SparkContext}
 import org.ekstep.analytics.framework._
@@ -20,17 +22,18 @@ object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DevicePro
 
   override def name: String = "UpdateDeviceProfileDB"
 
-  val postgresDB = new PostgresDBUtil()
+
   val table = AppConf.getConfig("postgres.device.table_name")
+
 
   override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[DeviceProfileInput] = {
 
-    val filteredEvents = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_DEVICE_SUMMARY")))
+      val filteredEvents = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_DEVICE_SUMMARY")))
     val newGroupedEvents = filteredEvents.map { event =>
       (DeviceProfileKey(event.dimensions.did.get), Buffer(event))
-    }.partitionBy(new HashPartitioner(JobContext.parallelization)).reduceByKey((a, b) => a ++ b);
+    }.partitionBy(new HashPartitioner(JobContext.parallelization)).reduceByKey((a, b) => a ++ b)
     val query = s"SELECT * FROM $table;"
-    val testData = postgresDB.readDBData(query)
+    val testData = fc.getPostgresConnect().readDBData(query)
     println("Device profile data count: " + testData.size)
     val responseRDD = sc.parallelize(testData)
 
@@ -46,13 +49,13 @@ object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DevicePro
 
   override def algorithm(data: RDD[DeviceProfileInput], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[DeviceProfileOutput] = {
     data.map { events =>
-      val eventsSortedByFromDate = events.currentData.sortBy { x => x.context.date_range.from };
-      val eventsSortedByToDate = events.currentData.sortBy { x => x.context.date_range.to };
-      val prevProfileData = events.previousData.getOrElse(DeviceProfileOutput(events.index.device_id, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None));
+      val eventsSortedByFromDate = events.currentData.sortBy { x => x.context.date_range.from }
+      val eventsSortedByToDate = events.currentData.sortBy { x => x.context.date_range.to }
+      val prevProfileData = events.previousData.getOrElse(DeviceProfileOutput(events.index.device_id, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None))
       val eventStartTime = new Timestamp(eventsSortedByFromDate.head.context.date_range.from)
-      val first_access = if (prevProfileData.first_access.isEmpty) eventStartTime else if (eventStartTime.getTime > prevProfileData.first_access.get.getTime) prevProfileData.first_access.get else eventStartTime;
+      val first_access = if (prevProfileData.first_access.isEmpty) eventStartTime else if (eventStartTime.getTime > prevProfileData.first_access.get.getTime) prevProfileData.first_access.get else eventStartTime
       val eventEndTime = new Timestamp(eventsSortedByToDate.last.context.date_range.to)
-      val last_access = if (prevProfileData.last_access.isEmpty) eventEndTime else if (eventEndTime.getTime < prevProfileData.last_access.get.getTime) prevProfileData.last_access.get else eventEndTime;
+      val last_access = if (prevProfileData.last_access.isEmpty) eventEndTime else if (eventEndTime.getTime < prevProfileData.last_access.get.getTime) prevProfileData.last_access.get else eventEndTime
       val current_ts = events.currentData.map { x =>
         (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("total_ts").get.asInstanceOf[Double])
       }.sum
@@ -67,10 +70,8 @@ object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DevicePro
   }
 
   override def postProcess(data: RDD[DeviceProfileOutput], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[Empty] = {
-    try{
-    data.foreachPartition {partitions: Iterator[DeviceProfileOutput] =>
-      partitions.foreach{ f =>
-        println("******************Inside post process foreach*********************")
+
+    val queries = data.map{ f =>
         val keyList: List[String] = List("first_access", "last_access", "updated_date", "api_last_updated_on")
         val first_access = f.first_access.get
         val last_access = f.last_access.get
@@ -82,15 +83,34 @@ object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DevicePro
 
         val columns = resultMap.keySet.mkString(",")
         val values = resultMap.values.mkString("','")
-        val queryReq = s"""INSERT INTO $table ($columns) VALUES ('$values') ON CONFLICT (device_id) DO UPDATE SET ($columns) = ('$values')"""
-        postgresDB.insertDataToPostgresDB(queryReq)
+        val query = s"""INSERT INTO $table ($columns) VALUES ('$values') ON CONFLICT (device_id) DO UPDATE SET ($columns) = ('$values')"""
+        query
       }
-    }
-    }
-    finally {
-      postgresDB.closeConnection
-    }
-//    postgresDB.closeConnection
+
+    dispatchEventsToPostgres(queries);
+
+
     sc.makeRDD(List(Empty()));
+  }
+
+  def dispatchEventsToPostgres(queries: RDD[String]): Unit =
+  {
+    val config: Config = ConfigFactory.load()
+    val db = config.getString("postgres.db")
+    val url = config.getString("postgres.url")
+    val user = config.getString("postgres.user")
+    val pass = config.getString("postgres.pass")
+
+    queries
+      .foreachPartition { (rddpartition: Iterator[String]) =>
+
+        val connection = DriverManager.getConnection(url, user, pass)
+        var statement = connection.createStatement()
+        rddpartition.foreach { (row: String) =>
+          statement.addBatch(row)
+        }
+        statement.executeBatch()
+        connection.close()
+      }
   }
 }

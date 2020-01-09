@@ -29,12 +29,10 @@ class BaseSpec extends FlatSpec with Matchers with BeforeAndAfterAll {
 
   override def beforeAll() {
     EmbeddedCassandra.setup();
-    EmbeddedPostgresql.start()
   }
 
   override def afterAll() {
     EmbeddedCassandra.close();
-    EmbeddedPostgresql.close();
   }
   
   def getSparkSession() : SparkSession = {

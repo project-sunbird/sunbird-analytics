@@ -19,12 +19,8 @@ class PostgresDBUtil {
     Class.forName("org.postgresql.Driver")
     ConnectionPool.singleton(s"$url$db", user, pass)
 
-    implicit val session: AutoSession = AutoSession
 
-    // $COVERAGE-OFF$ cannot be covered since it is dependent on client library
-//    def read(sqlString: String): List[ConsumerChannel] = {
-//        SQL(sqlString).map(rs => ConsumerChannel(rs)).list().apply()
-//    }
+    implicit val session: AutoSession = AutoSession
 
     def readLocation(sqlString: String): List[DeviceLocation] = {
         SQL(sqlString).map(rs => DeviceLocation(rs)).list().apply()
@@ -70,7 +66,7 @@ class PostgresDBUtil {
     }
 
     def closeConnection = {
-        session.close()
+        ConnectionPool.closeAll()
     }
 }
 

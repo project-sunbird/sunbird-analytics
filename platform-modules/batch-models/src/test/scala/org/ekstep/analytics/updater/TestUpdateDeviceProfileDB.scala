@@ -14,6 +14,7 @@ class TestUpdateDeviceProfileDB extends SparkSpec(null) {
 
     override def beforeAll(){
         super.beforeAll()
+        EmbeddedPostgresql.start()
         EmbeddedPostgresql.execute(
           s"""
             |CREATE TABLE IF NOT EXISTS $deviceTable(
@@ -42,27 +43,34 @@ class TestUpdateDeviceProfileDB extends SparkSpec(null) {
     }
 
     "UpdateDeviceProfileDB" should "create device profile in device db" in {
-        EmbeddedPostgresql.execute(s"TRUNCATE $deviceTable")
+try {
+    EmbeddedPostgresql.execute(s"TRUNCATE $deviceTable")
 
-        val rdd = loadFile[DerivedEvent]("src/test/resources/device-profile/test-data1.log");
-        UpdateDeviceProfileDB.execute(rdd, None);
+    val rdd = loadFile[DerivedEvent]("src/test/resources/device-profile/test-data1.log");
+    val count = UpdateDeviceProfileDB.execute(rdd, None).count();
 
-        val device1 = EmbeddedPostgresql.executeQuery(s"SELECT * FROM $deviceTable WHERE device_id = '88edda82418a1e916e9906a2fd7942cb'")
+    val device1 = EmbeddedPostgresql.executeQuery(s"SELECT * FROM $deviceTable WHERE device_id = '88edda82418a1e916e9906a2fd7942cb'")
 
-        while(device1.next()) {
-            device1.getString("first_access") should be ("2018-09-21 22:49:15.883")
-            device1.getString("last_access") should be ("2018-09-22 19:39:41.139")
-            device1.getString("total_ts") should be ("50")
-            device1.getString("avg_ts") should be ("50")
-        }
+    while (device1.next()) {
+        device1.getString("first_access") should be("2018-09-21 22:49:15.883")
+        device1.getString("last_access") should be("2018-09-22 19:39:41.139")
+        device1.getString("total_ts") should be("50")
+        device1.getString("avg_ts") should be("50")
+    }
 
-        val device2 = EmbeddedPostgresql.executeQuery(s"SELECT * FROM $deviceTable WHERE device_id = '48edda82418a1e916e9906a2fd7942cb'")
-        while(device2.next()) {
-            device2.getString("first_access") should be ("2018-09-21 22:49:15.883")
-            device2.getString("last_access") should be ("2018-09-21 22:49:24.377")
-            device2.getString("total_ts") should be ("18")
-            device2.getString("avg_ts") should be ("9")
-        }
+    val device2 = EmbeddedPostgresql.executeQuery(s"SELECT * FROM $deviceTable WHERE device_id = '48edda82418a1e916e9906a2fd7942cb'")
+    while (device2.next()) {
+        device2.getString("first_access") should be("2018-09-21 22:49:15.883")
+        device2.getString("last_access") should be("2018-09-21 22:49:24.377")
+        device2.getString("total_ts") should be("18")
+        device2.getString("avg_ts") should be("9")
+    }
+}catch {
+    case ex : Exception => {
+        ex.printStackTrace()
+        System.out.println("the value"  + ex.getMessage)
+    }
+}
     }
     
     it should "check for first_access and last_access" in {
@@ -118,12 +126,13 @@ class TestUpdateDeviceProfileDB extends SparkSpec(null) {
         }
 
         val device2 = EmbeddedPostgresql.executeQuery(s"SELECT * FROM $deviceTable WHERE device_id = '48edda82418a1e916e9906a2fd7942cb'")
+
         while(device2.next()) {
-            device2.getString("state_custom") should be (null)
-            device2.getString("state_code_custom") should be (null)
-            device2.getString("district_custom") should be (null)
-            device2.getString("fcm_token") should be (null)
-            device2.getString("producer_id") should be (null)
+            device2.getString("state_custom") should be ("null")
+            device2.getString("state_code_custom") should be ("null")
+            device2.getString("district_custom") should be ("null")
+            device2.getString("fcm_token") should be ("null")
+            device2.getString("producer_id") should be ("null")
         }
 
         val device3 = EmbeddedPostgresql.executeQuery(s"SELECT * FROM $deviceTable WHERE device_id = 'test-device-1'")
@@ -133,5 +142,12 @@ class TestUpdateDeviceProfileDB extends SparkSpec(null) {
             device3.getString("user_declared_state") should be ("Karnataka")
             device3.getString("user_declared_district") should be ("Bangalore")
         }
+    }
+
+    override def afterAll(): Unit ={
+        super.afterAll()
+        fc.shutdownPostgresService()
+        EmbeddedPostgresql.close()
+
     }
 }

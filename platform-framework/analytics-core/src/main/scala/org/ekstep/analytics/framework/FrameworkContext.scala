@@ -1,16 +1,19 @@
 package org.ekstep.analytics.framework
 
-import org.sunbird.cloud.storage.factory.StorageServiceFactory
-import org.sunbird.cloud.storage.factory.StorageConfig
-import org.sunbird.cloud.storage.conf.AppConf
-import org.sunbird.cloud.storage.BaseStorageService
 import ing.wbaa.druid.DruidConfig
-import ing.wbaa.druid.client.{ DruidClient, DruidHttpClient }
+import ing.wbaa.druid.client.DruidClient
+import org.ekstep.analytics.framework.util.PostgresDBUtil
+import org.sunbird.cloud.storage.BaseStorageService
+import org.sunbird.cloud.storage.conf.AppConf
+import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
+
 import scala.collection.mutable.Map
 
 class FrameworkContext {
 
   var dc: DruidClient = null;
+
+  var postgresConnect : PostgresDBUtil =  null ;
 
   var storageContainers: Map[String, BaseStorageService] = Map();
 
@@ -55,9 +58,23 @@ class FrameworkContext {
     }
   }
 
+  def getPostgresConnect(): PostgresDBUtil = {
+    if (null == postgresConnect) {
+      postgresConnect = new PostgresDBUtil()
+    }
+    return postgresConnect;
+  }
+
+  def shutdownPostgresService() = {
+    if (null != postgresConnect) {
+      postgresConnect.closeConnection
+    }
+  }
+
   def closeContext() = {
     shutdownDruidClient();
     shutdownStorageService();
+    shutdownPostgresService();
   }
 
 }

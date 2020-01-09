@@ -12,6 +12,7 @@ class TestDeviceSummarizer extends SparkSpec(null) {
 
     override def beforeAll(){
         super.beforeAll()
+        EmbeddedPostgresql.start()
         EmbeddedPostgresql.execute(
             s"""
                |CREATE TABLE IF NOT EXISTS $deviceTable(
@@ -43,5 +44,10 @@ class TestDeviceSummarizer extends SparkSpec(null) {
 
         val config = JobConfig(Fetcher("local", None, Option(Array(Query(None, None, None, None, None, None, None, None, None, Option("src/test/resources/device-summary/test_data1.log"))))), null, null, "org.ekstep.analytics.model.DeviceSummaryModel", None, Option(Array(Dispatcher("console", Map("printEvent" -> false.asInstanceOf[AnyRef])))), Option(10), Option("TestDeviceSummarizer"))
         DeviceSummarizer.main(JSONUtils.serialize(config))(Option(sc));
+    }
+
+    override def afterAll() {
+        super.afterAll()
+        EmbeddedPostgresql.close()
     }
 }

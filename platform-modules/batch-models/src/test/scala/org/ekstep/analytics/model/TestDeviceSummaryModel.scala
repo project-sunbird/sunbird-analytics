@@ -13,6 +13,7 @@ class TestDeviceSummaryModel extends SparkSpec(null) {
 
   override def beforeAll(){
     super.beforeAll()
+    EmbeddedPostgresql.start()
     EmbeddedPostgresql.execute(
       s"""
          |CREATE TABLE IF NOT EXISTS $deviceTable(
@@ -158,4 +159,10 @@ class TestDeviceSummaryModel extends SparkSpec(null) {
     }
   }
 
+
+  override def afterAll(): Unit ={
+    super.afterAll()
+    fc.shutdownPostgresService()
+    EmbeddedPostgresql.close
+  }
 }
