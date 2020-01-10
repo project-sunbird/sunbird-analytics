@@ -1,13 +1,16 @@
 package org.ekstep.analytics.model
 
 import java.sql.Timestamp
+import java.util.Properties
 
+import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.commons.lang3.StringUtils
 import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.{Encoders, SQLContext}
 import org.apache.spark.{HashPartitioner, SparkContext}
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.conf.AppConf
-import org.ekstep.analytics.framework.util.{CommonUtil, FirstAccessByDeviceID, JSONUtils, PostgresDBUtil}
+import org.ekstep.analytics.framework.util.{CommonUtil, FirstAccessByDeviceID, JSONUtils}
 
 import scala.collection.mutable.Buffer
 
@@ -21,8 +24,17 @@ object DeviceSummaryModel extends IBatchModelTemplate[String, DeviceInput, Devic
     val className = "org.ekstep.analytics.model.DeviceSummaryModel"
     override def name: String = "DeviceSummaryModel"
 
-
+    val config: Config = ConfigFactory.load()
+    val db = config.getString("postgres.db")
+    val url = config.getString("postgres.url") + s"$db"
+    val user = config.getString("postgres.user")
+    val pass = config.getString("postgres.pass")
     val table = AppConf.getConfig("postgres.device.table_name")
+
+    val connProperties = new Properties()
+    connProperties.setProperty("Driver", "org.postgresql.Driver")
+    connProperties.setProperty("user", user)
+    connProperties.setProperty("password", pass)
 
     override def preProcess(data: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[DeviceInput] = {
         val rawEventsList = List("SEARCH", "INTERACT")
@@ -68,12 +80,14 @@ object DeviceSummaryModel extends IBatchModelTemplate[String, DeviceInput, Devic
             val content_downloads = raw.filter(f => "INTERACT".equals(f.eid)).length
             (index, DeviceSummary(index.device_id, index.channel, CommonUtil.roundDouble(total_ts, 2), total_launches, contents_played, unique_contents_played, content_downloads, DialStats(dial_count, dial_success, dial_failure), DtRange(startTimestamp, endTimestamp), syncts, new Timestamp(startTimestamp)))
         }
-        val firstAccessQuery = s"SELECT device_id, first_access FROM $table"
-        val firstAccess  = sc.parallelize(fc.getPostgresConnect().readFirstAccessFromDB(firstAccessQuery))
 
-        val postgresData = firstAccess.map(f => {(f.device_id, f.first_access)})
+        implicit val sqlContext = new SQLContext(sc)
+        val responseDf = sqlContext.sparkSession.read.jdbc(url, table, connProperties).select("device_id","first_access")
+        val encoder = Encoders.product[FirstAccessByDeviceID]
+        val firstAccessRDD = responseDf.as[FirstAccessByDeviceID](encoder).rdd
+
+        val postgresData = firstAccessRDD.map(f => {(f.device_id, f.first_access)})
         val summaryData = summary.map(f => (f._1.device_id, f._2))
-
         summaryData.leftOuterJoin(postgresData)
           .map{f =>
           val firstAccessVal = f._2._2.getOrElse(Option(new Timestamp(0L)))

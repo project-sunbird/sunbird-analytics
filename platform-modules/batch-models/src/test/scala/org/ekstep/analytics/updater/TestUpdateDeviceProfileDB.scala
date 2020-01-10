@@ -128,11 +128,11 @@ try {
         val device2 = EmbeddedPostgresql.executeQuery(s"SELECT * FROM $deviceTable WHERE device_id = '48edda82418a1e916e9906a2fd7942cb'")
 
         while(device2.next()) {
-            device2.getString("state_custom") should be ("null")
-            device2.getString("state_code_custom") should be ("null")
-            device2.getString("district_custom") should be ("null")
-            device2.getString("fcm_token") should be ("null")
-            device2.getString("producer_id") should be ("null")
+            device2.getString("state_custom") should be (null)
+            device2.getString("state_code_custom") should be (null)
+            device2.getString("district_custom") should be (null)
+            device2.getString("fcm_token") should be (null)
+            device2.getString("producer_id") should be (null)
         }
 
         val device3 = EmbeddedPostgresql.executeQuery(s"SELECT * FROM $deviceTable WHERE device_id = 'test-device-1'")

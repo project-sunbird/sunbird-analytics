@@ -1,13 +1,15 @@
 package org.ekstep.analytics.updater
 
-import java.sql.{DriverManager, Timestamp}
+import java.sql.Timestamp
+import java.util.Properties
 
 import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.spark.rdd._
+import org.apache.spark.sql.{Encoders, SQLContext, SaveMode}
 import org.apache.spark.{HashPartitioner, SparkContext}
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.conf.AppConf
-import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils}
+import org.ekstep.analytics.framework.util.CommonUtil
 
 import scala.collection.mutable.Buffer
 
@@ -21,19 +23,33 @@ object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DevicePro
 
   override def name: String = "UpdateDeviceProfileDB"
 
-
+  val config: Config = ConfigFactory.load()
+  val db = config.getString("postgres.db")
+  val url = config.getString("postgres.url") + s"$db"
+  val user = config.getString("postgres.user")
+  val pass = config.getString("postgres.pass")
   val table = AppConf.getConfig("postgres.device.table_name")
+
+  val connProperties = new Properties()
+  connProperties.setProperty("Driver", "org.postgresql.Driver")
+  connProperties.setProperty("user", user)
+  connProperties.setProperty("password", pass)
 
 
   override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[DeviceProfileInput] = {
+    implicit val sqlContext = new SQLContext(sc)
 
-      val filteredEvents = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_DEVICE_SUMMARY")))
+    val filteredEvents = DataFilter.filter(data, Filter("eid", "EQ", Option("ME_DEVICE_SUMMARY")))
+
     val newGroupedEvents = filteredEvents.map { event =>
       (DeviceProfileKey(event.dimensions.did.get), Buffer(event))
     }.partitionBy(new HashPartitioner(JobContext.parallelization)).reduceByKey((a, b) => a ++ b)
-    val query = s"SELECT * FROM $table;"
-    val pgResponse = fc.getPostgresConnect().readDBData(query)
-    val responseRDD = sc.parallelize(pgResponse)
+
+    val resDf = sqlContext.sparkSession.read.jdbc(url, table, connProperties)
+    println("read from postgres: ")
+    resDf.show()
+    val encoder = Encoders.product[DeviceProfileOutput]
+    val responseRDD = resDf.as[DeviceProfileOutput](encoder).rdd
 
     val newEvents = newGroupedEvents.map(f => (DeviceProfileKey(f._1.device_id), f))
     val prevDeviceProfile = responseRDD.map(f => (DeviceProfileKey(f.device_id), f))
@@ -68,44 +84,12 @@ object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DevicePro
   }
 
   override def postProcess(data: RDD[DeviceProfileOutput], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[Empty] = {
-
-    val queries = data.map{ f =>
-        val keyList: List[String] = List("first_access", "last_access", "updated_date", "api_last_updated_on")
-        val first_access = f.first_access.get
-        val last_access = f.last_access.get
-        val updated_date = f.updated_date.get
-        val api_last_updated = f.api_last_updated_on.getOrElse(new Timestamp(System.currentTimeMillis()))
-        val fieldMap = JSONUtils.deserialize[Map[String, Any]](JSONUtils.serialize(f))
-        val filteredMap = fieldMap.--(keyList)
-        val resultMap = filteredMap ++ Map("first_access" -> first_access, "last_access" -> last_access, "updated_date" -> updated_date, "api_last_updated_on" -> api_last_updated)
-
-        val columns = resultMap.keySet.mkString(",")
-        val values = resultMap.values.mkString("','")
-        val query = s"""INSERT INTO $table ($columns) VALUES ('$values') ON CONFLICT (device_id) DO UPDATE SET ($columns) = ('$values')"""
-        query
-      }
-    dispatchEventsToPostgres(queries);
+    implicit val sqlContext = new SQLContext(sc)
+    import sqlContext.implicits._
+    val saveMode = SaveMode.Overwrite
+    println("write to postgres: ")
+    data.toDF().show()
+    data.toDF.write.mode(saveMode).jdbc(url, table, connProperties)
     sc.makeRDD(List(Empty()));
-  }
-
-  def dispatchEventsToPostgres(queries: RDD[String]): Unit =
-  {
-    val config: Config = ConfigFactory.load()
-    val db = config.getString("postgres.db")
-    val url = config.getString("postgres.url")
-    val user = config.getString("postgres.user")
-    val pass = config.getString("postgres.pass")
-
-    queries
-      .foreachPartition { (rddpartition: Iterator[String]) =>
-
-        val connection = DriverManager.getConnection(url, user, pass)
-        var statement = connection.createStatement()
-        rddpartition.foreach { (row: String) =>
-          statement.addBatch(row)
-        }
-        statement.executeBatch()
-        connection.close()
-      }
   }
 }
