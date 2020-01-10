@@ -2,6 +2,7 @@ package org.ekstep.analytics.model
 
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.SQLContext
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.fetcher.DruidDataFetcher
@@ -22,12 +23,17 @@ case class CourseInfo(channel: String, courseId: String, courseName: String) ext
 //Timespent In Mins for a course: getCoursePlays
 case class CoursePlays(courseId: String, userId: String, batchId: String, timespent: Option[Double] = Option(0), date: String)
 
+//date,courseName,channel,timespent,date,batchId,courseId,status,name
+
 //ES: course-batch
 case class ESResponse(took: Double, timed_out: Boolean, _shards: _shards, hits: Hit)
 case class _shards(total: Option[Double], successful: Option[Double], skipped: Option[Double], failed: Option[Double])
 case class Hit(total: Double, max_score: Double, hits: List[Hits])
 case class Hits(_source: _source)
 case class _source(batchId: String, courseId: String, status: String, name: String)
+
+//Course-Batch join course plays
+case class CourseBatch(date: String, courseName: String, channel: String, courseId: String, batchId: String, timespent: Option[Double] = Option(0))
 
 //Output
 case class courseConsumptionOutput(date: String, courseName: String, batchName: String, status: String, timespent: Option[Double] = Option(0))
@@ -40,19 +46,37 @@ object TPDConsumptionMetricsModel extends IBatchModelTemplate[Empty, CourseInfo,
   implicit val fc = new FrameworkContext()
 
   override def preProcess(events: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[CourseInfo] = {
-   //Get live Courses
     val liveCourses = getLiveCourses()
-    println("live Courses:  " + liveCourses)
-    sc.parallelize(liveCourses)
+    liveCourses
   }
 
   override def algorithm(events: RDD[CourseInfo], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[Empty] = {
     val coursePlayTime = getCoursePlays(config)
-    val coursePlayRDD = sc.parallelize(coursePlayTime)
-    val filteredCoursePlayRDD = events.foreach(f => println("live course events: " + f))
-    println("course play time:  " + coursePlayTime)
-    val courseBatchInfo = getCourseBatchFromES(coursePlayTime)
-    println("course-batch details: " + courseBatchInfo)
+    val liveCourseRDD = events.map(f => (f.courseId,f))
+    val coursePlayRDD = coursePlayTime.map(f => (f.courseId, f))
+    val liveCoursePlayRDD = coursePlayRDD.leftOuterJoin(liveCourseRDD)
+          .map(f => CourseBatch( f._2._1.date, f._2._2.get.courseName, f._2._2.get.channel, f._1, f._2._1.batchId, f._2._1.timespent))
+
+    val courseList = liveCoursePlayRDD.collect().map(f => f.courseId)
+    val courseIds = JSONUtils.serialize(courseList)
+    val batchList = liveCoursePlayRDD.collect().map(f => f.batchId)
+    val batchIds = JSONUtils.serialize(batchList)
+
+    val courseBatchInfo = getCourseBatchFromES(courseIds, batchIds)
+
+    implicit val sqlContext = new SQLContext(sc)
+    import sqlContext.implicits._
+
+    val liveCourseDF = liveCoursePlayRDD.toDF
+    val courseBatchDF = courseBatchInfo.toDF()
+
+    val courseBatch = liveCourseDF.join(courseBatchDF, Seq("courseId", "batchId"))
+    courseBatch.show(5)
+    val tenantInfo = getTenantInfo().toDF()
+    tenantInfo.show(5)
+    val consumption = courseBatch.join(tenantInfo, "channel")
+    println("consumption: ")
+    consumption.show()
 
     sc.emptyRDD
   }
@@ -61,14 +85,17 @@ object TPDConsumptionMetricsModel extends IBatchModelTemplate[Empty, CourseInfo,
     events
   }
 
-  def getCoursePlays(config: Map[String, AnyRef]): List[CoursePlays] = {
+  def getCoursePlays(config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[CoursePlays] = {
     val druidConfig = JSONUtils.deserialize[DruidQueryModel](JSONUtils.serialize(config.get("druidQuery").get))
     val druidResponse = DruidDataFetcher.getDruidData(druidConfig)
-    druidResponse.map{f =>
+    val response = druidResponse.map{f =>
       JSONUtils.deserialize[CoursePlays](f)}
+    println("course play time:  " + response)
+
+    sc.parallelize(response)
   }
 
-def getLiveCourses(): List[CourseInfo] = {
+def getLiveCourses()(implicit sc: SparkContext): RDD[CourseInfo] = {
   val url = AppConf.getConfig("druid.host")
   val body = """{
                |  "queryType": "select",
@@ -109,8 +136,9 @@ def getLiveCourses(): List[CourseInfo] = {
 
   val response = RestUtil.post[List[Map[String, AnyRef]]](url,body)
   val eventsResult = response.flatMap{f => JSONUtils.deserialize[CourseResult](JSONUtils.serialize(f.get("result").get)).events}
-  println("eventsResult: " + eventsResult)
-  eventsResult.map{f => CourseInfo(f.event.getOrElse("channel", null), f.event.getOrElse("identifier", null), f.event.getOrElse("name", null))}
+  val result = eventsResult.map{f => CourseInfo(f.event.getOrElse("channel", null), f.event.getOrElse("identifier", null), f.event.getOrElse("name", null))}
+  println("live Courses:  " + result)
+  sc.parallelize(result)
 }
 
   def getTenantInfo(): List[TenantInfo] = {
@@ -130,13 +158,10 @@ def getLiveCourses(): List[CourseInfo] = {
     RestUtil.post[TenantResponse](url, body, header).result.response.content
   }
 
-  def getCourseBatchFromES(coursePlay: List[CoursePlays]) : List[_source] = {
+  def getCourseBatchFromES(courseIds: String, batchIds: String)(implicit sc: SparkContext) : RDD[_source] = {
     val apiURL = Constants.ELASTIC_SEARCH_SERVICE_ENDPOINT + "/" + Constants.ELASTIC_SEARCH_INDEX_COURSEBATCH_NAME + "/_search"
-    val courseList = coursePlay.map{_.courseId}
-    val courseIds = JSONUtils.serialize(courseList)
-
-    val batchList = coursePlay.map(_.batchId)
-    val batchIds = JSONUtils.serialize(batchList)
+    println("courseIds: " + courseIds)
+    println("batchIds: " + batchIds)
 
     val request = s"""{
                    |  "query": {
@@ -156,8 +181,11 @@ def getLiveCourses(): List[CourseInfo] = {
                    |    }
                    |  }
                    |}""".stripMargin
-    val response = RestUtil.post[ESResponse](apiURL, request).hits.hits
-    response.map(f => JSONUtils.deserialize[Hits](JSONUtils.serialize(f))._source)
+    val ESresponse = RestUtil.post[ESResponse](apiURL, request).hits.hits
+    val response = ESresponse.map(f => JSONUtils.deserialize[Hits](JSONUtils.serialize(f))._source)
+    println("course-batch details: " + response)
+
+    sc.parallelize(response)
   }
 
 }
