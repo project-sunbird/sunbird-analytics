@@ -10,6 +10,7 @@ import org.apache.spark.{HashPartitioner, SparkContext}
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.util.CommonUtil
+import org.ekstep.analytics.util.Constants
 
 import scala.collection.mutable.Buffer
 
@@ -27,7 +28,6 @@ object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DevicePro
   val url = config.getString("postgres.url") + s"$db"
   val user = config.getString("postgres.user")
   val pass = config.getString("postgres.pass")
-  val table = AppConf.getConfig("postgres.device.table_name")
 
   val connProperties = new Properties()
   connProperties.setProperty("Driver", "org.postgresql.Driver")
@@ -44,7 +44,7 @@ object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DevicePro
       (DeviceProfileKey(event.dimensions.did.get), Buffer(event))
     }.partitionBy(new HashPartitioner(JobContext.parallelization)).reduceByKey((a, b) => a ++ b)
 
-    val resDf = sqlContext.sparkSession.read.jdbc(url, table, connProperties)
+    val resDf = sqlContext.sparkSession.read.jdbc(url, Constants.DEVICE_PROFILE_TABLE, connProperties)
     println("read from postgres: ")
     resDf.show()
     val encoder = Encoders.product[DeviceProfileOutput]

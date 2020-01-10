@@ -9,8 +9,8 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{Encoders, SQLContext}
 import org.apache.spark.{HashPartitioner, SparkContext}
 import org.ekstep.analytics.framework._
-import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils}
+import org.ekstep.analytics.util.Constants
 
 import scala.collection.mutable.Buffer
 
@@ -30,7 +30,6 @@ object DeviceSummaryModel extends IBatchModelTemplate[String, DeviceInput, Devic
     val url = config.getString("postgres.url") + s"$db"
     val user = config.getString("postgres.user")
     val pass = config.getString("postgres.pass")
-    val table = AppConf.getConfig("postgres.device.table_name")
 
     val connProperties = new Properties()
     connProperties.setProperty("Driver", "org.postgresql.Driver")
@@ -83,7 +82,7 @@ object DeviceSummaryModel extends IBatchModelTemplate[String, DeviceInput, Devic
         }
 
         implicit val sqlContext = new SQLContext(sc)
-        val responseDf = sqlContext.sparkSession.read.jdbc(url, table, connProperties).select("device_id","first_access")
+        val responseDf = sqlContext.sparkSession.read.jdbc(url, Constants.DEVICE_PROFILE_TABLE, connProperties).select("device_id","first_access")
         val encoder = Encoders.product[FirstAccessByDeviceID]
         val firstAccessRDD = responseDf.as[FirstAccessByDeviceID](encoder).rdd
 

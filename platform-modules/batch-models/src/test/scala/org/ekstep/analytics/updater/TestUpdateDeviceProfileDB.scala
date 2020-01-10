@@ -3,14 +3,14 @@ package org.ekstep.analytics.updater
 import org.ekstep.analytics.framework.DerivedEvent
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.model.SparkSpec
-import org.ekstep.analytics.util.EmbeddedPostgresql
+import org.ekstep.analytics.util.{Constants, EmbeddedPostgresql}
 
 class TestUpdateDeviceProfileDB extends SparkSpec(null) {
 
     import org.ekstep.analytics.framework.FrameworkContext
     implicit val fc = new FrameworkContext()
 
-    val deviceTable = AppConf.getConfig("postgres.device.table_name")
+    val deviceTable =  Constants.DEVICE_PROFILE_TABLE
 
     override def beforeAll(){
         super.beforeAll()

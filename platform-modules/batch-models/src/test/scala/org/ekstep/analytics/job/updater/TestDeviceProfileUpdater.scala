@@ -1,14 +1,13 @@
 package org.ekstep.analytics.job.updater
 
-import org.ekstep.analytics.framework.{Dispatcher, Fetcher, JobConfig, Query}
-import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.util.JSONUtils
+import org.ekstep.analytics.framework.{Dispatcher, Fetcher, JobConfig, Query}
 import org.ekstep.analytics.model.SparkSpec
-import org.ekstep.analytics.util.EmbeddedPostgresql
+import org.ekstep.analytics.util.{Constants, EmbeddedPostgresql}
 
 class TestDeviceProfileUpdater extends SparkSpec(null) {
 
-    val deviceTable = AppConf.getConfig("postgres.device.table_name")
+    val deviceTable =  Constants.DEVICE_PROFILE_TABLE
 
     override def beforeAll(){
         super.beforeAll()
