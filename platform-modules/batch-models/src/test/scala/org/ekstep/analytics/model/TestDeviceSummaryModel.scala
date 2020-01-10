@@ -112,7 +112,7 @@ class TestDeviceSummaryModel extends SparkSpec(null) {
 
   it should "update the value of first_access according to the value from postgres else update with dt_range.from" in {
 
-      println("Executed? " + EmbeddedPostgresql.execute(s"TRUNCATE $deviceTable"))
+      EmbeddedPostgresql.execute(s"TRUNCATE $deviceTable")
       EmbeddedPostgresql.execute(s"INSERT INTO $deviceTable (device_id, first_access)" +
         "VALUES('49edda82418a1e916e9906a2fd7942cb', '2018-09-24 22:49:15.883')")
       EmbeddedPostgresql.execute(s"INSERT INTO $deviceTable (device_id, first_access)" +
@@ -158,7 +158,6 @@ class TestDeviceSummaryModel extends SparkSpec(null) {
 
     }
   }
-
 
   override def afterAll(): Unit ={
     super.afterAll()

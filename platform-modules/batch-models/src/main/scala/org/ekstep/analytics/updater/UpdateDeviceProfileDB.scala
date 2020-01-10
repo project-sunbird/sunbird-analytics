@@ -2,13 +2,12 @@ package org.ekstep.analytics.updater
 
 import java.sql.{DriverManager, Timestamp}
 
-import com.datastax.driver.core.Row
 import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.spark.rdd._
 import org.apache.spark.{HashPartitioner, SparkContext}
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.conf.AppConf
-import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, PostgresDBUtil}
+import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils}
 
 import scala.collection.mutable.Buffer
 
@@ -33,9 +32,8 @@ object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DevicePro
       (DeviceProfileKey(event.dimensions.did.get), Buffer(event))
     }.partitionBy(new HashPartitioner(JobContext.parallelization)).reduceByKey((a, b) => a ++ b)
     val query = s"SELECT * FROM $table;"
-    val testData = fc.getPostgresConnect().readDBData(query)
-    println("Device profile data count: " + testData.size)
-    val responseRDD = sc.parallelize(testData)
+    val pgResponse = fc.getPostgresConnect().readDBData(query)
+    val responseRDD = sc.parallelize(pgResponse)
 
     val newEvents = newGroupedEvents.map(f => (DeviceProfileKey(f._1.device_id), f))
     val prevDeviceProfile = responseRDD.map(f => (DeviceProfileKey(f.device_id), f))
@@ -86,10 +84,7 @@ object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DevicePro
         val query = s"""INSERT INTO $table ($columns) VALUES ('$values') ON CONFLICT (device_id) DO UPDATE SET ($columns) = ('$values')"""
         query
       }
-
     dispatchEventsToPostgres(queries);
-
-
     sc.makeRDD(List(Empty()));
   }
 

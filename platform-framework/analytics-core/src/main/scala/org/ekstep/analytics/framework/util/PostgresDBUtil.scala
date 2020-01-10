@@ -42,10 +42,6 @@ class PostgresDBUtil {
         SQL(sqlString).map(rs => DeviceProfileOutput(rs)).list().apply()
     }
 
-    def insertDataToPostgresDB(sqlString: String) = {
-        SQL(sqlString).execute().apply()
-    }
-
     def readFirstAccessFromDB(sqlString: String) = {
         SQL(sqlString).map(rs => FirstAccessByDeviceID(rs)).list().apply()
     }
