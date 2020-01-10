@@ -15,7 +15,6 @@ import scala.collection.mutable.Buffer
 
 case class DeviceProfileKey(device_id: String)
 case class DeviceProfileInput(index: DeviceProfileKey, currentData: Buffer[DerivedEvent], previousData: Option[DeviceProfileOutput]) extends AlgoInput
-case class PostgresOutput(name: String, value: AnyRef)
 
 object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DeviceProfileInput, DeviceProfileOutput, Empty] with Serializable {
 

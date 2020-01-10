@@ -146,7 +146,6 @@ try {
 
     override def afterAll(): Unit ={
         super.afterAll()
-        fc.shutdownPostgresService()
         EmbeddedPostgresql.close()
 
     }

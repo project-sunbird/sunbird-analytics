@@ -10,7 +10,7 @@ import org.apache.spark.sql.{Encoders, SQLContext}
 import org.apache.spark.{HashPartitioner, SparkContext}
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.conf.AppConf
-import org.ekstep.analytics.framework.util.{CommonUtil, FirstAccessByDeviceID, JSONUtils}
+import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils}
 
 import scala.collection.mutable.Buffer
 
@@ -18,6 +18,7 @@ case class DeviceIndex(device_id: String, channel: String)
 case class DialStats(total_count: Long, success_count: Long, failure_count: Long)
 case class DeviceInput(index: DeviceIndex, wfsData: Option[Buffer[DerivedEvent]], rawData: Option[Buffer[V3Event]]) extends AlgoInput
 case class DeviceSummary(device_id: String, channel: String, total_ts: Double, total_launches: Long, contents_played: Long, unique_contents_played: Long, content_downloads: Long, dial_stats: DialStats, dt_range: DtRange, syncts: Long, firstAccess: Timestamp) extends AlgoOutput
+case class FirstAccessByDeviceID(first_access: Option[Timestamp], device_id: String)
 
 object DeviceSummaryModel extends IBatchModelTemplate[String, DeviceInput, DeviceSummary, MeasuredEvent] with Serializable {
 

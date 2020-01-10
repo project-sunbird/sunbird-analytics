@@ -161,7 +161,6 @@ class TestDeviceSummaryModel extends SparkSpec(null) {
 
   override def afterAll(): Unit ={
     super.afterAll()
-    fc.shutdownPostgresService()
     EmbeddedPostgresql.close
   }
 }
