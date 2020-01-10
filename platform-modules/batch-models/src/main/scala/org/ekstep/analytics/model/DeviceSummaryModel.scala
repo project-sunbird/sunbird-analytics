@@ -94,7 +94,6 @@ object DeviceSummaryModel extends IBatchModelTemplate[String, DeviceInput, Devic
           val firstAccessVal = f._2._2.getOrElse(Option(new Timestamp(0L)))
           if(firstAccessVal != (new Timestamp(0L))) {
               f._2._1.copy(firstAccess = firstAccessVal.getOrElse(f._2._1.firstAccess))
-
           }
           else
               f._2._1
