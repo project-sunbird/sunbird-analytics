@@ -8,7 +8,6 @@ import org.apache.spark.rdd._
 import org.apache.spark.sql.{Encoders, SQLContext, SaveMode}
 import org.apache.spark.{HashPartitioner, SparkContext}
 import org.ekstep.analytics.framework._
-import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.util.Constants
 
@@ -88,7 +87,7 @@ object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DevicePro
     val saveMode = SaveMode.Overwrite
     println("write to postgres: ")
     data.toDF().show()
-    data.toDF.write.mode(saveMode).jdbc(url, table, connProperties)
+    data.toDF.write.mode(saveMode).jdbc(url,Constants.DEVICE_PROFILE_TABLE , connProperties)
     sc.makeRDD(List(Empty()));
   }
 }
