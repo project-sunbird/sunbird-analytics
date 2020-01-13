@@ -3,17 +3,19 @@ package org.ekstep.analytics.framework.util
 import java.io._
 import java.net.URL
 import java.nio.file.Paths.get
-import java.nio.file.{ Files, Paths, StandardCopyOption }
+import java.nio.file.{Files, Paths, StandardCopyOption}
 import java.security.MessageDigest
-import java.util.Date
+import java.sql.Timestamp
+import java.text.SimpleDateFormat
+import java.util.{Date, TimeZone}
 import java.util.zip.GZIPOutputStream
 
-import ing.wbaa.druid.definitions.{ Granularity, GranularityType }
+import ing.wbaa.druid.definitions.{Granularity, GranularityType}
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.{ SparkConf, SparkContext }
+import org.apache.spark.{SparkConf, SparkContext}
 import org.ekstep.analytics.framework.Level._
 import org.ekstep.analytics.framework.Period._
-import org.ekstep.analytics.framework.{ DtRange, Event, JobConfig, _ }
+import org.ekstep.analytics.framework.{DtRange, Event, JobConfig, _}
 
 import scala.collection.mutable.ListBuffer
 //import org.ekstep.analytics.framework.conf.AppConf
@@ -770,6 +772,14 @@ object CommonUtil {
     val mid = CommonUtil.getMessageId("METRIC", producerId + producerPid, ts, None, None);
     val context = V3Context(channel, Option(V3PData(producerId, Option("1.0"), Option(producerPid))), env, None, None, None, None)
     V3DerivedEvent("METRIC", System.currentTimeMillis(), new DateTime().toString(CommonUtil.df3), "3.0", mid, Actor(actorId, "System"), context, None, measures)
+  }
+
+  def epochToDate(epochValue: Long): Timestamp = {
+    val date = new Date(epochValue)
+    val sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
+    sdf.setTimeZone(TimeZone.getTimeZone("IST"))
+    val formattedDate = sdf.format(date)
+    Timestamp.valueOf(formattedDate)
   }
 
 }

@@ -1,6 +1,5 @@
 package org.ekstep.analytics.updater
 
-import java.sql.Timestamp
 import java.util.Properties
 
 import org.apache.spark.rdd._
@@ -62,9 +61,9 @@ object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DevicePro
       val eventsSortedByFromDate = events.currentData.sortBy { x => x.context.date_range.from }
       val eventsSortedByToDate = events.currentData.sortBy { x => x.context.date_range.to }
       val prevProfileData = events.previousData.getOrElse(DeviceProfileOutput(events.index.device_id, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None))
-      val eventStartTime = new Timestamp(eventsSortedByFromDate.head.context.date_range.from)
+      val eventStartTime = CommonUtil.epochToDate(eventsSortedByFromDate.head.context.date_range.from)
       val first_access = if (prevProfileData.first_access.isEmpty) eventStartTime else if (eventStartTime.getTime > prevProfileData.first_access.get.getTime) prevProfileData.first_access.get else eventStartTime
-      val eventEndTime = new Timestamp(eventsSortedByToDate.last.context.date_range.to)
+      val eventEndTime = CommonUtil.epochToDate(eventsSortedByToDate.last.context.date_range.to)
       val last_access = if (prevProfileData.last_access.isEmpty) eventEndTime else if (eventEndTime.getTime < prevProfileData.last_access.get.getTime) prevProfileData.last_access.get else eventEndTime
       val current_ts = events.currentData.map { x =>
         (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("total_ts").get.asInstanceOf[Double])
@@ -87,4 +86,5 @@ object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DevicePro
     data.toDF.write.mode(saveMode).jdbc(url,Constants.DEVICE_PROFILE_TABLE , connProperties)
     sc.makeRDD(List(Empty()));
   }
+
 }

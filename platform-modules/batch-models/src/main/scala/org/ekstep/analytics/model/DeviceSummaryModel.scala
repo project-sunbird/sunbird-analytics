@@ -82,6 +82,7 @@ object DeviceSummaryModel extends IBatchModelTemplate[String, DeviceInput, Devic
 
         implicit val sqlContext = new SQLContext(sc)
         val responseDf = sqlContext.sparkSession.read.jdbc(url, Constants.DEVICE_PROFILE_TABLE, connProperties).select("device_id","first_access")
+        responseDf.show()
         val encoder = Encoders.product[FirstAccessByDeviceID]
         val firstAccessRDD = responseDf.as[FirstAccessByDeviceID](encoder).rdd
 
@@ -89,9 +90,9 @@ object DeviceSummaryModel extends IBatchModelTemplate[String, DeviceInput, Devic
         val summaryData = summary.map(f => (f._1.device_id, f._2))
         summaryData.leftOuterJoin(postgresData)
           .map{f =>
-          val firstAccessVal = f._2._2.getOrElse(Option(new Timestamp(0L)))
-
-          if(firstAccessVal != (new Timestamp(0L))) {
+              val defaultDate = CommonUtil.epochToDate(0L)
+          val firstAccessVal = f._2._2.getOrElse(Option(defaultDate))
+          if(firstAccessVal != defaultDate) {
               f._2._1.copy(firstAccess = firstAccessVal.getOrElse(f._2._1.firstAccess))
           }
           else
@@ -101,6 +102,7 @@ object DeviceSummaryModel extends IBatchModelTemplate[String, DeviceInput, Devic
 
     override def postProcess(data: RDD[DeviceSummary], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[MeasuredEvent] = {
         data.map { x =>
+
             val mid = CommonUtil.getMessageId("ME_DEVICE_SUMMARY", x.device_id, "DAY", x.dt_range, "NA", None, Option(x.channel))
             val measures = Map(
                 "total_ts" -> x.total_ts,
