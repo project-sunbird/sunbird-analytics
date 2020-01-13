@@ -145,7 +145,7 @@ class TestDeviceSummaryModel extends SparkSpec(null) {
       val summary = JSONUtils.deserialize[DeviceSummary](JSONUtils.serialize(x.edata.eks))
       if(x.dimensions.did.get.equals("49edda82418a1e916e9906a2fd7942cb"))
         {
-          summary.firstAccess.toString should be("2018-09-21 22:49:15.883")
+          summary.firstAccess.toString should be("2018-09-21 17:19:15.883")
         }
       else if(x.dimensions.did.get.equals("88edda82418a1e916e9906a2fd7942cb"))
         {

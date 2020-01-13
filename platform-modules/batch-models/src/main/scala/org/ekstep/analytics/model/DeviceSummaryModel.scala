@@ -57,6 +57,7 @@ object DeviceSummaryModel extends IBatchModelTemplate[String, DeviceInput, Devic
                 case Some(_) => wfs.head.context.date_range.from
                 case None => raw.head.ets
             }
+            val firstAccess = CommonUtil.getTimestampFromEpoch(startTimestamp)
             val endTimestamp = wfs.headOption match {
                 case Some(_) => wfs.last.context.date_range.to
                 case None => raw.last.ets
@@ -77,7 +78,7 @@ object DeviceSummaryModel extends IBatchModelTemplate[String, DeviceInput, Devic
             val dial_success = dialcodes_events.filter(f => f.edata.size > 0).length
             val dial_failure = dialcodes_events.filter(f => f.edata.size == 0).length
             val content_downloads = raw.filter(f => "INTERACT".equals(f.eid)).length
-            (index, DeviceSummary(index.device_id, index.channel, CommonUtil.roundDouble(total_ts, 2), total_launches, contents_played, unique_contents_played, content_downloads, DialStats(dial_count, dial_success, dial_failure), DtRange(startTimestamp, endTimestamp), syncts, new Timestamp(startTimestamp)))
+            (index, DeviceSummary(index.device_id, index.channel, CommonUtil.roundDouble(total_ts, 2), total_launches, contents_played, unique_contents_played, content_downloads, DialStats(dial_count, dial_success, dial_failure), DtRange(startTimestamp, endTimestamp), syncts, firstAccess))
         }
 
         implicit val sqlContext = new SQLContext(sc)
