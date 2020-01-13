@@ -51,16 +51,16 @@ try {
     val device1 = EmbeddedPostgresql.executeQuery(s"SELECT * FROM $deviceTable WHERE device_id = '88edda82418a1e916e9906a2fd7942cb'")
 
     while (device1.next()) {
-        device1.getString("first_access") should be("2018-09-21 22:49:15.883")
-        device1.getString("last_access") should be("2018-09-22 19:39:41.139")
+        device1.getString("first_access") should be("2018-09-21 17:19:15.883")
+        device1.getString("last_access") should be("2018-09-22 14:09:41.139")
         device1.getString("total_ts") should be("50")
         device1.getString("avg_ts") should be("50")
     }
 
     val device2 = EmbeddedPostgresql.executeQuery(s"SELECT * FROM $deviceTable WHERE device_id = '48edda82418a1e916e9906a2fd7942cb'")
     while (device2.next()) {
-        device2.getString("first_access") should be("2018-09-21 22:49:15.883")
-        device2.getString("last_access") should be("2018-09-21 22:49:24.377")
+        device2.getString("first_access") should be("2018-09-21 17:19:15.883")
+        device2.getString("last_access") should be("2018-09-21 17:19:24.377")
         device2.getString("total_ts") should be("18")
         device2.getString("avg_ts") should be("9")
     }
@@ -84,13 +84,13 @@ try {
         while(device1.next()) {
             device1.getString("device_id") should be ("48edda82418a1e916e9906a2fd7942cb")
             device1.getString("first_access") should be ("2018-09-21 22:49:15.883")
-            device1.getString("last_access") should be ("2018-09-23 05:24:24.377")
+            device1.getString("last_access") should be ("2018-09-22 23:54:24.377")
             device1.getString("total_ts") should be ("28")
         }
         val device2 = EmbeddedPostgresql.executeQuery(s"SELECT * FROM $deviceTable WHERE device_id = '88edda82418a1e916e9906a2fd7942cb'")
         while(device2.next()) {
             device2.getString("device_id") should be ("88edda82418a1e916e9906a2fd7942cb")
-            device2.getString("first_access") should be ("2018-09-20 19:02:35.883")
+            device2.getString("first_access") should be ("2018-09-20 13:32:35.883")
             device2.getString("last_access") should be ("2018-09-22 19:39:41.139")
             device2.getString("total_ts") should be ("45")
             device2.getString("avg_ts") should be ("15")

@@ -773,11 +773,10 @@ object CommonUtil {
     val context = V3Context(channel, Option(V3PData(producerId, Option("1.0"), Option(producerPid))), env, None, None, None, None)
     V3DerivedEvent("METRIC", System.currentTimeMillis(), new DateTime().toString(CommonUtil.df3), "3.0", mid, Actor(actorId, "System"), context, None, measures)
   }
-
-  def epochToDate(epochValue: Long): Timestamp = {
+  def getTimestampFromEpoch(epochValue: Long): Timestamp = {
     val date = new Date(epochValue)
     val sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
-    sdf.setTimeZone(TimeZone.getTimeZone("IST"))
+    sdf.setTimeZone(TimeZone.getTimeZone("UTC"))
     val formattedDate = sdf.format(date)
     Timestamp.valueOf(formattedDate)
   }

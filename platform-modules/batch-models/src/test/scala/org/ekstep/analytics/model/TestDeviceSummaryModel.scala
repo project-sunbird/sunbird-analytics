@@ -128,7 +128,7 @@ class TestDeviceSummaryModel extends SparkSpec(null) {
       else if(x.dimensions.did.get.equals("88edda82418a1e916e9906a2fd7942cb"))
         summary.firstAccess.toString should be("2018-09-20 22:49:15.883")
       else
-        summary.firstAccess.toString should be("1970-01-01 05:30:00.0")
+        summary.firstAccess.toString should be("1970-01-01 00:00:00.0")
     }
   }
 
@@ -152,7 +152,7 @@ class TestDeviceSummaryModel extends SparkSpec(null) {
           summary.firstAccess.toString should be("2018-09-14 07:10:35.883")
         }
       else {
-        summary.firstAccess.toString should be("1970-01-01 05:30:00.0")
+        summary.firstAccess.toString should be("1970-01-01 00:00:00.0")
       }
 
     }

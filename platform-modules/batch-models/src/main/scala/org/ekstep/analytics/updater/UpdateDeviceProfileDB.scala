@@ -61,9 +61,9 @@ object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DevicePro
       val eventsSortedByFromDate = events.currentData.sortBy { x => x.context.date_range.from }
       val eventsSortedByToDate = events.currentData.sortBy { x => x.context.date_range.to }
       val prevProfileData = events.previousData.getOrElse(DeviceProfileOutput(events.index.device_id, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None))
-      val eventStartTime = CommonUtil.epochToDate(eventsSortedByFromDate.head.context.date_range.from)
+      val eventStartTime = CommonUtil.getTimestampFromEpoch(eventsSortedByFromDate.head.context.date_range.from)
       val first_access = if (prevProfileData.first_access.isEmpty) eventStartTime else if (eventStartTime.getTime > prevProfileData.first_access.get.getTime) prevProfileData.first_access.get else eventStartTime
-      val eventEndTime = CommonUtil.epochToDate(eventsSortedByToDate.last.context.date_range.to)
+      val eventEndTime = CommonUtil.getTimestampFromEpoch(eventsSortedByToDate.last.context.date_range.to)
       val last_access = if (prevProfileData.last_access.isEmpty) eventEndTime else if (eventEndTime.getTime < prevProfileData.last_access.get.getTime) prevProfileData.last_access.get else eventEndTime
       val current_ts = events.currentData.map { x =>
         (x.edata.eks.asInstanceOf[Map[String, AnyRef]].get("total_ts").get.asInstanceOf[Double])

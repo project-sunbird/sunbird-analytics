@@ -90,7 +90,7 @@ object DeviceSummaryModel extends IBatchModelTemplate[String, DeviceInput, Devic
         val summaryData = summary.map(f => (f._1.device_id, f._2))
         summaryData.leftOuterJoin(postgresData)
           .map{f =>
-              val defaultDate = CommonUtil.epochToDate(0L)
+              val defaultDate = CommonUtil.getTimestampFromEpoch(0L)
           val firstAccessVal = f._2._2.getOrElse(Option(defaultDate))
           if(firstAccessVal != defaultDate) {
               f._2._1.copy(firstAccess = firstAccessVal.getOrElse(f._2._1.firstAccess))
