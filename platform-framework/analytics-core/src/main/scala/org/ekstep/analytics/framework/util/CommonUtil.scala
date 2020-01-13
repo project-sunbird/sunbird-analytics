@@ -6,8 +6,7 @@ import java.nio.file.Paths.get
 import java.nio.file.{Files, Paths, StandardCopyOption}
 import java.security.MessageDigest
 import java.sql.Timestamp
-import java.text.SimpleDateFormat
-import java.util.{Date, TimeZone}
+import java.util.Date
 import java.util.zip.GZIPOutputStream
 
 import ing.wbaa.druid.definitions.{Granularity, GranularityType}
@@ -19,11 +18,11 @@ import org.ekstep.analytics.framework.{DtRange, Event, JobConfig, _}
 
 import scala.collection.mutable.ListBuffer
 //import org.ekstep.analytics.framework.conf.AppConf
-import java.util.zip.{ ZipEntry, ZipOutputStream }
+import java.util.zip.{ZipEntry, ZipOutputStream}
 
 import org.apache.commons.lang3.StringUtils
-import org.joda.time.{ DateTime, DateTimeZone, Days, LocalDate, Weeks, Years }
-import org.joda.time.format.{ DateTimeFormat, DateTimeFormatter }
+import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
+import org.joda.time.{DateTime, DateTimeZone, Days, LocalDate, Weeks, Years}
 import org.sunbird.cloud.storage.conf.AppConf
 
 import scala.util.control.Breaks._
@@ -332,8 +331,8 @@ object CommonUtil {
   }
 
   def zip(out: String, files: Iterable[String]) = {
-    import java.io.{ BufferedInputStream, FileInputStream, FileOutputStream }
-    import java.util.zip.{ ZipEntry, ZipOutputStream }
+    import java.io.{BufferedInputStream, FileInputStream, FileOutputStream}
+    import java.util.zip.{ZipEntry, ZipOutputStream}
 
     val zip = new ZipOutputStream(new FileOutputStream(out))
 
@@ -352,8 +351,8 @@ object CommonUtil {
   }
 
   def zipFolder(outFile: String, dir: String) = {
-    import java.io.{ BufferedInputStream, FileInputStream, FileOutputStream }
-    import java.util.zip.{ ZipEntry, ZipOutputStream }
+    import java.io.{BufferedInputStream, FileInputStream, FileOutputStream}
+    import java.util.zip.{ZipEntry, ZipOutputStream}
 
     val zip = new ZipOutputStream(new FileOutputStream(outFile))
     val files = new File(dir).listFiles();
@@ -774,11 +773,7 @@ object CommonUtil {
     V3DerivedEvent("METRIC", System.currentTimeMillis(), new DateTime().toString(CommonUtil.df3), "3.0", mid, Actor(actorId, "System"), context, None, measures)
   }
   def getTimestampFromEpoch(epochValue: Long): Timestamp = {
-    val date = new Date(epochValue)
-    val sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
-    sdf.setTimeZone(TimeZone.getTimeZone("UTC"))
-    val formattedDate = sdf.format(date)
-    Timestamp.valueOf(formattedDate)
+    Timestamp.valueOf(new DateTime(epochValue).withZone(DateTimeZone.UTC).toString("yyyy-MM-dd HH:mm:ss.SSS"))
   }
 
 }
