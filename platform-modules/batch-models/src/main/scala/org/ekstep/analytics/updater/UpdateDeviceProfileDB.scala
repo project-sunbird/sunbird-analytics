@@ -3,11 +3,11 @@ package org.ekstep.analytics.updater
 import java.sql.Timestamp
 import java.util.Properties
 
-import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.spark.rdd._
 import org.apache.spark.sql.{Encoders, SQLContext, SaveMode}
 import org.apache.spark.{HashPartitioner, SparkContext}
 import org.ekstep.analytics.framework._
+import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.util.CommonUtil
 import org.ekstep.analytics.util.Constants
 
@@ -22,11 +22,10 @@ object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DevicePro
 
   override def name: String = "UpdateDeviceProfileDB"
 
-  val config: Config = ConfigFactory.load()
-  val db = config.getString("postgres.db")
-  val url = config.getString("postgres.url") + s"$db"
-  val user = config.getString("postgres.user")
-  val pass = config.getString("postgres.pass")
+  val db = AppConf.getConfig("postgres.db")
+  val url = AppConf.getConfig("postgres.url") + s"$db"
+  val user = AppConf.getConfig("postgres.user")
+  val pass = AppConf.getConfig("postgres.pass")
 
   val connProperties = new Properties()
   connProperties.setProperty("Driver", "org.postgresql.Driver")
@@ -44,7 +43,6 @@ object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DevicePro
     }.partitionBy(new HashPartitioner(JobContext.parallelization)).reduceByKey((a, b) => a ++ b)
 
     val resDf = sqlContext.sparkSession.read.jdbc(url, Constants.DEVICE_PROFILE_TABLE, connProperties)
-    println("read from postgres: ")
     resDf.show()
     val encoder = Encoders.product[DeviceProfileOutput]
     val responseRDD = resDf.as[DeviceProfileOutput](encoder).rdd
@@ -85,7 +83,6 @@ object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DevicePro
     implicit val sqlContext = new SQLContext(sc)
     import sqlContext.implicits._
     val saveMode = SaveMode.Overwrite
-    println("write to postgres: ")
     data.toDF().show()
     data.toDF.write.mode(saveMode).jdbc(url,Constants.DEVICE_PROFILE_TABLE , connProperties)
     sc.makeRDD(List(Empty()));

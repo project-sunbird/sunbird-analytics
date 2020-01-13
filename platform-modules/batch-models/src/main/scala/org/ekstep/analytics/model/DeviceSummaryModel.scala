@@ -3,12 +3,12 @@ package org.ekstep.analytics.model
 import java.sql.Timestamp
 import java.util.Properties
 
-import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.commons.lang3.StringUtils
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{Encoders, SQLContext}
 import org.apache.spark.{HashPartitioner, SparkContext}
 import org.ekstep.analytics.framework._
+import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils}
 import org.ekstep.analytics.util.Constants
 
@@ -25,11 +25,10 @@ object DeviceSummaryModel extends IBatchModelTemplate[String, DeviceInput, Devic
     val className = "org.ekstep.analytics.model.DeviceSummaryModel"
     override def name: String = "DeviceSummaryModel"
 
-    val config: Config = ConfigFactory.load()
-    val db = config.getString("postgres.db")
-    val url = config.getString("postgres.url") + s"$db"
-    val user = config.getString("postgres.user")
-    val pass = config.getString("postgres.pass")
+    val db = AppConf.getConfig("postgres.db")
+    val url = AppConf.getConfig("postgres.url") + s"$db"
+    val user = AppConf.getConfig("postgres.user")
+    val pass = AppConf.getConfig("postgres.pass")
 
     val connProperties = new Properties()
     connProperties.setProperty("Driver", "org.postgresql.Driver")
@@ -91,6 +90,7 @@ object DeviceSummaryModel extends IBatchModelTemplate[String, DeviceInput, Devic
         summaryData.leftOuterJoin(postgresData)
           .map{f =>
           val firstAccessVal = f._2._2.getOrElse(Option(new Timestamp(0L)))
+
           if(firstAccessVal != (new Timestamp(0L))) {
               f._2._1.copy(firstAccess = firstAccessVal.getOrElse(f._2._1.firstAccess))
           }
