@@ -2,7 +2,7 @@ package org.ekstep.analytics.model
 
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.SQLContext
+import org.apache.spark.sql.SparkSession
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.fetcher.DruidDataFetcher
@@ -61,22 +61,22 @@ object TPDConsumptionMetricsModel extends IBatchModelTemplate[Empty, CourseInfo,
     val courseIds = JSONUtils.serialize(courseList)
     val batchList = liveCoursePlayRDD.collect().map(f => f.batchId)
     val batchIds = JSONUtils.serialize(batchList)
-
+    implicit val spark: SparkSession = SparkSession.builder().getOrCreate()
     val courseBatchInfo = getCourseBatchFromES(courseIds, batchIds)
 
-    implicit val sqlContext = new SQLContext(sc)
-    import sqlContext.implicits._
-
-    val liveCourseDF = liveCoursePlayRDD.toDF
-    val courseBatchDF = courseBatchInfo.toDF()
-
-    val courseBatch = liveCourseDF.join(courseBatchDF, Seq("courseId", "batchId"))
-    courseBatch.show(5)
-    val tenantInfo = getTenantInfo().toDF()
-    tenantInfo.show(5)
-    val consumption = courseBatch.join(tenantInfo, "channel")
-    println("consumption: ")
-    consumption.show()
+//    implicit val sqlContext = new SQLContext(sc)
+//    import sqlContext.implicits._
+//
+//    val liveCourseDF = liveCoursePlayRDD.toDF
+//    val courseBatchDF = courseBatchInfo.toDF()
+//    courseBatchDF.show()
+//    val courseBatch = liveCourseDF.join(courseBatchDF, Seq("courseId", "batchId"))
+//    courseBatch.show(5)
+//    val tenantInfo = getTenantInfo().toDF()
+//    tenantInfo.show(5)
+//    val consumption = courseBatch.join(tenantInfo, "channel")
+//    println("consumption: ")
+//    consumption.show()
 
     sc.emptyRDD
   }
@@ -158,11 +158,11 @@ def getLiveCourses()(implicit sc: SparkContext): RDD[CourseInfo] = {
     RestUtil.post[TenantResponse](url, body, header).result.response.content
   }
 
-  def getCourseBatchFromES(courseIds: String, batchIds: String)(implicit sc: SparkContext) : RDD[_source] = {
-    val apiURL = Constants.ELASTIC_SEARCH_SERVICE_ENDPOINT + "/" + Constants.ELASTIC_SEARCH_INDEX_COURSEBATCH_NAME + "/_search"
-    println("courseIds: " + courseIds)
-    println("batchIds: " + batchIds)
-
+  def getCourseBatchFromES(courseIds: String, batchIds: String)(implicit sc: SparkContext, spark: SparkSession) : RDD[_source] = {
+//    val apiURL = Constants.ELASTIC_SEARCH_SERVICE_ENDPOINT + "/" + Constants.ELASTIC_SEARCH_INDEX_COURSEBATCH_NAME + "/_search"
+//    println("courseIds: " + courseIds)
+//    println("batchIds: " + batchIds)
+//
     val request = s"""{
                    |  "query": {
                    |    "bool": {
@@ -181,11 +181,22 @@ def getLiveCourses()(implicit sc: SparkContext): RDD[CourseInfo] = {
                    |    }
                    |  }
                    |}""".stripMargin
-    val ESresponse = RestUtil.post[ESResponse](apiURL, request).hits.hits
-    val response = ESresponse.map(f => JSONUtils.deserialize[Hits](JSONUtils.serialize(f))._source)
-    println("course-batch details: " + response)
+//    val ESresponse = RestUtil.post[ESResponse](apiURL, request).hits.hits
+//    val response = ESresponse.map(f => JSONUtils.deserialize[Hits](JSONUtils.serialize(f))._source)
+//
+//    println("course-batch details from ES: " + response)
+    val df = spark.read.format("org.elasticsearch.spark.sql")
+        .option("query", request)
+        .option("pushdown", "true")
+        .option("es.nodes", AppConf.getConfig("es.composite.host"))
+        .option("es.port", AppConf.getConfig("es.port"))
+        .option("es.scroll.size", AppConf.getConfig("es.scroll.size"))
+        .load(Constants.ELASTIC_SEARCH_INDEX_COURSEBATCH_NAME + "/_search")
+        .select("hits")
+    df.show()
 
-    sc.parallelize(response)
+//    sc.parallelize(response)
+    sc.emptyRDD
   }
 
 }
