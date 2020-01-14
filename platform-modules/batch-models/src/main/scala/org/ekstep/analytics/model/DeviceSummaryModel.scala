@@ -1,7 +1,6 @@
 package org.ekstep.analytics.model
 
 import java.sql.Timestamp
-import java.util.Properties
 
 import org.apache.commons.lang3.StringUtils
 import org.apache.spark.rdd.RDD
@@ -27,13 +26,7 @@ object DeviceSummaryModel extends IBatchModelTemplate[String, DeviceInput, Devic
 
     val db = AppConf.getConfig("postgres.db")
     val url = AppConf.getConfig("postgres.url") + s"$db"
-    val user = AppConf.getConfig("postgres.user")
-    val pass = AppConf.getConfig("postgres.pass")
-
-    val connProperties = new Properties()
-    connProperties.setProperty("Driver", "org.postgresql.Driver")
-    connProperties.setProperty("user", user)
-    connProperties.setProperty("password", pass)
+    val connProperties = CommonUtil.getPostgresConnectionProps()
 
     override def preProcess(data: RDD[String], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[DeviceInput] = {
         val rawEventsList = List("SEARCH", "INTERACT")
@@ -83,21 +76,21 @@ object DeviceSummaryModel extends IBatchModelTemplate[String, DeviceInput, Devic
 
         implicit val sqlContext = new SQLContext(sc)
         val responseDf = sqlContext.sparkSession.read.jdbc(url, Constants.DEVICE_PROFILE_TABLE, connProperties).select("device_id","first_access")
-        responseDf.show()
         val encoder = Encoders.product[FirstAccessByDeviceID]
         val firstAccessRDD = responseDf.as[FirstAccessByDeviceID](encoder).rdd
 
-        val postgresData = firstAccessRDD.map(f => {(f.device_id, f.first_access)})
+        val postgresData = firstAccessRDD.map(f => {(f.device_id, f.first_access)}).filter(f => f._2.nonEmpty)
         val summaryData = summary.map(f => (f._1.device_id, f._2))
         summaryData.leftOuterJoin(postgresData)
           .map{f =>
               val defaultDate = CommonUtil.getTimestampFromEpoch(0L)
-          val firstAccessVal = f._2._2.getOrElse(Option(defaultDate))
-          if(firstAccessVal != defaultDate) {
-              f._2._1.copy(firstAccess = firstAccessVal.getOrElse(f._2._1.firstAccess))
-          }
-          else
-              f._2._1
+              val firstAccessVal = f._2._2.getOrElse(Option(defaultDate))
+              if(firstAccessVal.get != defaultDate) {
+                  val first_access = if(firstAccessVal.get.getTime > f._2._1.firstAccess.getTime) f._2._1.firstAccess else firstAccessVal.get
+                  f._2._1.copy(firstAccess = first_access)
+              }
+              else
+                  f._2._1
           }
     }
 

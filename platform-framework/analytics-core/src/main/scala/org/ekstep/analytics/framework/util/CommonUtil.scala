@@ -6,7 +6,7 @@ import java.nio.file.Paths.get
 import java.nio.file.{Files, Paths, StandardCopyOption}
 import java.security.MessageDigest
 import java.sql.Timestamp
-import java.util.Date
+import java.util.{Date, Properties}
 import java.util.zip.GZIPOutputStream
 
 import ing.wbaa.druid.definitions.{Granularity, GranularityType}
@@ -776,4 +776,14 @@ object CommonUtil {
     Timestamp.valueOf(new DateTime(epochValue).withZone(DateTimeZone.UTC).toString("yyyy-MM-dd HH:mm:ss.SSS"))
   }
 
+  def getPostgresConnectionProps(): Properties = {
+    val user = AppConf.getConfig("postgres.user")
+    val pass = AppConf.getConfig("postgres.pass")
+
+    val connProperties = new Properties()
+    connProperties.setProperty("Driver", "org.postgresql.Driver")
+    connProperties.setProperty("user", user)
+    connProperties.setProperty("password", pass)
+    connProperties
+  }
 }

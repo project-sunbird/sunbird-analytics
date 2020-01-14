@@ -1,7 +1,5 @@
 package org.ekstep.analytics.updater
 
-import java.util.Properties
-
 import org.apache.spark.rdd._
 import org.apache.spark.sql.{Encoders, SQLContext, SaveMode}
 import org.apache.spark.{HashPartitioner, SparkContext}
@@ -23,14 +21,7 @@ object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DevicePro
 
   val db = AppConf.getConfig("postgres.db")
   val url = AppConf.getConfig("postgres.url") + s"$db"
-  val user = AppConf.getConfig("postgres.user")
-  val pass = AppConf.getConfig("postgres.pass")
-
-  val connProperties = new Properties()
-  connProperties.setProperty("Driver", "org.postgresql.Driver")
-  connProperties.setProperty("user", user)
-  connProperties.setProperty("password", pass)
-
+  val connProperties = CommonUtil.getPostgresConnectionProps
 
   override def preProcess(data: RDD[DerivedEvent], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[DeviceProfileInput] = {
     implicit val sqlContext = new SQLContext(sc)
@@ -41,18 +32,14 @@ object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DevicePro
       (DeviceProfileKey(event.dimensions.did.get), Buffer(event))
     }.partitionBy(new HashPartitioner(JobContext.parallelization)).reduceByKey((a, b) => a ++ b)
 
-    val resDf = sqlContext.sparkSession.read.jdbc(url, Constants.DEVICE_PROFILE_TABLE, connProperties)
-    resDf.show()
     val encoder = Encoders.product[DeviceProfileOutput]
-    val responseRDD = resDf.as[DeviceProfileOutput](encoder).rdd
-
-    val newEvents = newGroupedEvents.map(f => (DeviceProfileKey(f._1.device_id), f))
-    val prevDeviceProfile = responseRDD.map(f => (DeviceProfileKey(f.device_id), f))
-
-    val deviceData = newEvents.leftOuterJoin(prevDeviceProfile)
-    deviceData.map { x =>
+    val responseRDD = sqlContext.sparkSession.read.jdbc(url, Constants.DEVICE_PROFILE_TABLE, connProperties).as[DeviceProfileOutput](encoder).rdd
+    val prevDeviceProfile = responseRDD.map{f => (DeviceProfileKey(f.device_id), f)}
+    val deviceData = newGroupedEvents.leftOuterJoin(prevDeviceProfile)
+    deviceData.count()
+      deviceData.map { x =>
       val deviceProfileInputData = x._2
-      DeviceProfileInput(deviceProfileInputData._1._1, deviceProfileInputData._1._2, deviceProfileInputData._2)
+      DeviceProfileInput(x._1, deviceProfileInputData._1, deviceProfileInputData._2)
     }
   }
 
@@ -60,7 +47,7 @@ object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DevicePro
     data.map { events =>
       val eventsSortedByFromDate = events.currentData.sortBy { x => x.context.date_range.from }
       val eventsSortedByToDate = events.currentData.sortBy { x => x.context.date_range.to }
-      val prevProfileData = events.previousData.getOrElse(DeviceProfileOutput(events.index.device_id, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None))
+      val prevProfileData = events.previousData.getOrElse(DeviceProfileOutput(events.index.device_id, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None))
       val eventStartTime = CommonUtil.getTimestampFromEpoch(eventsSortedByFromDate.head.context.date_range.from)
       val first_access = if (prevProfileData.first_access.isEmpty) eventStartTime else if (eventStartTime.getTime > prevProfileData.first_access.get.getTime) prevProfileData.first_access.get else eventStartTime
       val eventEndTime = CommonUtil.getTimestampFromEpoch(eventsSortedByToDate.last.context.date_range.to)
@@ -74,16 +61,14 @@ object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DevicePro
       }.sum
       val total_launches = if (prevProfileData.total_launches.isEmpty) current_launches else current_launches + prevProfileData.total_launches.get
       val avg_ts = if (total_launches == 0) total_ts else CommonUtil.roundDouble(total_ts / total_launches, 2)
-      DeviceProfileOutput(events.index.device_id, Option(first_access), Option(last_access), Option(total_ts), Option(total_launches), Option(avg_ts), prevProfileData.device_spec, prevProfileData.uaspec, prevProfileData.state, prevProfileData.city, prevProfileData.country, prevProfileData.country_code, prevProfileData.state_code, prevProfileData.state_custom, prevProfileData.state_code_custom, prevProfileData.district_custom, prevProfileData.fcm_token, prevProfileData.producer_id, prevProfileData.user_declared_state, prevProfileData.user_declared_district, prevProfileData.api_last_updated_on)
+      DeviceProfileOutput(events.index.device_id, Option(first_access), Option(last_access), Option(total_ts), Option(total_launches), Option(avg_ts), prevProfileData.device_spec, prevProfileData.uaspec, prevProfileData.state, prevProfileData.city, prevProfileData.country, prevProfileData.country_code, prevProfileData.state_code, prevProfileData.state_custom, prevProfileData.state_code_custom, prevProfileData.district_custom, prevProfileData.fcm_token, prevProfileData.producer_id, prevProfileData.user_declared_state, prevProfileData.user_declared_district, prevProfileData.api_last_updated_on, prevProfileData.user_declared_on)
     }
   }
 
   override def postProcess(data: RDD[DeviceProfileOutput], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[Empty] = {
     implicit val sqlContext = new SQLContext(sc)
     import sqlContext.implicits._
-    val saveMode = SaveMode.Overwrite
-    data.toDF().show()
-    data.toDF.write.mode(saveMode).jdbc(url,Constants.DEVICE_PROFILE_TABLE , connProperties)
+    data.toDF.write.mode(SaveMode.Overwrite).jdbc(url,Constants.DEVICE_PROFILE_TABLE , connProperties)
     sc.makeRDD(List(Empty()));
   }
 

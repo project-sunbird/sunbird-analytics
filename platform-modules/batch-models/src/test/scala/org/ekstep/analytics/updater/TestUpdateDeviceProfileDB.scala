@@ -8,37 +8,12 @@ class TestUpdateDeviceProfileDB extends SparkSpec(null) {
 
     import org.ekstep.analytics.framework.FrameworkContext
     implicit val fc = new FrameworkContext()
-
-    val deviceTable =  Constants.DEVICE_PROFILE_TABLE
+    val deviceTable = Constants.DEVICE_PROFILE_TABLE
 
     override def beforeAll(){
         super.beforeAll()
         EmbeddedPostgresql.start()
-        EmbeddedPostgresql.execute(
-          s"""
-            |CREATE TABLE IF NOT EXISTS $deviceTable(
-            |    device_id TEXT PRIMARY KEY,
-            |    api_last_updated_on TIMESTAMP,
-            |    avg_ts float,
-            |    city TEXT,
-            |    country TEXT,
-            |    country_code TEXT,
-            |    device_spec json,
-            |    district_custom TEXT,
-            |    fcm_token TEXT,
-            |    first_access TIMESTAMP,
-            |    last_access TIMESTAMP,
-            |    producer_id TEXT,
-            |    state TEXT,
-            |    state_code TEXT,
-            |    state_code_custom TEXT,
-            |    state_custom TEXT,
-            |    total_launches bigint,
-            |    total_ts float,
-            |    uaspec json,
-            |    updated_date TIMESTAMP,
-            |    user_declared_district TEXT,
-            |    user_declared_state TEXT)""".stripMargin)
+        EmbeddedPostgresql.createDeviceProfileTable()
     }
 
     "UpdateDeviceProfileDB" should "create device profile in device db" in {

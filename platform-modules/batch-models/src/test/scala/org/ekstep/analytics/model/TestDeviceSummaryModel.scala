@@ -13,31 +13,7 @@ class TestDeviceSummaryModel extends SparkSpec(null) {
   override def beforeAll(){
     super.beforeAll()
     EmbeddedPostgresql.start()
-    EmbeddedPostgresql.execute(
-      s"""
-         |CREATE TABLE IF NOT EXISTS $deviceTable(
-         |    device_id TEXT PRIMARY KEY,
-         |    api_last_updated_on TIMESTAMP,
-         |    avg_ts float,
-         |    city TEXT,
-         |    country TEXT,
-         |    country_code TEXT,
-         |    device_spec json,
-         |    district_custom TEXT,
-         |    fcm_token TEXT,
-         |    first_access TIMESTAMP,
-         |    last_access TIMESTAMP,
-         |    producer_id TEXT,
-         |    state TEXT,
-         |    state_code TEXT,
-         |    state_code_custom TEXT,
-         |    state_custom TEXT,
-         |    total_launches bigint,
-         |    total_ts float,
-         |    uaspec json,
-         |    updated_date TIMESTAMP,
-         |    user_declared_district TEXT,
-         |    user_declared_state TEXT)""".stripMargin)
+    EmbeddedPostgresql.createDeviceProfileTable()
   }
 
   "DeviceSummaryModel" should "generate DeviceSummary events from a sample file and pass all positive test cases" in {
@@ -124,11 +100,11 @@ class TestDeviceSummaryModel extends SparkSpec(null) {
     measuredEvent.collect().foreach{ x =>
       val summary = JSONUtils.deserialize[DeviceSummary](JSONUtils.serialize(x.edata.eks))
       if(x.dimensions.did.get.equals("49edda82418a1e916e9906a2fd7942cb"))
-        summary.firstAccess.toString should be("2018-09-24 22:49:15.883")
+        summary.firstAccess.toString should be("2018-09-21 17:19:15.883")
       else if(x.dimensions.did.get.equals("88edda82418a1e916e9906a2fd7942cb"))
         summary.firstAccess.toString should be("2018-09-20 22:49:15.883")
       else
-        summary.firstAccess.toString should be("1970-01-01 00:00:00.0")
+        summary.firstAccess.toString should be("2018-09-21 17:19:15.883")
     }
   }
 
@@ -152,7 +128,7 @@ class TestDeviceSummaryModel extends SparkSpec(null) {
           summary.firstAccess.toString should be("2018-09-14 07:10:35.883")
         }
       else {
-        summary.firstAccess.toString should be("1970-01-01 00:00:00.0")
+        summary.firstAccess.toString should be("2018-09-21 17:19:15.883")
       }
 
     }

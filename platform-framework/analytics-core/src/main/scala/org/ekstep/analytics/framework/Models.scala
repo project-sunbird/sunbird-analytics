@@ -242,5 +242,5 @@ case class DeviceProfileOutput(device_id: String, first_access: Option[Timestamp
                                country: Option[String], country_code:Option[String], state_code:Option[String],
                                state_custom: Option[String], state_code_custom: Option[String], district_custom: Option[String],
                                fcm_token: Option[String], producer_id: Option[String], user_declared_state: Option[String],
-                               user_declared_district: Option[String], api_last_updated_on: Option[Timestamp],
+                               user_declared_district: Option[String], api_last_updated_on: Option[Timestamp], user_declared_on: Option[Timestamp],
                                updated_date: Option[Timestamp] = Option(new Timestamp(System.currentTimeMillis()))) extends AlgoOutput
