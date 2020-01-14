@@ -270,6 +270,9 @@ class TestCommonUtil extends BaseSpec {
         metricEvent.context.pdata.get.id should be("pipeline-monitoring")
         metricEvent.context.pdata.get.pid.get should be("dataproduct-metric")
 
+        val epochToTimestamp = CommonUtil.getTimestampFromEpoch(1537550355883L)
+        epochToTimestamp.toString should be("2018-09-21 17:19:15.883")
+
         val connectionProperties = CommonUtil.getPostgresConnectionProps()
         connectionProperties.getProperty("user") should be("postgres")
         connectionProperties.getProperty("password") should be("postgres")
