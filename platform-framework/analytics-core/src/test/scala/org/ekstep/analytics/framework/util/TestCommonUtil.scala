@@ -276,6 +276,6 @@ class TestCommonUtil extends BaseSpec {
         val connectionProperties = CommonUtil.getPostgresConnectionProps()
         connectionProperties.getProperty("user") should be("postgres")
         connectionProperties.getProperty("password") should be("postgres")
-        connectionProperties.getProperty("Driver") should be("org.postgresql.Driver")
+        connectionProperties.getProperty("driver") should be("org.postgresql.Driver")
     }
 }
