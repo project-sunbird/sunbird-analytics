@@ -18,7 +18,7 @@ case class DruidOutput(date: Option[String], state: Option[String], district: Op
                        total_successful_scans: Option[Integer] = Option(0), total_failed_scans: Option[Integer] = Option(0),
                        total_content_download: Option[Integer] = Option(0), total_content_plays: Option[Integer] = Option(0),
                        total_content_plays_on_portal: Option[Integer] = Option(0), total_content_plays_on_app: Option[Integer] = Option(0),
-                       total_content_plays_on_desktop: Option[Integer] = Option(0), total_live_courses: Option[Integer] = Option(0),
+                       total_live_courses: Option[Integer] = Option(0),
                        total_content_plays_on_desktop: Option[Integer] = Option(0), total_app_sessions: Option[Integer] = Option(0),
                        total_unique_devices:           Option[Double]  = Option(0), total_unique_devices_on_portal: Option[Double] = Option(0),
                        time_spent_on_app_in_hours: Option[Double] = Option(0), total_devices_playing_content: Option[Integer] = Option(0),
