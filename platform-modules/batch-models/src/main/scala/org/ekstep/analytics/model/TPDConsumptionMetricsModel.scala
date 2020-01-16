@@ -2,12 +2,13 @@ package org.ekstep.analytics.model
 
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.{DataFrame, SQLContext, SparkSession}
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.conf.AppConf
+import org.ekstep.analytics.framework.dispatcher.AzureDispatcher
 import org.ekstep.analytics.framework.fetcher.DruidDataFetcher
-import org.ekstep.analytics.framework.util.{JSONUtils, RestUtil}
-import org.ekstep.analytics.util.Constants
+import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger, RestUtil}
+import org.ekstep.analytics.util.{Constants, WriteToBlob}
 
 //OrgSearch Tenant Information: getTenantInfo
 case class TenantResponse(id: String, ver: String, ts: String, params: Params, responseCode: String, result: TenantResult)
@@ -81,8 +82,44 @@ object TPDConsumptionMetricsModel extends IBatchModelTemplate[Empty, CourseInfo,
     sc.emptyRDD
   }
 
-  override def postProcess(events: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[Empty] = {
-    events
+  override def postProcess(data: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[Empty] = {
+    if (data.count() > 0) {
+      val configMap = config("reportConfig").asInstanceOf[Map[String, AnyRef]]
+      val reportConfig = JSONUtils.deserialize[ReportConfig](JSONUtils.serialize(configMap))
+
+      reportConfig.metrics.flatMap{c => List()}
+      val dimFields = reportConfig.metrics.flatMap { m =>
+        if (m.druidQuery.dimensions.nonEmpty) m.druidQuery.dimensions.get.map(f => f.aliasName.getOrElse(f.fieldName))
+        else List()
+      }
+
+      val labelsLookup = reportConfig.labels ++ Map("date" -> "Date")
+      implicit val sqlContext = new SQLContext(sc)
+      import sqlContext.implicits._
+
+      // Using foreach as parallel execution might conflict with local file path
+      val key = config.getOrElse("key", null).asInstanceOf[String]
+      reportConfig.output.foreach { f =>
+        if ("csv".equalsIgnoreCase(f.`type`)) {
+          val df = data.toDF().na.fill(0L)
+          val metricFields = f.metrics
+          val fieldsList = df.columns
+          val dimsLabels = labelsLookup.filter(x => f.dims.contains(x._1)).values.toList
+          val filteredDf = df.select(fieldsList.head, fieldsList.tail: _*)
+          val renamedDf = filteredDf.select(filteredDf.columns.map(c => filteredDf.col(c).as(labelsLookup.getOrElse(c, c))): _*)
+          val reportFinalId = if (f.label.nonEmpty && f.label.get.nonEmpty) reportConfig.id + "/" + f.label.get else reportConfig.id
+          renamedDf.show()
+          val dirPath = writeToCSVAndRename(renamedDf, config ++ Map("dims" -> dimsLabels, "reportId" -> reportFinalId, "fileParameters" -> f.fileParameters))
+          AzureDispatcher.dispatchDirectory(config ++ Map("dirPath" -> (dirPath + reportFinalId + "/"), "key" -> (key + reportFinalId + "/")))
+        } else {
+          val strData = data.map(f => JSONUtils.serialize(f))
+          AzureDispatcher.dispatch(strData.collect(), config)
+        }
+      }
+    } else {
+      JobLogger.log("No data found from druid", None, Level.INFO)
+    }
+    data
   }
 
   def getCoursePlays(config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[CoursePlays] = {
@@ -197,6 +234,25 @@ def getLiveCourses()(implicit sc: SparkContext): RDD[CourseInfo] = {
 
 //    sc.parallelize(response)
     sc.emptyRDD
+  }
+
+  def writeToCSVAndRename(data: DataFrame, config: Map[String, AnyRef])(implicit sc: SparkContext): String = {
+    val filePath = config.getOrElse("filePath", AppConf.getConfig("spark_output_temp_dir")).asInstanceOf[String]
+    val key = config.getOrElse("key", null).asInstanceOf[String]
+    val reportId = config.getOrElse("reportId", "").asInstanceOf[String]
+    val fileParameters = config.getOrElse("fileParameters", List("")).asInstanceOf[List[String]]
+    var dims = config.getOrElse("folderPrefix", List()).asInstanceOf[List[String]]
+
+    dims = if (fileParameters.nonEmpty && fileParameters.contains("date")) dims else dims
+    val finalPath = filePath + key.split("/").last
+
+    if(dims.nonEmpty) {
+      data.coalesce(1).write.format("com.databricks.spark.csv").option("header", "true").partitionBy(dims: _*).mode("overwrite").save(finalPath)
+    } else
+      data.coalesce(1).write.format("com.databricks.spark.csv").option("header", "true").mode("overwrite").save(finalPath)
+
+    val renameDir = finalPath + "/renamed/"
+    WriteToBlob.renameHadoopFiles(finalPath, renameDir, reportId, dims)
   }
 
 }
