@@ -316,12 +316,6 @@
 		    <version>2.10.0</version>
 		    <scope>test</scope>
 		</dependency>
-		<!-- Postgres jdbc driver -->
-		<dependency>
-			<groupId>postgresql</groupId>
-			<artifactId>postgresql</artifactId>
-			<version>9.1-901.jdbc4</version>
-		</dependency>
 		<!-- https://mvnrepository.com/artifact/io.zonky.test/embedded-postgres -->
 		<dependency>
 			<groupId>io.zonky.test</groupId>
