@@ -54,7 +54,7 @@
         <appender-ref ref="ACCESS_LOG_FILE" />
     </logger>
 
-	<root level="WARN">
+	<root level="INFO">
 		<appender-ref ref="ASYNCFILE" />
 	</root>
 

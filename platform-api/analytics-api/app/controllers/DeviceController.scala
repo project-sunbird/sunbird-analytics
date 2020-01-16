@@ -58,7 +58,7 @@ class DeviceController @Inject()(
     }
 
     val deviceRegisterResult = deviceRegisterActor.ask(RegisterDevice(deviceId, headerIP, ipAddr, fcmToken, producer,
-      dspec, uaspec, firstAccess, userDefinedState, userDefinedDistrict)).mapTo[DeviceRegisterStatus]
+      dspec, uaspec, firstAccess, userDefinedState, userDefinedDistrict)).mapTo[Option[DeviceRegisterStatus]]
 
     if (isExperimentEnabled) {
       val expApiResult = sendExperimentData(Some(deviceId), extMap.getOrElse(Map()).get("userId"), extMap.getOrElse(Map()).get("url"), producer)
@@ -103,7 +103,7 @@ class DeviceController @Inject()(
           "rid" -> "experimentService", "title" -> "experimentService")))), "ExperimentService")
 
       Ok(JSONUtils.serialize(CommonUtil.OK("analytics.device-register",
-        Map("message" -> s"Device registered successfully", "actions" -> res)))).withHeaders(CONTENT_TYPE -> "application/json")
+        Map("message" -> s"Device registered successfully", "actions" -> res)))).as("application/json")
       }
 
     }.recover {
@@ -136,11 +136,11 @@ class DeviceController @Inject()(
 
           Ok(JSONUtils.serialize(CommonUtil.OK("analytics.device-profile",
             Map("userDeclaredLocation" -> deviceData.get.userDeclaredLocation, "ipLocation" -> deviceData.get.ipLocation))))
-            .withHeaders(CONTENT_TYPE -> "application/json")
+            .as("application/json")
         } else {
           InternalServerError(
             JSONUtils.serialize(CommonUtil.errorResponse("analytics.device-profile", "IP is missing in the header", "ERROR"))
-          ).withHeaders(CONTENT_TYPE -> "application/json")
+          ).as("application/json")
         }
 
     }.recover {
