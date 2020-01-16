@@ -75,6 +75,7 @@ object DeviceSummaryModel extends IBatchModelTemplate[String, DeviceInput, Devic
         }
 
         implicit val sqlContext = new SQLContext(sc)
+        Class.forName("org.postgresql.Driver")
         val responseDf = sqlContext.sparkSession.read.jdbc(url, Constants.DEVICE_PROFILE_TABLE, connProperties).select("device_id","first_access")
         val encoder = Encoders.product[FirstAccessByDeviceID]
         val firstAccessRDD = responseDf.as[FirstAccessByDeviceID](encoder).rdd
