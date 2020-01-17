@@ -7,13 +7,14 @@ import com.datastax.spark.connector._
 import com.datastax.spark.connector.types.TimestampFormatter
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.{Encoders, SQLContext}
 import org.ekstep.analytics.framework.Level.ERROR
 import org.ekstep.analytics.framework.conf.AppConf
-import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger, RestUtil}
+import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, JobLogger, RestUtil}
 import org.ekstep.analytics.framework.{IBatchModelTemplate, _}
 import org.ekstep.analytics.util.Constants
 
-import scala.collection.mutable.{Buffer, ListBuffer}
+import scala.collection.mutable.ListBuffer
 
 
 case class ExperimentDefinitionOutput(userId: Option[String] = None, deviceId: Option[String] = None, key: String, url: Option[String] = None, id: String
@@ -67,7 +68,7 @@ object ExperimentDefinitionModel extends IBatchModelTemplate[Empty, ExperimentDe
     def algorithmProcess(experiments: RDD[ExperimentDefinition], metadata: ListBuffer[ExperimentDefinitionMetadata])
                         (implicit sc: SparkContext, util: ExperimentDataUtils): Array[RDD[ExperimentDefinitionOutput]] = {
         val experimentList = experiments.collect()
-        val deviceProfile = util.getDeviceProfile(Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_PROFILE_TABLE)
+        val deviceProfile = util.getDeviceProfile(Constants.DEVICE_PROFILE_TABLE)
 
         val result = experimentList.map(exp => {
             val criteria = JSONUtils.deserialize[CriteriaModel](exp.criteria)
@@ -156,7 +157,11 @@ class ExperimentDataUtils {
         userResponse
     }
 
-    def getDeviceProfile(keySpace: String, table: String)(implicit sc: SparkContext): RDD[DeviceProfileModel] = {
-        sc.cassandraTable[DeviceProfileModel](keySpace, table)
+    def getDeviceProfile(table: String)(implicit sc: SparkContext): RDD[DeviceProfileModel] = {
+        val db = AppConf.getConfig("postgres.db")
+        val url = AppConf.getConfig("postgres.url") + s"$db"
+        implicit val sqlContext = new SQLContext(sc)
+        val encoder = Encoders.product[DeviceProfileModel]
+        sqlContext.sparkSession.read.jdbc(url, table, CommonUtil.getPostgresConnectionProps()).as[DeviceProfileModel](encoder).rdd
     }
 }

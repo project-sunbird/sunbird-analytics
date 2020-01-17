@@ -49,7 +49,7 @@ try {
     
     it should "check for first_access and last_access" in {
         EmbeddedPostgresql.execute(s"TRUNCATE $deviceTable")
-        EmbeddedPostgresql.execute("INSERT INTO device_profile (device_id, first_access, last_access, total_ts, total_launches, avg_ts, state, city, device_spec, uaspec) VALUES ('48edda82418a1e916e9906a2fd7942cb', '2018-09-21 22:49:15.883', '2018-09-21 22:49:24.377', 18, 2, 9, 'Karnataka', 'Bangalore', '{\"os\":\"Android\",\"make\":\"Motorola XT1706\"}', '{\"raw\": \"xyz\"}');")
+        EmbeddedPostgresql.execute("INSERT INTO local_device_profile (device_id, first_access, last_access, total_ts, total_launches, avg_ts, state, city, device_spec, uaspec) VALUES ('48edda82418a1e916e9906a2fd7942cb', '2018-09-21 22:49:15.883', '2018-09-21 22:49:24.377', 18, 2, 9, 'Karnataka', 'Bangalore', '{\"os\":\"Android\",\"make\":\"Motorola XT1706\"}', '{\"raw\": \"xyz\"}');")
         EmbeddedPostgresql.execute(s"INSERT INTO $deviceTable (device_id, first_access, last_access, total_ts, total_launches, avg_ts) VALUES ('88edda82418a1e916e9906a2fd7942cb', '2018-09-20 22:49:15.883', '2018-09-22 19:39:41.139', 20, 2, 10);")
 
         val rdd = loadFile[DerivedEvent]("src/test/resources/device-profile/test-data2.log");
@@ -74,7 +74,7 @@ try {
 
     it should "Handle null values from Cassandra and execute successfully" in {
         EmbeddedPostgresql.execute(s"TRUNCATE $deviceTable")
-        EmbeddedPostgresql.execute("INSERT INTO device_profile (device_id, first_access, last_access, total_ts, total_launches, avg_ts, state, city, device_spec, uaspec) VALUES ('48edda82418a1e916e9906a2fd7942cb', '2018-09-21 22:49:15.883', '2018-09-21 22:49:24.377', 18, 2, 9, 'Karnataka', 'Bangalore', '{\"os\":\"Android\",\"make\":\"Motorola XT1706\"}', '{\"raw\": \"xyz\"}');")
+        EmbeddedPostgresql.execute("INSERT INTO local_device_profile (device_id, first_access, last_access, total_ts, total_launches, avg_ts, state, city, device_spec, uaspec) VALUES ('48edda82418a1e916e9906a2fd7942cb', '2018-09-21 22:49:15.883', '2018-09-21 22:49:24.377', 18, 2, 9, 'Karnataka', 'Bangalore', '{\"os\":\"Android\",\"make\":\"Motorola XT1706\"}', '{\"raw\": \"xyz\"}');")
         EmbeddedPostgresql.execute(s"INSERT INTO $deviceTable (device_id) VALUES ('88edda82418a1e916e9906a2fd7942cb');")
 
         val rdd = loadFile[DerivedEvent]("src/test/resources/device-profile/test-data2.log")
@@ -83,7 +83,7 @@ try {
 
     it should "include new values and execute successfully" in {
         EmbeddedPostgresql.execute(s"TRUNCATE $deviceTable")
-        EmbeddedPostgresql.execute("INSERT INTO device_profile (device_id,  state_custom, state_code_custom, district_custom, fcm_token, producer_id) VALUES ('88edda82418a1e916e9906a2fd7942cb', 'karnataka', '29', 'bangalore', 'token-xyz', 'sunbird-app')")
+        EmbeddedPostgresql.execute("INSERT INTO local_device_profile (device_id,  state_custom, state_code_custom, district_custom, fcm_token, producer_id) VALUES ('88edda82418a1e916e9906a2fd7942cb', 'karnataka', '29', 'bangalore', 'token-xyz', 'sunbird-app')")
         EmbeddedPostgresql.execute(s"INSERT INTO $deviceTable (device_id,  state_custom, state_code_custom, district_custom, fcm_token, producer_id, user_declared_state, user_declared_district) VALUES ('test-device-1', 'Karnataka', '29', 'Bangalore', '', 'sunbird-portal', 'Karnataka', 'Bangalore')")
 
 

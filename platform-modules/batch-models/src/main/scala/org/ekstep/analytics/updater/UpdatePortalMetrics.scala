@@ -11,13 +11,15 @@ import com.datastax.spark.connector._
 import javax.ws.rs.core.HttpHeaders
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.{Encoders, SQLContext}
+import org.ekstep.analytics.adapter.ContentAdapter
 import org.ekstep.analytics.framework._
+import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.dispatcher.AzureDispatcher
 import org.ekstep.analytics.framework.util.{CommonUtil, JSONUtils, RestUtil}
 import org.ekstep.analytics.util.Constants
 
 import scala.util.Try
-import org.ekstep.analytics.adapter.ContentAdapter
 
 
 case class WorkFlowUsageMetrics(noOfUniqueDevices: Long, totalContentPlaySessions: Long, totalTimeSpent: Double, totalContentPublished: ContentPublishedList) extends AlgoOutput with Output with AlgoInput
@@ -57,6 +59,10 @@ object UpdatePortalMetrics extends IBatchModelTemplate[DerivedEvent, DerivedEven
 
   override def name: String = "UpdatePortalMetrics"
 
+  val db = AppConf.getConfig("postgres.db")
+  val url = AppConf.getConfig("postgres.url") + s"$db"
+  val connProperties = CommonUtil.getPostgresConnectionProps
+
   /**
     * preProcess which will fetch the `workflow_usage_summary` Event data from the Cassandra Database.
     *
@@ -77,11 +83,15 @@ object UpdatePortalMetrics extends IBatchModelTemplate[DerivedEvent, DerivedEven
     * @return - DashBoardSummary ->(uniqueDevices, totalContentPlayTime, totalTimeSpent,)
     */
   override def algorithm(data: RDD[DerivedEvent], config: Map[String, AnyRef]) (implicit sc: SparkContext, fc: FrameworkContext): RDD[WorkFlowUsageMetrics] = {
+    implicit val sqlContext = new SQLContext(sc)
+
     val publisherByLanguageList = getLanguageAndPublisherList()
     val totalContentPublished = Try(ContentAdapter.getPublishedContentList().count).getOrElse(0)
-    val noOfUniqueDevices =
-      sc.cassandraTable[DeviceProfile](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_PROFILE_TABLE)
-        .map(_.device_id).distinct().count()
+
+    val encoder = Encoders.product[DeviceProfile]
+    val noOfUniqueDevices = sqlContext.sparkSession.read.jdbc(url, Constants.DEVICE_PROFILE_TABLE, connProperties).as[DeviceProfile](encoder).rdd
+      .map(_.device_id).distinct().count()
+
     val metrics =
       sc.cassandraTable[WorkFlowUsageMetricsAlgoOutput](Constants.PLATFORM_KEY_SPACE_NAME, Constants.WORKFLOW_USAGE_SUMMARY)
         .map(event => {
