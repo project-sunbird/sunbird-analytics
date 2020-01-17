@@ -87,12 +87,11 @@ object UpdatePortalMetrics extends IBatchModelTemplate[DerivedEvent, DerivedEven
 
     val publisherByLanguageList = getLanguageAndPublisherList()
     val totalContentPublished = Try(ContentAdapter.getPublishedContentList().count).getOrElse(0)
-//    val noOfUniqueDevices =
-//      sc.cassandraTable[DeviceProfile](Constants.DEVICE_KEY_SPACE_NAME, Constants.DEVICE_PROFILE_TABLE)
-//        .map(_.device_id).distinct().count()
+
     val encoder = Encoders.product[DeviceProfile]
     val noOfUniqueDevices = sqlContext.sparkSession.read.jdbc(url, Constants.DEVICE_PROFILE_TABLE, connProperties).as[DeviceProfile](encoder).rdd
       .map(_.device_id).distinct().count()
+
     val metrics =
       sc.cassandraTable[WorkFlowUsageMetricsAlgoOutput](Constants.PLATFORM_KEY_SPACE_NAME, Constants.WORKFLOW_USAGE_SUMMARY)
         .map(event => {
