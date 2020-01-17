@@ -17,6 +17,12 @@ import org.ekstep.analytics.framework.FrameworkContext
 
 class TestUpdatePortalMetrics extends SparkSpec(null) with MockFactory {
 
+  override def beforeAll(){
+    super.beforeAll()
+    EmbeddedPostgresql.start()
+    EmbeddedPostgresql.createDeviceProfileTable()
+  }
+
   /**
     * Truncate the data from the database before run the testcase
     */
@@ -51,5 +57,10 @@ class TestUpdatePortalMetrics extends SparkSpec(null) with MockFactory {
     dashboardSummary.noOfUniqueDevices should be(0)
     dashboardSummary.totalTimeSpent should be(0.0)
     dashboardSummary.totalContentPlaySessions should be(0)
+  }
+
+  override def afterAll(): Unit ={
+    super.afterAll()
+    EmbeddedPostgresql.close()
   }
 }

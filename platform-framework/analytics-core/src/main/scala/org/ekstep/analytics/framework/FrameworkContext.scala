@@ -1,17 +1,16 @@
 package org.ekstep.analytics.framework
 
-import org.sunbird.cloud.storage.factory.StorageServiceFactory
-import org.sunbird.cloud.storage.factory.StorageConfig
-import org.sunbird.cloud.storage.conf.AppConf
-import org.sunbird.cloud.storage.BaseStorageService
 import ing.wbaa.druid.DruidConfig
-import ing.wbaa.druid.client.{ DruidClient, DruidHttpClient }
+import ing.wbaa.druid.client.DruidClient
+import org.sunbird.cloud.storage.BaseStorageService
+import org.sunbird.cloud.storage.conf.AppConf
+import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
+
 import scala.collection.mutable.Map
 
 class FrameworkContext {
 
   var dc: DruidClient = null;
-
   var storageContainers: Map[String, BaseStorageService] = Map();
 
   def initialize(storageServices: Option[Array[(String, String, String)]]) {

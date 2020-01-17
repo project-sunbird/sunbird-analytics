@@ -29,7 +29,7 @@ class TestExperimentDefinition  extends SparkSpec(null) with MockFactory {
 
     (util.getUserDetails[UserResponse](_: String)(_: Manifest[UserResponse])).
       expects(JSONUtils.serialize(criteria.filters), *).returns(userdata)
-    (util.getDeviceProfile(_: String, _: String)(_: SparkContext)).expects("local_device_db", "device_profile", *).
+    (util.getDeviceProfile(_: String)(_: SparkContext)).expects("local_device_profile", *).
       returns(loadFile[DeviceProfileModel]("src/test/resources/experiment/device_profile.txt"))
 
 
@@ -52,7 +52,7 @@ class TestExperimentDefinition  extends SparkSpec(null) with MockFactory {
     val userdata = JSONUtils.deserialize[UserResponse](Source.fromInputStream
     (getClass.getResourceAsStream("/experiment/userResponse.json")).getLines().mkString)
 
-    (util.getDeviceProfile(_: String, _: String)(_: SparkContext)).expects("local_device_db", "device_profile", *).
+    (util.getDeviceProfile(_: String)(_: SparkContext)).expects("local_device_profile", *).
       returns(loadFile[DeviceProfileModel]("src/test/resources/experiment/device_profile.txt"))
 
     val out = ExperimentDefinitionModel.algorithmProcess(experiments, schema)

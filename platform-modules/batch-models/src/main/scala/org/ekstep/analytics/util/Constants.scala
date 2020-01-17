@@ -17,7 +17,7 @@ object Constants {
     val JOB_CONFIG = "job_config";
     val WORKFLOW_USAGE_SUMMARY = "workflow_usage_summary";
     val WORKFLOW_USAGE_SUMMARY_FACT = "workflow_usage_summary_fact";
-    val DEVICE_PROFILE_TABLE = "device_profile";
+    val DEVICE_PROFILE_TABLE = env+"device_profile";
     val EXPERIMENT_DEFINITION_TABLE = "experiment_definition";
     val DIALCODE_USAGE_METRICS_TABLE = "dialcode_usage_metrics"
 

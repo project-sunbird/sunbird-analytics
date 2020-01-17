@@ -1,7 +1,7 @@
 package org.ekstep.analytics.framework
 
 import java.io.Serializable
-import java.util.Date
+import java.sql.Timestamp
 
 class Models extends Serializable {}
 
@@ -224,7 +224,7 @@ case class V3FlagContent(derived_location_retrieved: Boolean, device_data_retrie
 
 // Experiment Models
 @scala.beans.BeanInfo
-case class DeviceProfileModel(device_id: Option[String], state: Option[String], city: Option[String], first_access: Option[Date])
+case class DeviceProfileModel(device_id: Option[String], state: Option[String], city: Option[String], first_access: Option[Timestamp])
 
 case class GraphUpdateEvent(ets: Long, nodeUniqueId: String, transactionData: Map[String, Map[String, Map[String, Any]]], objectType: String, operationType: String = "UPDATE", nodeType: String = "DATA_NODE", graphId: String = "domain", nodeGraphId: Int = 0) extends AlgoOutput with Output
 
@@ -233,3 +233,13 @@ case class ItemResponse(itemId: String, itype: Option[AnyRef], ilevel: Option[An
 case class EventSummary(id: String, count: Int)
 case class EnvSummary(env: String, time_spent: Double, count: Long)
 case class PageSummary(id: String, `type`: String, env: String, time_spent: Double, visit_count: Long)
+
+// Device Summary Model
+case class DeviceProfileOutput(device_id: String, first_access: Option[Timestamp], last_access: Option[Timestamp], total_ts: Option[Double],
+                               total_launches: Option[Long], avg_ts: Option[Double],
+                               device_spec: Option[String], uaspec: Option[String], state: Option[String], city: Option[String],
+                               country: Option[String], country_code:Option[String], state_code:Option[String],
+                               state_custom: Option[String], state_code_custom: Option[String], district_custom: Option[String],
+                               fcm_token: Option[String], producer_id: Option[String], user_declared_state: Option[String],
+                               user_declared_district: Option[String], api_last_updated_on: Option[Timestamp], user_declared_on: Option[Timestamp],
+                               updated_date: Option[Timestamp] = Option(new Timestamp(System.currentTimeMillis()))) extends AlgoOutput

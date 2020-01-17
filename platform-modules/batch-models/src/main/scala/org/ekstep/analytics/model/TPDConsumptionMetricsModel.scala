@@ -47,7 +47,7 @@ object TPDConsumptionMetricsModel extends IBatchModelTemplate[Empty, CourseInfo,
   implicit val fc = new FrameworkContext()
 
   override def preProcess(events: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[CourseInfo] = {
-    val liveCourses = getLiveCourses()
+    val liveCourses = getLiveCoursesFromDruid()
     liveCourses
   }
 
@@ -132,7 +132,7 @@ object TPDConsumptionMetricsModel extends IBatchModelTemplate[Empty, CourseInfo,
     sc.parallelize(response)
   }
 
-def getLiveCourses()(implicit sc: SparkContext): RDD[CourseInfo] = {
+def getLiveCoursesFromDruid()(implicit sc: SparkContext): RDD[CourseInfo] = {
   val url = AppConf.getConfig("druid.host")
   val body = """{
                |  "queryType": "select",

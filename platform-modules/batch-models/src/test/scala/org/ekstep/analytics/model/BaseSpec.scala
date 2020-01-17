@@ -1,25 +1,10 @@
 package org.ekstep.analytics.model
 
-import org.scalatest._
-import org.cassandraunit.CQLDataLoader
-import org.cassandraunit.dataset.cql.FileCQLDataSet
-import org.cassandraunit.utils.EmbeddedCassandraServerHelper
-
-import com.datastax.spark.connector.cql.CassandraConnector
-import org.ekstep.analytics.framework.conf.AppConf
-import org.apache.spark.SparkConf
-import org.ekstep.analytics.framework.util.JobLogger
-import org.apache.commons.lang3.StringUtils
-import pl.allegro.tech.embeddedelasticsearch.EmbeddedElastic
-import pl.allegro.tech.embeddedelasticsearch.PopularProperties.{ CLUSTER_NAME, HTTP_PORT, TRANSPORT_TCP_PORT }
-import pl.allegro.tech.embeddedelasticsearch.IndexSettings
-import pl.allegro.tech.embeddedelasticsearch.IndexSettings.Builder
-import java.util.concurrent.TimeUnit.MINUTES
-import org.joda.time.DateTimeUtils
-import org.joda.time.DateTime
-import org.apache.spark.SparkContext
-import org.ekstep.analytics.util.EmbeddedCassandra
 import org.apache.spark.sql.SparkSession
+import org.apache.spark.{SparkConf, SparkContext}
+import org.ekstep.analytics.framework.conf.AppConf
+import org.ekstep.analytics.util.{EmbeddedCassandra, EmbeddedPostgresql}
+import org.scalatest._
 
 /**
  * @author Santhosh
@@ -43,7 +28,6 @@ class BaseSpec extends FlatSpec with Matchers with BeforeAndAfterAll {
   }
 
   override def beforeAll() {
-
     EmbeddedCassandra.setup();
   }
 
