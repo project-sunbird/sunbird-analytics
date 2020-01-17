@@ -116,6 +116,7 @@ object MetricsEnrollmentTPDModel extends IBatchModelTemplate[Empty, Empty, Cours
   def getLiveCoursesFromDruid(config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[CourseInfo] = {
     val configMap = config("reportConfig").asInstanceOf[Map[String, AnyRef]]
     val reportConfig = JSONUtils.deserialize[ReportConfig](JSONUtils.serialize(configMap))
+    
     val query = reportConfig.metrics.map(f => f.druidQuery)
     val druidResponse = DruidDataFetcher.getDruidData(query(0))
     val response = druidResponse.map{x => JSONUtils.deserialize[Map[String, String]](x)}
