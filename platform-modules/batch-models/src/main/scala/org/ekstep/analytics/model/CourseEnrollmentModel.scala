@@ -10,7 +10,7 @@ import org.ekstep.analytics.framework.fetcher.DruidDataFetcher
 import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger, RestUtil}
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.dispatcher.AzureDispatcher
-import org.ekstep.analytics.util.{Constants, WriteToBlob}
+import org.ekstep.analytics.util.{Constants, FileUtil}
 import org.sunbird.cloud.storage.conf.AppConf
 
 case class CourseInfo(channel: String, courseId: String, courseName: String, total_live_courses: Double)
@@ -25,9 +25,9 @@ case class Hits(_source: _source)
 case class _source(batchId: String, courseId: String, status: String, name: String, participantCount: Integer, completedCount: Integer)
 case class CourseEnrollmentOutput(date: String, courseName: String, batchName: String, status: String, enrollmentCount: Integer, completionCount: Integer, slug: String, reportName: String) extends AlgoOutput with Output
 
-object MetricsEnrollmentTPDModel extends IBatchModelTemplate[Empty, Empty, CourseEnrollmentOutput, CourseEnrollmentOutput] with Serializable {
+object CourseEnrollmentModel extends IBatchModelTemplate[Empty, Empty, CourseEnrollmentOutput, CourseEnrollmentOutput] with Serializable {
 
-  implicit val className: String = "org.ekstep.analytics.model.MetricsEnrollmentTPDModel"
+  implicit val className: String = "org.ekstep.analytics.model.CourseEnrollmentModel"
   implicit val fc = new FrameworkContext()
 
   override def preProcess(events: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[Empty] = {
@@ -49,7 +49,7 @@ object MetricsEnrollmentTPDModel extends IBatchModelTemplate[Empty, Empty, Cours
     val date = (new SimpleDateFormat("dd-MM-yyyy")).format(Calendar.getInstance().getTime)
     finalRDD.map(c=>
       CourseEnrollmentOutput(date, c._2._1._2.getOrElse(CourseInfo("", "", "", 0.0)).courseName, c._2._1._1.name, c._2._1._1.status,
-        c._2._1._1.participantCount, c._2._1._1.completedCount, c._2._2.getOrElse(TenantInfo("",date)).slug, "course_enrollment"))
+        c._2._1._1.participantCount, c._2._1._1.completedCount, c._2._2.getOrElse(TenantInfo("",date)).slug, "course_enrollments"))
   }
 
   override def postProcess(data: RDD[CourseEnrollmentOutput], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[CourseEnrollmentOutput] = {
@@ -109,14 +109,14 @@ object MetricsEnrollmentTPDModel extends IBatchModelTemplate[Empty, Empty, Cours
       data.coalesce(1).write.format("com.databricks.spark.csv").option("header", "true").mode("overwrite").save(finalPath)
 
     val renameDir = finalPath + "/renamed/"
-    WriteToBlob.renameHadoopFiles(finalPath, renameDir, reportId, dims)
+    FileUtil.renameHadoopFiles(finalPath, renameDir, reportId, dims)
   }
 
 
   def getLiveCoursesFromDruid(config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[CourseInfo] = {
     val configMap = config("reportConfig").asInstanceOf[Map[String, AnyRef]]
     val reportConfig = JSONUtils.deserialize[ReportConfig](JSONUtils.serialize(configMap))
-    
+
     val query = reportConfig.metrics.map(f => f.druidQuery)
     val druidResponse = DruidDataFetcher.getDruidData(query(0))
     val response = druidResponse.map{x => JSONUtils.deserialize[Map[String, String]](x)}
