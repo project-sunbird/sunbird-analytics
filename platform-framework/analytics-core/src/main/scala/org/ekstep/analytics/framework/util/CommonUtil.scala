@@ -781,7 +781,7 @@ object CommonUtil {
     val pass = AppConf.getConfig("postgres.pass")
 
     val connProperties = new Properties()
-    connProperties.setProperty("Driver", "org.postgresql.Driver")
+    connProperties.setProperty("driver", "org.postgresql.Driver")
     connProperties.setProperty("user", user)
     connProperties.setProperty("password", pass)
     connProperties
