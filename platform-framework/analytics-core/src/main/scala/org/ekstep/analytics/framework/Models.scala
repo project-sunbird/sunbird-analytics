@@ -2,7 +2,6 @@ package org.ekstep.analytics.framework
 
 import java.io.Serializable
 import java.sql.Timestamp
-import java.util.Date
 
 class Models extends Serializable {}
 
@@ -225,7 +224,7 @@ case class V3FlagContent(derived_location_retrieved: Boolean, device_data_retrie
 
 // Experiment Models
 @scala.beans.BeanInfo
-case class DeviceProfileModel(device_id: Option[String], state: Option[String], city: Option[String], first_access: Option[Date])
+case class DeviceProfileModel(device_id: Option[String], state: Option[String], city: Option[String], first_access: Option[Timestamp])
 
 case class GraphUpdateEvent(ets: Long, nodeUniqueId: String, transactionData: Map[String, Map[String, Map[String, Any]]], objectType: String, operationType: String = "UPDATE", nodeType: String = "DATA_NODE", graphId: String = "domain", nodeGraphId: Int = 0) extends AlgoOutput with Output
 
