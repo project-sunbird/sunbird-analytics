@@ -1,41 +1,11 @@
 package org.ekstep.analytics.model
 
 import org.apache.spark.sql.SparkSession
-import org.ekstep.analytics.framework._
+import org.ekstep.analytics.framework.{Aggregation, DruidDimension, DruidFilter, DruidQueryModel, FrameworkContext, PostAggregation, PostAggregationFields}
 import org.ekstep.analytics.framework.util.JSONUtils
-import org.ekstep.analytics.util.{EmbeddedES, EsIndex}
 import org.scalamock.scalatest.MockFactory
 
-import scala.collection.mutable.Buffer
-
-
 class TestTPDConsumptionMetricsModel extends SparkSpec(null) with MockFactory{
-
-
-  implicit var spark: SparkSession = _
-
-  override def beforeAll() = {
-    super.beforeAll()
-    spark = getSparkSession()
-
-    import org.joda.time.DateTimeUtils
-    DateTimeUtils.setCurrentMillisFixed(1531047600000L)
-    val courseBatchMapping = spark.sparkContext.textFile("src/test/resources/reports/courseBatch.json", 1).collect().head
-    println("*****Start elasticsearch************")
-    EmbeddedES.start(Array(
-              EsIndex("course-batch", Option("/_search"), None, Option(courseBatchMapping))
-    ))
-
-    EmbeddedES.loadData("course-batch", "/_search", Buffer(
-      """{"batchId": "0127462617892044804","courseId": "do_112470675618004992181","status": 2,"name": "C Programming Tutorial For Beginners -4",}""",
-      """{"batchId": "0127419590263029761308","courseId": "do_112470675618004992181","status": 1,"name": "s",}"""
-    ))
-  }
-
-  override def afterAll() {
-    //super.afterAll();
-    EmbeddedES.stop()
-  }
 
   implicit val fc = new FrameworkContext()
 
@@ -51,7 +21,7 @@ class TestTPDConsumptionMetricsModel extends SparkSpec(null) with MockFactory{
    }
 
    it should "fetch the course-batch details from the elasticsearch" in {
-//     implicit val spark = SparkSession.builder().getOrCreate()
+     implicit val spark = SparkSession.builder().getOrCreate()
      val courseIds = List("do_112470675618004992181","f13124c94392dac507bfe36d247e2246")
      val batchIds = List("0127419590263029761308","0127462617892044804")
      val courseBatch = TPDConsumptionMetricsModel.getCourseBatchFromES(JSONUtils.serialize(courseIds), JSONUtils.serialize(batchIds))
