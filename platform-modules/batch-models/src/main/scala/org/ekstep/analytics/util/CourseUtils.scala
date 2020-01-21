@@ -2,10 +2,12 @@ package org.ekstep.analytics.util
 
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.DataFrame
-import org.ekstep.analytics.framework.Params
+import org.apache.spark.sql.{DataFrame, SQLContext, SparkSession}
+import org.ekstep.analytics.framework.{FrameworkContext, Params}
 import org.ekstep.analytics.framework.util.{JSONUtils, RestUtil}
 import org.sunbird.cloud.storage.conf.AppConf
+
+import scala.collection.Map
 
 case class TenantInfo(id: String, slug: String)
 case class TenantResponse(id: String, ver: String, ts: String, params: Params, responseCode: String, result: TenantResult)
@@ -20,11 +22,14 @@ case class CourseDetails(result: Result)
 case class Result(content: List[CourseInfo])
 case class CourseInfo(channel: String, identifier: String, name: String)
 
+case class TenantSpark(id: String, slug: String)
+
 object CourseUtils {
 
-  def getLiveCourses(config: Map[String, AnyRef])(implicit sc: SparkContext): RDD[CourseInfo] = {
+  def getLiveCourses(config: Map[String, AnyRef])(implicit sc: SparkContext): DataFrame = {
+    implicit val sqlContext = new SQLContext(sc)
+    import sqlContext.implicits._
     val apiURL = Constants.COMPOSITE_SEARCH_URL
-
     val status = JSONUtils.serialize(config.get("status").get.asInstanceOf[List[String]])
     val courseIds = JSONUtils.serialize(config.get("courseIds").get.asInstanceOf[List[String]])
 
@@ -39,38 +44,27 @@ object CourseUtils {
                      |        "limit": 10000
                      |    }
                      |}""".stripMargin
-
     val response = RestUtil.post[CourseDetails](apiURL, request).result.content
-    sc.parallelize(response)
+    val data = sc.parallelize(response)
+    data.toDF()
   }
 
-  def getCourseBatchDetails()(implicit sc: SparkContext): RDD[_source] = {
-    val apiURL = Constants.ELASTIC_SEARCH_SERVICE_ENDPOINT + "/" + Constants.ELASTIC_SEARCH_INDEX_COURSEBATCH_NAME + "/_search"
-    val request = s"""{
-                     | "query":{
-                     |    "match_all":{}
-                     |  }
-                     |}""".stripMargin
-    val ESresponse = RestUtil.post[ESResponse](apiURL, request).hits.hits
-    val response = ESresponse.map(f => JSONUtils.deserialize[Hits](JSONUtils.serialize(f))._source)
-    sc.parallelize(response)
+  def loadData(spark: SparkSession, settings: Map[String, String]): DataFrame = {
+    spark
+      .read
+      .format("org.apache.spark.sql.cassandra")
+      .options(settings)
+      .load()
   }
 
-  def getTenantInfo()(implicit sc: SparkContext):  RDD[TenantInfo] = {
-    val url = Constants.ORG_SEARCH_URL + Constants.ORG_SEARCH_PATH
-    val body = """{
-                 |    "params": { },
-                 |    "request":{
-                 |        "filters": {
-                 |            "isRootOrg": true
-                 |        },
-                 |        "offset": 0,
-                 |        "limit": 1000,
-                 |        "fields": ["id", "channel", "slug", "orgName"]
-                 |    }
-                 |}""".stripMargin
-    val header = Option(Map("cache-control" -> "no-cache", "Accept" -> "application/json"))
-    sc.parallelize(RestUtil.post[TenantResponse](url, body, header).result.response.content)
+  def getCourseBatchDetails(spark: SparkSession, loadData: (SparkSession, Map[String, String]) => DataFrame): DataFrame = {
+    val sunbirdCoursesKeyspace = AppConf.getConfig("course.metrics.cassandra.sunbirdCoursesKeyspace")
+    loadData(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace)).select("courseid","batchid","name","status")
+  }
+
+  def getTenantInfo(spark: SparkSession, loadData: (SparkSession, Map[String, String]) => DataFrame): DataFrame = {
+    val sunbirdKeyspace = AppConf.getConfig("course.metrics.cassandra.sunbirdKeyspace")
+    loadData(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace)).select("slug","id")
   }
 
   def writeToCSVAndRename(data: DataFrame, config: Map[String, AnyRef])(implicit sc: SparkContext): String = {
