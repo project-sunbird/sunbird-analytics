@@ -2,21 +2,24 @@ package org.ekstep.analytics.job.report
 
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.apache.spark.sql.{DataFrame, Encoders, SparkSession}
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.util.CourseUtils.{getCourseBatchDetails, getLiveCourses, getTenantInfo, loadData}
 import org.sunbird.cloud.storage.conf.AppConf
 
 import scala.collection.Map
 
+case class BaseCourseMetricsOutput(courseName: String, batchName: String, status: String, slug: String, courseid: String, batchid: String)
+
 trait BaseCourseMetricsJob[T <: AnyRef, A <: AlgoInput, B <: AlgoOutput, R <: Output] extends IBatchModelTemplate[Empty,Empty,Empty,Empty] {
 
-  def preProcess(events: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[Empty] = {
+  def preProcess(events: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[BaseCourseMetricsOutput] = {
     val data = getCourseMetrics(config)
-    events
+    val encoder = Encoders.product[BaseCourseMetricsOutput]
+    data.as[BaseCourseMetricsOutput](encoder).rdd
   }
 
-  def algorithm(events: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[Empty]
+  def algorithm(events: RDD[BaseCourseMetricsOutput], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[Empty]
 
   def postProcess(events: RDD[Empty], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[Empty]
 
