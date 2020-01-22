@@ -2,12 +2,15 @@ package org.ekstep.analytics.util
 
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.{DataFrame, Encoders, SQLContext}
-import org.ekstep.analytics.framework.{FrameworkContext, Params}
+import org.apache.spark.sql.{DataFrame, Encoders, SQLContext, SparkSession}
+import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.dispatcher.AzureDispatcher
+import org.ekstep.analytics.framework.fetcher.DruidDataFetcher
 import org.ekstep.analytics.framework.util.{JSONUtils, RestUtil}
-import org.ekstep.analytics.model.ReportConfig
-import org.sunbird.cloud.storage.conf.AppConf
+import org.ekstep.analytics.framework.{FrameworkContext, Params}
+import org.ekstep.analytics.job.report.BaseCourseMetricsOutput
+import org.ekstep.analytics.model.{CoursePlays, ReportConfig}
+
 
 case class TenantInfo(id: String, slug: String)
 case class TenantResponse(id: String, ver: String, ts: String, params: Params, responseCode: String, result: TenantResult)
@@ -22,10 +25,20 @@ case class CourseDetails(result: Result)
 case class Result(content: List[CourseInfo])
 case class CourseInfo(channel: String, identifier: String, name: String)
 
+case class TenantSpark(id: String, slug: String)
+
+trait CourseReport {
+  def getLiveCourses(config: Map[String, AnyRef]): DataFrame
+  def postDataToBlob(data: DataFrame, config: Map[String, AnyRef]): Unit
+  def loadData(spark: SparkSession, settings: Map[String, String]): DataFrame
+  def getCourseBatchDetails(spark: SparkSession, loadData: (SparkSession, Map[String, String]) => DataFrame): DataFrame
+  def getTenantInfo(spark: SparkSession, loadData: (SparkSession, Map[String, String]) => DataFrame): DataFrame
+  def writeToCSVAndRename(data: DataFrame, config: Map[String, AnyRef])(implicit sc: SparkContext): String
+}
+
 object CourseUtils {
 
   implicit val fc = new FrameworkContext()
-
 
   def getLiveCourses(config: Map[String, AnyRef])(implicit sc: SparkContext): DataFrame = {
     implicit val sqlContext = new SQLContext(sc)
@@ -46,15 +59,11 @@ object CourseUtils {
                      |        "limit": 10000
                      |    }
                      |}""".stripMargin
-
     val response = RestUtil.post[CourseDetails](apiURL, request).result.content
     val resRDD = sc.parallelize(response)
-    resRDD.toDF()
+    resRDD.toDF("channel", "identifier", "courseName")
   }
 
-  def getCourseBatchDetails()(implicit sc: SparkContext): RDD[_source] = {
-    sc.emptyRDD
-  }
 
   def postDataToBlob(data: DataFrame, config: Map[String, AnyRef])(implicit sc: SparkContext) = {
     val configMap = config("reportConfig").asInstanceOf[Map[String, AnyRef]]
@@ -90,6 +99,24 @@ object CourseUtils {
     }
   }
 
+  def loadData(spark: SparkSession, settings: Map[String, String]): DataFrame = {
+    spark
+      .read
+      .format("org.apache.spark.sql.cassandra")
+      .options(settings)
+      .load()
+  }
+
+  def getCourseBatchDetails(spark: SparkSession, loadData: (SparkSession, Map[String, String]) => DataFrame): DataFrame = {
+    val sunbirdCoursesKeyspace = AppConf.getConfig("course.metrics.cassandra.sunbirdCoursesKeyspace")
+    loadData(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace)).select("courseid","batchid","name","status")
+  }
+
+  def getTenantInfo(spark: SparkSession, loadData: (SparkSession, Map[String, String]) => DataFrame): DataFrame = {
+    val sunbirdKeyspace = AppConf.getConfig("course.metrics.cassandra.sunbirdKeyspace")
+    loadData(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace)).select("slug","id")
+  }
+
   def writeToCSVAndRename(data: DataFrame, config: Map[String, AnyRef])(implicit sc: SparkContext): String = {
     val filePath = config.getOrElse("filePath", AppConf.getConfig("spark_output_temp_dir")).asInstanceOf[String]
     val key = config.getOrElse("key", null).asInstanceOf[String]
@@ -107,6 +134,44 @@ object CourseUtils {
 
     val renameDir = finalPath + "/renamed/"
     FileUtil.renameHadoopFiles(finalPath, renameDir, reportId, dims)
+  }
+
+  def getCourseMetrics(config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): DataFrame = {
+    val readConsistencyLevel: String = AppConf.getConfig("assessment.metrics.cassandra.input.consistency")
+    val sparkConf = sc.getConf
+      .set("spark.cassandra.input.consistency.level", readConsistencyLevel).set("spark.cassandra.connection.host", "11.2.3.63")
+      .set("spark.cassandra.connection.port","9042")
+    implicit val spark: SparkSession = SparkSession.builder.config(sparkConf).getOrCreate()
+
+    val liveCourses = CourseUtils.getLiveCourses(config)
+
+    val courseBatch = CourseUtils.getCourseBatchDetails(spark, CourseUtils.loadData)
+      .withColumnRenamed("name", "batchName")
+      .withColumnRenamed("batchid", "batchId")
+      .withColumnRenamed("courseid", "courseId")
+
+    val tenantInfo = CourseUtils.getTenantInfo(spark, CourseUtils.loadData)
+
+    val joinCourses = liveCourses.join(courseBatch, liveCourses.col("identifier") === courseBatch.col("courseId"), "inner")
+    val joinWithTenant = joinCourses.join(tenantInfo, joinCourses.col("channel") === tenantInfo.col("id"), "inner")
+    val finalDF = joinWithTenant.select("courseName","batchName","status","slug", "courseId", "batchId")
+    finalDF.show()
+    algoProcess(finalDF, config)
+    finalDF
+  }
+
+  def algoProcess(data:DataFrame,config: Map[String, AnyRef])(implicit sc: SparkContext): Unit = {
+    implicit val sqlContext = new SQLContext(sc)
+    import sqlContext.implicits._
+
+    val encoder = Encoders.product[BaseCourseMetricsOutput]
+    val dataRDD = data.as[BaseCourseMetricsOutput](encoder).rdd
+    val druidConfig = JSONUtils.deserialize[ReportConfig](JSONUtils.serialize(config.get("druidConfig").get)).metrics.map(_.druidQuery)
+    val druidResponse = DruidDataFetcher.getDruidData(druidConfig(0))
+    val response = druidResponse.map{f => JSONUtils.deserialize[CoursePlays](f)}.toDF()
+
+    val joinResponse = response.join(data, Seq("courseId", "batchId"), "left").drop("courseId", "batchId")
+
   }
 
 }
