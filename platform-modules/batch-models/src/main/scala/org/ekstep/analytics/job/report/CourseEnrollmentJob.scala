@@ -3,7 +3,7 @@ package org.ekstep.analytics.job.report
 import org.apache.spark.SparkContext
 import org.ekstep.analytics.framework.util.JobLogger
 import org.ekstep.analytics.framework.{FrameworkContext, IJob, JobDriver}
-import org.ekstep.analytics.model.CourseEnrollmentModel
+import org.ekstep.analytics.model.report.CourseEnrollmentModel
 
 object CourseEnrollmentJob extends optional.Application with IJob {
   implicit val className = "org.ekstep.analytics.job.CourseEnrollmentJob"
