@@ -1,15 +1,12 @@
 package org.ekstep.analytics.model
 
-import java.text.SimpleDateFormat
-import java.util.Calendar
-
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{DataFrame, SQLContext}
-import org.ekstep.analytics.framework.fetcher.DruidDataFetcher
-import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger, RestUtil}
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.dispatcher.AzureDispatcher
+import org.ekstep.analytics.framework.fetcher.DruidDataFetcher
+import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger, RestUtil}
 import org.ekstep.analytics.util.{Constants, FileUtil}
 import org.sunbird.cloud.storage.conf.AppConf
 
@@ -42,14 +39,15 @@ object CourseEnrollmentModel extends IBatchModelTemplate[Empty, Empty, CourseEnr
     val courseBatchES= courseBatch.map(f => (f.courseId, f))
 
     val joinCourses = courseBatchES.leftOuterJoin(liveCoursesDruid)
-    val tenantInfo = getTenantInfo()
-    val tenantInfoAPI = tenantInfo.map(f => (f.id, f))
-
-    val finalRDD = joinCourses.leftOuterJoin(tenantInfoAPI)
-    val date = (new SimpleDateFormat("dd-MM-yyyy")).format(Calendar.getInstance().getTime)
-    finalRDD.map(c=>
-      CourseEnrollmentOutput(date, c._2._1._2.getOrElse(CourseInfo("", "", "", 0.0)).courseName, c._2._1._1.name, c._2._1._1.status,
-        c._2._1._1.participantCount, c._2._1._1.completedCount, c._2._2.getOrElse(TenantInfo("",date)).slug, "course_enrollments"))
+//    val tenantInfo = getTenantInfo()
+//    val tenantInfoAPI = tenantInfo.map(f => (f.id, f))
+//
+//    val finalRDD = joinCourses.leftOuterJoin(tenantInfoAPI)
+//    val date = (new SimpleDateFormat("dd-MM-yyyy")).format(Calendar.getInstance().getTime)
+//    finalRDD.map(c=>
+//      CourseEnrollmentOutput(date, c._2._1._2.getOrElse(CourseInfo("", "", "", 0.0)).courseName, c._2._1._1.name, c._2._1._1.status,
+//        c._2._1._1.participantCount, c._2._1._1.completedCount, c._2._2.getOrElse(TenantInfo("",date)).slug, "course_enrollments"))
+    sc.emptyRDD
   }
 
   override def postProcess(data: RDD[CourseEnrollmentOutput], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[CourseEnrollmentOutput] = {
@@ -136,22 +134,4 @@ object CourseEnrollmentModel extends IBatchModelTemplate[Empty, Empty, CourseEnr
     val response = ESresponse.map(f => JSONUtils.deserialize[Hits](JSONUtils.serialize(f))._source)
     sc.parallelize(response)
   }
-
-  def getTenantInfo()(implicit sc: SparkContext):  RDD[TenantInfo] = {
-    val url = Constants.ORG_SEARCH_URL + Constants.ORG_SEARCH_PATH
-    val body = """{
-                 |    "params": { },
-                 |    "request":{
-                 |        "filters": {
-                 |            "isRootOrg": true
-                 |        },
-                 |        "offset": 0,
-                 |        "limit": 1000,
-                 |        "fields": ["id", "channel", "slug", "orgName"]
-                 |    }
-                 |}""".stripMargin
-    val header = Option(Map("cache-control" -> "no-cache", "Accept" -> "application/json"))
-    sc.parallelize(RestUtil.post[TenantResponse](url, body, header).result.response.content)
-  }
-
 }

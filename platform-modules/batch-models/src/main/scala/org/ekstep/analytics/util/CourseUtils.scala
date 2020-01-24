@@ -1,36 +1,36 @@
 package org.ekstep.analytics.util
 
 import org.apache.spark.SparkContext
-import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.{DataFrame, SQLContext, SparkSession}
-import org.ekstep.analytics.framework.{FrameworkContext, Params}
+import org.apache.spark.sql.{DataFrame, Encoders, SQLContext, SparkSession}
+import org.ekstep.analytics.framework.FrameworkContext
+import org.ekstep.analytics.framework.conf.AppConf
+import org.ekstep.analytics.framework.dispatcher.AzureDispatcher
 import org.ekstep.analytics.framework.util.{JSONUtils, RestUtil}
-import org.sunbird.cloud.storage.conf.AppConf
+import org.ekstep.analytics.model.ReportConfig
 
-import scala.collection.Map
-
-case class TenantInfo(id: String, slug: String)
-case class TenantResponse(id: String, ver: String, ts: String, params: Params, responseCode: String, result: TenantResult)
-case class TenantResult(response: ContentList)
-case class ContentList(count: Int, content: List[TenantInfo])
-case class ESResponse(took: Double, timed_out: Boolean, _shards: _shards, hits: Hit)
-case class _shards(total: Option[Double], successful: Option[Double], skipped: Option[Double], failed: Option[Double])
-case class Hit(total: Double, max_score: Double, hits: List[Hits])
-case class Hits(_source: _source)
-case class _source(batchId: String, courseId: String, status: String, name: String, participantCount: Integer, completedCount: Integer)
+//Getting live courses from compositesearch
 case class CourseDetails(result: Result)
 case class Result(content: List[CourseInfo])
 case class CourseInfo(channel: String, identifier: String, name: String)
 
-case class TenantSpark(id: String, slug: String)
+trait CourseReport {
+  def getLiveCourses(config: Map[String, AnyRef])(sc: SparkContext): DataFrame
+
+  def loadData(spark: SparkSession, settings: Map[String, String]): DataFrame
+
+  def getCourseBatchDetails(spark: SparkSession, loadData: (SparkSession, Map[String, String]) => DataFrame): DataFrame
+  def getTenantInfo(spark: SparkSession, loadData: (SparkSession, Map[String, String]) => DataFrame): DataFrame
+  def writeToCSVAndRename(data: DataFrame, config: Map[String, AnyRef])(implicit sc: SparkContext): String
+}
 
 object CourseUtils {
 
-  def getLiveCourses(config: Map[String, AnyRef])(implicit sc: SparkContext): DataFrame = {
+  def getLiveCourses(config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): DataFrame = {
     implicit val sqlContext = new SQLContext(sc)
     import sqlContext.implicits._
+
     val apiURL = Constants.COMPOSITE_SEARCH_URL
-    val status = JSONUtils.serialize(config.get("status").get.asInstanceOf[List[String]])
+    val status = JSONUtils.serialize(config.get("courseStatus").get.asInstanceOf[List[String]])
     val courseIds = JSONUtils.serialize(config.get("courseIds").get.asInstanceOf[List[String]])
 
     val request = s"""{
@@ -38,15 +38,50 @@ object CourseUtils {
                      |        "filters":{
                      |            "objectType": ["Content"],
                      |            "contentType": ["Course"],
-                     |            "identifiers": $courseIds,
+                     |            "identifier": $courseIds,
                      |            "status": $status
                      |        },
                      |        "limit": 10000
                      |    }
                      |}""".stripMargin
     val response = RestUtil.post[CourseDetails](apiURL, request).result.content
-    val data = sc.parallelize(response)
-    data.toDF()
+    val resRDD = sc.parallelize(response)
+    resRDD.toDF("channel", "identifier", "courseName")
+  }
+
+
+  def postDataToBlob(data: DataFrame, config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext) = {
+    val configMap = config("druidConfig").asInstanceOf[Map[String, AnyRef]]
+    val reportConfig = JSONUtils.deserialize[ReportConfig](JSONUtils.serialize(configMap))
+
+    reportConfig.metrics.flatMap{c => List()}
+    val dimFields = reportConfig.metrics.flatMap { m =>
+      if (m.druidQuery.dimensions.nonEmpty) m.druidQuery.dimensions.get.map(f => f.aliasName.getOrElse(f.fieldName))
+      else List()
+    }
+
+    val labelsLookup = reportConfig.labels ++ Map("date" -> "Date")
+    implicit val sqlContext = new SQLContext(sc)
+
+    // Using foreach as parallel execution might conflict with local file path
+    val key = config.getOrElse("key", null).asInstanceOf[String]
+    reportConfig.output.foreach { f =>
+      if ("csv".equalsIgnoreCase(f.`type`)) {
+        val metricFields = f.metrics
+        val fieldsList = data.columns
+        val dimsLabels = labelsLookup.filter(x => f.dims.contains(x._1)).values.toList
+        val filteredDf = data.select(fieldsList.head, fieldsList.tail: _*)
+        val renamedDf = filteredDf.select(filteredDf.columns.map(c => filteredDf.col(c).as(labelsLookup.getOrElse(c, c))): _*)
+        val reportFinalId = if (f.label.nonEmpty && f.label.get.nonEmpty) reportConfig.id + "/" + f.label.get else reportConfig.id
+        renamedDf.show()
+        val dirPath = writeToCSVAndRename(renamedDf, config ++ Map("dims" -> dimsLabels, "reportId" -> reportFinalId, "fileParameters" -> f.fileParameters))
+        AzureDispatcher.dispatchDirectory(config ++ Map("dirPath" -> (dirPath + reportFinalId + "/"), "key" -> (key + reportFinalId + "/")))
+      } else {
+        val encoder = Encoders.STRING
+        val strData = data.map(f => JSONUtils.serialize(f))(encoder)
+        AzureDispatcher.dispatch(strData.collect(), config)
+      }
+    }
   }
 
   def loadData(spark: SparkSession, settings: Map[String, String]): DataFrame = {
@@ -58,7 +93,7 @@ object CourseUtils {
   }
 
   def getCourseBatchDetails(spark: SparkSession, loadData: (SparkSession, Map[String, String]) => DataFrame): DataFrame = {
-    val sunbirdCoursesKeyspace = AppConf.getConfig("course.metrics.cassandra.sunbirdCoursesKeyspace")
+    val sunbirdCoursesKeyspace = Constants.SUNBIRD_COURSES_KEY_SPACE
     loadData(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace)).select("courseid","batchid","name","status")
   }
 
@@ -67,7 +102,7 @@ object CourseUtils {
     loadData(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace)).select("slug","id")
   }
 
-  def writeToCSVAndRename(data: DataFrame, config: Map[String, AnyRef])(implicit sc: SparkContext): String = {
+  def writeToCSVAndRename(data: DataFrame, config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): String = {
     val filePath = config.getOrElse("filePath", AppConf.getConfig("spark_output_temp_dir")).asInstanceOf[String]
     val key = config.getOrElse("key", null).asInstanceOf[String]
     val reportId = config.getOrElse("reportId", "").asInstanceOf[String]
@@ -85,5 +120,4 @@ object CourseUtils {
     val renameDir = finalPath + "/renamed/"
     FileUtil.renameHadoopFiles(finalPath, renameDir, reportId, dims)
   }
-
 }
