@@ -38,5 +38,6 @@ object Constants {
     val ELASTIC_SEARCH_SERVICE_ENDPOINT = AppConf.getConfig("elasticsearch.service.endpoint")
     val ELASTIC_SEARCH_INDEX_COMPOSITESEARCH_NAME = AppConf.getConfig("elasticsearch.index.compositesearch.name")
     val ELASTIC_SEARCH_INDEX_COURSEBATCH_NAME = AppConf.getConfig("elasticsearch.index.coursebatch.name")
+    val SUNBIRD_COURSES_KEY_SPACE = AppConf.getConfig("course.metrics.cassandra.sunbirdCoursesKeyspace")
 
 }

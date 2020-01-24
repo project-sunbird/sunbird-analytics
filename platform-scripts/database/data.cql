@@ -302,7 +302,12 @@ CREATE TABLE IF NOT EXISTS sunbird.location (
     AND read_repair_chance = 0.0
     AND speculative_retry = '99PERCENTILE';
 
-    CREATE TABLE sunbird_courses.course_batch (
+CREATE KEYSPACE IF NOT EXISTS sunbird_courses WITH replication = {
+      'class': 'SimpleStrategy',
+      'replication_factor': '1'
+};
+
+CREATE TABLE sunbird_courses.course_batch (
         courseid text,
         batchid text,
         cert_templates map<text, frozen<map<text, text>>>,
@@ -334,5 +339,5 @@ CREATE TABLE IF NOT EXISTS sunbird.location (
         AND min_index_interval = 128
         AND read_repair_chance = 0.0
         AND speculative_retry = '99PERCENTILE';
-    CREATE INDEX inx_cou_bat_status ON sunbird_courses.course_batch (status);
+CREATE INDEX inx_cou_bat_status ON sunbird_courses.course_batch (status);
     
