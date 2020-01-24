@@ -1,4 +1,4 @@
-package org.ekstep.analytics.model
+package org.ekstep.analytics.model.report
 
 import java.time.{ZoneOffset, ZonedDateTime}
 
@@ -11,6 +11,7 @@ import org.apache.spark.SparkContext
 import org.apache.spark.sql.{DataFrame, SQLContext, SparkSession}
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.framework.util.{HTTPClient, JSONUtils}
+import org.ekstep.analytics.model.{ReportConfig, SparkSpec}
 import org.ekstep.analytics.util.{CourseDetails, CourseReport, EmbeddedCassandra}
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.cloud.storage.BaseStorageService
@@ -18,7 +19,7 @@ import org.sunbird.cloud.storage.BaseStorageService
 import scala.concurrent.Future
 import scala.io.Source
 
-class TestTPDConsumptionMetricsModel extends SparkSpec(null) with MockFactory{
+class TestCourseConsumptionModel extends SparkSpec(null) with MockFactory{
 
   implicit val mockCourseReport: CourseReport = mock[CourseReport]
   val mockRestUtil = mock[HTTPClient]
@@ -73,7 +74,7 @@ class TestTPDConsumptionMetricsModel extends SparkSpec(null) with MockFactory{
     (mockDruidClient.doQuery(_: DruidQuery)(_: DruidConfig)).expects(*, mockDruidConfig).returns(Future(druidResponse)).anyNumberOfTimes()
     (mockFc.getDruidClient _).expects().returns(mockDruidClient).anyNumberOfTimes()
 
-    val result = TPDConsumptionMetricsModel.execute(sc.emptyRDD, jobConfig)
+    val result = CourseConsumptionModel.execute(sc.emptyRDD, jobConfig)
 
     result.count() should be (1)
     result.collect().map{f =>

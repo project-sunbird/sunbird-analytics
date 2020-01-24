@@ -1,4 +1,4 @@
-package org.ekstep.analytics.model
+package org.ekstep.analytics.model.report
 
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
@@ -8,6 +8,7 @@ import org.ekstep.analytics.framework.fetcher.DruidDataFetcher
 import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger}
 import org.ekstep.analytics.job.report.{BaseCourseMetrics, BaseCourseMetricsOutput}
 import org.ekstep.analytics.util.CourseUtils
+import org.ekstep.analytics.model.ReportConfig
 
 //Timespent In Mins for a course: getCoursePlays
 case class CoursePlays(date: String, courseId: String, batchId: String, timespent: Option[Double] = Option(0))
@@ -16,10 +17,10 @@ case class CourseKeys(courseId: String, batchId: String)
 //Final Output
 case class CourseConsumptionOutput(date: String, courseName: String, batchName: String, status: String, timespent: Option[Double] = Option(0), slug: String, reportName: String) extends AlgoOutput with Output
 
-object TPDConsumptionMetricsModel extends BaseCourseMetrics[Empty, BaseCourseMetricsOutput, CourseConsumptionOutput, CourseConsumptionOutput] with Serializable {
+object CourseConsumptionModel extends BaseCourseMetrics[Empty, BaseCourseMetricsOutput, CourseConsumptionOutput, CourseConsumptionOutput] with Serializable {
 
-  implicit val className = "org.ekstep.analytics.model.TPDConsumptionMetricsModel"
-  override def name: String = "TPDConsumptionMetricsModel"
+  implicit val className = "org.ekstep.analytics.model.CourseConsumptionModel"
+  override def name: String = "CourseConsumptionModel"
 
   implicit val fc = new FrameworkContext()
 

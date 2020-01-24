@@ -5,18 +5,15 @@ import java.util.Calendar
 
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.{DataFrame, SQLContext}
-import org.ekstep.analytics.model.ReportConfig
-import org.ekstep.analytics.framework.fetcher.DruidDataFetcher
-import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger, RestUtil}
+import org.apache.spark.sql.{DataFrame, Encoders, SQLContext, SparkSession}
+import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger}
 import org.ekstep.analytics.framework._
-import org.ekstep.analytics.framework.dispatcher.AzureDispatcher
 import org.ekstep.analytics.job.report.{BaseCourseMetrics, BaseCourseMetricsOutput}
-import org.ekstep.analytics.util.{Constants, CourseUtils, FileUtil, TenantInfo}
+import org.ekstep.analytics.util.CourseUtils
 import org.sunbird.cloud.storage.conf.AppConf
 
-
-case class CourseEnrollmentOutput(date: String, courseName: String, batchName: String, status: String, enrollmentCount: Integer, completionCount: Integer, slug: String, reportName: String) extends AlgoOutput with Output
+case class CourseEnrollmentOutput(date: String, courseName: String, batchName: String, status: String, enrollmentCount: BigInt, completionCount: BigInt, slug: String, reportName: String) extends AlgoOutput with Output
+case class ESResponse(participantCount: BigInt, completedCount: BigInt, courseId: String)
 
 object CourseEnrollmentModel extends BaseCourseMetrics[Empty, BaseCourseMetricsOutput, CourseEnrollmentOutput, CourseEnrollmentOutput] with Serializable {
 
@@ -24,49 +21,66 @@ object CourseEnrollmentModel extends BaseCourseMetrics[Empty, BaseCourseMetricsO
   implicit val fc = new FrameworkContext()
 
   override def algorithm(events: RDD[BaseCourseMetricsOutput], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[CourseEnrollmentOutput] = {
-    events
-    println("testing flow")
-    sc.parallelize(List(CourseEnrollmentOutput("","","","",2,2,"","")))
+    val finalRDD = getCourseEnrollmentOutput(events)
+    val date = (new SimpleDateFormat("dd-MM-yyyy")).format(Calendar.getInstance().getTime)
+    finalRDD.map(f => CourseEnrollmentOutput(date,f._1.courseName,f._1.batchName,f._1.status,
+      f._2.getOrElse(ESResponse(0,0,"")).participantCount,f._2.getOrElse(ESResponse(0,0,"")).completedCount,f._1.slug,"course_enrollments"))
   }
 
   override def postProcess(data: RDD[CourseEnrollmentOutput], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[CourseEnrollmentOutput] = {
-
+    implicit val sqlContext = new SQLContext(sc)
+    import sqlContext.implicits._
     if (data.count() > 0) {
-      val configMap = config("druidConfig").asInstanceOf[Map[String, AnyRef]]
-      val reportConfig = JSONUtils.deserialize[ReportConfig](JSONUtils.serialize(configMap))
-
-      reportConfig.metrics.flatMap{c => List()}
-      val dimFields = reportConfig.metrics.flatMap { m =>
-        if (m.druidQuery.dimensions.nonEmpty) m.druidQuery.dimensions.get.map(f => f.aliasName.getOrElse(f.fieldName))
-        else List()
-      }
-
-      val labelsLookup = reportConfig.labels ++ Map("date" -> "Date")
-      implicit val sqlContext = new SQLContext(sc)
-      import sqlContext.implicits._
-
-      // Using foreach as parallel execution might conflict with local file path
-      val key = config.getOrElse("key", null).asInstanceOf[String]
-      reportConfig.output.foreach { f =>
-        if ("csv".equalsIgnoreCase(f.`type`)) {
-          val df = data.toDF().na.fill(0L)
-          val metricFields = f.metrics
-          val fieldsList = df.columns
-          val dimsLabels = labelsLookup.filter(x => f.dims.contains(x._1)).values.toList
-          val filteredDf = df.select(fieldsList.head, fieldsList.tail: _*)
-          val renamedDf = filteredDf.select(filteredDf.columns.map(c => filteredDf.col(c).as(labelsLookup.getOrElse(c, c))): _*)
-          val reportFinalId = if (f.label.nonEmpty && f.label.get.nonEmpty) reportConfig.id + "/" + f.label.get else reportConfig.id
-          renamedDf.show()
-          val dirPath = CourseUtils.writeToCSVAndRename(renamedDf, config ++ Map("dims" -> dimsLabels, "reportId" -> reportFinalId, "fileParameters" -> f.fileParameters))
-          AzureDispatcher.dispatchDirectory(config ++ Map("dirPath" -> (dirPath + reportFinalId + "/"), "key" -> (key + reportFinalId + "/")))
-        } else {
-          val strData = data.map(f => JSONUtils.serialize(f))
-          AzureDispatcher.dispatch(strData.collect(), config)
-        }
-      }
+      val df = data.toDF().na.fill(0L)
+      CourseUtils.postDataToBlob(df, config)
     } else {
-      JobLogger.log("No data found from druid", None, Level.INFO)
+      JobLogger.log("No data found", None, Level.INFO)
     }
     data
+  }
+
+  def getCourseEnrollmentOutput(events: RDD[BaseCourseMetricsOutput])(implicit sc: SparkContext, fc: FrameworkContext): RDD[(BaseCourseMetricsOutput, Option[ESResponse])] =  {
+    val batchId = events.collect().map(f => f.batchId)
+    val courseId = events.collect().map(f => f.courseId)
+    implicit val spark: SparkSession = SparkSession.builder().getOrCreate()
+    val courseCounts = getCourseBatchCounts(JSONUtils.serialize(courseId),JSONUtils.serialize(batchId))
+    val baseCourseMetricsOutput = events.map(f=> (f.courseId,f))
+
+    val encoder = Encoders.product[ESResponse]
+    val courseInfo = courseCounts.as[ESResponse](encoder).rdd
+
+    val courses = courseInfo.map(f => (f.courseId, f))
+    val finalRDD = baseCourseMetricsOutput.leftOuterJoin(courses)
+    finalRDD.map(f => f._2)
+  }
+
+  def getCourseBatchCounts(courseIds: String, batchIds: String)(implicit sc: SparkContext, spark: SparkSession) : DataFrame = {
+    val request = s"""{
+                     |  "query": {
+                     |    "bool": {
+                     |      "filter": [
+                     |        {
+                     |          "terms": {
+                     |            "courseId.raw": $courseIds
+                     |          }
+                     |        },
+                     |        {
+                     |          "terms": {
+                     |            "batchId.raw": $batchIds
+                     |          }
+                     |        }
+                     |      ]
+                     |    }
+                     |  }
+                     |}""".stripMargin
+
+    spark.read.format("org.elasticsearch.spark.sql")
+      .option("query", request)
+      .option("pushdown", "true")
+      .option("es.nodes", AppConf.getConfig("es.composite.host"))
+      .option("es.port", AppConf.getConfig("es.port"))
+      .option("es.scroll.size", AppConf.getConfig("es.scroll.size"))
+      .option("inferSchema", "true")
+      .load("course-batch").select("participantCount", "completedCount", "courseId")
   }
 }
