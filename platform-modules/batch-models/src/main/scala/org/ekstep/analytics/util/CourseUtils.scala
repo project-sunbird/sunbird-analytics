@@ -1,6 +1,7 @@
 package org.ekstep.analytics.util
 
 import org.apache.spark.SparkContext
+import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.{DataFrame, Encoders, SQLContext, SparkSession}
 import org.ekstep.analytics.framework.FrameworkContext
 import org.ekstep.analytics.framework.conf.AppConf
@@ -94,7 +95,13 @@ object CourseUtils {
 
   def getCourseBatchDetails(spark: SparkSession, loadData: (SparkSession, Map[String, String]) => DataFrame): DataFrame = {
     val sunbirdCoursesKeyspace = Constants.SUNBIRD_COURSES_KEY_SPACE
-    loadData(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace)).select("courseid","batchid","name","status")
+    loadData(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace))
+      .select(
+        col("courseid").as("courseId"),
+        col("batchid").as("batchId"),
+        col("name").as("batchName"),
+        col("status").as("status")
+      )
   }
 
   def getTenantInfo(spark: SparkSession, loadData: (SparkSession, Map[String, String]) => DataFrame): DataFrame = {
