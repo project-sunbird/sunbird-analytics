@@ -5,6 +5,7 @@ import org.apache.spark.sql.SQLContext
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.{FrameworkContext, JobConfig}
 import org.ekstep.analytics.model.SparkSpec
+import org.ekstep.analytics.model.report.CourseEnrollmentOutput
 import org.scalamock.scalatest.MockFactory
 
 import scala.io.Source
@@ -25,5 +26,47 @@ class TestCourseUtils extends SparkSpec(null) with MockFactory{
     import sqlContext.implicits._
     val userDF = userdata.toDF("channel", "identifier", "courseName")
     (mockCourseReport.getLiveCourses(_: Map[String, AnyRef])(_: SparkContext)).expects(jobConfig.get, *).returns(userDF).anyNumberOfTimes()
+  }
+
+  "CourseUtils" should "write to csv even if fileParams not specified" in {
+    implicit val sqlContext = new SQLContext(sc)
+    import sqlContext.implicits._
+    val config = s"""{
+                    |	"reportConfig": {
+                    |		"id": "tpd_metrics",
+                    |    "metrics" : [],
+                    |		"labels": {
+                    |			"completionCount": "Completion Count",
+                    |			"status": "Status",
+                    |			"enrollmentCount": "Enrollment Count",
+                    |			"courseName": "Course Name",
+                    |			"batchName": "Batch Name",
+                    |     "BatchStatus":"Batch Status"
+                    |		},
+                    |		"output": [{
+                    |			"type": "csv",
+                    |			"dims": [],
+                    |			"fileParameters": []
+                    |		}]
+                    |	},
+                    | "esConfig": {
+                    | "request": {
+                    |        "filters":{
+                    |            "objectType": ["Content"],
+                    |            "contentType": ["Course"],
+                    |            "identifier": [],
+                    |            "status": ["Live"]
+                    |        },
+                    |        "limit": 10000
+                    |    }
+                    | },
+                    |	"key": "druid-reports/",
+                    |	"filePath": "src/test/resources/",
+                    |	"bucket": "test-container",
+                    |	"folderPrefix": []
+                    |}""".stripMargin
+    val jobConfig = JSONUtils.deserialize[Map[String, AnyRef]](config)
+    val dataDf = sc.parallelize(List(CourseEnrollmentOutput("2020-03-20","TestCourse","TestBatch","Ongoing",3,4,"unknown","course-enrollments"))).toDF()
+    CourseUtils.writeToCSVAndRename(dataDf,jobConfig)
   }
 }
