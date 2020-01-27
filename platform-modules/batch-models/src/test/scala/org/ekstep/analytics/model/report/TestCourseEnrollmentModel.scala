@@ -39,7 +39,7 @@ class TestCourseEnrollmentModel extends SparkSpec with Matchers with MockFactory
     EmbeddedES.stop()
   }
 
-  "CourseEnrollmentModel" should "execute Course" in {
+  "CourseEnrollmentModel" should "execute Course Enrollment model" in {
     implicit val sqlContext = new SQLContext(sc)
     implicit val mockFc = mock[FrameworkContext]
 
@@ -57,7 +57,8 @@ class TestCourseEnrollmentModel extends SparkSpec with Matchers with MockFactory
                     |			"status": "Status",
                     |			"enrollmentCount": "Enrollment Count",
                     |			"courseName": "Course Name",
-                    |			"batchName": "Batch Name"
+                    |			"batchName": "Batch Name",
+                    |     "BatchStatus":"Batch Status"
                     |		},
                     |		"output": [{
                     |			"type": "csv",
@@ -91,15 +92,22 @@ class TestCourseEnrollmentModel extends SparkSpec with Matchers with MockFactory
     (mockCourseReport.getLiveCourses(_: Map[String, AnyRef])(_: SparkContext)).expects(jobConfig, *).returns(userDF).anyNumberOfTimes()
 
     val result = CourseEnrollmentModel.execute(sc.emptyRDD, Option(jobConfig))
+    result.count() should be(4)
+
+    result.collect().map(f => {
+      f.completionCount should be(0)
+    })
 
     val configMap = jobConfig.get("reportConfig").get.asInstanceOf[Map[String,AnyRef]]
     val reportId = JSONUtils.deserialize[ReportConfig](JSONUtils.serialize(configMap)).id
 
     val slug = result.collect().map(f => f.slug).toList
     val reportName = result.collect().map(_.reportName).toList.head
+    slug.head should be ("MPSlug")
     val filePath = jobConfig.get("filePath").get.asInstanceOf[String]
     val key = jobConfig.get("key").get.asInstanceOf[String]
     val outDir = filePath + key + "renamed/" + reportId + "/" + slug.head + "/"
+    outDir should be ("src/test/resources/druid-reports/renamed/tpd_metrics/MPSlug/")
   }
 
   it should "give error if there is no data for output" in {
