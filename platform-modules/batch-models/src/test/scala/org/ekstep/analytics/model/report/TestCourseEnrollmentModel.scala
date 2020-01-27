@@ -1,16 +1,9 @@
 package org.ekstep.analytics.model.report
 
-import java.time.{ZoneOffset, ZonedDateTime}
-
-import ing.wbaa.druid.client.DruidClient
-import ing.wbaa.druid._
-import io.circe.Json
-import io.circe.parser.parse
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.{DataFrame, SQLContext, SparkSession}
 import org.ekstep.analytics.framework._
-import org.ekstep.analytics.framework.util.{HTTPClient, JSONUtils}
-import org.ekstep.analytics.job.report.BaseCourseMetricsOutput
+import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.model.{ReportConfig, SparkSpec}
 import org.ekstep.analytics.util._
 import org.scalamock.scalatest.MockFactory
@@ -18,7 +11,6 @@ import org.scalatest.Matchers
 import org.sunbird.cloud.storage.BaseStorageService
 
 import scala.collection.mutable.Buffer
-import scala.concurrent.Future
 import scala.io.Source
 
 class TestCourseEnrollmentModel extends SparkSpec with Matchers with MockFactory {
@@ -57,7 +49,7 @@ class TestCourseEnrollmentModel extends SparkSpec with Matchers with MockFactory
     (mockStorageService.closeContext _).expects().returns().anyNumberOfTimes()
 
     val config = s"""{
-                    |	"druidConfig": {
+                    |	"reportConfig": {
                     |		"id": "tpd_metrics",
                     |    "metrics" : [],
                     |		"labels": {
@@ -65,7 +57,8 @@ class TestCourseEnrollmentModel extends SparkSpec with Matchers with MockFactory
                     |			"status": "Status",
                     |			"enrollmentCount": "Enrollment Count",
                     |			"courseName": "Course Name",
-                    |			"batchName": "Batch Name"
+                    |			"batchName": "Batch Name",
+                    |     "BatchStatus":"Batch Status"
                     |		},
                     |		"output": [{
                     |			"type": "csv",
@@ -73,8 +66,17 @@ class TestCourseEnrollmentModel extends SparkSpec with Matchers with MockFactory
                     |			"fileParameters": ["id", "dims"]
                     |		}]
                     |	},
-                    |	"courseIds": [],
-                    |	"courseStatus": ["Live"],
+                    | "esConfig": {
+                    | "request": {
+                    |        "filters":{
+                    |            "objectType": ["Content"],
+                    |            "contentType": ["Course"],
+                    |            "identifier": [],
+                    |            "status": ["Live"]
+                    |        },
+                    |        "limit": 10000
+                    |    }
+                    | },
                     |	"key": "druid-reports/",
                     |	"filePath": "src/test/resources/",
                     |	"bucket": "test-container",
@@ -96,7 +98,7 @@ class TestCourseEnrollmentModel extends SparkSpec with Matchers with MockFactory
       f.completionCount should be(0)
     })
 
-    val configMap = jobConfig.get("druidConfig").get.asInstanceOf[Map[String,AnyRef]]
+    val configMap = jobConfig.get("reportConfig").get.asInstanceOf[Map[String,AnyRef]]
     val reportId = JSONUtils.deserialize[ReportConfig](JSONUtils.serialize(configMap)).id
 
     val slug = result.collect().map(f => f.slug).toList

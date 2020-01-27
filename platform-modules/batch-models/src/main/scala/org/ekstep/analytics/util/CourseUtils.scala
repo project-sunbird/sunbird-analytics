@@ -26,33 +26,47 @@ trait CourseReport {
 
 object CourseUtils {
 
-  def getLiveCourses(config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): DataFrame = {
+  def getCourse(config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): DataFrame = {
     implicit val sqlContext = new SQLContext(sc)
     import sqlContext.implicits._
 
     val apiURL = Constants.COMPOSITE_SEARCH_URL
-    val status = JSONUtils.serialize(config.get("courseStatus").get.asInstanceOf[List[String]])
-    val courseIds = JSONUtils.serialize(config.get("courseIds").get.asInstanceOf[List[String]])
-
-    val request = s"""{
-                     | "request": {
-                     |        "filters":{
-                     |            "objectType": ["Content"],
-                     |            "contentType": ["Course"],
-                     |            "identifier": $courseIds,
-                     |            "status": $status
-                     |        },
-                     |        "limit": 10000
-                     |    }
-                     |}""".stripMargin
+    val request = JSONUtils.serialize(config.get("esConfig").get)
     val response = RestUtil.post[CourseDetails](apiURL, request).result.content
     val resRDD = sc.parallelize(response)
     resRDD.toDF("channel", "identifier", "courseName")
+
   }
 
+  def loadData(settings: Map[String, String])(implicit sc: SparkContext): DataFrame = {
+    implicit val sqlContext = new SQLContext(sc)
+
+    sqlContext.sparkSession
+      .read
+      .format("org.apache.spark.sql.cassandra")
+      .option("spark.cassandra.connection.host", AppConf.getConfig("spark.cassandra.connection.host"))
+      .options(settings)
+      .load()
+  }
+
+  def getCourseBatchDetails()(implicit sc: SparkContext): DataFrame = {
+    val sunbirdCoursesKeyspace = Constants.SUNBIRD_COURSES_KEY_SPACE
+    loadData(Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace))
+      .select(
+        col("courseid").as("courseId"),
+        col("batchid").as("batchId"),
+        col("name").as("batchName"),
+        col("status").as("status")
+      )
+  }
+
+  def getTenantInfo()(implicit sc: SparkContext): DataFrame = {
+    val sunbirdKeyspace = AppConf.getConfig("course.metrics.cassandra.sunbirdKeyspace")
+    loadData(Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace)).select("slug","id")
+  }
 
   def postDataToBlob(data: DataFrame, config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext) = {
-    val configMap = config("druidConfig").asInstanceOf[Map[String, AnyRef]]
+    val configMap = config("reportConfig").asInstanceOf[Map[String, AnyRef]]
     val reportConfig = JSONUtils.deserialize[ReportConfig](JSONUtils.serialize(configMap))
 
     reportConfig.metrics.flatMap{c => List()}
@@ -83,30 +97,6 @@ object CourseUtils {
         AzureDispatcher.dispatch(strData.collect(), config)
       }
     }
-  }
-
-  def loadData(spark: SparkSession, settings: Map[String, String]): DataFrame = {
-    spark
-      .read
-      .format("org.apache.spark.sql.cassandra")
-      .options(settings)
-      .load()
-  }
-
-  def getCourseBatchDetails(spark: SparkSession): DataFrame = {
-    val sunbirdCoursesKeyspace = Constants.SUNBIRD_COURSES_KEY_SPACE
-    loadData(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace))
-      .select(
-        col("courseid").as("courseId"),
-        col("batchid").as("batchId"),
-        col("name").as("batchName"),
-        col("status").as("status")
-      )
-  }
-
-  def getTenantInfo(spark: SparkSession): DataFrame = {
-    val sunbirdKeyspace = AppConf.getConfig("course.metrics.cassandra.sunbirdKeyspace")
-    loadData(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace)).select("slug","id")
   }
 
   def writeToCSVAndRename(data: DataFrame, config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): String = {

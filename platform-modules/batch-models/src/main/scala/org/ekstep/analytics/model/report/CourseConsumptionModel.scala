@@ -27,7 +27,7 @@ object CourseConsumptionModel extends BaseCourseMetrics[Empty, BaseCourseMetrics
   override def algorithm(events: RDD[BaseCourseMetricsOutput], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[CourseConsumptionOutput] = {
     implicit val sqlContext = new SQLContext(sc)
 
-    val druidConfig = JSONUtils.deserialize[ReportConfig](JSONUtils.serialize(config.get("druidConfig").get)).metrics.map(_.druidQuery)
+    val druidConfig = JSONUtils.deserialize[ReportConfig](JSONUtils.serialize(config.get("reportConfig").get)).metrics.map(_.druidQuery)
     val druidResponse = DruidDataFetcher.getDruidData(druidConfig(0))
     val coursePlays = druidResponse.map{f => JSONUtils.deserialize[CoursePlays](f)}
     val coursePlaysRDD = sc.parallelize(coursePlays)
