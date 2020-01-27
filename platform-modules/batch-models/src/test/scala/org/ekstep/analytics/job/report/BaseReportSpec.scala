@@ -1,10 +1,8 @@
 package org.ekstep.analytics.job.report
 
 import org.ekstep.analytics.model.BaseSpec
-import org.ekstep.analytics.util.EmbeddedES
-import org.ekstep.analytics.util.EsIndex
+import org.ekstep.analytics.util.{EmbeddedES, EsIndex}
 import org.joda.time.DateTimeUtils
-import org.apache.spark.sql.SparkSession
 import org.scalatest.BeforeAndAfterAll
 
 class BaseReportSpec extends BaseSpec with BeforeAndAfterAll {
@@ -26,8 +24,8 @@ class BaseReportSpec extends BaseSpec with BeforeAndAfterAll {
   }
 
   override def afterAll() {
-    //super.afterAll();
     EmbeddedES.stop()
+    super.afterAll();
   }
   
 }

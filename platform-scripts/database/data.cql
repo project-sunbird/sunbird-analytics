@@ -339,5 +339,3 @@ CREATE TABLE sunbird_courses.course_batch (
         AND min_index_interval = 128
         AND read_repair_chance = 0.0
         AND speculative_retry = '99PERCENTILE';
-CREATE INDEX inx_cou_bat_status ON sunbird_courses.course_batch (status);
-    

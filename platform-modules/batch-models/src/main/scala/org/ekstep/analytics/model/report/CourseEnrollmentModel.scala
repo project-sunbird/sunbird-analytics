@@ -5,9 +5,9 @@ import java.util.Calendar
 
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.{DataFrame, Encoders, SQLContext, SparkSession}
-import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger}
+import org.apache.spark.sql.{DataFrame, Encoders, SQLContext}
 import org.ekstep.analytics.framework._
+import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger}
 import org.ekstep.analytics.job.report.{BaseCourseMetrics, BaseCourseMetricsOutput}
 import org.ekstep.analytics.util.CourseUtils
 import org.sunbird.cloud.storage.conf.AppConf
@@ -42,7 +42,6 @@ object CourseEnrollmentModel extends BaseCourseMetrics[Empty, BaseCourseMetricsO
   def getCourseEnrollmentOutput(events: RDD[BaseCourseMetricsOutput])(implicit sc: SparkContext, fc: FrameworkContext): RDD[(BaseCourseMetricsOutput, Option[ESResponse])] =  {
     val batchId = events.collect().map(f => f.batchId)
     val courseId = events.collect().map(f => f.courseId)
-    implicit val spark: SparkSession = SparkSession.builder().getOrCreate()
     val courseCounts = getCourseBatchCounts(JSONUtils.serialize(courseId),JSONUtils.serialize(batchId))
     val baseCourseMetricsOutput = events.map(f=> (f.courseId,f))
 
@@ -54,7 +53,9 @@ object CourseEnrollmentModel extends BaseCourseMetrics[Empty, BaseCourseMetricsO
     finalRDD.map(f => f._2)
   }
 
-  def getCourseBatchCounts(courseIds: String, batchIds: String)(implicit sc: SparkContext, spark: SparkSession) : DataFrame = {
+  def getCourseBatchCounts(courseIds: String, batchIds: String)(implicit sc: SparkContext) : DataFrame = {
+    implicit val sqlContext = new SQLContext(sc)
+
     val request = s"""{
                      |  "query": {
                      |    "bool": {
@@ -74,7 +75,7 @@ object CourseEnrollmentModel extends BaseCourseMetrics[Empty, BaseCourseMetricsO
                      |  }
                      |}""".stripMargin
 
-    spark.read.format("org.elasticsearch.spark.sql")
+    sqlContext.sparkSession.read.format("org.elasticsearch.spark.sql")
       .option("query", request)
       .option("pushdown", "true")
       .option("es.nodes", AppConf.getConfig("es.composite.host"))

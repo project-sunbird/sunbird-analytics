@@ -7,7 +7,7 @@ import org.ekstep.analytics.model.report.CourseConsumptionModel
 
 object CourseConsumptionJob extends optional.Application with IJob {
 
-  implicit val className = "org.ekstep.analytics.job.ETBCreationMetricsJob"
+  implicit val className = "org.ekstep.analytics.job.CourseConsumptionJob"
 
     def main(config: String)(implicit sc: Option[SparkContext] = None, fc: Option[FrameworkContext] = None) {
       implicit val sparkContext: SparkContext = sc.getOrElse(null);
@@ -15,5 +15,4 @@ object CourseConsumptionJob extends optional.Application with IJob {
       JobDriver.run("batch", config, CourseConsumptionModel);
       JobLogger.log("Job Completed.")
     }
-
 }
