@@ -307,7 +307,7 @@ CREATE KEYSPACE IF NOT EXISTS sunbird_courses WITH replication = {
       'replication_factor': '1'
 };
 
-CREATE TABLE sunbird_courses.course_batch (
+CREATE TABLE IF NOT EXISTS sunbird_courses.course_batch (
         courseid text,
         batchid text,
         cert_templates map<text, frozen<map<text, text>>>,

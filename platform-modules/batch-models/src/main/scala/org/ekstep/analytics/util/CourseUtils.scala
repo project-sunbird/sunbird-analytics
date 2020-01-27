@@ -8,6 +8,7 @@ import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.dispatcher.AzureDispatcher
 import org.ekstep.analytics.framework.util.{JSONUtils, RestUtil}
 import org.ekstep.analytics.model.ReportConfig
+import org.ekstep.analytics.model.report.CourseConsumptionOutput
 
 //Getting live courses from compositesearch
 case class CourseDetails(result: Result)
@@ -66,6 +67,7 @@ object CourseUtils {
   }
 
   def postDataToBlob(data: DataFrame, config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext) = {
+
     val configMap = config("reportConfig").asInstanceOf[Map[String, AnyRef]]
     val reportConfig = JSONUtils.deserialize[ReportConfig](JSONUtils.serialize(configMap))
 
@@ -76,8 +78,6 @@ object CourseUtils {
     }
 
     val labelsLookup = reportConfig.labels ++ Map("date" -> "Date")
-    implicit val sqlContext = new SQLContext(sc)
-
     // Using foreach as parallel execution might conflict with local file path
     val key = config.getOrElse("key", null).asInstanceOf[String]
     reportConfig.output.foreach { f =>
@@ -92,8 +92,9 @@ object CourseUtils {
         val dirPath = writeToCSVAndRename(renamedDf, config ++ Map("dims" -> dimsLabels, "reportId" -> reportFinalId, "fileParameters" -> f.fileParameters))
         AzureDispatcher.dispatchDirectory(config ++ Map("dirPath" -> (dirPath + reportFinalId + "/"), "key" -> (key + reportFinalId + "/")))
       } else {
-        val encoder = Encoders.STRING
-        val strData = data.map(f => JSONUtils.serialize(f))(encoder)
+        val caseClassEncoder = Encoders.product[CourseConsumptionOutput]
+        val dataRDD = data.as[CourseConsumptionOutput](caseClassEncoder).rdd
+        val strData = dataRDD.map(f => JSONUtils.serialize(f))
         AzureDispatcher.dispatch(strData.collect(), config)
       }
     }
