@@ -93,7 +93,7 @@ object CourseUtils {
       .load()
   }
 
-  def getCourseBatchDetails(spark: SparkSession, loadData: (SparkSession, Map[String, String]) => DataFrame): DataFrame = {
+  def getCourseBatchDetails(spark: SparkSession): DataFrame = {
     val sunbirdCoursesKeyspace = Constants.SUNBIRD_COURSES_KEY_SPACE
     loadData(spark, Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace))
       .select(
@@ -104,7 +104,7 @@ object CourseUtils {
       )
   }
 
-  def getTenantInfo(spark: SparkSession, loadData: (SparkSession, Map[String, String]) => DataFrame): DataFrame = {
+  def getTenantInfo(spark: SparkSession): DataFrame = {
     val sunbirdKeyspace = AppConf.getConfig("course.metrics.cassandra.sunbirdKeyspace")
     loadData(spark, Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace)).select("slug","id")
   }
