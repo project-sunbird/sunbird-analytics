@@ -7,8 +7,10 @@ import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{DataFrame, Encoders, SQLContext}
 import org.ekstep.analytics.framework._
+import org.ekstep.analytics.framework.dispatcher.AzureDispatcher
 import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger}
 import org.ekstep.analytics.job.report.{BaseCourseMetrics, BaseCourseMetricsOutput}
+import org.ekstep.analytics.model.ReportConfig
 import org.ekstep.analytics.util.CourseUtils
 import org.sunbird.cloud.storage.conf.AppConf
 
@@ -29,12 +31,21 @@ object CourseEnrollmentModel extends BaseCourseMetrics[Empty, BaseCourseMetricsO
 
   override def postProcess(data: RDD[CourseEnrollmentOutput], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[CourseEnrollmentOutput] = {
     implicit val sqlContext = new SQLContext(sc)
-    import sqlContext.implicits._
     if (data.count() > 0) {
-      val df = data.toDF().na.fill(0L)
-      CourseUtils.postDataToBlob(df, config)
+      val configMap = config("reportConfig").asInstanceOf[Map[String, AnyRef]]
+      val reportConfig = JSONUtils.deserialize[ReportConfig](JSONUtils.serialize(configMap))
+      import sqlContext.implicits._
+
+      val outputType = reportConfig.output.map(f => f.`type`.contains("csv"))
+      if (outputType.contains(true)) {
+        val df = data.toDF().na.fill(0L)
+        CourseUtils.postDataToBlob(df, config)
+      } else {
+        val strData = data.map(f => JSONUtils.serialize(f))
+        AzureDispatcher.dispatch(strData.collect(), config)
+      }
     } else {
-      JobLogger.log("No data found", None, Level.INFO)
+      JobLogger.log("No data found from druid", None, Level.INFO)
     }
     data
   }

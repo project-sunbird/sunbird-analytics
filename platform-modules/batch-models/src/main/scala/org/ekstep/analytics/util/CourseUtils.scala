@@ -90,9 +90,6 @@ object CourseUtils {
         finalDf.show()
         val dirPath = writeToCSVAndRename(finalDf, config ++ Map("dims" -> dimsLabels, "reportId" -> reportFinalId, "fileParameters" -> f.fileParameters))
         AzureDispatcher.dispatchDirectory(config ++ Map("dirPath" -> (dirPath + reportFinalId + "/"), "key" -> (key + reportFinalId + "/")))
-      } else {
-        val strData = data.rdd.map(f => JSONUtils.serialize(f))
-        AzureDispatcher.dispatch(strData.collect(), config)
       }
     }
   }

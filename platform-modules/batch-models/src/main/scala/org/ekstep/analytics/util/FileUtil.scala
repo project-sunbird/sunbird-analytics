@@ -61,7 +61,7 @@ object FileUtil {
 
     val fs = FileSystem.get(sc.hadoopConfiguration)
     val fileList = fs.listFiles(new Path(s"$tempDir/"), true)
-
+    
     while (fileList.hasNext) {
       val filePath = fileList.next().getPath.toString
       if (!filePath.contains("_SUCCESS")) {

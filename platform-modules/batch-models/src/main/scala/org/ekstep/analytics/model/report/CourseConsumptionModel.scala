@@ -4,11 +4,12 @@ import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SQLContext
 import org.ekstep.analytics.framework._
+import org.ekstep.analytics.framework.dispatcher.AzureDispatcher
 import org.ekstep.analytics.framework.fetcher.DruidDataFetcher
 import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger}
 import org.ekstep.analytics.job.report.{BaseCourseMetrics, BaseCourseMetricsOutput}
-import org.ekstep.analytics.util.CourseUtils
 import org.ekstep.analytics.model.ReportConfig
+import org.ekstep.analytics.util.CourseUtils
 
 //Timespent In Mins for a course: getCoursePlays
 case class CoursePlays(date: String, courseId: String, batchId: String, timespent: Option[Double] = Option(0))
@@ -46,10 +47,21 @@ object CourseConsumptionModel extends BaseCourseMetrics[Empty, BaseCourseMetrics
 
   override def postProcess(data: RDD[CourseConsumptionOutput], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[CourseConsumptionOutput] = {
     implicit val sqlContext = new SQLContext(sc)
-    import sqlContext.implicits._
     if (data.count() > 0) {
-      val df = data.toDF().na.fill(0L)
-      CourseUtils.postDataToBlob(df, config)
+      val configMap = config("reportConfig").asInstanceOf[Map[String, AnyRef]]
+      val reportConfig = JSONUtils.deserialize[ReportConfig](JSONUtils.serialize(configMap))
+
+      implicit val sqlContext = new SQLContext(sc)
+      import sqlContext.implicits._
+
+      val outputType = reportConfig.output.map(f => f.`type`.contains("csv"))
+      if (outputType.contains(true)) {
+        val df = data.toDF().na.fill(0L)
+        CourseUtils.postDataToBlob(df, config)
+      } else {
+        val strData = data.map(f => JSONUtils.serialize(f))
+        AzureDispatcher.dispatch(strData.collect(), config)
+      }
     } else {
       JobLogger.log("No data found from druid", None, Level.INFO)
     }
