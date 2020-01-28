@@ -94,8 +94,7 @@ object FileUtil {
           builder.append(replaceStr)
           builder.append(keyStr.substring(keyStr.lastIndexOf("/") + replaceStr.length - 1))
           builder.mkString
-        } else
-          id + "/." + finalKeys.head
+        } else id + "/." + finalKeys.head
         val finalCSVPath = s"$outDir$key.csv"
         val finalCRCPath = s"$outDir$crcKey.csv.crc"
         fs.rename(new Path(filePath), new Path(finalCSVPath))

@@ -49,7 +49,7 @@ object CourseConsumptionModel extends BaseCourseMetrics[Empty, BaseCourseMetrics
     import sqlContext.implicits._
     if (data.count() > 0) {
       val df = data.toDF().na.fill(0L)
-      val postDataToAzure = CourseUtils.postDataToBlob(df, config)
+      CourseUtils.postDataToBlob(df, config)
     } else {
       JobLogger.log("No data found from druid", None, Level.INFO)
     }
