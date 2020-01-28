@@ -85,8 +85,10 @@ object CourseUtils {
         val filteredDf = data.select(fieldsList.head, fieldsList.tail: _*)
         val renamedDf = filteredDf.select(filteredDf.columns.map(c => filteredDf.col(c).as(labelsLookup.getOrElse(c, c))): _*)
         val reportFinalId = if (f.label.nonEmpty && f.label.get.nonEmpty) reportConfig.id + "/" + f.label.get else reportConfig.id
-        renamedDf.show()
-        val dirPath = writeToCSVAndRename(renamedDf, config ++ Map("dims" -> dimsLabels, "reportId" -> reportFinalId, "fileParameters" -> f.fileParameters))
+
+        val finalDf = renamedDf.na.replace("status",Map("0"->BatchStatus(0).toString, "1"->BatchStatus(1).toString, "2"->BatchStatus(2).toString))
+        finalDf.show()
+        val dirPath = writeToCSVAndRename(finalDf, config ++ Map("dims" -> dimsLabels, "reportId" -> reportFinalId, "fileParameters" -> f.fileParameters))
         AzureDispatcher.dispatchDirectory(config ++ Map("dirPath" -> (dirPath + reportFinalId + "/"), "key" -> (key + reportFinalId + "/")))
       } else {
         val strData = data.rdd.map(f => JSONUtils.serialize(f))

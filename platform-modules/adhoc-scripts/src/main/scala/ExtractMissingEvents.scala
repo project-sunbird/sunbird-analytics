@@ -12,6 +12,7 @@ object ExtractMissingEvents {
 
   implicit val sparkSession: SparkSession = SparkSession.builder().getOrCreate()
   implicit val sparkContext: SparkContext = sparkSession.sparkContext
+  implicit val fc: FrameworkContext = new FrameworkContext();
 
   def extractMissingDenormEvents() = {
     val denormEventsConfig =

@@ -57,8 +57,7 @@ class TestCourseEnrollmentModel extends SparkSpec with Matchers with MockFactory
                     |			"status": "Status",
                     |			"enrollmentCount": "Enrollment Count",
                     |			"courseName": "Course Name",
-                    |			"batchName": "Batch Name",
-                    |     "BatchStatus":"Batch Status"
+                    |			"batchName": "Batch Name"
                     |		},
                     |		"output": [{
                     |			"type": "csv",

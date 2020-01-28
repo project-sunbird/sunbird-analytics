@@ -13,11 +13,7 @@ trait BaseCourseMetrics[T <: AnyRef, A <: BaseCourseMetricsOutput, B <: AlgoOutp
   override def preProcess(events: RDD[T], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[BaseCourseMetricsOutput] = {
     val data = getCourseMetrics(config)
     val encoder = Encoders.product[BaseCourseMetricsOutput]
-    val finalData = data.as[BaseCourseMetricsOutput](encoder).rdd
-    finalData.map(f => {
-      val batchStatus = BatchStatus.values.filter(c => (c.id==Integer.parseInt(f.status)))
-      if (batchStatus.isEmpty) f.copy(status = "") else f.copy(status = batchStatus.firstKey.toString)
-    })
+    data.as[BaseCourseMetricsOutput](encoder).rdd
   }
 
   def getCourseMetrics(config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): DataFrame = {

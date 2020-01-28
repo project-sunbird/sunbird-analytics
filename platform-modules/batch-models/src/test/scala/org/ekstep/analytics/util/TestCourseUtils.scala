@@ -5,6 +5,7 @@ import org.apache.spark.sql.SQLContext
 import org.ekstep.analytics.framework.util.JSONUtils
 import org.ekstep.analytics.framework.{FrameworkContext, JobConfig}
 import org.ekstep.analytics.model.SparkSpec
+import org.ekstep.analytics.model.report.CourseEnrollmentOutput
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.cloud.storage.BaseStorageService
 
@@ -29,6 +30,49 @@ class TestCourseUtils extends SparkSpec(null) with MockFactory{
     (mockCourseReport.getLiveCourses(_: Map[String, AnyRef])(_: SparkContext)).expects(jobConfig.get, *).returns(userDF).anyNumberOfTimes()
   }
 
+  "CourseUtils" should "write to csv even if fileParams not specified" in {
+    implicit val sqlContext = new SQLContext(sc)
+    import sqlContext.implicits._
+    implicit val mockFc = mock[FrameworkContext]
+    val config = s"""{
+                    |	"reportConfig": {
+                    |		"id": "tpd_metrics",
+                    |    "metrics" : [],
+                    |		"labels": {
+                    |			"completionCount": "Completion Count",
+                    |			"status": "Status",
+                    |			"enrollmentCount": "Enrollment Count",
+                    |			"courseName": "Course Name",
+                    |			"batchName": "Batch Name",
+                    |     "BatchStatus":"Batch Status"
+                    |		},
+                    |		"output": [{
+                    |			"type": "csv",
+                    |			"dims": [],
+                    |			"fileParameters": []
+                    |		}]
+                    |	},
+                    | "esConfig": {
+                    | "request": {
+                    |        "filters":{
+                    |            "objectType": ["Content"],
+                    |            "contentType": ["Course"],
+                    |            "identifier": [],
+                    |            "status": ["Live"]
+                    |        },
+                    |        "limit": 10000
+                    |    }
+                    | },
+                    |	"key": "druid-reports/",
+                    |	"filePath": "src/test/resources/",
+                    |	"bucket": "test-container",
+                    |	"folderPrefix": []
+                    |}""".stripMargin
+    val jobConfig = JSONUtils.deserialize[Map[String, AnyRef]](config)
+    val dataDf = sc.parallelize(List(CourseEnrollmentOutput("2020-03-20","TestCourse","TestBatch","Ongoing",3,4,"unknown","course-enrollments"))).toDF()
+    CourseUtils.writeToCSVAndRename(dataDf,jobConfig)
+  }
+  
   it should "dispatch to azure even if output type is other than csv" in {
     implicit val sqlContext = new SQLContext(sc)
     implicit val mockFc = mock[FrameworkContext]
@@ -66,7 +110,6 @@ class TestCourseUtils extends SparkSpec(null) with MockFactory{
     val userdata = Seq(
       ("2020-01-23","29 course","testCourseBatch","Ongoing",Some(0.09),"MPSlug","course_usage")
     ).toDF("date", "courseName", "batchName","status", "timespent", "slug", "reportName")
-
 
     CourseUtils.postDataToBlob(userdata, jobConfig.get)
   }
