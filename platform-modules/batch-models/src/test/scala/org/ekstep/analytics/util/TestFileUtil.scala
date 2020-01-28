@@ -48,7 +48,7 @@ class TestFileUtil extends SparkSpec with MockFactory{
     CourseUtils.postDataToBlob(userdata, jobConfig.get)
   }
 
-  it should "execute and run rename Hadoop file with no folderPrefix" in {
+  ignore should "execute and run rename Hadoop file with no folderPrefix" in {
     implicit val sqlContext = new SQLContext(sc)
     implicit val mockFc = mock[FrameworkContext]
 
