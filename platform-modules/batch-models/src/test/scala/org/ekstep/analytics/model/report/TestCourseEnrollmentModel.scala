@@ -16,6 +16,7 @@ import scala.io.Source
 class TestCourseEnrollmentModel extends SparkSpec with Matchers with MockFactory {
 
   implicit val spark: SparkSession = getSparkSession()
+  implicit val sqlContext = new SQLContext(sc)
   implicit val mockCourseReport: CourseReport = mock[CourseReport]
 
   var courseBatchDF: DataFrame = _
@@ -40,7 +41,6 @@ class TestCourseEnrollmentModel extends SparkSpec with Matchers with MockFactory
   }
 
   "CourseEnrollmentModel" should "execute Course Enrollment model" in {
-    implicit val sqlContext = new SQLContext(sc)
     implicit val mockFc = mock[FrameworkContext]
 
     val mockStorageService = mock[BaseStorageService]
@@ -118,8 +118,7 @@ class TestCourseEnrollmentModel extends SparkSpec with Matchers with MockFactory
     CourseEnrollmentModel.postProcess(dataRDD, jobConfig.get)
   }
 
-  it should "execute Course Enrollment model and dispatch to azure even if type is other than cav" in {
-    implicit val sqlContext = new SQLContext(sc)
+  it should "execute Course Enrollment model and dispatch to azure even if type is other than csv" in {
     implicit val mockFc = mock[FrameworkContext]
 
     val mockStorageService = mock[BaseStorageService]

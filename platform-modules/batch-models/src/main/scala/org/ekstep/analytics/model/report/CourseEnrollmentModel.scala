@@ -20,9 +20,9 @@ case class ESResponse(participantCount: BigInt, completedCount: BigInt, courseId
 object CourseEnrollmentModel extends BaseCourseMetrics[Empty, BaseCourseMetricsOutput, CourseEnrollmentOutput, CourseEnrollmentOutput] with Serializable {
 
   implicit val className: String = "org.ekstep.analytics.model.CourseEnrollmentModel"
-//  implicit val fc = new FrameworkContext()
 
   override def algorithm(events: RDD[BaseCourseMetricsOutput], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[CourseEnrollmentOutput] = {
+    implicit val sqlContext = new SQLContext(sc)
     val finalRDD = getCourseEnrollmentOutput(events)
     val date = (new SimpleDateFormat("dd-MM-yyyy")).format(Calendar.getInstance().getTime)
     finalRDD.map(f => CourseEnrollmentOutput(date,f._1.courseName,f._1.batchName,f._1.status,
@@ -53,7 +53,7 @@ object CourseEnrollmentModel extends BaseCourseMetrics[Empty, BaseCourseMetricsO
     data
   }
 
-  def getCourseEnrollmentOutput(events: RDD[BaseCourseMetricsOutput])(implicit sc: SparkContext, fc: FrameworkContext): RDD[(BaseCourseMetricsOutput, Option[ESResponse])] =  {
+  def getCourseEnrollmentOutput(events: RDD[BaseCourseMetricsOutput])(implicit sc: SparkContext, fc: FrameworkContext, sqlContext: SQLContext): RDD[(BaseCourseMetricsOutput, Option[ESResponse])] =  {
     val batchId = events.collect().map(f => f.batchId)
     val courseId = events.collect().map(f => f.courseId)
     val courseCounts = getCourseBatchCounts(JSONUtils.serialize(courseId),JSONUtils.serialize(batchId))
@@ -67,8 +67,7 @@ object CourseEnrollmentModel extends BaseCourseMetrics[Empty, BaseCourseMetricsO
     finalRDD.map(f => f._2)
   }
 
-  def getCourseBatchCounts(courseIds: String, batchIds: String)(implicit sc: SparkContext) : DataFrame = {
-    implicit val sqlContext = new SQLContext(sc)
+  def getCourseBatchCounts(courseIds: String, batchIds: String)(implicit sc: SparkContext, sqlContext: SQLContext) : DataFrame = {
 
     val request = s"""{
                      |  "query": {
