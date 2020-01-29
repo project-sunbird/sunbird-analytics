@@ -207,17 +207,6 @@ class TestCourseConsumptionModel extends SparkSpec(null) with MockFactory{
       f.timespent.get should be (0.0)
       f.slug should be ("unknown")
     }
-
-    val configMap = jobConfig.get("reportConfig").asInstanceOf[Map[String, AnyRef]]
-    val reportId = JSONUtils.deserialize[ReportConfig](JSONUtils.serialize(configMap)).id
-
-    val slug = result.collect().map(f => f.slug).toList
-    val reportName = result.collect().map(_.reportName).toList.head
-    slug.head should be ("MPSlug")
-    val filePath = jobConfig.get.get("filePath").get.asInstanceOf[String]
-    val key = jobConfig.get.get("key").get.asInstanceOf[String]
-    val outDir = filePath + key + "renamed/" + reportId + "/" + slug.head + "/"
-    outDir should be ("src/test/resources/druid-reports/renamed/tpd_metrics/MPSlug/")
   }
 
 
