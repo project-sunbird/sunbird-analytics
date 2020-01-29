@@ -23,7 +23,7 @@ class TestCourseUtils extends SparkSpec(null) with MockFactory{
     val jobConfig = JSONUtils.deserialize[JobConfig](config).modelParams
 
     val userdata = JSONUtils.deserialize[CourseDetails](Source.fromInputStream
-    (getClass.getResourceAsStream("/tpd-course-report/liveCourse.json")).getLines().mkString).result.content
+    (getClass.getResourceAsStream("/course-report/liveCourse.json")).getLines().mkString).result.content
 
     import sqlContext.implicits._
     val userDF = userdata.toDF("channel", "identifier", "courseName")

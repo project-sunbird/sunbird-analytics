@@ -48,10 +48,8 @@ object CourseConsumptionModel extends BaseCourseMetrics[Empty, BaseCourseMetrics
     if (data.count() > 0) {
       val configMap = config("reportConfig").asInstanceOf[Map[String, AnyRef]]
       val reportConfig = JSONUtils.deserialize[ReportConfig](JSONUtils.serialize(configMap))
-      val labelsLookup = reportConfig.labels ++ Map("date" -> "Date")
 
       import sqlContext.implicits._
-      val key = config.getOrElse("key", null).asInstanceOf[String]
       reportConfig.output.map { f =>
         if (f.`type`.equals("csv")) {
           val df = data.toDF().na.fill(0L)

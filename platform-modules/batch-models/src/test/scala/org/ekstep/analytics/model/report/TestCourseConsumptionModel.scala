@@ -46,7 +46,7 @@ class TestCourseConsumptionModel extends SparkSpec(null) with MockFactory{
 
     //Mock for compositeSearch
     val userdata = JSONUtils.deserialize[CourseDetails](Source.fromInputStream
-    (getClass.getResourceAsStream("/tpd-course-report/liveCourse.json")).getLines().mkString).result.content
+    (getClass.getResourceAsStream("/course-report/liveCourse.json")).getLines().mkString).result.content
 
     import sqlContext.implicits._
     val userDF = userdata.toDF("channel", "identifier", "courseName")
@@ -108,7 +108,7 @@ class TestCourseConsumptionModel extends SparkSpec(null) with MockFactory{
 
     //Mock for compositeSearch
     val userdata = JSONUtils.deserialize[CourseDetails](Source.fromInputStream
-    (getClass.getResourceAsStream("/tpd-course-report/liveCourse.json")).getLines().mkString).result.content
+    (getClass.getResourceAsStream("/course-report/liveCourse.json")).getLines().mkString).result.content
 
     import sqlContext.implicits._
     val userDF = userdata.toDF("channel", "identifier", "courseName")
@@ -170,7 +170,7 @@ class TestCourseConsumptionModel extends SparkSpec(null) with MockFactory{
 
     //Mock for compositeSearch
     val userdata = JSONUtils.deserialize[CourseDetails](Source.fromInputStream
-    (getClass.getResourceAsStream("/tpd-course-report/liveCourse.json")).getLines().mkString).result.content
+    (getClass.getResourceAsStream("/course-report/liveCourse.json")).getLines().mkString).result.content
 
     import sqlContext.implicits._
     val userDF = userdata.toDF("channel", "identifier", "courseName")
@@ -202,9 +202,11 @@ class TestCourseConsumptionModel extends SparkSpec(null) with MockFactory{
 
     result.count() should be (1)
     result.collect().map{f =>
-      f.batchName should be ("testCourseBatch")
-      f.courseName should be ("29 course")
-      f.timespent.get should be (0.09)}
+      f.batchName should be ("")
+      f.courseName should be ("")
+      f.timespent.get should be (0.0)
+      f.slug should be ("unknown")
+    }
 
     val configMap = jobConfig.get("reportConfig").asInstanceOf[Map[String, AnyRef]]
     val reportId = JSONUtils.deserialize[ReportConfig](JSONUtils.serialize(configMap)).id

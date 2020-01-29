@@ -23,7 +23,7 @@ class TestCourseEnrollmentModel extends SparkSpec with Matchers with MockFactory
 
   override def beforeAll() {
     super.beforeAll()
-    val cbMapping = sc.textFile("src/test/resources/reports/coursebatch_mapping.json", 1).collect().head
+    val cbMapping = sc.textFile("src/test/resources/course-report/coursebatch_mapping.json", 1).collect().head
     EmbeddedES.start(Array
     (EsIndex("course-batch",Option("search"), Option(cbMapping),None)))
 
@@ -84,7 +84,7 @@ class TestCourseEnrollmentModel extends SparkSpec with Matchers with MockFactory
     val jobConfig = JSONUtils.deserialize[Map[String, AnyRef]](config)
     //Mock for compositeSearch
     val userdata = JSONUtils.deserialize[CourseDetails](Source.fromInputStream
-    (getClass.getResourceAsStream("/tpd-course-report/liveCourse.json")).getLines().mkString).result.content
+    (getClass.getResourceAsStream("/course-report/liveCourse.json")).getLines().mkString).result.content
 
     import sqlContext.implicits._
     val userDF = userdata.toDF("channel", "identifier", "courseName")
@@ -162,7 +162,7 @@ class TestCourseEnrollmentModel extends SparkSpec with Matchers with MockFactory
     val jobConfig = JSONUtils.deserialize[Map[String, AnyRef]](config)
     //Mock for compositeSearch
     val userdata = JSONUtils.deserialize[CourseDetails](Source.fromInputStream
-    (getClass.getResourceAsStream("/tpd-course-report/liveCourse.json")).getLines().mkString).result.content
+    (getClass.getResourceAsStream("/course-report/liveCourse.json")).getLines().mkString).result.content
 
     import sqlContext.implicits._
     val userDF = userdata.toDF("channel", "identifier", "courseName")
