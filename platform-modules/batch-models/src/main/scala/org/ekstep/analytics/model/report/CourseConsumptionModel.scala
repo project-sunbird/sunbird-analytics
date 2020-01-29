@@ -23,8 +23,6 @@ object CourseConsumptionModel extends BaseCourseMetrics[Empty, BaseCourseMetrics
   implicit val className = "org.ekstep.analytics.model.CourseConsumptionModel"
   override def name: String = "CourseConsumptionModel"
 
-  implicit val fc = new FrameworkContext()
-
   override def algorithm(events: RDD[BaseCourseMetricsOutput], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[CourseConsumptionOutput] = {
     implicit val sqlContext = new SQLContext(sc)
 

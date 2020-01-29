@@ -26,10 +26,8 @@ trait CourseReport {
 
 object CourseUtils {
 
-  def getCourse(config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): DataFrame = {
-    implicit val sqlContext = new SQLContext(sc)
+  def getCourse(config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext, sqlContext: SQLContext): DataFrame = {
     import sqlContext.implicits._
-
     val apiURL = Constants.COMPOSITE_SEARCH_URL
     val request = JSONUtils.serialize(config.get("esConfig").get)
     val response = RestUtil.post[CourseDetails](apiURL, request).result.content
@@ -38,8 +36,7 @@ object CourseUtils {
 
   }
 
-  def loadData(settings: Map[String, String])(implicit sc: SparkContext): DataFrame = {
-    implicit val sqlContext = new SQLContext(sc)
+  def loadData(settings: Map[String, String])(implicit sc: SparkContext, sqlContext: SQLContext): DataFrame = {
 
     sqlContext.sparkSession
       .read
@@ -49,7 +46,7 @@ object CourseUtils {
       .load()
   }
 
-  def getCourseBatchDetails()(implicit sc: SparkContext): DataFrame = {
+  def getCourseBatchDetails()(implicit sc: SparkContext, sqlContext: SQLContext): DataFrame = {
     val sunbirdCoursesKeyspace = Constants.SUNBIRD_COURSES_KEY_SPACE
     loadData(Map("table" -> "course_batch", "keyspace" -> sunbirdCoursesKeyspace))
       .select(
@@ -60,7 +57,7 @@ object CourseUtils {
       )
   }
 
-  def getTenantInfo()(implicit sc: SparkContext): DataFrame = {
+  def getTenantInfo()(implicit sc: SparkContext, sqlContext: SQLContext): DataFrame = {
     val sunbirdKeyspace = AppConf.getConfig("course.metrics.cassandra.sunbirdKeyspace")
     loadData(Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace)).select("slug","id")
   }

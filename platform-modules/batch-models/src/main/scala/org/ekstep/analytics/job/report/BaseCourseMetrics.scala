@@ -2,7 +2,7 @@ package org.ekstep.analytics.job.report
 
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.{DataFrame, Encoders}
+import org.apache.spark.sql.{DataFrame, Encoders, SQLContext}
 import org.ekstep.analytics.framework._
 import org.ekstep.analytics.util.{BatchStatus, CourseUtils}
 
@@ -17,6 +17,7 @@ trait BaseCourseMetrics[T <: AnyRef, A <: BaseCourseMetricsOutput, B <: AlgoOutp
   }
 
   def getCourseMetrics(config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): DataFrame = {
+    implicit val sqlContext = new SQLContext(sc)
     val liveCourses = CourseUtils.getCourse(config)
     val courseBatch = CourseUtils.getCourseBatchDetails()
     val tenantInfo = CourseUtils.getTenantInfo()

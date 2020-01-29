@@ -69,8 +69,7 @@ object FileUtil {
           f.contains("=")})
         val dimsKeys = breakUps.filter { f =>
           val bool = dims.map(x => f.contains(x))
-          if (bool.contains(true)) true
-          else false
+          bool.contains(true)
         }
         val finalKeys = dimsKeys.map { f =>
           f.split("=").last
