@@ -23,7 +23,7 @@ object CourseConsumptionModel extends BaseCourseMetrics[Empty, BaseCourseMetrics
   implicit val className = "org.ekstep.analytics.model.CourseConsumptionModel"
   override def name: String = "CourseConsumptionModel"
 
-  implicit val fc = new FrameworkContext()
+//  implicit val fc = new FrameworkContext()
 
   override def algorithm(events: RDD[BaseCourseMetricsOutput], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[CourseConsumptionOutput] = {
     implicit val sqlContext = new SQLContext(sc)
@@ -33,13 +33,13 @@ object CourseConsumptionModel extends BaseCourseMetrics[Empty, BaseCourseMetrics
     val coursePlays = druidResponse.map{f => JSONUtils.deserialize[CoursePlays](f)}
     val coursePlaysRDD = sc.parallelize(coursePlays)
 
-    val courseBatchKeys = events.map(f => (CourseKeys(f.courseId, f.batchId), f))
-    val coursePlaysKeys = coursePlaysRDD.map(f => (CourseKeys(f.courseId,f.batchId), f))
+    val courseBatchDetailsWKeys = events.map(f => (CourseKeys(f.courseId, f.batchId), f))
+    val coursePlaysDetailsWKeys = coursePlaysRDD.map(f => (CourseKeys(f.courseId,f.batchId), f))
 
-    val joinResponse = coursePlaysKeys.leftOuterJoin(courseBatchKeys)
+    val joinResponse = coursePlaysDetailsWKeys.leftOuterJoin(courseBatchDetailsWKeys)
       val courseConsumption = joinResponse.map{f =>
       val coursePlay = f._2._1
-        val courseMetrics = f._2._2.get
+        val courseMetrics = f._2._2.getOrElse(BaseCourseMetricsOutput("","","","unknown","",""))
         CourseConsumptionOutput(coursePlay.date, courseMetrics.courseName, courseMetrics.batchName, courseMetrics.status, coursePlay.timespent, courseMetrics.slug, "course_usage")
     }
     courseConsumption
@@ -50,17 +50,18 @@ object CourseConsumptionModel extends BaseCourseMetrics[Empty, BaseCourseMetrics
     if (data.count() > 0) {
       val configMap = config("reportConfig").asInstanceOf[Map[String, AnyRef]]
       val reportConfig = JSONUtils.deserialize[ReportConfig](JSONUtils.serialize(configMap))
+      val labelsLookup = reportConfig.labels ++ Map("date" -> "Date")
 
-      implicit val sqlContext = new SQLContext(sc)
       import sqlContext.implicits._
-
-      val outputType = reportConfig.output.map(f => f.`type`.contains("csv"))
-      if (outputType.contains(true)) {
-        val df = data.toDF().na.fill(0L)
-        CourseUtils.postDataToBlob(df, config)
-      } else {
-        val strData = data.map(f => JSONUtils.serialize(f))
-        AzureDispatcher.dispatch(strData.collect(), config)
+      val key = config.getOrElse("key", null).asInstanceOf[String]
+      reportConfig.output.map { f =>
+        if (f.`type`.equals("csv")) {
+          val df = data.toDF().na.fill(0L)
+          CourseUtils.postDataToBlob(df, f,config)
+        } else {
+          val strData = data.map(f => JSONUtils.serialize(f))
+          AzureDispatcher.dispatch(strData.collect(), config)
+        }
       }
     } else {
       JobLogger.log("No data found from druid", None, Level.INFO)

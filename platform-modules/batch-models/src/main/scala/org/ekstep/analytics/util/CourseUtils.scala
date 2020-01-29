@@ -7,7 +7,7 @@ import org.ekstep.analytics.framework.FrameworkContext
 import org.ekstep.analytics.framework.conf.AppConf
 import org.ekstep.analytics.framework.dispatcher.AzureDispatcher
 import org.ekstep.analytics.framework.util.{JSONUtils, RestUtil}
-import org.ekstep.analytics.model.ReportConfig
+import org.ekstep.analytics.model.{OutputConfig, ReportConfig}
 
 //Getting live courses from compositesearch
 case class CourseDetails(result: Result)
@@ -65,33 +65,24 @@ object CourseUtils {
     loadData(Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace)).select("slug","id")
   }
 
-  def postDataToBlob(data: DataFrame, config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext) = {
+  def postDataToBlob(data: DataFrame, outputConfig: OutputConfig, config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext) = {
     val configMap = config("reportConfig").asInstanceOf[Map[String, AnyRef]]
     val reportConfig = JSONUtils.deserialize[ReportConfig](JSONUtils.serialize(configMap))
 
-    reportConfig.metrics.flatMap{c => List()}
-    val dimFields = reportConfig.metrics.flatMap { m =>
-      if (m.druidQuery.dimensions.nonEmpty) m.druidQuery.dimensions.get.map(f => f.aliasName.getOrElse(f.fieldName))
-      else List()
-    }
     val labelsLookup = reportConfig.labels ++ Map("date" -> "Date")
-    // Using foreach as parallel execution might conflict with local file path
     val key = config.getOrElse("key", null).asInstanceOf[String]
-    reportConfig.output.foreach { f =>
-      if ("csv".equalsIgnoreCase(f.`type`)) {
-        val metricFields = f.metrics
-        val fieldsList = data.columns
-        val dimsLabels = labelsLookup.filter(x => f.dims.contains(x._1)).values.toList
-        val filteredDf = data.select(fieldsList.head, fieldsList.tail: _*)
-        val renamedDf = filteredDf.select(filteredDf.columns.map(c => filteredDf.col(c).as(labelsLookup.getOrElse(c, c))): _*)
-        val reportFinalId = if (f.label.nonEmpty && f.label.get.nonEmpty) reportConfig.id + "/" + f.label.get else reportConfig.id
 
-        val finalDf = renamedDf.na.replace("status",Map("0"->BatchStatus(0).toString, "1"->BatchStatus(1).toString, "2"->BatchStatus(2).toString))
-        finalDf.show()
-        val dirPath = writeToCSVAndRename(finalDf, config ++ Map("dims" -> dimsLabels, "reportId" -> reportFinalId, "fileParameters" -> f.fileParameters))
-        AzureDispatcher.dispatchDirectory(config ++ Map("dirPath" -> (dirPath + reportFinalId + "/"), "key" -> (key + reportFinalId + "/")))
-      }
-    }
+    val metricFields = outputConfig.metrics
+    val fieldsList = data.columns
+    val dimsLabels = labelsLookup.filter(x => outputConfig.dims.contains(x._1)).values.toList
+    val filteredDf = data.select(fieldsList.head, fieldsList.tail: _*)
+    val renamedDf = filteredDf.select(filteredDf.columns.map(c => filteredDf.col(c).as(labelsLookup.getOrElse(c, c))): _*)
+    val reportFinalId = if (outputConfig.label.nonEmpty && outputConfig.label.get.nonEmpty) reportConfig.id + "/" + outputConfig.label.get else reportConfig.id
+
+    val finalDf = renamedDf.na.replace("status",Map("0"->BatchStatus(0).toString, "1"->BatchStatus(1).toString, "2"->BatchStatus(2).toString))
+    finalDf.show()
+    val dirPath = writeToCSVAndRename(finalDf, config ++ Map("dims" -> dimsLabels, "reportId" -> reportFinalId, "fileParameters" -> outputConfig.fileParameters))
+    AzureDispatcher.dispatchDirectory(config ++ Map("dirPath" -> (dirPath + reportFinalId + "/"), "key" -> (key + reportFinalId + "/")))
   }
 
   def writeToCSVAndRename(data: DataFrame, config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): String = {
