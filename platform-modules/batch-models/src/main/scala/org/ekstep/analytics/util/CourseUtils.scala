@@ -5,9 +5,9 @@ import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.{DataFrame, SQLContext, SparkSession}
 import org.ekstep.analytics.framework.FrameworkContext
 import org.ekstep.analytics.framework.conf.AppConf
-import org.ekstep.analytics.framework.dispatcher.AzureDispatcher
 import org.ekstep.analytics.framework.util.{JSONUtils, RestUtil}
 import org.ekstep.analytics.model.{OutputConfig, ReportConfig}
+import org.sunbird.cloud.storage.BaseStorageService
 
 //Getting live courses from compositesearch
 case class CourseDetails(result: Result)
@@ -15,7 +15,7 @@ case class Result(content: List[CourseInfo])
 case class CourseInfo(channel: String, identifier: String, name: String)
 
 trait CourseReport {
-  def getLiveCourses(config: Map[String, AnyRef])(sc: SparkContext): DataFrame
+  def getCourse(config: Map[String, AnyRef])(sc: SparkContext): DataFrame
 
   def loadData(spark: SparkSession, settings: Map[String, String]): DataFrame
 
@@ -62,7 +62,7 @@ object CourseUtils {
     loadData(Map("table" -> "organisation", "keyspace" -> sunbirdKeyspace)).select("slug","id")
   }
 
-  def postDataToBlob(data: DataFrame, outputConfig: OutputConfig, config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext) = {
+  def postDataToBlob(data: DataFrame, outputConfig: OutputConfig, config: Map[String, AnyRef], storageService: BaseStorageService)(implicit sc: SparkContext, fc: FrameworkContext) = {
     val configMap = config("reportConfig").asInstanceOf[Map[String, AnyRef]]
     val reportConfig = JSONUtils.deserialize[ReportConfig](JSONUtils.serialize(configMap))
 
@@ -79,7 +79,8 @@ object CourseUtils {
     val finalDf = renamedDf.na.replace("status",Map("0"->BatchStatus(0).toString, "1"->BatchStatus(1).toString, "2"->BatchStatus(2).toString))
     finalDf.show()
     val dirPath = writeToCSVAndRename(finalDf, config ++ Map("dims" -> dimsLabels, "reportId" -> reportFinalId, "fileParameters" -> outputConfig.fileParameters))
-    AzureDispatcher.dispatchDirectory(config ++ Map("dirPath" -> (dirPath + reportFinalId + "/"), "key" -> (key + reportFinalId + "/")))
+    val bucket = config.getOrElse("bucket", "telemetry-data-store").asInstanceOf[String]
+    storageService.upload(bucket, (dirPath + reportFinalId + "/"), (key + reportFinalId + "/"), Option(true), Option(1), Option(3), None)
   }
 
   def writeToCSVAndRename(data: DataFrame, config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): String = {

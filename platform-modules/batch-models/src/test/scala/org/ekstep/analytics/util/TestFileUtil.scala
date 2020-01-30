@@ -27,7 +27,7 @@ class TestFileUtil extends SparkSpec with MockFactory{
       ("2020-01-23","29 course","testCourseBatch","Ongoing",Some(0.09),"MPSlug","course_usage")
     ).toDF("date", "courseName", "batchName","status", "timespent", "slug", "reportName")
 
-    CourseUtils.postDataToBlob(userdata,outputConfig, jobConfig.get)
+    CourseUtils.postDataToBlob(userdata,outputConfig, jobConfig.get,mockStorageService)
   }
 
   it should "execute and run successfully by creating folder name as reportId" in {
@@ -47,18 +47,6 @@ class TestFileUtil extends SparkSpec with MockFactory{
     val userdata = Seq(
       ("2020-01-23","29 course","testCourseBatch","Ongoing",Some(0.09),"MPSlug","course_usage")
     ).toDF("date", "courseName", "batchName","status", "timespent", "slug", "reportName")
-    CourseUtils.postDataToBlob(userdata,outputConfig, jobConfig.get)
-  }
-
-  ignore should "execute and run rename Hadoop file with no folderPrefix" in {
-    implicit val sqlContext = new SQLContext(sc)
-    implicit val mockFc = mock[FrameworkContext]
-
-    val mockStorageService = mock[BaseStorageService]
-    (mockFc.getStorageService(_: String)).expects("azure").returns(mockStorageService).anyNumberOfTimes();
-    (mockStorageService.upload (_: String, _: String, _: String, _: Option[Boolean], _: Option[Int], _: Option[Int], _: Option[Int])).expects(*, *, *, *, *, *, *).returns("").anyNumberOfTimes();
-    (mockStorageService.closeContext _).expects().returns().anyNumberOfTimes();
-
-    FileUtil.renameHadoopFiles("src/test/resources/reports/druid-report", "src/test/resources/reports/druid-report/renamed/", "tpd_metrics", List("abc", "xyz"))
+    CourseUtils.postDataToBlob(userdata,outputConfig, jobConfig.get,mockStorageService)
   }
 }

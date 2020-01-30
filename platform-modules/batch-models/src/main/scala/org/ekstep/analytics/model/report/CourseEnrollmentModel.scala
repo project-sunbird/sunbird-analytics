@@ -7,7 +7,6 @@ import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{DataFrame, Encoders, SQLContext}
 import org.ekstep.analytics.framework._
-import org.ekstep.analytics.framework.dispatcher.AzureDispatcher
 import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger}
 import org.ekstep.analytics.job.report.{BaseCourseMetrics, BaseCourseMetricsOutput}
 import org.ekstep.analytics.model.ReportConfig
@@ -40,10 +39,15 @@ object CourseEnrollmentModel extends BaseCourseMetrics[Empty, BaseCourseMetricsO
       reportConfig.output.map { f =>
         if (f.`type`.equals("csv")) {
           val df = data.toDF().na.fill(0L)
-          CourseUtils.postDataToBlob(df, f,config)
+          val storageService = fc.getStorageService("azure")
+          CourseUtils.postDataToBlob(df, f,config, storageService)
+          storageService.closeContext()
         } else {
+          val provider = AppConf.getConfig("cloud_storage_type")
+          val dispatcher = Dispatcher(provider, config)
+
           val strData = data.map(f => JSONUtils.serialize(f))
-          AzureDispatcher.dispatch(strData.collect(), config)
+          OutputDispatcher.dispatch(dispatcher, strData.collect())
         }
       }
     } else {
@@ -55,6 +59,7 @@ object CourseEnrollmentModel extends BaseCourseMetrics[Empty, BaseCourseMetricsO
   def getCourseEnrollmentOutput(events: RDD[BaseCourseMetricsOutput])(implicit sc: SparkContext, fc: FrameworkContext, sqlContext: SQLContext): RDD[(BaseCourseMetricsOutput, Option[ESResponse])] =  {
     val batchId = events.collect().map(f => f.batchId)
     val courseId = events.collect().map(f => f.courseId)
+
     val courseCounts = getCourseBatchCounts(JSONUtils.serialize(courseId),JSONUtils.serialize(batchId))
     val baseCourseMetricsOutput = events.map(f=> (f.courseId,f))
 

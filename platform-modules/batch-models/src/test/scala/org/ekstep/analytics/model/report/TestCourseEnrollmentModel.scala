@@ -88,20 +88,22 @@ class TestCourseEnrollmentModel extends SparkSpec with Matchers with MockFactory
 
     import sqlContext.implicits._
     val userDF = userdata.toDF("channel", "identifier", "courseName")
-    (mockCourseReport.getLiveCourses(_: Map[String, AnyRef])(_: SparkContext)).expects(jobConfig, *).returns(userDF).anyNumberOfTimes()
+    (mockCourseReport.getCourse(_: Map[String, AnyRef])(_: SparkContext)).expects(jobConfig, *).returns(userDF).anyNumberOfTimes()
 
-    val result = CourseEnrollmentModel.execute(sc.emptyRDD, Option(jobConfig))
-    result.count() should be(4)
+    val resultRDD = CourseEnrollmentModel.execute(sc.emptyRDD, Option(jobConfig))
+    val result = resultRDD.collect()
 
-    result.collect().map(f => {
+    resultRDD.count() should be(4)
+
+    result.map(f => {
       f.completionCount should be(0)
     })
 
     val configMap = jobConfig.get("reportConfig").get.asInstanceOf[Map[String,AnyRef]]
     val reportId = JSONUtils.deserialize[ReportConfig](JSONUtils.serialize(configMap)).id
 
-    val slug = result.collect().map(f => f.slug).toList
-    val reportName = result.collect().map(_.reportName).toList.head
+    val slug = result.map(f => f.slug).toList
+    val reportName = result.map(_.reportName).toList.head
     slug.head should be ("MPSlug")
     val filePath = jobConfig.get("filePath").get.asInstanceOf[String]
     val key = jobConfig.get("key").get.asInstanceOf[String]
@@ -166,40 +168,26 @@ class TestCourseEnrollmentModel extends SparkSpec with Matchers with MockFactory
 
     import sqlContext.implicits._
     val userDF = userdata.toDF("channel", "identifier", "courseName")
-    (mockCourseReport.getLiveCourses(_: Map[String, AnyRef])(_: SparkContext)).expects(jobConfig, *).returns(userDF).anyNumberOfTimes()
+    (mockCourseReport.getCourse(_: Map[String, AnyRef])(_: SparkContext)).expects(jobConfig, *).returns(userDF).anyNumberOfTimes()
 
-    val result = CourseEnrollmentModel.execute(sc.emptyRDD, Option(jobConfig))
-    result.count() should be(4)
+    val resultRDD = CourseEnrollmentModel.execute(sc.emptyRDD, Option(jobConfig))
+    val result = resultRDD.collect()
 
-    result.collect().map(f => {
+    resultRDD.count() should be(4)
+
+    result.map(f => {
       f.completionCount should be(0)
     })
 
     val configMap = jobConfig.get("reportConfig").get.asInstanceOf[Map[String,AnyRef]]
     val reportId = JSONUtils.deserialize[ReportConfig](JSONUtils.serialize(configMap)).id
 
-    val slug = result.collect().map(f => f.slug).toList
-    val reportName = result.collect().map(_.reportName).toList.head
+    val slug = result.map(f => f.slug).toList
+    val reportName = result.map(_.reportName).toList.head
     slug.head should be ("MPSlug")
     val filePath = jobConfig.get("filePath").get.asInstanceOf[String]
     val key = jobConfig.get("key").get.asInstanceOf[String]
     val outDir = filePath + key + "renamed/" + reportId + "/" + slug.head + "/"
     outDir should be ("src/test/resources/druid-reports/renamed/tpd_metrics/MPSlug/")
   }
-
-  ignore should "fetch course batch details from elastic search" in {
-
-    val df = CourseEnrollmentModel.getCourseBatchCounts("[\"do_112470675618004992181\",\"0128448115803914244\",\"05ffe180caa164f56ac193964c5816d4\"]","[\"0127462617892044804\",\"0127419590263029761308\",\"01273776766975180837\",\"0128448115803914244\",\"f13124c94392dac507bfe36d247e2246\"]")
-
-    assert(df.count() === 3)
-    var esData = df.filter(df("courseId") === "do_112470675618004992181").collectAsList().get(0)
-    assert(esData.get(0)===2)
-    assert(esData.get(1)===0)
-
-    esData = df.filter(df("courseId") === "0128448115803914244").collectAsList().get(0)
-    assert(esData.get(0)===3)
-    assert(esData.get(1)===3)
-
-  }
-
 }

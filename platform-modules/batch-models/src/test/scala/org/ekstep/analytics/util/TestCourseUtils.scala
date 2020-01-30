@@ -27,7 +27,7 @@ class TestCourseUtils extends SparkSpec(null) with MockFactory{
 
     import sqlContext.implicits._
     val userDF = userdata.toDF("channel", "identifier", "courseName")
-    (mockCourseReport.getLiveCourses(_: Map[String, AnyRef])(_: SparkContext)).expects(jobConfig.get, *).returns(userDF).anyNumberOfTimes()
+    (mockCourseReport.getCourse(_: Map[String, AnyRef])(_: SparkContext)).expects(jobConfig.get, *).returns(userDF).anyNumberOfTimes()
   }
 
   "CourseUtils" should "write to csv even if fileParams not specified" in {
@@ -89,6 +89,6 @@ class TestCourseUtils extends SparkSpec(null) with MockFactory{
     val userdata = Seq(
       ("2020-01-23","29 course","testCourseBatch","Ongoing",Some(0.09),"MPSlug","course_usage")
     ).toDF("date", "courseName", "batchName","status", "timespent", "slug", "reportName")
-    CourseUtils.postDataToBlob(userdata, outputConfig, jobConfig.get)
+    CourseUtils.postDataToBlob(userdata, outputConfig, jobConfig.get,mockStorageService)
   }
 }

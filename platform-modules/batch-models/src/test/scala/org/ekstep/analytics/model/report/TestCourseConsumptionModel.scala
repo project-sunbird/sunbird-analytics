@@ -50,7 +50,7 @@ class TestCourseConsumptionModel extends SparkSpec(null) with MockFactory{
 
     import sqlContext.implicits._
     val userDF = userdata.toDF("channel", "identifier", "courseName")
-    (mockCourseReport.getLiveCourses(_: Map[String, AnyRef])(_: SparkContext)).expects(jobConfig.get, *).returns(userDF).anyNumberOfTimes()
+    (mockCourseReport.getCourse(_: Map[String, AnyRef])(_: SparkContext)).expects(jobConfig.get, *).returns(userDF).anyNumberOfTimes()
 
     //mocking for DruidDataFetcher
     import scala.concurrent.ExecutionContext.Implicits.global
@@ -74,10 +74,11 @@ class TestCourseConsumptionModel extends SparkSpec(null) with MockFactory{
     (mockDruidClient.doQuery(_: DruidQuery)(_: DruidConfig)).expects(*, mockDruidConfig).returns(Future(druidResponse)).anyNumberOfTimes()
     (mockFc.getDruidClient _).expects().returns(mockDruidClient).anyNumberOfTimes()
 
-    val result = CourseConsumptionModel.execute(sc.emptyRDD, jobConfig)
+    val resultRDD = CourseConsumptionModel.execute(sc.emptyRDD, jobConfig)
+    val result = resultRDD.collect()
 
-    result.count() should be (1)
-    result.collect().map{f =>
+    resultRDD.count() should be (1)
+    result.map{f =>
       f.batchName should be ("testCourseBatch")
       f.courseName should be ("29 course")
       f.timespent.get should be (0.09)}
@@ -85,8 +86,8 @@ class TestCourseConsumptionModel extends SparkSpec(null) with MockFactory{
     val configMap = jobConfig.get("reportConfig").asInstanceOf[Map[String, AnyRef]]
     val reportId = JSONUtils.deserialize[ReportConfig](JSONUtils.serialize(configMap)).id
 
-    val slug = result.collect().map(f => f.slug).toList
-    val reportName = result.collect().map(_.reportName).toList.head
+    val slug = result.map(f => f.slug).toList
+    val reportName = result.map(_.reportName).toList.head
     slug.head should be ("MPSlug")
     val filePath = jobConfig.get.get("filePath").get.asInstanceOf[String]
     val key = jobConfig.get.get("key").get.asInstanceOf[String]
@@ -112,7 +113,7 @@ class TestCourseConsumptionModel extends SparkSpec(null) with MockFactory{
 
     import sqlContext.implicits._
     val userDF = userdata.toDF("channel", "identifier", "courseName")
-    (mockCourseReport.getLiveCourses(_: Map[String, AnyRef])(_: SparkContext)).expects(jobConfig.get, *).returns(userDF).anyNumberOfTimes()
+    (mockCourseReport.getCourse(_: Map[String, AnyRef])(_: SparkContext)).expects(jobConfig.get, *).returns(userDF).anyNumberOfTimes()
 
     //mocking for DruidDataFetcher
     import scala.concurrent.ExecutionContext.Implicits.global
@@ -136,10 +137,11 @@ class TestCourseConsumptionModel extends SparkSpec(null) with MockFactory{
     (mockDruidClient.doQuery(_: DruidQuery)(_: DruidConfig)).expects(*, mockDruidConfig).returns(Future(druidResponse)).anyNumberOfTimes()
     (mockFc.getDruidClient _).expects().returns(mockDruidClient).anyNumberOfTimes()
 
-    val result = CourseConsumptionModel.execute(sc.emptyRDD, jobConfig)
+    val resultRDD = CourseConsumptionModel.execute(sc.emptyRDD, jobConfig)
+    val result = resultRDD.collect()
 
-    result.count() should be (1)
-    result.collect().map{f =>
+    resultRDD.count() should be (1)
+    result.map{f =>
       f.batchName should be ("testCourseBatch")
       f.courseName should be ("29 course")
       f.timespent.get should be (0.09)}
@@ -147,8 +149,8 @@ class TestCourseConsumptionModel extends SparkSpec(null) with MockFactory{
     val configMap = jobConfig.get("reportConfig").asInstanceOf[Map[String, AnyRef]]
     val reportId = JSONUtils.deserialize[ReportConfig](JSONUtils.serialize(configMap)).id
 
-    val slug = result.collect().map(f => f.slug).toList
-    val reportName = result.collect().map(_.reportName).toList.head
+    val slug = result.map(f => f.slug).toList
+    val reportName = result.map(_.reportName).toList.head
     slug.head should be ("MPSlug")
     val filePath = jobConfig.get.get("filePath").get.asInstanceOf[String]
     val key = jobConfig.get.get("key").get.asInstanceOf[String]
@@ -156,7 +158,7 @@ class TestCourseConsumptionModel extends SparkSpec(null) with MockFactory{
     outDir should be ("src/test/resources/druid-reports/renamed/tpd_metrics/MPSlug/")
   }
 
-  "CourseConsumptionModel" should "execute successfully and provide null if there are no common keys" in {
+  it should "execute successfully and provide null if there are no common keys" in {
     implicit val sqlContext = new SQLContext(sc)
     implicit val mockFc = mock[FrameworkContext]
 
@@ -174,7 +176,7 @@ class TestCourseConsumptionModel extends SparkSpec(null) with MockFactory{
 
     import sqlContext.implicits._
     val userDF = userdata.toDF("channel", "identifier", "courseName")
-    (mockCourseReport.getLiveCourses(_: Map[String, AnyRef])(_: SparkContext)).expects(jobConfig.get, *).returns(userDF).anyNumberOfTimes()
+    (mockCourseReport.getCourse(_: Map[String, AnyRef])(_: SparkContext)).expects(jobConfig.get, *).returns(userDF).anyNumberOfTimes()
 
     //mocking for DruidDataFetcher
     import scala.concurrent.ExecutionContext.Implicits.global

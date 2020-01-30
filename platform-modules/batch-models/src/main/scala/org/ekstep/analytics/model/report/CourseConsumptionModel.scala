@@ -4,12 +4,12 @@ import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SQLContext
 import org.ekstep.analytics.framework._
-import org.ekstep.analytics.framework.dispatcher.AzureDispatcher
 import org.ekstep.analytics.framework.fetcher.DruidDataFetcher
 import org.ekstep.analytics.framework.util.{JSONUtils, JobLogger}
 import org.ekstep.analytics.job.report.{BaseCourseMetrics, BaseCourseMetricsOutput}
 import org.ekstep.analytics.model.ReportConfig
 import org.ekstep.analytics.util.CourseUtils
+import org.sunbird.cloud.storage.conf.AppConf
 
 //Timespent In Mins for a course: getCoursePlays
 case class CoursePlays(date: String, courseId: String, batchId: String, timespent: Option[Double] = Option(0))
@@ -53,10 +53,15 @@ object CourseConsumptionModel extends BaseCourseMetrics[Empty, BaseCourseMetrics
       reportConfig.output.map { f =>
         if (f.`type`.equals("csv")) {
           val df = data.toDF().na.fill(0L)
-          CourseUtils.postDataToBlob(df, f,config)
+          val storageService = fc.getStorageService("azure")
+          CourseUtils.postDataToBlob(df, f,config, storageService)
+          storageService.closeContext()
         } else {
+          val provider = AppConf.getConfig("cloud_storage_type")
+          val dispatcher = Dispatcher(provider, config)
+
           val strData = data.map(f => JSONUtils.serialize(f))
-          AzureDispatcher.dispatch(strData.collect(), config)
+          OutputDispatcher.dispatch(dispatcher, strData.collect())
         }
       }
     } else {

@@ -4,7 +4,7 @@ import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{DataFrame, Encoders, SQLContext}
 import org.ekstep.analytics.framework._
-import org.ekstep.analytics.util.{BatchStatus, CourseUtils}
+import org.ekstep.analytics.util.CourseUtils
 
 case class BaseCourseMetricsOutput(courseName: String, batchName: String, status: String, slug: String, courseId: String, batchId: String) extends AlgoInput
 
@@ -18,10 +18,10 @@ trait BaseCourseMetrics[T <: AnyRef, A <: BaseCourseMetricsOutput, B <: AlgoOutp
 
   def getCourseMetrics(config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): DataFrame = {
     implicit val sqlContext = new SQLContext(sc)
-    val liveCourses = CourseUtils.getCourse(config)
+    val courses = CourseUtils.getCourse(config)
     val courseBatch = CourseUtils.getCourseBatchDetails()
     val tenantInfo = CourseUtils.getTenantInfo()
-    val joinCourses = liveCourses.join(courseBatch, liveCourses.col("identifier") === courseBatch.col("courseId"), "inner")
+    val joinCourses = courses.join(courseBatch, courses.col("identifier") === courseBatch.col("courseId"), "inner")
     val joinWithTenant = joinCourses.join(tenantInfo, joinCourses.col("channel") === tenantInfo.col("id"), "inner")
     joinWithTenant.na.fill("unknown", Seq("slug")).select("courseName","batchName","status","slug", "courseId", "batchId")
   }
