@@ -69,7 +69,6 @@ object CourseUtils {
     val labelsLookup = reportConfig.labels ++ Map("date" -> "Date")
     val key = config.getOrElse("key", null).asInstanceOf[String]
 
-    val metricFields = outputConfig.metrics
     val fieldsList = data.columns
     val dimsLabels = labelsLookup.filter(x => outputConfig.dims.contains(x._1)).values.toList
     val filteredDf = data.select(fieldsList.head, fieldsList.tail: _*)
@@ -90,7 +89,6 @@ object CourseUtils {
     val fileParameters = config.getOrElse("fileParameters", List("")).asInstanceOf[List[String]]
     var dims = config.getOrElse("folderPrefix", List()).asInstanceOf[List[String]]
 
-    dims = if (fileParameters.nonEmpty && fileParameters.contains("date")) dims else dims
     val finalPath = filePath + key.split("/").last
 
     if(dims.nonEmpty) {
