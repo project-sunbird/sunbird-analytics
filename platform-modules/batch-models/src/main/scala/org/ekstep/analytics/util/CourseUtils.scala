@@ -16,9 +16,7 @@ case class CourseInfo(channel: String, identifier: String, name: String)
 
 trait CourseReport {
   def getCourse(config: Map[String, AnyRef])(sc: SparkContext): DataFrame
-
   def loadData(spark: SparkSession, settings: Map[String, String]): DataFrame
-
   def getCourseBatchDetails(spark: SparkSession, loadData: (SparkSession, Map[String, String]) => DataFrame): DataFrame
   def getTenantInfo(spark: SparkSession, loadData: (SparkSession, Map[String, String]) => DataFrame): DataFrame
   def writeToCSVAndRename(data: DataFrame, config: Map[String, AnyRef])(implicit sc: SparkContext): String
