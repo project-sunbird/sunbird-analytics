@@ -40,7 +40,6 @@ object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DevicePro
     val responseRDD = sqlContext.sparkSession.read.jdbc(url, deviceTable, connProperties).as[DeviceProfileOutput](encoder).rdd
     val prevDeviceProfile = responseRDD.map{f => (DeviceProfileKey(f.device_id), f)}
     val deviceData = newGroupedEvents.leftOuterJoin(prevDeviceProfile)
-//    deviceData.count()
       deviceData.map { x =>
       val deviceProfileInputData = x._2
       DeviceProfileInput(x._1, deviceProfileInputData._1, deviceProfileInputData._2)
@@ -72,14 +71,14 @@ object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DevicePro
   override def postProcess(data: RDD[DeviceProfileOutput], config: Map[String, AnyRef])(implicit sc: SparkContext, fc: FrameworkContext): RDD[Empty] = {
     val queries = data.map{ f =>
       val keyList: List[String] = List("first_access", "last_access", "updated_date", "api_last_updated_on")
-      val first_access = f.first_access.get
-      val last_access = f.last_access.get
-      val updated_date = f.updated_date.get
-      val api_last_updated = f.api_last_updated_on.getOrElse(new Timestamp(System.currentTimeMillis()))
+      val firstAccess = f.first_access.get
+      val lastAccess = f.last_access.get
+      val updatedDate = f.updated_date.get
+      val apiLastUpdated = f.api_last_updated_on.getOrElse(new Timestamp(System.currentTimeMillis()))
 
       val fieldMap = JSONUtils.deserialize[Map[String, Any]](JSONUtils.serialize(f)).filter(_._2 != null)
       val filteredMap = fieldMap.--(keyList)
-      val resultMap = filteredMap ++ Map("first_access" -> first_access, "last_access" -> last_access, "updated_date" -> updated_date, "api_last_updated_on" -> api_last_updated)
+      val resultMap = filteredMap ++ Map("first_access" -> firstAccess, "last_access" -> lastAccess, "updated_date" -> updatedDate, "api_last_updated_on" -> apiLastUpdated)
 
       val columns = resultMap.keySet.mkString(",")
       val values = resultMap.values.mkString("','")
