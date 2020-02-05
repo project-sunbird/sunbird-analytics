@@ -2,7 +2,6 @@ package org.ekstep.analytics.updater
 
 import java.sql.{DriverManager, Timestamp}
 
-import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.spark.rdd._
 import org.apache.spark.sql.{Encoders, SQLContext}
 import org.apache.spark.{HashPartitioner, SparkContext}
@@ -94,9 +93,8 @@ object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DevicePro
 
   def dispatchEventsToPostgres(queries: RDD[String]): Unit =
   {
-    val config: Config = ConfigFactory.load()
-    val user = config.getString("postgres.user")
-    val pass = config.getString("postgres.pass")
+    val user = connProperties.getProperty("user")
+    val pass = connProperties.getProperty("password")
 
     queries
       .foreachPartition { (rddpartition: Iterator[String]) =>
