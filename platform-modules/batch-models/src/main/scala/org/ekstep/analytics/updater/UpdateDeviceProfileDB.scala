@@ -76,10 +76,12 @@ object UpdateDeviceProfileDB extends IBatchModelTemplate[DerivedEvent, DevicePro
       val updatedDate = f.updated_date.get
       val apiLastUpdated = f.api_last_updated_on.getOrElse(new Timestamp(System.currentTimeMillis()))
 
-      val fieldMap = JSONUtils.deserialize[Map[String, Any]](JSONUtils.serialize(f)).filter(_._2 != null)
+      val fieldMap = JSONUtils.deserialize[Map[String, AnyRef]](JSONUtils.serialize(f)).filter(_._2 != null)
       val filteredMap = fieldMap.--(keyList)
-      val resultMap = filteredMap ++ Map("first_access" -> firstAccess, "last_access" -> lastAccess, "updated_date" -> updatedDate, "api_last_updated_on" -> apiLastUpdated)
-
+      val resultMap = if(f.user_declared_on.nonEmpty)
+        filteredMap ++ Map("first_access" -> firstAccess, "last_access" -> lastAccess, "updated_date" -> updatedDate, "api_last_updated_on" -> apiLastUpdated, "user_declared_on" -> f.user_declared_on.get)
+      else
+        filteredMap ++ Map("first_access" -> firstAccess, "last_access" -> lastAccess, "updated_date" -> updatedDate, "api_last_updated_on" -> apiLastUpdated)
       val columns = resultMap.keySet.mkString(",")
       val values = resultMap.values.mkString("','")
 
