@@ -58,7 +58,7 @@ class TestStateAdminGeoReportJob extends SparkSpec(null) with MockFactory {
     assert(geoSummaryDistrict.exists() === true)
   }
 
-  "StateAdminGeoReportJob" should "execute dispatcher" in {
+  ignore should "execute dispatcher" in {
     implicit val fc = new FrameworkContext()
     val reportDF = StateAdminGeoReportJob.generateGeoReport()(spark, fc)
 
