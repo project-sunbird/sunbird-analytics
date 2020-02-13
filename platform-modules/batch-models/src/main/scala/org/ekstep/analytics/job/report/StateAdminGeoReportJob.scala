@@ -85,7 +85,7 @@ object StateAdminGeoReportJob extends optional.Application with IJob with StateA
     val virtualEnvDirectory = params.getOrElse("adhoc_scripts_virtualenv_dir", "/mount/venv")
     val scriptOutputDirectory = params.getOrElse("adhoc_scripts_output_dir", "/mount/portal_data")
 
-    val slugs = blockData.select(col("slug")).distinct().collect().mkString(",")
+    val slugs = blockData.select(col("slug")).distinct().collect.map(_.getString(0)).mkString(",")
     val userDetailReportCommand = Seq("bash", "-c",
       s"source $virtualEnvDirectory/bin/activate; " +
       s"dataproducts user_detail --data_store_location='$scriptOutputDirectory' --states='$slugs'")
